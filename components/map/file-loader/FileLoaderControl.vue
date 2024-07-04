@@ -194,6 +194,7 @@
         "file-error-parsing-gpx": "Found problems while parsing GPX file. Please, validate your file.",
         "file-error-parsing-kmlz": "Found problems while parsing KMZ/KML file. Please, validate your file",
         "file-error-general": "File type not acceptable on system.",
+        "file-error-sizing": "File exceeds size maximum accepted by the system. Insert a file up to 1000kB.",
         "file-error-internal": "Internal Error: "
     },
     "pt-br": {
@@ -207,6 +208,7 @@
         "file-error-parsing-gpx": "Problemas encontrados durante a análise do arquivo GPX. Por favor, valide o arquivo.",
         "file-error-parsing-kmlz": "Problemas encontrados durante a análise do arquivo KMZ/KML. Por favor, valide o arquivo",
         "file-error-general": "Arquivo não aceito pelo sistema.",
+        "file-error-sizing": "O arquivo excede o tamanho máximo aceito pelo sistema. Insira um arquivo de até 1000kB.",
         "file-error-internal": "Erro interno: "
     }
 }
@@ -273,6 +275,7 @@ export default {
     openFileOptions(file) {
       if (file === this.showFileOptions) this.showFileOptions = null;
       else this.showFileOptions = file;
+      this.saveIntoDb(file.length)
     },
 
     flyToBound(feature) {
@@ -292,6 +295,7 @@ export default {
     },
 
     saveIntoDb(index) {
+      console.log("save into saveIntoDb method", index )
       this.files.splice(index, 1);
       this.saveToDatabase({ index });
     },
@@ -313,6 +317,7 @@ export default {
       };
       this.files.push(file);
       this.addFileToMap(file);
+      this.saveIntoDb(this.files.length - 1)
     },
 
     rgbToHex(color) {
@@ -440,6 +445,10 @@ export default {
     },
 
     loadFile(f) {
+      if (f.size > 1000000){
+        this.fileError(null, this.$i18n.t('file-error-sizing'))
+        return
+      }
       let type = null;
       this.$emit('loading');
       const reader = new FileReader();
@@ -448,7 +457,8 @@ export default {
       } else {
         type = f.type;
       }
-      reader.onload = (e) => this.$emit('load', e.target.result);
+      reader.onload = (e) => {
+        this.$emit('load', e.target.result)};
       const loadMethod = this.loadFileMethod(type);
       reader.addEventListener('load', (evt) => loadMethod(evt.target, f.name));
       this.readFile(f, reader, type);
