@@ -215,9 +215,12 @@ export const actions = {
       const response = await this.$api.post('user/upload-file/', {
         name,
         geometry: feature,
+        // a forced truefully on visible post method
+        visible: true
       });
 
       if (response) {
+        console.log(response)
         commit(
           'alert/addAlert',
           {

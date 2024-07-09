@@ -285,7 +285,7 @@ export default {
 
     hasGeometryOnFeature(feature, geometries) {
       return (
-        feature.features.some((f) => geometries.includes(f.geometry.type)) || false
+        feature.features?.some((f) => geometries.includes(f.geometry.type)) || false
       );
     },
 
@@ -304,7 +304,7 @@ export default {
       this.showOptions = !this.showOptions;
     },
 
-    addToMap(data, name) {
+    async addToMap(data, name) {
       const isPoint = this.hasGeometryOnFeature(data, [
         'Point',
         'MultiPoint',
@@ -314,8 +314,9 @@ export default {
         feature: data,
         color: this.getRandomColor(),
         opacity: isPoint ? 0.8 : 0,
+        visible: true
       };
-      this.files.push(file);
+      await this.files.push(file);
       this.addFileToMap(file);
       this.saveIntoDb(this.files.length - 1)
     },
