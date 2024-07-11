@@ -244,8 +244,16 @@ export default {
     name: '',
   }),
 
+  created(){
+    this.getLayersUser()
+    this.hasAddLayer ? (
+      this.toggleLayer()
+   ) : ''
+  },
+
   computed: {
     ...mapState('supportLayersUser', ['supportLayerUser']),
+    ...mapState('map', ['hasAddLayer']),
   },
 
   methods: {

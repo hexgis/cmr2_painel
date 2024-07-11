@@ -49,134 +49,7 @@
           />
         </div>
       </transition>
-      <transition name="slide-y-file-drawer">
-        <div
-          v-if="showOptions"
-          class="file-list"
-        >
-          <div
-            v-for="(file, i) of fileList"
-            :key="i"
-            class="file-list-box"
-          >
-            <div class="file-block">
-              <div class="file-button-area">
-                <ConfirmButton
-                  icon="mdi-delete-outline"
-                  :icon-tooltip="$t('remove-feature-tooltip')"
-                  @remove="remove(i)"
-                />
 
-                <v-tooltip top>
-                  <template #activator="{ on, attrs }">
-                    <v-btn
-                      icon
-                      class="go-to-icon"
-                      v-bind="attrs"
-                      v-on="on"
-                      @click="flyToBound(file.feature)"
-                    >
-                      <v-icon size="50">
-                        {{ 'mdi-navigation-outline' }}
-                      </v-icon>
-                    </v-btn>
-                  </template>
-                  <span>{{ $t('go-to-tooltip') }}</span>
-                </v-tooltip>
-                <ConfirmButton
-                  icon="mdi-database-plus-outline"
-                  :icon-tooltip="$t('database-tooltip')"
-                  @confirm="saveIntoDb(i)"
-                />
-              </div>
-
-              <span
-                class="file-name-span"
-                :title="file.name.length > 25 ? file.name : ''"
-              >
-                {{ file.name }}
-              </span>
-
-              <div
-                class="right-icon-class"
-                @click="openFileOptions(i)"
-              >
-                <div
-                  v-if="showFileOptions !== i"
-                  class="file-legend"
-                  :style="{
-                    '--background-color': `${file.color}30`,
-                    '--color': file.color,
-                    '--radius': hasGeometryOnFeature(
-                      file.feature,
-                      [
-                        'Polygon',
-                        'MultiPolygon',
-                        'LineString',
-                        'MultiLineString',
-                      ]
-                    )
-                      ? '2px'
-                      : '20px',
-                  }"
-                />
-                <v-icon v-else>
-                  {{ 'mdi-close' }}
-                </v-icon>
-              </div>
-            </div>
-
-            <v-row style="overflow: hidden; margin: 0">
-              <transition name="slide-y-file-option-drawer">
-                <div
-                  v-if="showFileOptions === i"
-                  class="file-option"
-                >
-                  <div
-                    class="slide-up-class"
-                    @click="openFileOptions(i)"
-                  >
-                    <v-icon>
-                      {{ 'mdi-chevron-up' }}
-                    </v-icon>
-                  </div>
-                  <v-color-picker
-                    dot-size="15"
-                    :value="file.color"
-                    hide-inputs
-                    @update:color="
-                      (color) => setFileColor(i, color)
-                    "
-                  />
-
-                  <v-row
-                    class="black--text text--lighten-2"
-                    align="center"
-                  >
-                    <v-col cols="4">
-                      Opacidade
-                    </v-col>
-                    <v-col cols="8">
-                      <v-slider
-                        thumb-label
-                        hide-details
-                        :value="file.opacity * 100"
-                        @change="
-                          (opacity) =>
-                            setFileOpacity(
-                              i,
-                              opacity / 100
-                            )
-                        "
-                      />
-                    </v-col>
-                  </v-row>
-                </div>
-              </transition>
-            </v-row>
-          </div>
-        </div>
-      </transition>
     </div>
   </div>
 </template>
@@ -302,6 +175,19 @@ export default {
 
     removeAllFeatures() {
       this.showOptions = !this.showOptions;
+    },
+
+    async toggleLayer() {
+      if (!this.supportLayerUser[this.layer.id].geometry) {
+        await this.getLayersUserGeoJson({
+          id: this.layer.id,
+        });
+      }
+      this.toggleLayerVisibility({
+        id: this.layer.id,
+        visible: !this.layer.visible,
+      });
+      this.isOpen = this.layer.visible;
     },
 
     async addToMap(data, name) {
@@ -466,6 +352,11 @@ export default {
     },
     ...mapMutations('map', ['addFileToMap', 'removeFileFromMap']),
     ...mapActions('map', ['changeStyle', 'saveToDatabase']),
+    ...mapMutations('supportLayersUser', ['toggleLayerVisibility']),
+    ...mapActions('supportLayersUser', [
+      'getLayersUserGeoJson',
+      'getLayersUser',
+    ]),
   },
 };
 </script>

@@ -109,7 +109,7 @@ export default {
                                     layer.setStyle({
                                         color,
                                         fillColor: color,
-                                        fillOpacity: opacity,
+                                        fillOpacity: 0.1,
                                         fill: ![
                                             'LineString',
                                             'MultiLineString',
@@ -118,7 +118,7 @@ export default {
                                     })
                                 },
                             })
-                            .addTo(this.$refs.feats.mapObject)
+                            // .addTo(this.$refs.feats.mapObject)
                             .bringToFront()
                     } else {
                         newGrid = this.$L.vectorGrid
@@ -129,8 +129,8 @@ export default {
                                     sliced: () => ({
                                         color,
                                         fillColor: color,
-                                        fillOpacity: opacity,
-                                        fill: true,
+                                        fillOpacity: 0.1,
+                                        fill: false,
                                         radius: 6,
                                     }),
                                 },
@@ -140,7 +140,7 @@ export default {
                             .on('click', (e) => {
                                 this.feature = e.layer.properties || null
                             })
-                            .addTo(this.$refs.feats.mapObject)
+                            // .addTo(this.$refs.feats.mapObject)
                             .bringToFront()
                     }
 
