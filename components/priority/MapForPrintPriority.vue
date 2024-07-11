@@ -427,7 +427,6 @@ export default {
     },
   },
   data: () => ({
-
     headers: [
       { text: 'Terra Indígena', value: 'no_ti' },
       { text: 'Código Funai', value: 'co_funai' },

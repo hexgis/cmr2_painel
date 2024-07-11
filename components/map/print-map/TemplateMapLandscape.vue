@@ -335,6 +335,11 @@ export default {
 }
 
 @media print {
+    .logo {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+  }
+
     .container {
         position: fixed;
         top: 0;
@@ -347,12 +352,6 @@ export default {
     .no-print {
         display: none;
     }
-}
-
-.layer-thumbnail {
-    width: 100%;
-    height: auto; /* Garante que a altura se ajuste proporcionalmente à largura */
-    max-width: 100%; /* Garante que a imagem não ultrapasse a largura do container */
 }
 
 p {

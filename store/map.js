@@ -61,6 +61,10 @@ export const mutations = {
     state.activeMenu = payload !== state.activeMenu ? payload : '';
   },
 
+  setActiveMenuMarker(state, payload) {
+    state.activeMenu = payload !== state.activeMenu ? payload : '';
+  },
+
   setBounds: (state, bounds) => (state.bounds = bounds),
 
   setLocalBounds: (state, localBounds) => (state.localBounds = localBounds),

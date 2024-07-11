@@ -142,7 +142,7 @@ export default {
     display: flex
     width: 100%
     bottom: 0
-    padding-bottom: 8px
+    padding: 3px 0
 
 .username
     pointer-events: none

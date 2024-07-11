@@ -93,6 +93,11 @@
               :selected-base-map="selectedBaseMap"
               :show-tms="tmsToPrint.visible"
             />
+            <Highlighter
+              :map="map"
+              :show="activeMenu === 'Highlighter'"
+              @toggleTool="setActiveMenuMarker"
+            />
           </div>
         </l-control>
 
@@ -268,6 +273,8 @@ import 'leaflet-basemaps/L.Control.Basemaps.css';
 import 'leaflet-minimap/dist/Control.MiniMap.min.css';
 import DrawingPanel from '@/components/map/drawing-tool/DrawingPanel.vue';
 
+import Highlighter from '@/components/map/Highlighter.vue';
+
 if (typeof window !== 'undefined') {
   require('leaflet-bing-layer');
   require('leaflet-basemaps');
@@ -302,6 +309,8 @@ export default {
     SupportLayersHazard,
     SupportUserLayersMap,
     DrawingPanel,
+
+    Highlighter,
   },
 
   props: {
@@ -362,7 +371,7 @@ export default {
           maxZoom: 21,
           maxNativeZoom: 18,
           zIndex: 1,
-          
+
         },
       },
       {
@@ -700,6 +709,7 @@ export default {
       'setMapLoading',
       'setLocalBounds',
       'setActiveMenu',
+      'setActiveMenuMarker',
     ]),
   },
 };
@@ -804,11 +814,11 @@ export default {
     opacity: 1
     transform: scale(1.1)
 
-@media (max-width: 768px)    
+@media (max-width: 768px)
 
-  .basemap img 
+  .basemap img
     width: 54px
 
   .basemap span
-    font-size: 10px  
+    font-size: 10px
 </style>

@@ -105,9 +105,9 @@ export default {
   i18n: {
     vueI18nLoader: true,
     locales: ['pt-br', 'en'],
-    defaultLocale: 'pt-br',
+    defaultLocale: 'en',
     vueI18n: {
-      fallbackLocale: 'pt-br',
+      fallbackLocale: 'en',
       messages,
     },
   },

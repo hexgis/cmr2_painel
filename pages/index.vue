@@ -24,11 +24,18 @@
         </v-tab>
 
         <v-tab-item :transition="false" :reverse-transition="false">
+            <div id="img-wrapper" class="d-flex justify-center">
+                <v-img
+                contain
+                :src="logo_funai"
+                />
+            </div>
             <nuxt-child keep-alive />
 
             <div
                 v-if="isIndex"
-                class="info fill-height d-flex flex-column align-content-space-between"
+                class="info d-flex flex-column align-content-space-between"
+                style="height: 90%;"
             >
                 <v-list>
                     <v-list-item
@@ -93,6 +100,7 @@ export default {
 
     data() {
         return {
+            logo_funai: process.env.DEFAULT_LOGO_IMAGE_CMR,
             activeTab: 0,
             compareTabIndex: null,
             settings: false,
@@ -237,8 +245,11 @@ export default {
 
   .right-tabs
     flex-direction: row-reverse
+    position: relative
+    min-height: 550px
 
     > .v-slide-group > .v-slide-group__wrapper > .v-slide-group__content
+      min-height: 550px
       > .v-tab
         min-width: 0px
 
@@ -249,6 +260,7 @@ export default {
       overflow-y: auto
       height: 100%
       display: block !important
+      margin-bottom: 50px
 
   .scroll-y-transition-enter-active,
   .scroll-y-transition-leave-active
@@ -270,6 +282,14 @@ export default {
     > .v-btn--icon
       color: whitesmoke
 
+  #img-wrapper
+    position: absolute
+    bottom: 0
+    width: 100%
+    height: 50px
+    background: #F5F5F5
+    padding: 5px 0
+
   @media (max-width: 768px)
     .v-list-item__title
       margin-bottom: 12px !important
@@ -279,4 +299,15 @@ export default {
       padding-top: 4px
       color: white !important
       font-size: 150% !important
+
+  @media (max-height: 620px)
+    .v-list-item__title
+      margin-bottom: 0 !important
+
+    .v-list-item
+      min-height: 40px
+
+    .v-tabs--vertical > .v-tabs-bar .v-tab
+      height: 41px
+
 </style>
