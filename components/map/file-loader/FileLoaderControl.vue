@@ -168,7 +168,6 @@ export default {
     },
 
     saveIntoDb(index) {
-      console.log("save into saveIntoDb method", index )
       this.files.splice(index, 1);
       this.saveToDatabase({ index });
     },

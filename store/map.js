@@ -223,7 +223,6 @@ export const actions = {
       });
 
       if (response) {
-        console.log(response)
         commit(
           'alert/addAlert',
           {
