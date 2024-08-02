@@ -69,7 +69,8 @@
     "priority-tab": "Priorities",
     "document-tab": "Document",
     "mapoteca-tab": "Map Library",
-    "deter-tab": "Deter"
+    "deter-tab": "Deter",
+    "logs-tab": "Graphics View"
   },
   "pt-br": {
     "analytics-tab": "Analytics",
@@ -84,7 +85,8 @@
     "priority-tab": "Polígonos Prioritários",
     "document-tab": "Documental",
     "mapoteca-tab": "Mapoteca",
-    "deter-tab": "Deter"
+    "deter-tab": "Deter",
+    "logs-tab": "Gráficos de Acesso"
   }
 }
 </i18n>
@@ -190,6 +192,12 @@ export default {
                     icon: 'mdi-chart-box-outline',
                     route: '/analytics',
                     show: process.env.ROUTE_ANALYTICS === 'true',
+                },
+                {
+                    name: this.$t('logs-tab'),
+                    icon: 'mdi-chart-line',
+                    route: '/views-chart',
+                    show: process.env.ROUTE_VIEWS === 'true',
                 },
             ]
         },
