@@ -172,7 +172,6 @@ export const actions = {
 
                 const monthlyData = []
                 response.monthly_counts.forEach((item) => {
-                    console.log(item)
                     monthlyData.push(item)
                 })
                 commit('setMonthlyCounts', monthlyData)
