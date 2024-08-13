@@ -33,6 +33,7 @@
 
 <script>
 import { Bar } from 'vue-chartjs'
+import { mapGetters } from 'vuex'
 
 export default {
     extends: Bar,
@@ -41,10 +42,16 @@ export default {
             monthlyCounts: [],
         }
     },
+    computed:{
+      ...mapGetters('charts', ['getTodayDate'])
+    },
     async mounted() {
+        let actualYear = new Date()
+        actualYear = actualYear.getUTCFullYear()
+
         try {
             let response = await this.$api.$get(
-                '/dashboard/get-all/?startDate=01/01/2023&endDate=31/07/2024&location=&type_device=&browser='
+                `/dashboard/get-all/?startDate=${actualYear-1}-01-01&endDate=${this.getTodayDate}&location=&type_device=&browser=`
             )
             this.monthlyCounts = response.monthly_counts
 
