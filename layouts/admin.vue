@@ -22,21 +22,44 @@
     </v-main>
   </v-app>
 </template>
-
+<i18n>
+  {
+  "pt-br": {
+    "dashboard": "Visualizar Acessos",
+    "manage_users": "Gerenciar Usuários",
+    "restricted_access": "Conceder acesso à Área Restrita",
+    "manage_permissions": "Gerenciar Permissões",
+    "manage_layers": "Gerenciar Camadas",
+    "manage_documents": "Gerenciar Documentos",
+    "mapoteca": "Mapoteca",
+    "feedback": "Críticas e Sugestões"
+  },
+  "en": {
+    "dashboard": "View Accesses",
+    "manage_users": "Manage Users",
+    "restricted_access": "Grant Access to Restricted Area",
+    "manage_permissions": "Manage Permissions",
+    "manage_layers": "Manage Layers",
+    "manage_documents": "Manage Documents",
+    "mapoteca": "Map Library",
+    "feedback": "Feedback and Suggestions"
+  }
+}
+</i18n>
 <script>
 export default {
   name: 'App',
   data() {
     return {
       adminLabels: [
-        { route: '/dashboard', label: 'Visualizar Acessos' },
-        { route: '/admin/usuarios', label: 'Gerenciar Usuários' },
-        { route: '/admin/area-restrita', label: 'Conceder acesso à Área Restrita' },
-        { route: '/admin/permissoes', label: 'Gerenciar Permissões' },
-        { route: '/admin/camadas', label: 'Gerenciar Camadas' },
-        { route: '/admin/documentos', label: 'Gerenciar Documentos' },
-        { route: '/mapoteca', label: 'Mapoteca' },
-        { route: '/admin/criticas', label: 'Críticas e Sugestões' },
+        { route: '/dashboard', label: this.$t('dashboard') },
+        { route: '/admin/usuarios', label: this.$t('manage_users') },
+        { route: '/admin/area-restrita', label: this.$t('restricted_access') },
+        { route: '/admin/permissoes', label: this.$t('manage_permissions') },
+        { route: '/admin/camadas', label: this.$t('manage_layers') },
+        { route: '/admin/documentos', label: this.$t('manage_documents') },
+        { route: '/mapoteca', label: this.$t('mapoteca') },
+        { route: '/admin/criticas', label: this.$t('feedback') }
       ],
       selectedRoute: this.$route.path,
     };
@@ -68,7 +91,6 @@ export default {
     width: 30%
     max-width: 300px
     min-height: 100vh
-    padding-left: 1rem
     border-radius: 0 1.5rem 1.5rem 0
 
     &-img
@@ -94,7 +116,7 @@ export default {
       &:last-child
         position: absolute
         bottom: 0
-        width: 95%
+        width: 100%
 
       &:hover,
       &.selected-tab
