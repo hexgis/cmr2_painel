@@ -1,32 +1,31 @@
 <template>
- <v-container class="pa-0">
-    <div class="tab-header justify-space-between">
-      <v-row>
-        <h6 class="subtitle-2 text-uppercase font-weight-regular tab-title">
-          {{ $t('title') }}
-        </h6>
-        <v-tooltip>
-          <template #activator="{ on }">
-            <v-icon
-              class="infoIconMargin"
-              v-on="on"
-            >
-              mdi-information
-            </v-icon>
-          </template>
-          <span>
-           {{ $t('data-source-label') }}
-          </span>
-        </v-tooltip>
-        <v-switch
-          v-show="!loading"
-          v-model="showFeatures"
-          class="mt-n1 switch-margin"
-          hide-details
-        />
-      </v-row>
-    </div>
-    <v-tabs
+    <v-container class="pa-0">
+        <div class="tab-header justify-space-between">
+            <v-row>
+                <h6
+                    class="subtitle-2 text-uppercase font-weight-regular tab-title"
+                >
+                    {{ $t('title') }}
+                </h6>
+                <v-tooltip>
+                    <template #activator="{ on }">
+                        <v-icon class="infoIconMargin" v-on="on">
+                            mdi-information
+                        </v-icon>
+                    </template>
+                    <span>
+                        {{ $t('data-source-label') }}
+                    </span>
+                </v-tooltip>
+                <v-switch
+                    v-show="!loading"
+                    v-model="showFeatures"
+                    class="mt-n1 switch-margin"
+                    hide-details
+                />
+            </v-row>
+        </div>
+        <v-tabs
             v-model="tab"
             background-color="#D42A3E"
             centered
@@ -109,7 +108,7 @@
                             :label="$t('search-label-years')"
                             multiple
                             clearable
-                            :items="years"
+                            :items="yearsPlanet"
                             outlined
                             :search-input.sync="searchInputYears"
                             @input="searchInputYears = null"
@@ -117,12 +116,8 @@
                         />
                     </v-col>
 
-                    <v-list
-      v-if="!$fetchState.pending"
-      expand
-      class="pt-0"
-    >
-    <template v-for="group in filteredGroups">
+                    <v-list v-if="!$fetchState.pending" expand class="pt-0">
+                        <template v-for="group in filteredGroups">
                             <SupportLayersGroupRaster
                                 :key="group.id"
                                 :group="group"
@@ -130,8 +125,8 @@
                                 :isPlanet="true"
                             />
                         </template>
-    </v-list>
-  </v-card>
+                    </v-list>
+                </v-card>
             </v-tab-item>
         </v-tabs-items>
         <div v-if="$fetchState.pending">
@@ -165,9 +160,9 @@
 </i18n>
 
 <script>
-import { mapState, mapMutations } from 'vuex';
-import _ from 'lodash';
-import SupportLayersGroupRaster from '@/components/support/SupportLayersGroupRaster';
+import { mapState, mapMutations } from 'vuex'
+import _ from 'lodash'
+import SupportLayersGroupRaster from '@/components/support/SupportLayersGroupRaster'
 
 export default {
     name: 'SupportRaster',
@@ -192,11 +187,34 @@ export default {
 
     computed: {
         years() {
-            const currentYear = new Date().getFullYear()
-            return Array.from(
-                { length: currentYear - 2014 },
-                (v, i) => 2015 + i
+            const groupsWithContent = this.orderedSupportLayersGroups.filter(
+                (group) => group.layers && group.layers.length > 0 && !group.name.includes('Planet')
             )
+            const yearsWithContent = groupsWithContent
+                .map((group) => {
+                    const match = group.name.match(/\d{4}$/)
+                    return match ? parseInt(match[0]) : null
+                })
+                .filter((year) => year !== null)
+            return Array.from(new Set(yearsWithContent)).sort((a, b) => a - b)
+        },
+
+        yearsPlanet() {
+            const groupsWithContent = this.orderedSupportLayersGroups.filter(
+                (group) =>
+                    group.layers &&
+                    group.layers.length > 0 &&
+                    group.name.includes('Planet')
+            )
+
+            const yearsWithContent = groupsWithContent
+                .map((group) => {
+                    const match = group.name.match(/\d{4}$/)
+                    return match ? parseInt(match[0]) : null
+                })
+                .filter((year) => year !== null)
+
+            return Array.from(new Set(yearsWithContent)).sort((a, b) => a - b)
         },
 
         orderedSupportLayersGroups() {
@@ -216,23 +234,24 @@ export default {
                 .value()
         },
 
-
-    showFeatures: {
-      get() {
-        return this.$store.state.supportLayers
-          .showFeaturesSupportLayersRaster
-      },
-      set(value) {
-        this.$store.commit(
-          'supportLayers/setshowFeaturesSupportLayersRaster',
-          value
-        )
-      },
-    },
+        showFeatures: {
+            get() {
+                return this.$store.state.supportLayers
+                    .showFeaturesSupportLayersRaster
+            },
+            set(value) {
+                this.$store.commit(
+                    'supportLayers/setshowFeaturesSupportLayersRaster',
+                    value
+                )
+            },
+        },
 
         groupsFilteredByYear() {
             if (!this.selectedYears.length) {
-                return this.orderedSupportLayersGroups
+                return this.orderedSupportLayersGroups.filter(
+                    (group) => group.layers && group.layers.length > 0
+                )
             }
 
             return this.orderedSupportLayersGroups.filter((group) => {
@@ -240,7 +259,12 @@ export default {
                 const groupYear = groupYearMatch
                     ? parseInt(groupYearMatch[0])
                     : null
-                return groupYear && this.selectedYears.includes(groupYear)
+                return (
+                    groupYear &&
+                    this.selectedYears.includes(groupYear) &&
+                    group.layers &&
+                    group.layers.length > 0
+                )
             })
         },
 
@@ -315,30 +339,29 @@ export default {
 }
 
 .selected {
-    background-color: red
+    background-color: red;
 }
 
 .infoIconMargin {
     margin-left: 4px;
-  }
+}
 
 .switch-margin {
-    margin-left: 60px
-
-  }
+    margin-left: 60px;
+}
 
 @media (max-width: 768px) {
-  .infoIconMargin {
-    margin-left: 2px;
-  }
+    .infoIconMargin {
+        margin-left: 2px;
+    }
 
-  .tab-title {
-    font-size: 90% !important;
-  }
+    .tab-title {
+        font-size: 90% !important;
+    }
 
-  .switch-margin {
-    margin-top: 10px;
-    margin-left: 0px
-  }
+    .switch-margin {
+        margin-top: 10px;
+        margin-left: 0px;
+    }
 }
 </style>

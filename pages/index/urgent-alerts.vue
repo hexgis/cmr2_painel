@@ -32,7 +32,7 @@
     <AlertFilter @onSearch="search()" />
     <ShowDialog />
     <div
-      v-if="showFeaturesUrgentAlert && !isLoadingFeatures"
+      v-if="showFeaturesUrgentAlerts && !isLoadingFeatures"
       class="mx-4"
     >
       <v-divider class="mt-1" />
@@ -113,7 +113,7 @@
 
 <script>
 import { mapActions, mapMutations, mapState } from 'vuex';
-import AlertFilter from '@/components/urgent-alerts/AlertFilter.vue';
+import AlertFilter from '@/components/monitoring/AlertFilter.vue';
 import ShowDialog from '@/components/show-dialog/ShowDialog';
 
 export default {
@@ -140,19 +140,19 @@ export default {
     showFeaturesAlert: {
       get() {
         return this.$store.state['urgent-alerts']
-          .showFeaturesUrgentAlert;
+          .showFeaturesUrgentAlerts;
       },
 
       set(value) {
         this.$store.commit(
-          'urgent-alerts/setshowFeaturesUrgentAlert',
+          'urgent-alerts/setshowFeaturesUrgentAlerts',
           value,
         );
       },
     },
 
     ...mapState('urgent-alerts', [
-      'showFeaturesUrgentAlert',
+      'showFeaturesUrgentAlerts',
       'features',
       'table',
       'tableDialogAlert',
@@ -166,11 +166,11 @@ export default {
         this.checkNewFilters = true;
         this.getDataTable();
       }
-      if (!this.tableDialogAlert) this.getFeatures();
+      if (!this.tableDialogAlert) this.getFeaturesUrgentAlerts();
     },
 
     ...mapActions('urgent-alerts', [
-      'getFeatures',
+      'getFeaturesUrgentAlerts',
       'getDataTable',
     ]),
   },

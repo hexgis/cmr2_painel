@@ -30,12 +30,27 @@
           <v-col
             cols="8"
             class="pr-0 mt-2"
+            id="monitoring-data-details"
           >
+            <div
+            v-if="showFeaturesMonitoring"
+            class="leaflet-bottom leaflet-right mt-2"
+            id="data-table"
+            >
+              <div v-for="item in analyticsMonitoring" :key="item" class="text-center">
+                <p><strong>TI {{ item.no_ti }}</strong></p>
+                <p>Área da TI: {{formatNumber(item.ti_nu_area_ha)}} ha</p>
+                <p v-if="item.cr_nu_area_ha">CR: {{formatNumber(item.cr_nu_area_ha)}} ha</p>
+                <p v-if="item.dg_nu_area_ha">DG: {{formatNumber(item.dg_nu_area_ha)}} ha</p>
+                <p v-if="item.dr_nu_area_ha">DR: {{formatNumber(item.dr_nu_area_ha)}} ha</p>
+                <p v-if="item.ff_nu_area_ha">FF: {{formatNumber(item.ff_nu_area_ha)}} ha</p>
+              </div>
+            </div>
             <MapForPrint
               :leaf-size="leafSize"
               :main-map="mainMap"
               :selected-base-map="selectedBaseMap"
-              class="teste"
+              class="map-wrapper"
               @updateBounds="updateBounds"
               @getCenter="getCenter"
             />
@@ -93,7 +108,10 @@
                       class="ma-1 flex-wrap"
                       style="width: 100%; max-height: 100%; overflow: hidden;"
                     >
-                      <LayerList :layers="supportLayerUser" />
+                      <LayerList
+                        :layers="supportLayerUser"
+                        :isUserLayer="true"
+                      />
                       <LayerList
                         v-if="showFeaturesSupportLayers"
                         :layers="supportLayers"
@@ -112,7 +130,7 @@
                         :items="deterItems"
                       />
                       <CustomizedLegend
-                        v-if="showFeaturesUrgentAlert && !showFeaturesMonitoring"
+                        v-if="showFeaturesUrgentAlerts && !showFeaturesMonitoring"
                         :items="urgentAlertItems"
                       />
                       <LayerList
@@ -155,6 +173,9 @@
                       </div>
                     </div>
                   </div>
+                  <div v-if="showFeaturesMonitoring">
+                    <p class="ml-1">{{ $t('monitoring-print-label')}} {{ handleData(filters.startDate) }} {{ $t('and') }} {{ handleData(filters.endDate) }}</p>
+                  </div>
                 </div>
 
                 <div>
@@ -185,17 +206,6 @@
             </div>
           </v-col>
         </v-row>
-        <div
-          v-if="showFeaturesMonitoring"
-          style="width: 100%"
-        >
-          <v-data-table
-            :headers="headers"
-            :items="analyticsMonitoring"
-            hide-default-footer
-            class="elevation-1"
-          />
-        </div>
         <div class="no-print">
           <div class="d-flex flex-row align-md-center mr-6 mt-2">
             <v-btn
@@ -249,7 +259,9 @@
               "village": "Village",
               "natural-vegetation": "Natural Vegetation",
               "clear-cut": "Clear Cut"
-          }
+          },
+          "monitoring-print-label": "Daily Monitoring Data between",
+          "and": "and"
 
       },
       "pt-br": {
@@ -278,7 +290,9 @@
               "village": "Vilarejo",
               "natural-vegetation": "Vegetação Natural",
               "clear-cut": "Corte Raso"
-          }
+          },
+          "monitoring-print-label": "Dados de Monitoramento Diário entre",
+          "and": "e"
       }
   }
 </i18n>
@@ -385,7 +399,7 @@ export default {
         || this.showFeaturesMonitoring
         || this.showFeaturesDeter
         || this.showFeaturesLandUse
-        || this.showFeaturesUrgentAlert
+        || this.showFeaturesUrgentAlerts
       );
     },
     layerCategories() {
@@ -406,9 +420,9 @@ export default {
       'supportLayersCategoryProdes',
       'supportLayersCategoryAntropismo',
     ]),
-    ...mapState('monitoring', ['selectedStages', 'showFeaturesMonitoring', 'analyticsMonitoring']),
+    ...mapState('monitoring', ['selectedStages', 'showFeaturesMonitoring', 'analyticsMonitoring', 'filters']),
     ...mapState('deter', ['showFeaturesDeter', 'features']),
-    ...mapState('urgent-alerts', ['showFeaturesUrgentAlert']),
+    ...mapState('urgent-alerts', ['showFeaturesUrgentAlerts']),
     ...mapState('land-use', ['showFeaturesLandUse', 'features']),
 
   },
@@ -444,6 +458,14 @@ export default {
   },
 
   methods: {
+    formatNumber(value) {
+    const number = parseFloat(value)
+    if (!isNaN(number)) {
+      return number.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return '-';
+  },
+
     vectorImage(layer) {
       return layer.vector.thumbnail_blob || layer.vector.image;
     },
@@ -502,12 +524,33 @@ export default {
 </script>
 
 <style scoped>
-.teste {
+#monitoring-data-details{
+  position: relative;
+}
+
+#data-table{
+  position: absolute;
+  right: 0.5rem;
+  bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-start;
+  flex-direction: column;
+  max-height: 760px;
+  gap: 0.5rem;
+}
+
+#data-table > div {
+  background: #fffbfb;
+  opacity: 0.9;
+  padding: 5px;
+}
+.map-wrapper {
   width: 100%;
 
 }
 
-.vue2leaflet-map teste leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom{
+.vue2leaflet-map map-wrapper leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom{
   height: 30vh !important;
 }
 

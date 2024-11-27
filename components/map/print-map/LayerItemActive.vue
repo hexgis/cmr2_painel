@@ -1,8 +1,19 @@
 <template>
   <div>
     <v-row v-if="isActiveLayer" no-gutters align="center" class="image-container">
+      <svg v-if="isUserLayer && layerType(layers)" class="layer-thumbnail" id="Layer_1" style="enable-background:new 0 0 91 91;" version="1.1" viewBox="0 0 91 91" xml:space="preserve"
+        xmlns="http://www.w3.org/2000/svg">
+        <g>
+          <path
+            d="M66.9,41.8c0-11.3-9.1-20.4-20.4-20.4c-11.3,0-20.4,9.1-20.4,20.4c0,11.3,20.4,32.4,20.4,32.4S66.9,53.1,66.9,41.8z
+                    M37,41.4c0-5.2,4.3-9.5,9.5-9.5c5.2,0,9.5,4.2,9.5,9.5c0,5.2-4.2,9.5-9.5,9.5C41.3,50.9,37,46.6,37,41.4z"
+            :fill="layers.properties?.color || layers.color"
+            :stroke="layers.properties?.color || layers.color" stroke-width="2"
+          />
+        </g>
+      </svg>
       <v-icon
-        v-if="!layers.wms"
+        v-else-if="!layers.wms"
         :color="layers.properties?.color || layers.color"
         class="layer-thumbnail">
         mdi-square
@@ -27,13 +38,16 @@
 export default {
   props: {
     layers: {
-      type: Array,
+      type: [Array, Object],
       required: true
     },
     monitoring: {
       type: Boolean
     },
     prodes: {
+      type: Boolean
+    },
+    isUserLayer: {
       type: Boolean
     }
   },
@@ -48,7 +62,10 @@ export default {
   methods: {
     vectorImage(layers) {
       return layers.vector?.thumbnail_blob || layers.vector?.image;
-    }
+    },
+    layerType(layer){
+      return layer.geometry.features[0].geometry.type === 'Point'
+    },
   }
 }
 </script>

@@ -12,7 +12,7 @@
                 <div class="d-flex justify-end align-center mt-1">
                     <v-switch
                         v-if="features"
-                        v-model="featuresMonitoring"
+                        v-model="featuresUrgentAlerts"
                         class="mt-3"
                         hide-details
                     />
@@ -32,6 +32,7 @@
                     class="pa-0"
                 />
             </v-col>
+
             <v-col cols="12">
                 <v-slide-y-transition>
                     <v-combobox
@@ -59,6 +60,7 @@
                     :min-date="'2015-01-01'"
                 />
             </v-col>
+
             <v-col class="py-0 full-width">
                 <BaseDateField
                     v-model="filters.endDate"
@@ -70,13 +72,13 @@
             </v-col>
         </v-row>
         <v-row no-gutters align="center">
-            <v-col v-show="showFeaturesMonitoring">
+            <v-col v-show="showFeaturesUrgentAlerts">
                 <v-btn
                     color="accent"
                     :loading="isLoadingGeoJson"
                     icon
                     small
-                    @click="downloadGeoJsonMonitoring()"
+                    @click="downloadGeoJson()"
                 >
                     <v-tooltip left>
                         <template #activator="{ on }">
@@ -86,26 +88,11 @@
                     </v-tooltip>
                 </v-btn>
                 <v-btn
-                    :loading="isLoadingStatistic"
+                    :loading="isLoadingTable"
                     small
-                    color="accent"
                     icon
-                    @click="showTableDialogAnalytics(true), (dialog = true)"
-                >
-                    <v-tooltip left>
-                        <template #activator="{ on }">
-                            <v-icon v-on="on"> mdi-chart-box </v-icon>
-                        </template>
-                        <span>{{ $t('statistics-label') }}</span>
-                    </v-tooltip>
-                </v-btn>
-
-                <v-btn
-                    small
-                    :loading="isLoadingTableMonitoring"
                     color="accent"
-                    icon
-                    @click="showTableDialog(true)"
+                    @click="showTableAlert(true)"
                 >
                     <v-tooltip left>
                         <template #activator="{ on }">
@@ -115,36 +102,35 @@
                     </v-tooltip>
                 </v-btn>
             </v-col>
-            <v-col v-if="showFeaturesMonitoring" class="ml-5">
+            <v-col v-if="!showFeaturesUrgentAlerts">
                 <v-btn
-                    block
                     small
+                    block
                     color="primary"
                     outlined
                     :loading="isLoadingFeatures"
-                    @click="searchMonitoring"
+                    @click="search"
                 >
                     {{ $t('search-label') }}
                 </v-btn>
             </v-col>
-            <v-col v-if="!showFeaturesMonitoring">
+            <v-col v-if="showFeaturesUrgentAlerts" class="ml-5">
                 <v-btn
                     block
                     small
                     color="primary"
                     outlined
                     :loading="isLoadingFeatures"
-                    @click="searchMonitoring"
+                    @click="search"
                 >
                     {{ $t('search-label') }}
                 </v-btn>
             </v-col>
         </v-row>
         <v-divider
-            v-if="showFeaturesMonitoring && !isLoadingFeatures"
+            v-if="showFeaturesUrgentAlerts && !isLoadingFeatures"
             class="mt-4"
         />
-
         <div v-if="isLoadingFeatures" class="mt-1">
             <v-row no-gutters justify="center">
                 <v-col cols="6">
@@ -182,10 +168,7 @@
             </div>
         </div>
 
-        <v-row
-            v-if="showFeaturesMonitoring && total && !isLoadingFeatures"
-            class="mt-3"
-        >
+        <v-row v-if="showFeaturesUrgentAlerts && total" class="mt-3">
             <v-col cols="7" class="grey--text text--darken-2 text-label">
                 {{ $t('polygon-label') }}:
             </v-col>
@@ -196,7 +179,7 @@
 
         <v-row
             v-if="
-                showFeaturesMonitoring &&
+                showFeaturesUrgentAlerts &&
                 total &&
                 total.area_ha &&
                 !isLoadingFeatures
@@ -215,7 +198,7 @@
             </v-col>
         </v-row>
         <v-row
-            v-if="showFeaturesMonitoring && !isLoadingFeatures"
+            v-if="showFeaturesUrgentAlerts && !isLoadingFeatures"
             align="center"
         >
             <v-col cols="4" class="grey--text text--darken-2">
@@ -226,7 +209,7 @@
             </v-col>
         </v-row>
         <v-row
-            v-if="showFeaturesMonitoring && !isLoadingFeatures"
+            v-if="showFeaturesUrgentAlerts && !isLoadingFeatures"
             align="center"
             justify="space-between"
         >
@@ -239,78 +222,68 @@
                 <v-switch v-model="heatMap" class="mt-0 pt-0" hide-details />
             </v-col>
         </v-row>
-        <div v-if="tableDialogMonitoring" class="d-none">
+        <div v-if="tableDialogAlert" class="d-none">
             <TableDialog
-                :table="tableDialogMonitoring"
+                :table="tableDialogAlert"
                 :headers="headers"
-                :value="tableMonitoring"
-                :loading-table="isLoadingTableMonitoring"
-                :loading-c-s-v="isLoadingCSVMonitoring"
-                :f-download-c-s-v="downloadTableMonitoring"
+                :value="table"
+                :loading-table="isLoadingTable"
+                :loading-c-s-v="isLoadingCSV"
+                :f-download-c-s-v="downloadTable"
                 :table-name="$t('table-name')"
                 :f-close-table="closeTable"
-            />
-        </div>
-        <div v-if="dialog" class="d-none">
-            <AnalyticalDialog
-                :value="analyticsMonitoringDialog"
-                :close-dialog="closeAnalyticalDialog"
             />
         </div>
     </v-col>
 </template>
 
-  <i18n>
+<i18n>
     {
-    "en": {
-    "search-label": "Search",
-    "opacity-label": "Opacity",
-    "current-view-label": "Search in current area?",
-    "start-date-label": "Start Date",
-    "end-date-label": "End Date",
-    "total-area-label": "Total Area",
-    "heat-map-label": "Heat Map",
-    "polygon-label": "Polygon Count",
-    "table-name": "Monitoring Table",
-    "regional-coordination-label": "Regional Coordination (All)",
-    "indigenous-lands-label": "Indigenous Lands",
-    "download-label": "Download",
-    "statistics-label": "Statistics",
-    "table-label": "Table"
-    },
-    "pt-br": {
-    "search-label": "Buscar",
-    "opacity-label": "Opacidade",
-    "current-view-label": "Pesquisar nesta área?",
-    "start-date-label": "Data Início",
-    "end-date-label": "Data Final",
-    "total-area-label": "Área total",
-    "heat-map-label": "Mapa de Calor",
-    "polygon-label": "Total de polígonos",
-    "table-name": "Tabela de Monitoramento",
-      "regional-coordination-label": "Coordenação Regional (Todas)",
-      "indigenous-lands-label": "Terras Indígenas",
-      "download-label": "Baixar",
-      "statistics-label": "Estatísticas",
-      "table-label": "Tabela"
+        "en": {
+            "search-label": "Search",
+            "opacity-label": "Opacity",
+            "current-view-label": "Search in current area?",
+            "start-date-label": "Start Date",
+            "total-area-label": "Total Area",
+            "heat-map-label": "Heat Map",
+            "polygon-label": "Polygon count",
+            "end-date-label": "End Date",
+            "table-name": "Urgent Alerts",
+            "regional-coordination-label": "Regional Coordination (All)",
+            "indigenous-lands-label": "Indigenous Lands (All)",
+            "table-label": "Table",
+            "download-label": "Download"
+        },
+        "pt-br": {
+            "search-label": "Buscar",
+            "opacity-label": "Opacidade",
+            "current-view-label": "Pesquisar nesta área?",
+            "total-area-label": "Área total",
+            "heat-map-label": "Mapa de Calor",
+            "polygon-label": "Total de polígonos",
+            "start-date-label": "Data Início",
+            "end-date-label": "Data Fim",
+            "table-name": "Alertas Urgentes",
+            "regional-coordination-label": "Coordenação Regional (Todas)",
+            "indigenous-lands-label": "Terras Indígenas (Todas)",
+            "table-label": "Tabela",
+            "download-label": "Download"
+        }
     }
-    }
-  </i18n>
+</i18n>
 
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex'
 import BaseDateField from '@/components/base/BaseDateField'
 import legend from '@/assets/legend.png'
 import TableDialog from '@/components/table-dialog/TableDialog.vue'
-import AnalyticalDialog from '../analytical-dialog/AnalyticalDialog.vue'
 
 export default {
-    name: 'MonitoringFilter',
+    name: 'AlertFilter',
 
     components: {
         BaseDateField,
         TableDialog,
-        AnalyticalDialog,
     },
 
     data() {
@@ -320,7 +293,6 @@ export default {
                 startDate: this.$moment().format('YYYY-MM-DD'),
                 endDate: this.$moment().format('YYYY-MM-DD'),
                 currentView: false,
-                priority: null,
                 cr: [],
                 ti: null,
             },
@@ -351,7 +323,6 @@ export default {
             })
             this.populateTiOptions(arrayCrPoulate)
         },
-
         'filterOptions.regionalFilters': function () {
             this.populateCrOptions()
         },
@@ -360,51 +331,48 @@ export default {
     computed: {
         opacity: {
             get() {
-                return this.$store.state.monitoring.opacity
+                return this.$store.state['urgent-alerts'].opacity
             },
-
             set(value) {
-                this.$store.commit('monitoring/setOpacity', value)
+                this.$store.commit('urgent-alerts/setOpacity', value)
             },
         },
 
         heatMap: {
             get() {
-                return this.$store.state.monitoring.heatMap
+                return this.$store.state['urgent-alerts'].heatMap
             },
-
             set(value) {
-                this.$store.commit('monitoring/setHeatMap', value)
+                this.$store.commit('urgent-alerts/setHeatMap', value)
             },
         },
 
-        featuresMonitoring: {
+        featuresUrgentAlerts: {
             get() {
-                return this.$store.state.monitoring.showFeaturesMonitoring
+                return this.$store.state['urgent-alerts']
+                    .showFeaturesUrgentAlerts
             },
 
             set(value) {
                 this.$store.commit(
-                    'monitoring/setshowFeaturesMonitoring',
+                    'urgent-alerts/setshowFeaturesUrgentAlerts',
                     value
                 )
             },
         },
 
-        ...mapState('monitoring', [
+        ...mapState('urgent-alerts', [
             'isLoadingFeatures',
             'filterOptions',
             'features',
-            'showFeaturesMonitoring',
+            'showFeaturesUrgentAlerts',
             'total',
-            'analyticsMonitoring',
             'isLoadingGeoJson',
-            'tableDialogMonitoring',
-            'tableMonitoring',
-            'isLoadingTableMonitoring',
-            'isLoadingCSVMonitoring',
-            'isLoadingStatistic',
-            'analyticsMonitoringDialog',
+            'tableDialogAlert',
+            'table',
+            'params',
+            'isLoadingTable',
+            'isLoadingCSV',
         ]),
     },
 
@@ -436,42 +404,31 @@ export default {
         },
 
         populateTiOptions(cr) {
-            if (cr) this.$store.dispatch('monitoring/getTiOptions', cr)
+            if (cr) this.$store.dispatch('urgent-alerts/getTiOptions', cr)
             else this.filters.ti = null
-        },
-
-        closeAnalyticalDialog(value) {
-            this.dialog = value
         },
 
         closeTable(value) {
             if (!this.checkNewFilters) {
-                this.settableDialogMonitoring(value)
+                this.settableDialogAlert(value)
                 this.setshowTableDialog(value)
             } else {
-                this.settableDialogMonitoring(value)
+                this.settableDialogAlert(value)
                 this.setshowTableDialog(value)
                 this.getFeatures()
                 this.checkNewFilters = false
             }
         },
 
-        showTableDialog(value) {
+        showTableAlert(value) {
             if (this.features) {
-                this.settableDialogMonitoring(value)
+                this.settableDialogAlert(value)
                 this.setshowTableDialog(value)
-                this.getDataTableMonitoring()
+                this.getDataTable()
             }
         },
 
-        showTableDialogAnalytics(value) {
-            if (this.features) {
-                this.setanalyticsMonitoringDialog(value)
-                this.getDataAnalyticsMonitoringByFunaiYear()
-            }
-        },
-
-        searchMonitoring() {
+        search() {
             const { filters } = this
             const { currentView, cr, startDate, endDate } = filters
 
@@ -489,22 +446,19 @@ export default {
             }
             this.error = true
         },
+
         ...mapMutations('tableDialog', ['setshowTableDialog']),
-        ...mapMutations('monitoring', [
+        ...mapMutations('urgent-alerts', [
             'setFilters',
-            'settableDialogMonitoring',
+            'settableDialogAlert',
             'setLoadingTable',
-            'setLoadingStatistic',
-            'setanalyticsMonitoringDialog',
         ]),
-        ...mapActions('monitoring', [
+        ...mapActions('urgent-alerts', [
             'getFilterOptions',
             'getFeatures',
-            'getDataAnalyticsMonitoringByDay',
-            'downloadGeoJsonMonitoring',
-            'downloadTableMonitoring',
-            'getDataTableMonitoring',
-            'getDataAnalyticsMonitoringByFunaiYear',
+            'downloadGeoJson',
+            'downloadTable',
+            'getDataTable',
         ]),
     },
 }
@@ -523,3 +477,4 @@ export default {
     }
 }
 </style>
+

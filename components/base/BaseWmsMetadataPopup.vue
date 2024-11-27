@@ -1,5 +1,5 @@
 <template>
-  <l-layer-group ref="popup">
+  <l-layer-group ref="popup" :visible="!isDrawing">
     <l-popup :options="popupOptions">
       <LoadingIconVue v-if="isLoadingData" />
       <v-card
@@ -181,6 +181,7 @@
   }
   </i18n>
 <script>
+import {mapState} from 'vuex';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import LoadingIconVue from '../map/file-loader/LoadingIcon.vue';
 
@@ -219,6 +220,8 @@ export default {
         color: 'secondary',
       };
     },
+
+    ...mapState('map', ['isDrawing']),
   },
 
   watch: {
@@ -403,18 +406,17 @@ export default {
       );
     },
 
-    async  fetchInstrumentoGestao(co_funai) {
-      const url = `https://cmr.funai.gov.br/priority_api/funai/instrumento-gestao/?co_funai=${co_funai}`;
-      this.$axios
-        .get(url)
-        .then((response) => {
-          const { data } = response;
-          this.instrumentoGestao = data;
-        })
-        .catch((error) => {
-          console.error('Error fetching data:', error);
-          this.instrumentoGestao = {};
-        });
+    async fetchInstrumentoGestao(co_funai) {
+      this.loadingData = true;
+      const url = `funai/instrumento-gestao/?co_funai=${co_funai}`;
+      try {
+        this.instrumentoGestao = await this.$api.$get(url);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        this.instrumentoGestao = {};
+      } finally {
+        this.loadingData = false;
+      }
     },
   },
 };

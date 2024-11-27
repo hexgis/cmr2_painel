@@ -1,6 +1,13 @@
 <template>
   <div>
-    <LayerItem v-for="layer in layers" :key="layer.id" :layers="layer" :monitoring=monitoring :prodes="prodes" />
+    <LayerItem
+      v-for="layer in layers"
+      :key="layer.id"
+      :layers="layer"
+      :monitoring=monitoring
+      :prodes="prodes"
+      :isUserLayer="isUserLayer"
+    />
   </div>
 </template>
 
@@ -13,13 +20,16 @@ export default {
   },
   props: {
     layers: {
-      type: Array,
+      type: [Array, Object],
       required: true
     },
     monitoring:{
       type: Boolean
     },
     prodes:{
+      type: Boolean
+    },
+    isUserLayer:{
       type: Boolean
     }
   },

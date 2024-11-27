@@ -429,7 +429,7 @@ import MiniMapForPrintPriority from '@/components/priority/MiniMapForPrintPriori
 import PriorityIndividualLayer from '@/components/priority/PriorityIndividualLayer';
 import MonitoringLayers from '@/components/monitoring/MonitoringLayers';
 import SupportLayers from '@/components/support/SupportLayers';
-import AlertLayers from '@/components/urgent-alerts/AlertLayers';
+import AlertLayers from '@/components/monitoring/AlertLayers';
 import SupportLayersHazard from '@/components/support/SupportLayersHazard';
 import SupportLayersProdes from '@/components/support/SupportLayersProdes';
 import SupportLayersRaster from '@/components/support/SupportLayersRaster';
@@ -505,7 +505,7 @@ export default {
     ...mapState('map', []),
     ...mapState('priority', ['showFeatures', 'detail']),
     ...mapState('monitoring', ['showFeaturesMonitoring']),
-    ...mapState('urgent-alerts', ['showFeaturesUrgentAlert']),
+    ...mapState('urgent-alerts', ['showFeaturesUrgentAlerts']),
     ...mapState('supportLayers', [
       'showFeaturesSupportLayers',
       'supportLayers',

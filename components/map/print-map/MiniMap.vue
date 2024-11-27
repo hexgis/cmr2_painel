@@ -58,8 +58,8 @@ export default {
   }),
 
   watch: {
-    currentBouldMap() {
-      this.aimingRect.setBounds(this.currentBouldMap);
+    async currentBouldMap() {
+      await this.aimingRect.setBounds(this.currentBouldMap);
     },
 
     mapCenter() {

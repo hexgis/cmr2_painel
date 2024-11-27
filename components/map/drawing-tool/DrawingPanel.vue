@@ -264,7 +264,7 @@ export default {
       { icon: 'mdi-checkbox-blank-circle', type: 'Circle' },
       { icon: 'mdi-map-marker', type: 'Marker' },
       { icon: 'mdi-panorama-fisheye', type: 'CircleMarker' },
-      //{ icon: 'mdi-format-text', type: 'TextBox' },
+      { icon: 'mdi-format-text', type: 'TextBox' },
     ],
     buttonsEdit: [
       { icon: 'mdi-pencil-box', type: 'Edit' },

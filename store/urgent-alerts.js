@@ -1,6 +1,6 @@
 export const state = () => ({
   features: null,
-  showFeaturesUrgentAlert: false,
+  showFeaturesUrgentAlerts: false,
   heatMap: false,
   tableDialogAlert: false,
   isLoadingTable: false,
@@ -26,9 +26,15 @@ export const state = () => ({
   total: null,
   table: [],
   tableCSV: [],
+  selectedStages: ['CR', 'DG', 'DR', 'FF'],
+  stageItemActive: [],
 });
 
 export const getters = {
+  getShowFeaturesUrgentAlerts: (state) => {
+    return state.showFeaturesUrgentAlerts;
+  },
+
   featuresLoaded(state) {
     return (
       !!state.features
@@ -39,6 +45,35 @@ export const getters = {
 };
 
 export const mutations = {
+  setSelectedStages(state, value) {
+    state.selectedStages.push(value);
+  },
+
+  removeSelectedStages(state, value) {
+    const index = state.selectedStages.indexOf(value);
+    if (index !== -1) {
+      state.selectedStages.splice(index, 1);
+    }
+  },
+  
+  setFeatures(state, features) {
+    state.features = features;
+    state.isLoadingFeatures = false;
+  },
+
+  setStageItemActive(state, value){
+    state.stageItemActive = value
+  },
+
+  setshowFeaturesUrgentAlerts(state, showFeaturesUrgentAlerts) {
+    state.showFeaturesUrgentAlerts = showFeaturesUrgentAlerts;
+  },
+
+  clearFeatures(state) {
+    state.features = null;
+  },
+
+
   setFilters(state, filters) {
     state.filters = {
       ...state.filters,
@@ -50,9 +85,6 @@ export const mutations = {
     state.params = params;
   },
 
-  setFeatures(state, features) {
-    state.features = features;
-  },
 
   settableDialogAlert(state, tableDialogAlert) {
     state.tableDialogAlert = tableDialogAlert;
@@ -66,9 +98,7 @@ export const mutations = {
     state.isLoadingFeatures = payload;
   },
 
-  clearFeatures(state) {
-    state.features = null;
-  },
+ 
 
   setLoadingCSV(state, payload) {
     state.isLoadingCSV = payload;
@@ -78,9 +108,7 @@ export const mutations = {
     state.isLoadingGeoJson = payload;
   },
 
-  setshowFeaturesUrgentAlert(state, showFeaturesUrgentAlert) {
-    state.showFeaturesUrgentAlert = showFeaturesUrgentAlert;
-  },
+  
 
   setOpacity(state, opacity) {
     state.opacity = opacity;
@@ -116,6 +144,12 @@ export const mutations = {
 };
 
 export const actions = {
+  async updateFeatures({ state, commit }){
+    let updatedFeatures =  { features: state.stageItemActive, ...state.features }
+    commit('setFeatures', updatedFeatures);
+    commit('setshowFeaturesUrgentAlerts', true);
+  },
+
   async getFeatures({ state, commit, rootGetters }) {
     commit('setLoadingGeoJson', true);
     commit('setLoadingFeatures', true);
@@ -151,16 +185,22 @@ export const actions = {
       });
 
       if (!response.features || !response.features.length) {
-        commit('setshowFeaturesUrgentAlert', false);
+        commit('setshowFeaturesUrgentAlerts', false);
         commit(
           'alert/addAlert',
           { message: this.$i18n.t('no-result') },
           { root: true },
         );
       } else {
-        commit('setshowFeaturesUrgentAlert', true);
+        let stageItemActive = []
+        response.features.map((item)=>{
+          state.selectedStages.map((stageActive) => {
+            stageActive === item.properties.no_estagio ? stageItemActive.push(item) : ""
+          })
+        })
         commit('setFeatures', response);
-
+        commit('setshowFeaturesUrgentAlerts', true);
+        commit('setStageItemActive', stageItemActive);
         const total = await this.$api.$get('alerts/stats/', {
           params,
         });
@@ -184,6 +224,31 @@ export const actions = {
       commit('setLoadingTable', false);
     }
   },
+
+  selectedStages(){
+    let features = this.features;
+    features.forEach((item) => {
+      if (item.properties.no_estagio) {
+        switch (value) {
+          case 'CR':
+            this.featureNoEstagio.cr.push(item);
+            commit('setSelectedStages', item);
+            break;
+          case 'DG':
+            this.featureNoEstagio.dg.push(item);
+            commit('setSelectedStages', item);
+            break;
+          case 'FF':
+            this.featureNoEstagio.ff.push(item);
+            commit('setSelectedStages', item);
+            break;
+          case 'DR':
+            this.featureNoEstagio.dr.push(item);
+            commit('setSelectedStages', item);
+            break;
+        }
+      }
+  })},
 
   async getFilterOptions({ commit }) {
     const regional_coordinators = await this.$api.$get('funai/cr/');

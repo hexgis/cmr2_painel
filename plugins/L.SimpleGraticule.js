@@ -28,21 +28,25 @@ L.SimpleGraticule = L.LayerGroup.extend({
     },
 
     onAdd: function (map) {
-        this._map = map
-
-        var graticule = this.redraw()
-        this._map.on(
-            'viewreset ' + this.options.redraw,
-            graticule.redraw,
-            graticule
-        )
-
-        this.eachLayer(map.addLayer, map)
+        this._map = map;
+    
+        var graticule = this.redraw();
+        if (this.options.redraw) {
+            this._map.on(
+                'viewreset ' + this.options.redraw,
+                graticule.redraw,
+                graticule
+            );
+        }
+    
+        this.eachLayer(map.addLayer, map);
     },
-
+    
     onRemove: function (map) {
-        map.off('viewreset ' + this.options.redraw, this.map)
-        this.eachLayer(this.removeLayer, this)
+        if (this.options.redraw) {
+            map.off('viewreset ' + this.options.redraw, this.redraw, this);
+        }
+        this.eachLayer(this.removeLayer, this);
     },
 
     hide: function () {

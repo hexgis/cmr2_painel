@@ -3,6 +3,7 @@ import jwtDecode from 'jwt-decode';
 export const state = () => ({
   token: null,
   refresh: null,
+  confirmationCode: null,
 });
 
 export const getters = {
@@ -28,6 +29,9 @@ export const mutations = {
   clearTokens(state) {
     state.token = null;
     state.refresh = null;
+  },
+  setConfirmationCode(state, code) {
+    state.confirmationCode = code;
   },
 };
 
