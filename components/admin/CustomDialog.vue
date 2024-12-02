@@ -11,7 +11,9 @@
       <v-card-actions v-if="hasCta">
           <v-spacer></v-spacer>
           <v-btn color="#9A9997" plain @click="dialog = false">{{ $t('cancel') }}</v-btn>
-          <v-btn id="save-btn" color="#D92B3F" style="color: #FFFFFF" elevated @click="saveBtn">{{ $t('save') }}</v-btn>
+          <v-btn id="save-btn" color="#D92B3F" style="color: #FFFFFF" elevated @click="saveBtn">
+            {{ $t('save') }}
+          </v-btn>
         </v-card-actions>
     </v-card>
   </v-dialog>
