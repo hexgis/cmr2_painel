@@ -7,7 +7,6 @@
     no-click-animation
     scrollable
     color="primary"
-
     transition="dialog-transition"
   >
     <v-card>
@@ -15,7 +14,7 @@
         dark
         color="secondary"
       >
-        <h3>Analytics</h3>
+        <h3>{{ $t('analyticsTitle') }}</h3>
         <v-spacer />
         <v-btn
           icon
@@ -29,7 +28,7 @@
           <v-row>
             <v-col cols="12">
               <div>
-                <span class="text-uppercase">Agrupar por:</span>
+                <span class="text-uppercase">{{ $t('groupBy') }}:</span>
                 <a class="d-flex justify-end">
                   <v-btn
                     small
@@ -48,42 +47,42 @@
                   :disabled="isLoadingFeatures"
                   @click="groupByFunai()"
                 >
-                  Terra Indigena
+                  {{ $t('indigenousLand') }}
                 </v-btn>
                 <v-btn
                   :class="btn_ti_month_year ? 'button-pressed' : ''"
                   :disabled="isLoadingFeatures"
                   @click="groupByFunaiMonthYear()"
                 >
-                  Terra Indigena, Mês e Ano
+                  {{ $t('indigenousLandMonthYear') }}
                 </v-btn>
                 <v-btn
                   :class="btn_month_year ? 'button-pressed' : ''"
                   :disabled="isLoadingFeatures"
                   @click="groupByMonthYear()"
                 >
-                  Mês e Ano
+                  {{ $t('monthYear') }}
                 </v-btn>
                 <v-btn
                   :class="btn_year ? 'button-pressed' : ''"
                   :disabled="isLoadingFeatures"
                   @click="groupByYear()"
                 >
-                  Ano
+                  {{ $t('year') }}
                 </v-btn>
                 <v-btn
                   :class="btn_day ? 'button-pressed' : ''"
                   :disabled="isLoadingFeatures"
                   @click="groupByDay()"
                 >
-                  Dia
+                  {{ $t('day') }}
                 </v-btn>
                 <v-btn
                   :class="btn_ti_year ? 'button-pressed' : '' "
                   :disabled="isLoadingFeatures"
                   @click="groupByFunaiYear()"
                 >
-                  Terra Indigena e Ano
+                  {{ $t('indigenousLandYear') }}
                 </v-btn>
               </div>
             </v-col>
@@ -96,7 +95,7 @@
                   v-model="selectedHeaders"
                   :items="headers"
                   :disabled="isLoadingFeatures"
-                  label="Selecione as Colunas que Serão Apresentadas"
+                  :label="$t('selectColumns')"
                   multiple
                   outlined
                   return-object
@@ -108,7 +107,7 @@
                     <span
                       v-if="index === 8"
                       class="grey--text caption"
-                    >(+{{ selectedHeaders.length - 8 }} colunas)</span>
+                    >(+{{ selectedHeaders.length - 8 }} {{ $t('columns') }})</span>
                   </template>
                 </v-select>
               </div>
@@ -129,6 +128,34 @@
   </v-dialog>
 </template>
 
+<i18n>
+{
+  "en": {
+    "analyticsTitle": "Analytics",
+    "groupBy": "Group by",
+    "indigenousLand": "Indigenous Land",
+    "indigenousLandMonthYear": "Indigenous Land, Month and Year",
+    "monthYear": "Month and Year",
+    "year": "Year",
+    "day": "Day",
+    "indigenousLandYear": "Indigenous Land and Year",
+    "selectColumns": "Select the Columns to Display",
+    "columns": "columns"
+  },
+  "pt-br": {
+    "analyticsTitle": "Analítico",
+    "groupBy": "Agrupar por",
+    "indigenousLand": "Terra Indígena",
+    "indigenousLandMonthYear": "Terra Indígena, Mês e Ano",
+    "monthYear": "Mês e Ano",
+    "year": "Ano",
+    "day": "Dia",
+    "indigenousLandYear": "Terra Indígena e Ano",
+    "selectColumns": "Selecione as Colunas que Serão Apresentadas",
+    "columns": "colunas"
+  }
+}
+</i18n>
 <script>
 import { mapActions, mapMutations, mapState } from 'vuex';
 import AnalyticsFilter from '@/components/analytics/AnalyticsFilter';

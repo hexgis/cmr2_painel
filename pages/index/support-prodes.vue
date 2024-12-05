@@ -15,15 +15,15 @@
             </v-icon>
           </template>
           <span>
-            PRODES é um projeto que utiliza os
+            {{ $t('prodes-description-line1') }}
             <br>
-            satélites Landsat, CBERS e IRS-2,
+            {{ $t('prodes-description-line2') }}
             <br>
-            e detecta áreas maiores que 6,25 ha.
+            {{ $t('prodes-description-line3') }}
             <br>
-            As detecções contempladas pelo PRODES
+            {{ $t('prodes-description-line4') }}
             <br>
-            são a partir do ano de 2005.
+            {{ $t('prodes-description-line5') }}
           </span>
         </v-tooltip>
       </v-row>
@@ -48,17 +48,27 @@
         />
       </template>
     </div>
-   
+
   </v-container>
 </template>
 
 <i18n>
 {
     "en": {
-        "title": "Layer Prodes (INPE)"
+        "title": "Layer Prodes (INPE)",
+        "prodes-description-line1": "PRODES is a project that uses",
+        "prodes-description-line2": "the Landsat, CBERS, and IRS-2 satellites,",
+        "prodes-description-line3": "and detects areas larger than 6.25 ha.",
+        "prodes-description-line4": "The detections covered by PRODES",
+        "prodes-description-line5": "start from the year 2005."
     },
     "pt-br": {
-        "title": "Camada Prodes (INPE)"
+        "title": "Camada Prodes (INPE)",
+        "prodes-description-line1": "PRODES é um projeto que utiliza os",
+        "prodes-description-line2": "satélites Landsat, CBERS e IRS-2,",
+        "prodes-description-line3": "e detecta áreas maiores que 6,25 ha.",
+        "prodes-description-line4": "As detecções contempladas pelo PRODES",
+        "prodes-description-line5": "são a partir do ano de 2005."
     }
 }
 </i18n>

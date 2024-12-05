@@ -10,7 +10,7 @@
     <v-row class="px-3 pb-1">
       <v-combobox
         v-model="filters.cr"
-        label="Coordenação Regional"
+        :label="$t('coordination-label')"
         :items="flattened"
         item-value="co_cr"
         item-text="ds_cr"
@@ -27,7 +27,7 @@
       >
         <v-combobox
           v-model="filters.ti"
-          label="Terras Indigenas"
+          :label="$t('indigenous-lands-label')"
           :items="filterOptions.tiFilters"
           item-text="no_ti"
           item-value="co_funai"
@@ -41,7 +41,7 @@
     <v-row class="px-3 pb-1">
       <v-select
         v-model="filters.priority"
-        label="Prioridades"
+        :label="$t('priorities-label')"
         :items="filterOptions.priority"
         item-text="no_pr"
         item-value="co_pr"
@@ -93,7 +93,7 @@
                 mdi-download
               </v-icon>
             </template>
-            <span>Download</span>
+            <span>{{ $t('download-label') }}</span>
           </v-tooltip>
         </v-btn>
         <v-btn
@@ -112,7 +112,7 @@
                 mdi-table
               </v-icon>
             </template>
-            <span>Tabela</span>
+            <span>{{ $t('table-label') }}</span>
           </v-tooltip>
         </v-btn>
       </v-col>
@@ -305,23 +305,33 @@
             "search-label": "Search",
             "opacity-label": "Opacity",
             "current-view-label": "Search in current area?",
+            "coordination-label": "Regional Coordination",
+            "indigenous-lands-label": "Indigenous Lands",
+            "priorities-label": "Priorities",
             "start-date-label": "Start Date",
             "total-area-label": "Total Area",
             "heat-map-label": "Heat Map",
             "polygon-label": "Polygon Count",
             "end-date-label": "End Date",
-            "table-name":  "Priority Polygons "
+            "table-name": "Priority Polygons",
+            "download-label": "Download",
+            "table-label": "Table"
         },
         "pt-br": {
             "search-label": "Buscar",
             "opacity-label": "Opacidade",
             "current-view-label": "Pesquisar nesta área?",
+            "coordination-label": "Coordenação Regional",
+            "indigenous-lands-label": "Terras Indígenas",
+            "priorities-label": "Prioridades",
             "total-area-label": "Área total",
             "heat-map-label": "Mapa de Calor",
             "polygon-label": "Total de polígonos",
             "start-date-label": "Data Início",
             "end-date-label": "Data Fim",
-            "table-name": "Polígonos prioritários"
+            "table-name": "Polígonos prioritários",
+            "download-label": "Baixar",
+            "table-label": "Tabela"
         }
     }
 </i18n>

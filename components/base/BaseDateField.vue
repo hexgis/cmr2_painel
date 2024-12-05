@@ -43,14 +43,16 @@
         "date-format": "YYYY-MM-DD",
         "date-mask": "####-##-##",
         "month-format": "YYYY-MM",
-        "month-mask": "####-##"
+        "month-mask": "####-##",
+        "requested": "Requested"
     },
     "pt-br": {
         "invalid-date": "Data inválida",
         "date-format": "DD/MM/YYYY",
         "date-mask": "##/##/####",
         "month-format": "MM/YYYY",
-        "month-mask": "##/####"
+        "month-mask": "##/####",
+        "requested": "Obrigatório"
     }
 }
 </i18n>
@@ -146,7 +148,7 @@ export default {
 
   mounted() {
     if (this.required) {
-      this.rules.push(() => !!this.formatted || 'Obrigatório');
+      this.rules.push(() => !!this.formatted || this.$t('requested'));
     }
     this.rules.push(
       () => (this.month

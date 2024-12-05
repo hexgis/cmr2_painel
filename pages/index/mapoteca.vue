@@ -19,7 +19,7 @@
 
       <v-list-item-content style="list-style: circle">
         <v-list-item-title class="list__text mb-4 font-weight-black">
-          Relacionados:
+          {{ $t('related') }}
         </v-list-item-title>
         <ul
           v-for="(item, index) in items"
@@ -40,7 +40,6 @@
     <div v-if="showDialogMapoteca">
       <MapotecaDialog />
     </div>
-   
   </v-container>
 </template>
 
@@ -50,13 +49,25 @@
             "title": "Map Library",
             "analytics-label": "Analytics",
             "map-label": "Map",
-            "input-label": "Search"
+            "input-label": "Search",
+            "related": "Related:",
+            "items": {
+              "high-resolution-image": "High Resolution Image",
+              "land-use": "Land Use and Occupation",
+              "high-resolution-land-use": "Land Use and Occupation with High Resolution Image"
+            }
         },
         "pt-br": {
             "title": "Mapoteca",
-            "analytics-label": "Analytics",
+            "analytics-label": "Analítico",
             "map-label": "Mapa",
-            "input-label": "Pesquisar"
+            "input-label": "Pesquisar",
+            "related": "Relacionados:",
+            "items": {
+              "high-resolution-image": "Imagem de Alta Resolução",
+              "land-use": "Uso e Ocupação do Solo",
+              "high-resolution-land-use": "Uso e Ocupação com Imagem de Alta Resolução"
+            }
         }
     }
 </i18n>
@@ -73,9 +84,9 @@ export default {
   data() {
     return {
       items: [
-        { value: 'Imagem de Alta Resolução ​' },
-        { value: 'Uso e Ocupação do Solo' },
-        { value: 'Uso e Ocupação com Imagem de Alta Resolução' },
+        { value: 'high-resolution-image' },
+        { value: 'land-use' },
+        { value: 'high-resolution-land-use' },
       ],
     };
   },

@@ -1,0 +1,89 @@
+stages: # List of stages for jobs, and their order of execution
+  - build
+  - test
+  - push
+  - update
+
+variables:
+  IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+
+services:
+  - docker:27.3.0-dind
+
+build:
+  image: docker:27.3.0
+  stage: build
+  script:
+    - docker build -t $IMAGE .
+  after_script:
+    - docker save -o app $IMAGE
+  artifacts:
+    paths:
+      - app
+    expire_in: "3 days"
+  only:
+    - main
+    - develop
+    - tags
+test:
+  stage: test
+  image: dirceusilva/base_k8s_python:latest
+  dependencies:
+    - build
+  services:
+    - name: docker:dind
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      command: ["dockerd-entrypoint.sh"]
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  allow_failure: true
+  before_script:
+    - /usr/sbin/update-ca-certificates --fresh
+    - export TRIVY_VERSION=$(wget -tls1 --retry-connrefused --waitretry=1 -qO - "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+    - echo $TRIVY_VERSION
+    - wget -tls1 --no-verbose --retry-connrefused --waitretry=1 https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz -O - | tar -zxvf -
+  script:
+    - docker load -i app
+    - ./trivy image --exit-code 0 --no-progress --format template --template "@contrib/gitlab.tpl" -o gl-container-scanning-report.json $IMAGE
+    # Print report
+    - ./trivy image --exit-code 0 --no-progress --severity HIGH $IMAGE
+    # Fail on severe vulnerabilities
+    - ./trivy image --exit-code 0 --severity CRITICAL --no-progress $IMAGE
+  artifacts:
+    reports:
+      container_scanning: gl-container-scanning-report.json
+  only:
+    - main
+    - develop
+    - tags
+
+push:
+  stage: push
+  image: docker:27.3.0
+  before_script:
+    - docker load -i app
+    - base64 -d $GCP_SA_KEY | docker login -u _json_key --password-stdin https://us-central1-docker.pkg.dev
+  script:
+    - docker push $IMAGE
+  dependencies:
+    - build
+  only:
+    - main
+    - develop
+    - tags
+
+update-dev-hex:
+  stage: update
+  image: dirceusilva/base_k8s_python:latest
+  script:
+    - echo $CI_COMMIT_BRANCH
+    - echo "${KUBECONFIG_DEV}" | base64 -d > /config
+    - export KUBECONFIG=/config
+    - git clone https://${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}@gitlab.xskylab.com/cmr/helm.git
+    - cd helm/charts/
+    - helm upgrade -i cmr2-painel -n funai cmr2-painel --reuse-values --set image.tag=$CI_COMMIT_SHORT_SHA
+  dependencies:
+    - push
+  only:
+    - develop

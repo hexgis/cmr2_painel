@@ -1,6 +1,21 @@
 <template>
-  <v-list-group v-if="group">
+  <v-list-group
+    v-if="group && (isPlanet ? group.name.includes('Planet') : !group.name.includes('Planet'))"
+    v-show="checkSearchLayer()"
+    v-model="value"
+  >
     <template #activator>
+      <template v-if="activeLayerCount > 0">
+        <v-badge
+          color="#b2b1b1"
+          offset-x="-270"
+          offset-y="10"
+        >
+          <template #badge>
+            {{ activeLayerCount }}
+          </template>
+        </v-badge>
+      </template>
       <v-list-item-content>
         <v-list-item-title class="text-wrap">
           <span class="text-cursor">
@@ -8,25 +23,26 @@
           </span>
         </v-list-item-title>
       </v-list-item-content>
-      <v-col v-if="group.name == 'Alta Resolução'">
+
+      <v-col v-if="group.name === 'Alta Resolução' && !isPlanet">
         <div>
           <v-tooltip>
             <template #activator="{ on }">
               <v-icon
-
+                class="pb-4"
                 v-on="on"
               >
                 mdi-information
               </v-icon>
             </template>
             <span>
-              O mosaico de imagens de alta resolução
+              {{ $t('mosaic-line-1') }}
               <br>
-              é formado por imagens dos satélites Spot 6 e 7,
+              {{ $t('mosaic-line-2') }}
               <br>
-              com uma resolução espacial de 1,5 metros,
+              {{ $t('mosaic-line-3') }}
               <br>
-              abrangendo datas entre os anos de 2018 e 2019.
+              {{ $t('mosaic-line-4') }}
               <br>
             </span>
           </v-tooltip>
@@ -34,25 +50,53 @@
       </v-col>
     </template>
 
-    <v-container class="py-0">
-      <v-list expand>
-        <template v-for="layer in orderedSupportLayers">
+    <template v-if="!searchLayer">
+      <v-container class="py-0">
+        <v-list expand>
           <SupportLayersGroupItemRaster
+            v-for="layer in orderedSupportLayers"
             :key="layer"
             :layer-id="layer"
           />
-        </template>
-      </v-list>
-    </v-container>
+        </v-list>
+      </v-container>
+    </template>
 
+    <template v-else>
+      <v-container class="py-0">
+        <v-list expand>
+          <template v-for="layer in orderedSupportLayers">
+            <SupportLayersGroupItemRaster
+              v-if="includesLayers(layer)"
+              :key="layer"
+              :layer-id="layer"
+            />
+          </template>
+        </v-list>
+      </v-container>
+    </template>
     <v-divider />
   </v-list-group>
 </template>
-
+<i18n>
+  {
+      "en": {
+        "mosaic-line-1": "The high-resolution image mosaic",
+        "mosaic-line-2": "is composed of images from the Spot 6 and 7 satellites,",
+        "mosaic-line-3": "with a spatial resolution of 1.5 meters,",
+        "mosaic-line-4": "covering dates between the years 2018 and 2019."
+      },
+      "pt-br": {
+        "mosaic-line-1": "O mosaico de imagens de alta resolução",
+        "mosaic-line-2": "é formado por imagens dos satélites Spot 6 e 7,",
+        "mosaic-line-3": "com uma resolução espacial de 1,5 metros,",
+        "mosaic-line-4": "abrangendo datas entre os anos de 2018 e 2019."
+      }
+  }
+</i18n>
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapMutations } from 'vuex';
 import _ from 'lodash';
-
 import SupportLayersGroupItemRaster from '@/components/support/SupportLayersGroupItemRaster';
 
 export default {
@@ -60,12 +104,20 @@ export default {
 
   components: { SupportLayersGroupItemRaster },
 
-  props: {
-    group: {
-      type: Object,
-      default: null,
+    props: {
+        group: {
+            type: Object,
+            default: null,
+        },
+        isPlanet: {
+            type: Boolean,
+            default: false,
+        },
     },
-  },
+
+  data: () => ({
+    value: null,
+  }),
 
   computed: {
     supportLayers() {
@@ -76,7 +128,40 @@ export default {
       return _.sortBy(this.supportLayers, 'order');
     },
 
-    ...mapState('supportLayers', ['supportCategoryGroupsRaster']),
+    activeLayers() {
+      return this.orderedSupportLayers.filter(
+        (layer) => this.supportLayersCategoryRaster[layer].visible,
+      );
+    },
+
+    activeLayerCount() {
+      return this.activeLayers.length;
+    },
+
+    ...mapState('supportLayers', [
+      'supportCategoryGroupsRaster',
+      'searchLayer',
+      'filteredLayersId',
+      'supportLayersCategoryRaster',
+    ]),
+  },
+
+  methods: {
+    checkSearchLayer() {
+      if (this.searchLayer) {
+        this.value = true;
+      }
+      return true;
+    },
+
+    includesLayers(id) {
+      return this.filteredLayersId.includes(id);
+    },
+
+    ...mapMutations('supportLayers', [
+      'setexpandAllLayers',
+      'setretractAllLayers',
+    ]),
   },
 };
 </script>

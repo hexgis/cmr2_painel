@@ -51,7 +51,7 @@
                     ? scene.properties.cloud_cover.toFixed(
                       1
                     ) + '%'
-                    : 'Indisponível'
+                    : this.$t('unavailable')
                 }}
               </span>
             </div>
@@ -181,7 +181,8 @@
         "metadata-label": "Metadata",
         "download-label": "Download image",
         "compare-label": "Compare image",
-        "compare-alert": "Select another image to compare"
+        "compare-alert": "Select another image to compare",
+        "unavailable": "Unavailable"
     },
     "pt-br": {
         "view-label": "Visualizar imagem",
@@ -189,7 +190,8 @@
         "metadata-label": "Metadados",
         "download-label": "Download da imagem",
         "compare-label": "Comparar imagem",
-        "compare-alert": "Selecione outra imagem para comparar"
+        "compare-alert": "Selecione outra imagem para comparar",
+        "unavailable" : "Indisponível"
     }
 }
 </i18n>

@@ -18,7 +18,7 @@
             </v-icon>
           </template>
           <span>
-            Fonte de dados: Banco de dados - FUNAI
+            {{ $t('data-source') }}
           </span>
         </v-tooltip>
       </v-row>
@@ -38,7 +38,7 @@
     >
       <v-divider />
       <p class="font-weight-regular pt-2 grey--text text--darken-2">
-        Legenda:
+        {{ $t('legend') }}:
       </p>
       <v-col class="grey--text text--darken-2">
         <v-row class="mb-2">
@@ -48,7 +48,7 @@
           >
             mdi-square
           </v-icon>
-          Muito Alta
+          {{ $t('legend-very-high') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -57,7 +57,7 @@
           >
             mdi-square
           </v-icon>
-          Alta
+          {{ $t('legend-high') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -66,7 +66,7 @@
           >
             mdi-square
           </v-icon>
-          Média
+          {{ $t('legend-medium') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -75,7 +75,7 @@
           >
             mdi-square
           </v-icon>
-          Baixa
+          {{ $t('legend-low') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -84,15 +84,13 @@
           >
             mdi-square
           </v-icon>
-          Muito Baixa
+          {{ $t('legend-very-low') }}
         </v-row>
         <v-spacer />
       </v-col>
     </div>
 
     <ShowDialog />
-
-    
   </v-container>
 </template>
 
@@ -101,12 +99,24 @@
         "en": {
             "title": "Priority Polygons",
             "analytics-label": "Analytics",
+            "data-source": "Data Source: Database - FUNAI",
+            "legend-very-high": "Very High",
+            "legend-high": "High",
+            "legend-medium": "Medium",
+            "legend-low": "Low",
+            "legend-very-low": "Very Low",
             "map-label": "Map",
             "table-name": "Priority Table"
         },
         "pt-br": {
             "title": "Polígonos Prioritários",
-            "analytics-label": "Analytics",
+            "analytics-label": "Analítico",
+            "data-source": "Fonte de dados: Banco de dados - FUNAI",
+            "legend-very-high": "Muito Alta",
+            "legend-high": "Alta",
+            "legend-medium": "Média",
+            "legend-low": "Baixa",
+            "legend-very-low": "Muito Baixa",
             "map-label": "Mapa",
             "table-name": "Tabela de Prioridade"
         }
@@ -193,11 +203,10 @@ export default {
 .infoIconMargin {
     margin-left: 4px;
   }
-  
+
 @media (max-width: 768px) {
   .infoIconMargin {
     margin-left: 2px;
   }
 }
 </style>
-

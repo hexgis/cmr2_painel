@@ -44,31 +44,18 @@
 
     <v-container class="py-0">
       <SupportLayerFiltersProdes :layer="layer" />
-
       <v-row
-        v-if="
-          layer.layer_type === 'wms' &&
-            layer.visible &&
-            layer.wms.has_opacity
-        "
+
         class="black--text text--lighten-2"
-        align="center"
       />
-
       <v-row
-        v-if="layer.layer_type === 'wms' && layer.wms.has_detail"
-        justify="center"
-        class=""
+        class="ml-1"
       >
-        <v-col>
           <v-img
-            contain
             :src="layerPreview"
             :lazy-src="layerPreview"
-            :max-width="layer.wms.detail_width"
-            position="center center"
+            :max-width="layer.wms.detail_width || '50px'"
           />
-        </v-col>
       </v-row>
     </v-container>
   </v-list-group>

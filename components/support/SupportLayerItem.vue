@@ -99,9 +99,8 @@ export default {
     wmsBaseUrl() {
       let wmsUrl = '';
       if (this.layer.layer_type === 'wms') {
-        wmsUrl = `${this.layer.wms.geoserver.wms_url}&env=percentage:${
-          this.layer.opacity / 100
-        }`;
+        const opacity = Math.max(0.01, Math.min(1, this.layer.opacity / 100));
+        wmsUrl = `${this.layer.wms.geoserver.wms_url}&env=percentage:${opacity}`;
 
         const { filters } = this.layer;
         if (filters.startData || filters.endData) {

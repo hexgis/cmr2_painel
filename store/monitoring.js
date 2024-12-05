@@ -38,6 +38,10 @@ export const state = () => ({
 });
 
 export const getters = {
+  getShowFeaturesMonitoring: (state) => {
+    return state.showFeaturesMonitoring;
+  },
+
   featuresLoaded(state) {
     return (
       state.features
@@ -1171,3 +1175,5 @@ export const actions = {
     }
   },
 };
+
+

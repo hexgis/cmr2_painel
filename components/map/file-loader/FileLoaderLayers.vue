@@ -169,7 +169,7 @@ export default {
     "en":{
         "popup-title": "Properties"
     },
-    "pt": {
+    "pt-br": {
         "popup-title": "Propriedades"
     }
 }

@@ -87,7 +87,6 @@ import interestArea from '@/assets/interest_area.json';
 import MapPrinterPriority from '@/components/priority/MapPrinterPriority.vue';
 
 import MapSearch from '@/components/map/MapSearch.vue';
-import ZoomToCoords from '@/components/map/ZoomToCoords.vue';
 import FileLoaderControl from '@/components/map/file-loader/FileLoaderControl.vue';
 import FileLoaderLayers from '@/components/map/file-loader/FileLoaderLayers.vue';
 // import ImageryLayers from '@/components/imagery/ImageryLayers'
@@ -120,7 +119,6 @@ export default {
     // MonitoringLayersGeoserver,
     SupportLayers,
     MapSearch,
-    ZoomToCoords,
     FileLoaderControl,
     FileLoaderLayers,
     // ChangeDetectionLayers,

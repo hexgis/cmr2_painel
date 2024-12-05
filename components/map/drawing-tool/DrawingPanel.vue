@@ -1,8 +1,6 @@
 <template>
   <div class="d-flex mt-2">
-    <v-tooltip
-      right
-    >
+    <v-tooltip right>
       <template #activator="{ on }">
         <v-btn
           fab
@@ -37,7 +35,6 @@
         >
           <span> {{ $t('upload-hint') }}</span>
           <v-file-input
-            type="btn"
             hide-input
             prepend-icon="mdi-pencil"
             full-width
@@ -210,8 +207,8 @@
     "display-draw": "Desenhar",
     "edit-label": "Editar desenho",
     "tooltips.mdi-window-minimize": "Desenhar uma linha",
-    "tooltips.mdi-hexagon": "Desenhar um poligono",
-    "tooltips.mdi-checkbox-blank": "Desenhar um retangulo",
+    "tooltips.mdi-hexagon": "Desenhar um polígono",
+    "tooltips.mdi-checkbox-blank": "Desenhar um retângulo",
     "tooltips.mdi-checkbox-blank-circle": "Desenhar um círculo",
     "tooltips.mdi-map-marker": "Desenhar um ponto",
     "tooltips.mdi-panorama-fisheye": "Desenhar um ponto circular",
@@ -267,7 +264,7 @@ export default {
       { icon: 'mdi-checkbox-blank-circle', type: 'Circle' },
       { icon: 'mdi-map-marker', type: 'Marker' },
       { icon: 'mdi-panorama-fisheye', type: 'CircleMarker' },
-      //{ icon: 'mdi-format-text', type: 'TextBox' },
+      { icon: 'mdi-format-text', type: 'TextBox' },
     ],
     buttonsEdit: [
       { icon: 'mdi-pencil-box', type: 'Edit' },

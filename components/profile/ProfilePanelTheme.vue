@@ -2,16 +2,17 @@
   <v-form class="fill-height">
     <v-card class="px-3 py-3" elevation="0">
       <v-row>
-        <v-col cols="12 ">
+        <v-col cols="12">
           <v-switch
             :label="$t('info-message')"
-            @click="$vuetify.theme.dark=!$vuetify.theme.dark"
+            @click="toggleTheme"
           />
         </v-col>
       </v-row>
     </v-card>
   </v-form>
 </template>
+
 <i18n>
 {
     "en": {
@@ -20,14 +21,13 @@
     },
     "pt-br": {
         "Theme": "Tema de visualização",
-        "info-message": "Troque o tema visual do sistema: [Black] ou [Light] para uma visualização de acordo com suas necessidades."
+        "info-message": "Troque o tema visual do sistema: [Escuro] ou [Claro] para uma visualização de acordo com suas necessidades."
     }
 }
-
 </i18n>
+
 <script>
-import { mapState, mapActions, mapMutations } from 'vuex';
-import Vuetify from 'vuetify';
+import { mapState} from 'vuex';
 
 export default {
   name: 'ProfilePanelSettingsMap',
@@ -38,24 +38,39 @@ export default {
     },
   },
 
-  data: () => ({
+  computed: {
+    ...mapState({
+      token: state => state.auth.token
+    })
+  },
 
-  }),
   mounted() {
     const theme = localStorage.getItem('useDarkTheme');
     if (theme) {
-      if (theme == 'true') {
-        this.$vuetify.theme.dark = true;
-      } else this.$vuetify.theme.dark = false;
+      this.$vuetify.theme.dark = theme === 'true';
     }
   },
+
   methods: {
     toggleTheme() {
       this.$vuetify.theme.dark = !this.$vuetify.theme.dark;
       localStorage.setItem('useDarkTheme', this.$vuetify.theme.dark.toString());
+      this.updateThemeSettings(this.$vuetify.theme.dark);
     },
-  },
+
+    async updateThemeSettings(isDark) { 
+      try {
+        const response = await this.$axios.patch('/user/update-settings/', {
+          theme_mode: isDark
+        }, {
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        });
+      } catch (error) {
+        console.error('Erro ao atualizar a configuração de tema:', error.response ? error.response.data : error.message);
+      }
+    }
+  }
 };
 </script>
-<style scoped lang="sass">
-</style>

@@ -152,7 +152,9 @@
         "coordinates-label": "Mouse coordinates visible",
         "select-initial-extent": "Define extended area",
         "initial-extent-label": "Select area",
-        "save-button": "Save"
+        "save-button": "Save",
+        "success-message": "Settings changed successfully!",
+        "error-message": "Could not change settings"
     },
     "pt-br": {
         "drawer-label": "Menu lateral aberto ao iniciar",
@@ -164,7 +166,9 @@
         "coordinates-label": "Coordenadas do mouse visíveis",
         "select-initial-extent": "Definir área extendida",
         "initial-extent-label": "Selecionar área",
-        "save-button": "Salvar"
+        "save-button": "Salvar",
+        "success-message": "Configurações alteradas com sucesso!",
+        "error-message": "Não foi possível alterar configurações"
     }
 }
 </i18n>
@@ -195,7 +199,7 @@ export default {
     isLoading: false,
     showError: false,
     activateMapSelect: false,
-    error: 'Não foi possível alterar configurações',
+    error: this.$t('error-message'),
   }),
 
   computed: {
@@ -227,7 +231,7 @@ export default {
         .then(() => {
           this.isLoading = false;
           this.addAlert({
-            message: 'Configurações alteradas com sucesso!',
+            message: this.$t('success-message'),
           });
         })
         .catch(() => {

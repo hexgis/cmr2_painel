@@ -101,7 +101,7 @@
           </v-tab-item>
         </v-tabs>
       </v-card>
-      </v-tab-item>
+
 
       <v-tab-item>
         <v-card>
@@ -226,4 +226,4 @@ export default {
     ...mapMutations('map', ['setTmsToPrint']),
   },
 };
-</script>>
+</script>

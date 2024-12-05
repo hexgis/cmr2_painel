@@ -44,7 +44,7 @@
                 <v-col>
                   <v-select
                     v-model="filters.cr"
-                    label="Coordenação Regional (Todas)"
+                    :label="$t('regional-coordination-label')"
                     :items="filterOptions.regionalFilters"
                     item-value="co_cr"
                     item-text="ds_cr"
@@ -59,7 +59,7 @@
                 >
                   <v-select
                     v-model="filters.ti"
-                    label="Terras Indigenas (Todas)"
+                    :label="$t('indigenous-lands-label')"
                     :items="filterOptions.tiFilters"
                     item-text="no_ti"
                     item-value="co_funai"
@@ -174,13 +174,14 @@
             "heat-map-label": "Heat map",
             "polygon-label": "Total polygon count",
             "end-date-label": "End Date",
-            "dialogName": " MAP SEARCH",
+            "dialogName": "MAP SEARCH",
             "result-label": "Results",
             "filter-label": "Filter",
             "institution-label": "Institution",
             "download-label-tooltip": "Download",
-            "view-label-tooltip": "Preview"
-
+            "view-label-tooltip": "Preview",
+            "regional-coordination-label": "Regional Coordination (All)",
+            "indigenous-lands-label": "Indigenous Lands (All)"
         },
         "pt-br": {
             "search-label": "Buscar",
@@ -196,10 +197,13 @@
             "filter-label": "Filtrar",
             "institution-label": "Instituição",
             "download-label-tooltip": "Download",
-            "view-label-tooltip": "Visualizar"
+            "view-label-tooltip": "Visualizar",
+            "regional-coordination-label": "Coordenação Regional (Todas)",
+            "indigenous-lands-label": "Terras Indígenas (Todas)"
         }
     }
 </i18n>
+
 
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';

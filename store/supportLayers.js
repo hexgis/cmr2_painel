@@ -32,6 +32,9 @@ export const state = () => ({
     regionalFilters: [],
     tiFilters: [],
   },
+  filteredLayers: [],
+  filteredLayersId: [],
+  orderedLayers: [],
 });
 
 export const getters = {
@@ -89,6 +92,21 @@ export const getters = {
 };
 
 export const mutations = {
+
+  toggleLayerActive(state, layerId) {
+    for (const group of Object.values(state.supportCategoryGroupsRaster)) {
+      const layer = group.layers.find(layer => layer.id === layerId)
+      if (layer) {
+        layer.active = !layer.active
+        break
+      }
+    }
+  },
+
+  setFilteredLayers(state, layers) {
+    state.filteredLayersId = layers;
+  },
+
   setshowFeaturesSupportLayers(state, showFeaturesSupportLayers) {
     state.showFeaturesSupportLayers = showFeaturesSupportLayers;
   },
@@ -403,6 +421,13 @@ export const mutations = {
   setLoading(state, loading) {
     state.loading = loading;
   },
+
+  setSearchLayer(state, search) {
+    state.searchLayer = search;
+  },
+  setOrderedLayers(state, layers) {
+    state.orderedLayers = layers;
+  }
 };
 
 export const actions = {
@@ -684,4 +709,28 @@ export const actions = {
 
     commit('setFilterOptions', data);
   },
+
+  removeSupportLayers({commit, rootCommit }, {concatenatedLayers}){
+    concatenatedLayers.forEach(layer => {
+      if (layer.date_created) {
+        commit('supportLayersUser/toggleLayerVisibility', { id: layer.id, visible: false }, { root: true });
+        return
+      }
+      commit('toggleLayerVisibility', {id: layer.id, visible: false})
+    });
+  },
+
+  addSupportLayers({ commit, dispatch }, { layers }) {
+    for (let index = layers.length - 1; index >= 0; index--) {
+      const layer = layers[index];
+      setTimeout(() => {
+        if (layer.date_created) {
+          commit('supportLayersUser/toggleLayerVisibility', { id: layer.id, visible: true }, { root: true });
+          return;
+        }
+        commit('toggleLayerVisibility', { id: layer.id, visible: true });
+      }, 100);
+    }
+    commit('setOrderedLayers', layers);
+  }
 };

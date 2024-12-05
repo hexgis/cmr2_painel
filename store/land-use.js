@@ -34,6 +34,10 @@ export const getters = {
 };
 
 export const mutations = {
+  setClearTis(state, tis){
+    state.filterOptions.tiFilters = []
+  },
+
   setFeatures(state, features) {
     state.features = features;
     state.isLoadingFeatures = false;
@@ -159,7 +163,7 @@ export const actions = {
   },
 
   async getFilterOptions({ commit }) {
-    const regional_coordinators = await this.$api.$get('funai/cr/');
+    const regional_coordinators = await this.$api.$get('land-use/cr/');
     const data = {};
 
     if (regional_coordinators) {
@@ -172,15 +176,17 @@ export const actions = {
   },
 
   async getTiOptions({ commit, state }, cr) {
-    const params = {
-      co_cr: cr.toString(),
-    };
-
-    const tis = await this.$api.$get('funai/ti/', {
-      params,
-    });
-
+    let tis = await this.$api.$get('land-use/ti/');
+    if (cr){
+      const params = {
+        co_cr: cr.toString(),
+      };
+      tis = await this.$api.$get('land-use/ti/', {
+        params,
+      });
+    }
     if (tis) {
+      commit('setClearTis')
       commit('setFilterOptions', {
         ...state.filterOptions,
         tiFilters: tis.sort((a, b) => a.no_ti > b.no_ti),

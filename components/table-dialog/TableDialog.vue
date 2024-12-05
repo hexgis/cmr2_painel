@@ -48,7 +48,6 @@
           multi-sort
           fixed-header
           height="65vh"
-          @click:row="handleClick"
         >
           <template
             v-if="[item.prioridade]"
@@ -140,24 +139,7 @@ export default {
 
   methods: {
 
-    async handleClick(row) {
-      try {
-        this.detail = await this.$api.$get(
-          `priority/consolidated/detail/${row.id}/?geometry=${false}`,
-
-        );
-        this.featuresIndividual = await this.$api.$get(
-          `priority/consolidated/detail/${row.id}/?geometry=${true} `,
-
-        );
-        this.setDetail(this.detail);
-        this.setfeaturesIndividual(this.featuresIndividual);
-      } catch (exception) {
-        this.$store.commit('alert/addAlert', {
-          message: this.$t('detail-api-error'),
-        });
-      }
-    },
+   
 
     getColor(prioridade) {
       switch (prioridade) {

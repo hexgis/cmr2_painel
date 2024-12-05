@@ -10,7 +10,7 @@
     <v-row class="px-3 pb-3">
       <v-combobox
         v-model="filters.cr"
-        label="Coordenação Regional"
+        :label="$t('coordination-label')"
         :items="flattened"
         item-value="co_cr"
         item-text="ds_cr"
@@ -27,7 +27,7 @@
       >
         <v-combobox
           v-model="filters.ti"
-          label="Terras Indigenas"
+          :label="$t('indigenous-lands-label')"
           :items="filterOptions.tiFilters"
           item-text="no_ti"
           item-value="co_funai"
@@ -82,7 +82,7 @@
                 mdi-download
               </v-icon>
             </template>
-            <span>Download</span>
+            <span>{{ $t('download-label') }}</span>
           </v-tooltip>
         </v-btn>
 
@@ -102,7 +102,7 @@
                 mdi-table
               </v-icon>
             </template>
-            <span>Tabela</span>
+            <span>{{ $t('table-label') }}</span>
           </v-tooltip>
         </v-btn>
       </v-col>
@@ -294,23 +294,31 @@
             "search-label": "Search",
             "opacity-label": "Opacity",
             "current-view-label": "Search in current area?",
+            "coordination-label": "Regional Coordination",
+            "indigenous-lands-label": "Indigenous Lands",
             "start-date-label": "Start Date",
             "total-area-label": "Total area",
             "heat-map-label": "Heat map",
             "polygon-label": "Polygon count",
             "end-date-label": "End Date",
+            "download-label": "Download",
+            "table-label": "Table",
             "table-name": "Deter Table"
         },
         "pt-br": {
             "search-label": "Buscar",
             "opacity-label": "Opacidade",
             "current-view-label": "Pesquisar nesta área?",
+            "coordination-label": "Coordenação Regional",
+            "indigenous-lands-label": "Terras Indígenas",
             "total-area-label": "Área total",
             "heat-map-label": "Mapa de calor",
             "polygon-label": "Total de polígonos",
             "start-date-label": "Data Início",
             "end-date-label": "Data Fim",
-            "table-name": "Tabela deter"
+            "download-label": "Baixar",
+            "table-label": "Tabela",
+            "table-name": "Tabela Deter"
         }
     }
 </i18n>

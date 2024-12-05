@@ -45,6 +45,7 @@ export default {
     '~/plugins/filters.js',
     '~/plugins/v-mask.js',
     '~/plugins/i18n.js',
+    { src: '~/plugins/theme-config.js', mode: 'client' },
     { src: '~/plugins/vue-chartjs.js', mode: 'client' },
     { src: '~/plugins/vue2-leaflet-markercluster.js', mode: 'client' },
   ],
@@ -73,48 +74,47 @@ export default {
      ** vuetify module configuration
      ** https://github.com/nuxt-community/vuetify-module
      */
-  vuetify: {
-    customVariables: ['~/assets/variables.scss'],
-    theme: {
-      light: true,
-      dark: false,
-      themes: {
-        light: {
-          primary: '#D92B3F', // vermelho - botão login, faixa login, loading login
-          secondary: '#D92B3F', // vermelho
-          accent: '#D92B3F', // vermelho
-          error: '#da2a3f',
-          warning: '#FFCE03', // amarelo
-          info: '#FFFFFF', // branco - fundo login
-          success: '#26A69A',
-          btn_login: '#D92B3F',
-        },
-        dark: {
-          primary: '#D92B3F', // vermelho
-          secondary: '#D92B3F', // vermelho
-          accent: '#D92B3F', // vermelho
-          error: '#2F4D6A',
-          warning: '#FFCE03', // amarelo
-          info: '#000000', // preto fundo login
-          success: '#26A69A',
+     vuetify: {
+      customVariables: ['~/assets/variables.scss'],
+      theme: {  
+        dark: false,
+        themes: {
+          light: {
+            primary: '#D92B3F',
+            secondary: '#D92B3F',
+            accent: '#D92B3F',
+            error: '#da2a3f',
+            warning: '#FFCE03',
+            info: '#FFFFFF',
+            success: '#26A69A',
+            btn_login: '#D92B3F',
+          },
+          dark: {
+            primary: '#D92B3F',
+            secondary: '#D92B3F',
+            accent: '#D92B3F',
+            error: '#2F4D6A',
+            warning: '#FFCE03',
+            info: '#1e1e1e',
+            success: '#26A69A',
+          },
         },
       },
-    },
-  },
+    },    
 
   i18n: {
     vueI18nLoader: true,
     locales: ['pt-br', 'en'],
-    defaultLocale: 'en',
+    defaultLocale: 'pt-br',
     vueI18n: {
-      fallbackLocale: 'en',
+      fallbackLocale: 'pt-br',
       messages,
     },
   },
 
   moment: {
     locales: ['pt-br'],
-    defaultLocale: 'en',
+    defaultLocale: 'pt-br',
   },
   /*
      ** Build configuration

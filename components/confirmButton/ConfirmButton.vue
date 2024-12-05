@@ -1,5 +1,5 @@
 <template>
-    <div class="d-flex flex-row">
+    <div class="d-flex flex-row mb-0.5 ml-1">
         <v-expand-x-transition>
             <div v-show="confirmAction === true" class="overflow-hidden">
                 <div class="d-flex flex-row slide-button-area">
@@ -62,9 +62,7 @@ export default {
 </script>
 <style scoped lang="sass">
 .button-icon
-    opacity: 0.4
-.button-icon:hover
-    opacity: 1
+    color: #31383A !important
 
 .slide-button-area
     background-color: whitesmoke
@@ -72,13 +70,13 @@ export default {
     box-shadow: 1px 1px 1px inset lightgray
 
 .cancel
-    color: rgba(255, 65, 54, 0.4) !important
+    color: rgba(255, 65, 54) !important
 
 .cancel:hover
     color: rgba(255, 65, 54) !important
 
 .confirm
-    color: rgb(46, 204, 64, 0.4) !important
+    color: rgb(46, 204, 64) !important
 
 .confirm:hover
     color: rgb(46, 204, 64) !important

@@ -3,7 +3,7 @@
       <v-card variant="outlined" class="py-1 mb-4">
           <v-row>
               <v-col class="pt-4 ml-2 font-weight-medium">
-                  <span>Última atualização:</span>
+                  <span>{{  $t('last-update-label') }}</span>
               </v-col>
               <v-col cols="12" class="pb-2 pt-0 ml-6">
                   <span>{{
@@ -25,6 +25,16 @@
       </v-card>
   </div>
 </template>
+<i18n>
+  {
+      "en": {
+          "last-update-label": "Last update:"
+      },
+      "pt-br": {
+          "last-update-label": "Última atualização:"
+      }
+  }
+</i18n>
 
 <script>
 import { mapState } from 'vuex'

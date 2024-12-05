@@ -6,7 +6,7 @@
     <h1 v-else>
       {{ $t('other-error') }}
     </h1>
-    <NuxtLink to="/">
+    <NuxtLink :to="localePath('/')">
       {{ $t('home-page') }}
     </NuxtLink>
   </v-app>
@@ -21,7 +21,7 @@
     },
     "pt-br": {
         "home-page": "Página inicial",
-        "page-not-found": "404 Not Found",
+        "page-not-found": "404 Não Encontrado",
         "other-error": "Ocorreu um erro"
     }
 }

@@ -27,6 +27,9 @@ export const state = () => ({
     visible: false,
   },
   hasAddLayer: false,
+  indigenousLand: [],
+  savedSelectedItems: [],
+  selectedItems: [],
 });
 
 export const getters = {
@@ -57,6 +60,23 @@ export const getters = {
 };
 
 export const mutations = {
+  clearSavedSelectedItems(state) {
+    state.savedSelectedItems = []
+  },
+
+  addItem(state, item) {
+    if (!Array.isArray(state.savedSelectedItems)) {
+      state.savedSelectedItems = [];
+    }
+    if (!state.savedSelectedItems.some(existingItem => existingItem.id === item.id)) {
+      state.savedSelectedItems.push(item);
+    }
+  },
+
+  setSelectedItems(state, items) {
+    state.selectedItems = items
+  },
+
   setActiveMenu(state, payload) {
     state.activeMenu = payload !== state.activeMenu ? payload : '';
   },
@@ -180,9 +200,28 @@ export const mutations = {
   setHasLayer(state, hasLayer) {
     state.hasAddLayer = hasLayer;
   },
+
+  setIndigenousLand(state, indigenousLand) {
+    state.indigenousLand = indigenousLand;
+  }
+  ,
 };
 
 export const actions = {
+  addSelectedItem(context, item) {
+    context.commit('addItem', item);
+  },
+
+  async fetchSearchResults({ commit }, searchQuery) {
+    try {
+      const response = await this.$api.$get(`/funai/all-data-ti-by-name/?param=${searchQuery}`);
+      commit('setIndigenousLand', response);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   zoomToBounds({ commit }, bounds) {
     commit('setBounds', bounds);
     commit('toggleBoundsZoomed');
@@ -287,6 +326,7 @@ export const actions = {
     }
   },
 
-
-
 };
+
+
+
