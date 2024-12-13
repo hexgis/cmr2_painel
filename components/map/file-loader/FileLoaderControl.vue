@@ -303,6 +303,10 @@ export default {
     saveIntoDb(index) {
       this.files.splice(index, 1);
       this.saveToDatabase({ index });
+      if (this.fileList.length > 1) {
+        this.remove(index)
+      }
+      this.$store.dispatch('supportLayersUser/getLayersUser');
     },
 
     toggleFileLoader() {
@@ -322,7 +326,17 @@ export default {
       this.isOpen = this.layer.visible;
     },
 
+    findIdByName(data, name) {
+      const found = Object.values(data).find(item => item.name === name);
+      return found ? found.id : null;
+    },
+
     async addToMap(data, name) {
+      const fileExists = this.findIdByName(this.$store.state.supportLayersUser.supportLayerUser, name);
+        if (fileExists) {
+          this.fileError(null, this.$i18n.t('file-already-exists', {name}))
+          return
+        }
       const isPoint = this.hasGeometryOnFeature(data, [
         'Point',
         'MultiPoint',
@@ -484,6 +498,7 @@ export default {
     },
     ...mapMutations('map', ['addFileToMap', 'removeFileFromMap']),
     ...mapActions('map', ['changeStyle', 'saveToDatabase']),
+    ...mapState('supportLayersUser', ['supportLayerUser']),
     ...mapMutations('supportLayersUser', ['toggleLayerVisibility']),
     ...mapActions('supportLayersUser', [
       'getLayersUserGeoJson',
