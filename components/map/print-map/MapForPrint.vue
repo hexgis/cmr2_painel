@@ -278,6 +278,9 @@ export default {
 }
 </script>
 <style lang="sass">
+.leaflet-control-attribution leaflet-control
+    background: rgba(255, 255, 255, 0.25) !important
+
 .leaflet-control-attribution.leaflet-control:nth-child(1)::after
     content: '| Mapa não oficial'
     color: red

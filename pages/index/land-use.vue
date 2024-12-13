@@ -87,15 +87,8 @@
               "water-body": "Water Body",
               "village": "Village",
               "natural-vegetation": "Natural Vegetation",
-              "clear-cut": "Clear Cut",
-              "headers": {
-                "co_funai": "FUNAI Code",
-                "no_ti": "Indigenous Land",
-                "ds_cr": "Regional Coordination",
-                "dt_cadastro": "Registration Date",
-                "nu_area_km2": "Area (Km²)",
-                "nu_area_ha": "Polygon Area (ha)"
-                }
+              "clear-cut": "Clear Cut"
+            
           }
         },
         "pt-br": {
@@ -106,15 +99,8 @@
               "water-body": "Massa de Água",
               "village": "Vilarejo",
               "natural-vegetation": "Vegetação Natural",
-              "clear-cut": "Corte Raso",
-              "headers": {
-                "co_funai": "Código Funai",
-                "no_ti": "Terra Indígena",
-                "ds_cr": "Coordenação Regional",
-                "dt_cadastro": "Data Cadastro",
-                "nu_area_km2": "Área (Km²)",
-                "nu_area_ha": "Área do Polígono (ha)"
-                }
+              "clear-cut": "Corte Raso"
+             
           }
         }
     }
@@ -134,14 +120,7 @@ export default {
       items: ['MapStage', 'AnalytcalStage'],
       text: 'Texto de teste.',
       timer: '',
-      headers: [
-        { text: this.$t('headers.co_funai'), value: 'co_funai' },
-        { text: this.$t('headers.no_ti'), value: 'no_ti' },
-        { text: this.$t('headers.ds_cr'), value: 'ds_cr' },
-        { text: this.$t('headers.dt_cadastro'), value: 'dt_cadastro' },
-        { text: this.$t('headers.nu_area_km2'), value: 'nu_area_km2' },
-        { text: this.$t('headers.nu_area_ha'), value: 'nu_area_ha' },
-      ],
+   
       checkNewFilters: false,
     };
   },

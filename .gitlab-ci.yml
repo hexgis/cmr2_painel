@@ -87,3 +87,20 @@ update-dev-hex:
     - push
   only:
     - develop
+
+
+update-prod:
+  stage: update
+  image: dirceusilva/base_k8s_python:latest
+  script:
+    - echo $CI_COMMIT_BRANCH
+    - echo "${KUBECONFIG_PRD}" | base64 -d > /config
+    - export KUBECONFIG=/config
+    - git clone https://${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}@gitlab.xskylab.com/cmr/helm.git
+    - cd helm/charts/
+    - helm upgrade -i cmr2-painel -n funai cmr2-painel --reuse-values --set image.tag=$CI_COMMIT_SHORT_SHA
+  dependencies:
+    - push
+  only:
+    - main
+  when: manual

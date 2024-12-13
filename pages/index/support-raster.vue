@@ -238,6 +238,13 @@ export default {
                 .sortBy('order')
                 .value()
         },
+        visibleLayers() {
+          const rasterLayers = this.$store.state.supportLayers?.supportLayersCategoryRaster;
+          if (Array.isArray(rasterLayers)) {
+            return rasterLayers.filter(layer => layer.visible);
+          }
+          return [];
+        },
 
         showFeatures: {
             get() {

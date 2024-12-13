@@ -149,6 +149,7 @@ export default {
           ...this.style.VI,
           fillOpacity: this.opacity / 100,
         });
+        this.vectorGrid.redraw();
       } else {
         this.$refs.landUsePolygons.mapObject.invoke(
           'setStyle',

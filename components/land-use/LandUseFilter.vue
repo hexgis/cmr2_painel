@@ -36,13 +36,14 @@
           multiple
           :error="errorTi"
           :search-input.sync="searchTi"
+          :disabled="isLoadingTi"
           @change="clearSearchTi"
         />
       </v-row>
     </v-slide-y-transition>
 
     <v-row
-      v-if="filterOptions.tiFilters && filterOptions.year"
+      v-if="filters.ti && filterOptions.tiFilters && filterOptions.year"
       class="pt-1 px-3"
     >
       <v-select
@@ -297,6 +298,7 @@ export default {
 
   data() {
     return {
+      isLoadingTi: false,
       isGeoserver: process.env.MONITORING_GEOSERVER === 'true',
       searchTi: '',
       searchCr: '',
@@ -325,6 +327,7 @@ export default {
 
   watch: {
     'filters.cr': function (value) {
+      this.filters.ti = null;
       this.populateTiOptions(value);
     },
 
@@ -413,9 +416,19 @@ export default {
       this.searchTi = '';
     },
 
+    /**
+ * Populates the TI options based on the provided regional coordination.
+ * @param {Object|null} cr - The cr for filtering TI options. Pass `null` for no filtering.
+ */
     populateTiOptions(cr) {
-      if (cr) this.$store.dispatch('land-use/getTiOptions', cr);
-      else this.$store.dispatch('land-use/getTiOptions');
+      this.isLoadingTi = true;
+      const action = cr
+        ? this.$store.dispatch('land-use/getTiOptions', cr)
+        : this.$store.dispatch('land-use/getTiOptions');
+
+      action.finally(() => {
+        this.isLoadingTi = false;
+      });
     },
 
     populateYearsOptions(ti) {

@@ -15,10 +15,9 @@
                 />
             </l-popup>
             <l-geo-json
-                v-if="!isVectorGrid && featuresLoaded"
+                v-if="featuresLoaded"
                 :geojson="features"
                 :options="{ onEachFeature }"
-                @ready="onAlertsReady"
             />
         </l-feature-group>
     </l-layer-group>
@@ -40,11 +39,6 @@ import { mapState, mapGetters } from 'vuex'
 
 import BaseMetadataPopup from '@/components/base/BaseMetadataPopup'
 
-if (typeof window !== 'undefined') {
-    require('leaflet.vectorgrid')
-    require('leaflet.heat')
-}
-
 export default {
     name: 'AlertLayers',
 
@@ -62,34 +56,6 @@ export default {
     data: () => ({
         selectedAlertFeature: null,
         heatmapLayer: null,
-        isVectorGrid: process.env.MONITORING_VECTOR2TILES === 'true',
-        vectorGrid: null,
-        style: {
-            CR: {
-                weight: 2.5,
-                color: '#ff3333',
-                fill: true,
-                fillOpacity: 1,
-            },
-            DG: {
-                weight: 2.5,
-                color: '#ff8000',
-                fill: true,
-                fillOpacity: 1,
-            },
-            FF: {
-                weight: 2.5,
-                color: '#b35900',
-                fill: true,
-                fillOpacity: 1,
-            },
-            DR: {
-                weight: 2.5,
-                color: '#990099',
-                fill: true,
-                fillOpacity: 1,
-            },
-        },
     }),
 
     computed: {
@@ -120,68 +86,32 @@ export default {
         },
 
         opacity() {
-            if (this.isVectorGrid) {
-                this.recreateVectorGrid()
-            } else {
-                this.$refs.alertPolygons.mapObject.invoke(
-                    'setStyle',
-                    this.setUrgentAlertsStyle
-                )
-            }
+            this.$refs.alertPolygons.mapObject.invoke(
+                'setStyle',
+                this.setUrgentAlertsStyle
+            )
         },
     },
 
     methods: {
-        recreateVectorGrid() {
-            // Remove o vectorGrid atual, se existir
-            if (this.vectorGrid) {
-                this.vectorGrid.removeFrom(this.$refs.alertPolygons.mapObject)
-            }
-            // Recria o vectorGrid com a nova opacidade
-            this.vectorGrid = this.$L.vectorGrid
-                .slicer(this.features, {
-                    maxZoom: 21,
-                    zIndex: 4,
-                    vectorTileLayerStyles: {
-                        sliced: (e) =>
-                            this.vectorGridStyleFunction(e.no_estagio),
-                    },
-                    interactive: true,
-                    getFeatureId: (e) => {
-                        return { CR: 4, DG: 3, FF: 2, DR: 1 }[
-                            e.properties.no_estagio
-                        ]
-                    },
-                })
-                .on('click', (e) => {
-                    this.getFeatureDetails(e.layer.properties.id)
-                })
-                .addTo(this.$refs.alertPolygons.mapObject)
-        },
-
-        vectorGridStyleFunction(no_estagio) {
-            if (!this.selectedStages.includes(no_estagio)) {
-                return { weight: 0, opacity: 0, fillOpacity: 0 }
-            }
-            Object.keys(this.style).forEach((item) => {
-                this.style[item].fillOpacity = this.opacity / 100
-            })
-            return this.style[no_estagio] || {}
-        },
-
         addFeatures() {
             if (!this.features || !this.features.features) {
                 console.warn('Features are not loaded yet')
                 return
             }
+
             this.$refs.alertPolygons.mapObject.clearLayers()
-            if (this.isVectorGrid && this.features.features.length) {
+
+            if (this.selectedStages.length === 0) {
+                console.log('Nenhum estágio ativo, não adicionando camadas')
+                return
+            }
+
+            if (this.features.features.length) {
                 this.createUrgentAlertsHeatLayer()
                 if (this.getShowFeaturesUrgentAlerts) {
                     this.flyTo()
                 }
-                this.recreateVectorGrid()
-            } else if (!this.isVectorGrid) {
                 this.$refs.alertPolygons.mapObject.addLayer(
                     this.createGeoJsonLayer()
                 )
@@ -189,12 +119,21 @@ export default {
         },
 
         createGeoJsonLayer() {
-            return this.$L.geoJSON(this.features, {
-                style: this.setUrgentAlertsStyle,
+            const filteredFeatures = {
+                ...this.features,
+                features: this.features.features.filter((feature) =>
+                    this.selectedStages.includes(feature.properties.no_estagio)
+                ),
+            }
+
+            return this.$L.geoJSON(filteredFeatures, {
+                style: (feature) => {
+                    const appliedStyle = this.setUrgentAlertsStyle(feature)
+                    return appliedStyle
+                },
                 onEachFeature: this.onEachFeature,
             })
         },
-
         onEachFeature(feature, layer) {
             layer.setStyle(this.setUrgentAlertsStyle(feature))
             layer.on('click', () => {
@@ -203,32 +142,36 @@ export default {
         },
 
         setUrgentAlertsStyle(feature) {
-            const { style } = this
-            style.fillOpacity = this.opacity / 100
-            switch (feature.properties.stage) {
-                case 'Corte Raso':
-                    style.color = '#ff3333'
-                    break
-                case 'Degradação':
-                    style.color = '#ff8000'
-                    break
-                case 'Fogo em Floresta':
-                    style.color = '#b35900'
-                    break
-                case 'Desmatamento em Regeneração':
-                    style.color = '#990099'
-                    break
+            const estagio = feature.properties.no_estagio
+            const style = {
+                weight: 3,
+                fill: true,
+                fillOpacity: this.opacity / 100,
             }
-            return style
-        },
 
-        onAlertsReady() {
-            if (this.features.features && this.features.features.length) {
-                this.map.fitBounds(
-                    this.$refs.alertPolygons.mapObject.getBounds()
-                )
-                this.createUrgentAlertsHeatLayer()
+            switch (estagio) {
+                case 'CR': // Corte Raso
+                    style.color = '#ff3333'
+                    style.fillColor = '#ff3333'
+                    break
+                case 'DG': // Degradação
+                    style.color = '#ff8000'
+                    style.fillColor = '#ff8000'
+                    break
+                case 'FF': // Fogo em Floresta
+                    style.color = '#b35900'
+                    style.fillColor = '#b35900'
+                    break
+                case 'DR': // Desmatamento em Regeneração
+                    style.color = '#990099'
+                    style.fillColor = '#990099'
+                    break
+                default: // Estilo padrão
+                    style.color = '#000000'
+                    style.fillColor = '#000000'
             }
+
+            return style
         },
 
         async getFeatureDetails(featureId) {
@@ -269,7 +212,6 @@ export default {
             if (this.heatmapLayer) {
                 this.heatmapLayer.removeFrom(this.$refs.alertHeat.mapObject)
             }
-
             this.heatmapLayer = this.$L.heatLayer(heatData, {
                 minOpacity: 0.5,
                 maxZoom: 18,

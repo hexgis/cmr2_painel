@@ -632,8 +632,10 @@ p {
     padding-left: 2px;
     text-shadow: -2px 0 #ffffff, 0 2px #ffffff, 2px 0 #ffffff, 0 -2px #ffffff;
 }
-.leaflet-container .leaflet-control-mapbounds {
-    background-color: rgba(255, 255, 255, 0.7) !important;
+
+.leaflet-container .leaflet-control-mapbounds,
+.leaflet-container .leaflet-control-attribution {
+    background-color: rgba(255, 255, 255, 0.3) !important;
     box-shadow: 0 0 5px #bbb !important;
     padding: 0 5px !important;
     margin: 0 !important;
