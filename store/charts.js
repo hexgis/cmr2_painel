@@ -178,7 +178,7 @@ export const actions = {
             }
         } catch (error) {
             this.$store.commit('alert/addAlert', {
-                message: this.$t('detail-api-error'),
+                message: this.$t('error'),
             })
             console.error('Failed to fetch data:', error)
         }
@@ -195,7 +195,7 @@ export const actions = {
             }
         } catch (error) {
             this.$store.commit('alert/addAlert', {
-                message: this.$t('detail-api-error'),
+                message: this.$i18n.t('default-error'),
             })
             console.error('Failed to fetch data:', error)
         }

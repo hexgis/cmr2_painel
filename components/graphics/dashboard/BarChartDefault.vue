@@ -12,7 +12,8 @@
       "September": "September",
       "October": "October",
       "November": "November",
-      "December": "December"
+      "December": "December",
+      "error": "Something got wrong. Please try it again."
     },
     "pt-br": {
       "January": "Janeiro",
@@ -26,7 +27,8 @@
       "September": "Setembro",
       "October": "Outubro",
       "November": "Novembro",
-      "December": "Dezembro"
+      "December": "Dezembro",
+      "error": "Algo deu errado. Por favor, tente novamente"
     }
   }
   </i18n>
@@ -79,7 +81,7 @@ export default {
             this.renderChart(chartData, { responsive: true, maintainAspectRatio: false })
         } catch (error) {
             this.$store.commit('alert/addAlert', {
-              message: this.$t('detail-api-error'),
+              message: this.$t('error'),
             });
             console.error('Failed to fetch data:', error)
         }
