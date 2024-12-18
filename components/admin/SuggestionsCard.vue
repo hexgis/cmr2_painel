@@ -3,7 +3,7 @@
     @click="openDialog"
   >
     <div v-if="cards">
-      <StatusBadge :status="cards.ticket_status.formated_info.status_category_display" />
+      <StatusBadge :status="cards.ticket_status?.formated_info?.status_category_display" />
       <TicketInfo :info="cards"/>
       <div class="d-flex align-center justify-space-between">
         <ActionIcons :deniedDetails="cards.denied_details" :hasFile="cards.access_request?.attachment" />

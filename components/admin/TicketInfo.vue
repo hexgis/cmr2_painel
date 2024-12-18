@@ -6,10 +6,10 @@
       <p class="light--text">{{info.solicitation_name}}</p>
     </div>
     <v-container fluid class="d-flex align-start pa-0">
-      <StatusBadge class="badge" :status="info.ticket_status.formated_info.sub_status_display" />
+      <StatusBadge class="badge" :status="info.ticket_status?.formated_info.sub_status_display" />
     </v-container>
     <div class="d-flex align-start flex-lg-row mt-2">
-      <PriorityBadge :priority="info.ticket_status.formated_info.priority_display"/>
+      <PriorityBadge :priority="info.ticket_status?.formated_info.priority_display"/>
       <span  class="vertical-separator ml-5">
         <p v-if="dueOn" class="light--text">{{ $t('deliveryForecast') }}</p>
         <p v-else class="light--text">{{ $t('requestedOn') }}</p>
@@ -50,7 +50,7 @@ export default {
         : this.info.opened_in_formatted
     },
     dueOn(){
-      return this.info.ticket_status.due_on
+      return this.info.ticket_status?.due_on
     }
   },
   methods: {
