@@ -2,7 +2,11 @@
   <v-container>
     <v-row class="align-sm-center">
       <v-col cols="8">
-        <pie-chart ref="pieChart"></pie-chart>
+        <pie-chart
+          ref="pieChart"
+          :chartData="chartData"
+          :chartOptions="chartOptions"
+        ></pie-chart>
       </v-col>
       <v-col cols="4">
         <legend-list :legendItems="legendItems"></legend-list>
@@ -30,7 +34,22 @@ export default {
   data() {
     return {
       legendItems: [],
+      chartData: null,
+      chartOptions: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: {
+          display: false
+        }
+      },
     };
+  },
+  watch:{
+    getBrowserCounts: {
+      async handler(){
+        await this.prepareChartData()
+      }
+    }
   },
   computed: {
     ...mapGetters('charts', [
@@ -41,26 +60,20 @@ export default {
       'getBrowserCounts',
     ]),
   },
-  mounted() {
-    this.prepareChartData();
-    const labels = Object.keys(this.getBrowserCounts);
-    const data = Object.values(this.getBrowserCounts);
-    const backgroundColors = [
-      '#D92B3F',
-      '#F58A1F',
-      '#C5C3C6',
-      '#FFCE03',
-      '#1985A1',
-      '#91AEC1',
-    ];
+  methods: {
+    async prepareChartData() {
+      const labels = Object.keys(await this.getBrowserCounts);
+      const data = Object.values(await this.getBrowserCounts);
+      const backgroundColors = ['#D92B3F','#C5C3C6','#FFCE03','#91AEC1','#F58A1F','#1985A1'];
 
-    this.legendItems = labels.map((label, index) => ({
-      label,
-      count: data[index],
-      color: backgroundColors[index],
-    }));
+      const total = data.reduce((sum, value) => sum + value, 0);
 
-    this.$refs.pieChart.renderChart(
+      this.legendItems = labels.map((label, index) => ({
+        label,
+        count: (data[index] / total * 100),
+        color: backgroundColors[index]
+      }));
+         this.$refs.pieChart.renderChart(
       {
         labels: labels,
         datasets: [
@@ -79,21 +92,6 @@ export default {
       },
     );
   },
-  methods:{
-    prepareChartData() {
-      const labels = Object.keys(this.getTypeDeviceCounts);
-      const data = Object.values(this.getTypeDeviceCounts);
-      const backgroundColors = ['#D92B3F','#C5C3C6','#FFCE03','#91AEC1','#F58A1F','#1985A1'];
-
-      const total = data.reduce((sum, value) => sum + value, 0);
-
-      this.legendItems = labels.map((label, index) => ({
-        label,
-        count: (data[index] / total * 100),
-        color: backgroundColors[index]
-      }));
-
-    }
   }
 };
 </script>

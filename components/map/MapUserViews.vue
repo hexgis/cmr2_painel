@@ -41,7 +41,7 @@ export default {
           }
 
           const locations = this.getLocations || []
-          locations.forEach(({ lat, lng, city }) => {
+          locations.forEach(({ city, lat, lng }) => {
               const marker = L.marker([lat, lng]).bindPopup(
                   `<b>${city}</b><br>Latitude: ${lat}<br>Longitude: ${lng}`
               )

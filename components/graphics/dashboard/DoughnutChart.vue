@@ -1,7 +1,3 @@
-<template>
-  <canvas ref="canvas"></canvas>
-</template>
-
 <script>
 import { Doughnut } from 'vue-chartjs';
 

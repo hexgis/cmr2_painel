@@ -43,13 +43,17 @@ export default {
       'getTypeDeviceCounts'
     ])
   },
-  mounted() {
-    this.prepareChartData();
+  watch:{
+    getTypeDeviceCounts: {
+      async handler(){
+        await this.prepareChartData()
+      }
+    }
   },
   methods: {
-    prepareChartData() {
-      const labels = Object.keys(this.getTypeDeviceCounts);
-      const data = Object.values(this.getTypeDeviceCounts);
+    async prepareChartData() {
+      const labels = Object.keys(await this.getTypeDeviceCounts);
+      const data = Object.values(await this.getTypeDeviceCounts);
       const backgroundColors = ['#D92B3F', '#F58A1F', '#FFCE03'];
 
       const total = data.reduce((sum, value) => sum + value, 0);
