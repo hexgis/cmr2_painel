@@ -79,7 +79,7 @@ export default {
         },
         addFeatureVector(shouldFlyTo) {
             this.$refs.feats.mapObject.eachLayer((layer) => {
-                layer.remove() 
+                layer.remove()
             })
 
             this.vectorGrid = []
@@ -118,7 +118,7 @@ export default {
                                     })
                                 },
                             })
-                            // .addTo(this.$refs.feats.mapObject)
+                            .addTo(this.$refs.feats.mapObject)
                             .bringToFront()
                     } else {
                         newGrid = this.$L.vectorGrid

@@ -277,7 +277,6 @@ export default {
     openFileOptions(file) {
       if (file === this.showFileOptions) this.showFileOptions = null;
       else this.showFileOptions = file;
-      this.saveIntoDb(file.length)
     },
 
     flyToBound(feature) {
