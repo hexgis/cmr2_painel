@@ -15,26 +15,23 @@
             </v-icon>
           </template>
           <span>
-            INPE - Instituto Nacional de Pesquisas Espaciais, 2020.
+            {{ $t('data-source') }}
             <br>
-            Dados fornecidos pelo Portal do Monitoramento de Queimadas e Incêndios Florestais.
+            {{ $t('data-provided') }}
             <br>
-            Disponível em http://www.inpe.br/queimadas.
+            {{ $t('available-at') }}
             <br>
-            Acesso: Dado atualizado ontem.
+            {{ $t('access') }}
             <br>
-            * FOCOS DE CALOR
+            {{ $t('heat-sources') }}
             <br>
-            Descrição: Mapeamento dos pontos de foco de
+            {{ $t('heat-sources-description') }}
             <br>
-            calor aferidos pelo satélites AQUA M-M e AQUA M-T.
+            {{ $t('fire-risk') }}
             <br>
-            * RISCO DE FOGO
+            {{ $t('fire-risk-description') }}
             <br>
-            Descrição: Produto resultado da metodologia criada pelo Programa Queimadas do INPE.
-            <br>
-            Metodologia em https://queimadas.dgi.inpe.br/~rqueimadas/documentos/RiscoFogo_Sucinto.pdf
-
+            {{ $t('methodology-link') }}
           </span>
         </v-tooltip>
       </v-row>
@@ -59,21 +56,36 @@
         />
       </template>
     </div>
-   
+
   </v-container>
 </template>
 
 <i18n>
 {
     "en": {
-
-        "title": "Layers Hazard (INPE)"
+        "title": "Layers Hazard (INPE)",
+        "data-source": "INPE - National Institute for Space Research, 2020.",
+        "data-provided": "Data provided by the Burned Areas and Forest Fires Monitoring Portal.",
+        "available-at": "Available at http://www.inpe.br/queimadas.",
+        "access": "Access: Data updated yesterday.",
+        "heat-sources": "* HEAT SOURCES",
+        "heat-sources-description": "Description: Mapping of heat points detected by the AQUA M-M and AQUA M-T satellites.",
+        "fire-risk": "* FIRE RISK",
+        "fire-risk-description": "Description: Product resulting from the methodology created by the INPE Burned Areas Program.",
+        "methodology-link": "Methodology at https://queimadas.dgi.inpe.br/~rqueimadas/documentos/RiscoFogo_Sucinto.pdf"
     },
     "pt-br": {
-        "title": "Camadas Fogo (INPE)"
-
+        "title": "Camadas Fogo (INPE)",
+        "data-source": "INPE - Instituto Nacional de Pesquisas Espaciais, 2020.",
+        "data-provided": "Dados fornecidos pelo Portal do Monitoramento de Queimadas e Incêndios Florestais.",
+        "available-at": "Disponível em http://www.inpe.br/queimadas.",
+        "access": "Acesso: Dado atualizado ontem.",
+        "heat-sources": "* FOCOS DE CALOR",
+        "heat-sources-description": "Descrição: Mapeamento dos pontos de foco de calor aferidos pelos satélites AQUA M-M e AQUA M-T.",
+        "fire-risk": "* RISCO DE FOGO",
+        "fire-risk-description": "Descrição: Produto resultado da metodologia criada pelo Programa Queimadas do INPE.",
+        "methodology-link": "Metodologia em https://queimadas.dgi.inpe.br/~rqueimadas/documentos/RiscoFogo_Sucinto.pdf"
     }
-
 }
 </i18n>
 

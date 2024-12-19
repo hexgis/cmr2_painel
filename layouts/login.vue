@@ -48,7 +48,7 @@
                                     <v-col class="card-mobile">
                                         {{ $t('access-help-title') }}
                                         <a
-                                            :href="helpLinks.cmrProjectUrl"
+                                            :href="helpLinks.solicitacaoAcessoCmr2"
                                             target="_blank"
                                         >
                                             {{ $t('access-help-link') }}</a
@@ -59,7 +59,7 @@
                                     <v-col class="card-mobile">
                                         {{ $t('project-help-title') }}
                                         <a
-                                            :href="helpLinks.cmrProjectUrl"
+                                            :href="helpLinks.cmrTalkToUs"
                                             target="_blank"
                                         >
                                             {{ $t('project-help-link') }}</a
@@ -120,7 +120,7 @@
                             <v-card-subtitle class="card-subtitle">
                                 <p class="link-footer-dark text-h7">
                                     <a
-                                        :href="helpLinks.cmrProjectUrl"
+                                        :href="helpLinks.solicitacaoAcessoCmr2"
                                         target="_blank"
                                     >
                                         {{ $t('access-help-link') }}</a
@@ -145,7 +145,7 @@
                             <v-card-subtitle class="card-subtitle">
                                 <p class="link-footer-dark text-h7">
                                     <a
-                                        :href="helpLinks.cmrProjectUrl"
+                                        :href="helpLinks.cmrTalkToUs"
                                         target="_blank"
                                     >
                                         {{ $t('project-help-link') }}</a

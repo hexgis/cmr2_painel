@@ -62,13 +62,11 @@
 {
     "en": {
         "settings-label": "Settings",
-        "map-label": "Map settings",
         "password-label": "Change password",
         "theme-label": "View mode"
     },
     "pt-br": {
         "settings-label": "Configurações",
-        "map-label": "Configurações de mapa",
         "password-label": "Alterar senha",
         "theme-label": "Modo de visualização"
     }
@@ -104,13 +102,6 @@ export default {
     ...mapState('userProfile', ['user']),
     tabs() {
       return [
-        {
-          name: this.$t('map-label'),
-          component: ProfilePanelSettingsMap,
-          props: {
-            'toggle-map': this.toggleMap,
-          },
-        },
         {
           name: this.$t('password-label'),
           component: ProfilePanelPassword,

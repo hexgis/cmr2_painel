@@ -11,7 +11,6 @@
           </span>
         </v-list-item-title>
       </v-list-item-content>
-
       <v-list-item-action @click.stop="">
         <v-switch
           :input-value="layer.visible"
@@ -21,10 +20,11 @@
       </v-list-item-action>
     </template>
     <v-container
-      v-if="layer.visible"
+      v-if="layer.visible "
       class="py-0"
     >
       <v-row
+        v-if="!isPointType"
         class="black--text text--lighten-2"
         align="center"
       >
@@ -53,6 +53,7 @@
                 block
                 large
                 color="grey darken-3"
+                class="pa-0"
                 v-on="on"
                 @click="boundary"
               >
@@ -119,7 +120,7 @@
       v-model="rename"
       max-width="800"
     >
-      <v-card>
+      <v-card style="overflow: hidden;">
         <v-card-title>
           {{ $t('edit-label') }}
           <v-spacer />
@@ -128,28 +129,71 @@
             class="mr-n5 mt-n5"
             @click="rename = false"
           >
-            <v-icon> mdi-close </v-icon>
+            <v-icon class="mr-5 mt-5">
+              mdi-close
+            </v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text class="py-6">
-          <p>{{ $t('info-text') }}</p>
           <v-row>
-            <v-col>
+            <v-col cols="12">
               <v-text-field
+
                 v-model="name"
                 :label="$t('field-label')"
-                outlined
                 required
                 hide-details
               />
+              <p
+                v-if="isPointType"
+                class="mt-4"
+              >
+                {{ $t('info-text') }}
+              </p>
+            </v-col>
+            <v-col class="mt-n8">
+              <v-tooltip
+                v-if="isPointType"
+                bottom
+              >
+                <template #activator="{ on }">
+                  <v-btn
+                    text
+                    block
+                    large
+                    color="grey darken-3"
+                    v-on="on"
+                    @click="pallete = !pallete"
+                  >
+                    <v-icon>
+                      {{
+                        pallete
+                          ? 'mdi-chevron-up'
+                          : 'mdi-palette-outline'
+                      }}
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t('palette-button') }}</span>
+              </v-tooltip>
             </v-col>
           </v-row>
+          <v-expand-transition>
+            <div v-show="pallete">
+              <v-color-picker
+                :value="layerStyle"
+                hide-mode-switch
+                mode="hexa"
+                dot-size="15"
+                @input="updateColor"
+              />
+            </div>
+          </v-expand-transition>
         </v-card-text>
         <v-card-actions class="justify-end">
           <v-btn
             color="accent"
-            :disabled="!name"
-            @click="updateLayer"
+            @click="handleSave"
           >
             {{ $t('button-label') }}
           </v-btn>
@@ -192,34 +236,38 @@
 {
     "en": {
         "zoom-label": "Zoom to area",
-        "edit-label": "Rename layer",
+        "edit-label": "Edit",
         "download-label": "Download layer",
         "remove-label": "Remove layer",
-        "info-text": "Enter layer name",
-        "field-label": "Name",
+        "info-text": "Layer color",
+        "field-label": "Layer name",
         "button-label": "Save",
         "api-error-update": "Error while updating layer, contact a system administrator in case it persists.",
         "api-error-delete": "Error while removing bookmark, contact a system administrator in case it persists.",
         "remove-title": "Remove layer?",
         "remove-text": "This action cannot be undone",
         "cancel-button": "Cancel",
-        "confirm-button": "Remove"
+        "confirm-button": "Remove",
+        "palette-button": "Color palette",
+        "save-button": "Save Color"
     },
 
     "pt-br": {
         "zoom-label": "Aproximar para área",
-        "edit-label": "Renomear camada",
+        "edit-label": "Editar",
         "download-label": "Baixar camada",
         "remove-label": "Excluir camada",
-        "info-text": "Digite o nome da camada",
-        "field-label": "Nome",
+        "info-text": "Cor da camada",
+        "field-label": "Nome da camada",
         "button-label": "Salvar",
         "api-error-update": "Não foi possível atualizar o camada, entre em contato com um administrador caso persista.",
         "api-error-delete": "Não foi possível remover a camada, entre em contato com um administrador caso persista",
          "remove-title": "Remover camada?",
         "remove-text": "Essa ação não pode ser desfeita",
         "cancel-button": "Cancelar",
-        "confirm-button": "Remover"
+        "confirm-button": "Remover",
+        "palette-button": "Paleta de cores",
+        "save-button": "Salvar Cor"
     }
 }
 </i18n>
@@ -242,6 +290,9 @@ export default {
     rename: false,
     remove: false,
     name: '',
+    pallete: false,
+    layerStyle: '#FF0000FF',
+    isPointType: false,
   }),
 
   computed: {
@@ -255,6 +306,11 @@ export default {
           id: this.layer.id,
         });
       }
+      const geometryTypes = this.supportLayerUser[
+        this.layer.id
+      ].geometry.features.map((feature) => feature.geometry.type);
+      this.isPointType = geometryTypes.every((type) => type === 'Point');
+      this.name = this.layer.name;
       this.toggleLayerVisibility({
         id: this.layer.id,
         visible: !this.layer.visible,
@@ -263,27 +319,65 @@ export default {
     },
 
     updateLayerOpacity(opacity) {
-      this.setLayerOpacity({
-        id: this.layer.id,
-        opacity,
+      this.setLayerOpacity({ id: this.layer.id, opacity });
+    },
+
+    async handleSave() {
+      try {
+        if (this.rename) {
+          await this.updateLayer();
+        }
+        await this.saveColor();
+      } catch (error) {
+        console.error('Error in handleSave:', error);
+      }
+    },
+
+    async updateColor(color) {
+      this.layerStyle = color;
+      this.SET_COLOR(color);
+      this.updateMarkerColor(this.layer.id, color);
+    },
+
+    async saveColor() {
+      try {
+        await this.$api.patch(
+          'user/upload-file/geo/update-properties/',
+          {
+            id: this.layer.id,
+            color: this.layerStyle,
+            name: this.name,
+          },
+        );
+        await this.getLayersUser();
+      } catch (exc) {
+        console.error('Error:', exc);
+        this.$store.commit('alert/addAlert', {
+          message: this.$t('api-error-update'),
+        });
+      }
+    },
+
+    updateMarkerColor(layerId, color) {
+      const layer = this.$L.geoJSON(this.layer.geometry);
+      layer.eachLayer((marker) => {
+        if (marker.options.layerId === layerId) {
+          marker.setStyle({ color });
+        }
       });
     },
 
     boundary() {
       const bounds = this.$L.geoJSON(this.layer.geometry).getBounds();
-      if (bounds.getNorthEast() && bounds.getSouthWest()) { this.zoomToBounds(bounds); }
+      if (bounds.getNorthEast() && bounds.getSouthWest()) {
+        this.zoomToBounds(bounds);
+      }
     },
 
     async updateLayer() {
       this.rename = false;
       try {
-        await this.$api.$patch(
-          `user/upload-file/${this.layer.id}/update/`,
-          {
-            name: this.name,
-          },
-        );
-        this.getLayersUser();
+        await this.getLayersUser();
       } catch (exc) {
         this.$store.commit('alert/addAlert', {
           message: this.$t('api-error-update'),
@@ -296,7 +390,7 @@ export default {
         await this.$api.$put(
           `user/upload-file/${this.layer.id}/delete/`,
         );
-        this.getLayersUser();
+        await this.getLayersUser();
       } catch (exc) {
         this.$store.commit('alert/addAlert', {
           message: this.$t('api-error-delete'),
@@ -320,15 +414,16 @@ export default {
     ...mapMutations('supportLayersUser', [
       'toggleLayerVisibility',
       'setLayerOpacity',
+      'setLayerColor',
       'setZoomTo',
+      'SET_COLOR',
     ]),
 
     ...mapActions('supportLayersUser', [
       'getLayersUserGeoJson',
       'getLayersUser',
     ]),
-    ...mapActions('map', ['zoomToBounds']),
+    ...mapActions('map', ['zoomToBounds', 'saveDrawToDatabase']),
   },
-
 };
 </script>

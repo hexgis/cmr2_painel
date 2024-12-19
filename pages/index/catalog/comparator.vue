@@ -90,7 +90,7 @@
                       class="scene-preview"
                       :src="emptyImage"
                       :lazy-src="emptyImage"
-                      :alt="'Imagem Vazia'"
+                      :alt="$t('empty-image')"
                     />
                   </div>
                 </v-row>

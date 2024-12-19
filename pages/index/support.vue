@@ -11,7 +11,7 @@
                             mdi-information
                         </v-icon>
                     </template>
-                    <span> Fonte de dados: Geoserver - FUNAI </span>
+                    <span> {{ $t('data-source') }} </span>
                 </v-tooltip>
             </v-row>
             <v-switch
@@ -22,6 +22,7 @@
             />
         </div>
         <v-list v-if="!$fetchState.pending" expand>
+            <SupportLayersActive />
             <SupportUser v-if="user" />
             <template v-for="group in orderedSupportLayersGroups">
                 <SupportLayersGroupBase
@@ -47,10 +48,12 @@
 <i18n>
 {
     "en": {
-        "title": "Layers"
+        "title": "Layers",
+        "data-source": "Data source: Geoserver - FUNAI"
     },
     "pt-br": {
-        "title": "Camadas"
+        "title": "Camadas",
+        "data-source": "Fonte de dados: Geoserver - FUNAI"
     }
 }
 </i18n>
@@ -61,12 +64,13 @@ import _ from 'lodash'
 
 import SupportLayersGroupBase from '@/components/support/SupportLayersGroupBase'
 import SupportLayersGroupAntropismo from '@/components/support/SupportLayersGroupAntropismo'
+import SupportLayersActive from '@/components/support/SupportLayersActive'
 import SupportUser from '@/components/support/SupportUser'
 
 export default {
     name: 'Support',
 
-    components: { SupportLayersGroupBase, SupportLayersGroupAntropismo, SupportUser },
+    components: { SupportLayersGroupBase, SupportLayersGroupAntropismo, SupportUser, SupportLayersActive },
 
     transition: 'scroll-y-transition',
 
@@ -126,10 +130,12 @@ export default {
             'supportCategoryGroupsAntropismo',
             'loading',
             'showFeaturesSupportLayers',
-        ]),
+
+          ]),
+        ...mapState('supportLayersUser', ['supportLayerUser']),
         ...mapState('userProfile', ['user']),
 
-        
+
     },
 
     methods: {

@@ -75,7 +75,9 @@ export default {
       },
     },
   },
-
+  created(){
+    this.getInfo()
+  },
   methods: {
     async getInfo() {
       await this.$store.dispatch('supportLayersUser/getLayersUser');

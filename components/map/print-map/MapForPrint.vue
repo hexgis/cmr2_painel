@@ -69,7 +69,7 @@ import SupportLayers from '@/components/support/SupportLayers'
 import SupportLayersHazard from '@/components/support/SupportLayersHazard'
 import SupportLayersProdes from '@/components/support/SupportLayersProdes'
 import SupportLayersRaster from '@/components/support/SupportLayersRaster'
-import AlertLayers from '@/components/urgent-alerts/AlertLayers'
+import AlertLayers from '@/components/monitoring/AlertLayers'
 import DeterLayers from '@/components/deter/DeterLayers'
 import LandUseLayers from '@/components/land-use/LandUseLayers'
 import SupportUserLayersMap from '@/components/support/SupportUserLayersMap'
@@ -174,22 +174,32 @@ export default {
             }/${yyyy}`
         },
 
-        createMap() {
+        async createMap() {
             try {
                 require('@/plugins/L.SimpleGraticule')
                 require('@/plugins/L.Control.MapBounds')
+
+            if (!this.$refs.printMap) {
+              throw new Error('Referência ao mapa não encontrada.')
+            }
 
                 this.map = this.$refs.printMap.mapObject
 
                 window.L = this.$L // define leaflet global
 
-                this.currentBouldMap = this.map.getBounds()
-                this.$emit('updateBounds', this.currentBouldMap)
+            if (!this.map) {
+              throw new Error('Mapa não foi corretamente inicializado.')
+            }
+
+                this.currentBouldMap = await this.map.getBounds()
+                this.$nextTick(() => {
+                  this.$emit('updateBounds', this.currentBouldMap)
+                })
                 this.map.invalidateSize()
                 this.map.on('move', this.onMainMapMoving)
                 this.map.on('moveend', this.onMainMapMoved)
 
-                this.$L.control
+                await this.$L.control
                     .mapBounds({
                         type: 'center',
                         position: 'bottomleft',
@@ -200,25 +210,34 @@ export default {
                     interval: 20,
                     showOriginLabel: true,
                     redraw: 'move',
-                    zoomIntervals: intervalZooms.default[this.leafSize.type],
+                    zoomIntervals: intervalZooms?.default[this.leafSize.type],
                 }
-
-                this.$L.simpleGraticule(options).addTo(this.map)
+                await this.$L.simpleGraticule(options).addTo(this.map)
 
                 if (
                     this.selectedBaseMap &&
                     this.selectedBaseMap.options.label === 'Bing'
                 ) {
                     const bingLayer = this.createBingLayer()
-                    this.map.addLayer(bingLayer)
+                    if (bingLayer) {
+                      this.map.addLayer(bingLayer)
+                    }
                 }
 
                 this.mainMap.eachLayer((layer) => {
-                    if (layer._events) {
-                        const cloned = cloneLayer(layer)
-                        this.map.addLayer(cloned)
+                  if (layer && layer._events) {
+                    try {
+                      const clonedLayer = cloneLayer(layer);
+                      if (clonedLayer) {
+                        this.map.addLayer(clonedLayer);
+                      } else {
+                        console.warn('Falha ao clonar camada:', layer);
+                      }
+                    } catch (cloneError) {
+                      console.error('Erro ao clonar camada:', cloneError);
                     }
-                })
+                  }
+                });
 
                 this.valueScale = true
                 this.valueNorthArrow = true
@@ -259,10 +278,12 @@ export default {
 }
 </script>
 <style lang="sass">
+.leaflet-control-attribution leaflet-control
+    background: rgba(255, 255, 255, 0.25) !important
+
 .leaflet-control-attribution.leaflet-control:nth-child(1)::after
     content: '| Mapa não oficial'
     color: red
     font-weight: bold
     padding: 5px
-
 </style>

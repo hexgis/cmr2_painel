@@ -32,7 +32,7 @@
               src="@/assets/north-arrow.png"
               alt="northarrow"
               class="north-arrow"
-            >
+            />
           </l-control>
           <PriorityIndividualLayer :map="map" />
           <SupportLayers />
@@ -69,8 +69,7 @@
             {{ titleMap }}
           </p>
           <p class="mb-2">
-            Centro de Monitoramento Remoto - Fundação Nacional do
-            Índio
+            {{ $t('map-title')}}
           </p>
         </div>
         <div class="d-flex justify-center hight_container_mini_map">
@@ -87,10 +86,10 @@
               />
               <l-control
                 position="topleft"
-                class="ma-0 pa-0"
+                class="ma-0"
               >
-                <p class="ma-1 pa-0 print-mini-map-text">
-                  LOCALIZAÇÃO DA ÁREA
+                <p class="ma-1 print-mini-map-text">
+                  {{ $t('map-location-label') }}
                 </p>
               </l-control>
             </l-map>
@@ -98,7 +97,7 @@
         </div>
         <div>
           <p class="d-block ma-1">
-            Legenda:
+            {{ $t('legend-title') }}
           </p>
           <div
             class="ma-1 flex-wrap"
@@ -119,7 +118,7 @@
                   no-gutters
                   cols="6"
                 >
-                  <p>Polígonos Prioritários: Muito Alta</p>
+                  <p>{{ $t('priority-polygons.very-high') }}</p>
                 </v-col>
               </v-row>
               <v-row
@@ -136,7 +135,7 @@
                   no-gutters
                   cols="6"
                 >
-                  <p>Polígonos Prioritários: Alta</p>
+                  <p>{{ $t('priority-polygons.high') }}</p>
                 </v-col>
               </v-row>
               <v-row
@@ -153,7 +152,7 @@
                   no-gutters
                   cols="6"
                 >
-                  <p>Polígonos Prioritários: Média</p>
+                  <p>{{ $t('priority-polygons.medium') }}</p>
                 </v-col>
               </v-row>
               <v-row
@@ -170,7 +169,7 @@
                   no-gutters
                   cols="6"
                 >
-                  <p>Polígonos Prioritários: Baixa</p>
+                  <p>{{ $t('priority-polygons.low') }}</p>
                 </v-col>
               </v-row>
               <v-row
@@ -187,7 +186,7 @@
                   no-gutters
                   cols="6"
                 >
-                  <p>Polígonos Prioritários: Muito Baixa</p>
+                  <p>{{ $t('priority-polygons.very-low') }}</p>
                 </v-col>
               </v-row>
             </div>
@@ -211,7 +210,7 @@
                   >
                   <v-col>
                     <p class="ml-1">
-                      {{ layer.name }}
+                      {{ $t('support-layer-label', { layer: layer.name }) }}
                     </p>
                   </v-col>
                 </v-row>
@@ -237,7 +236,7 @@
                   >
                   <v-col>
                     <p class="ml-1">
-                      {{ layer.name }}
+                      {{ $t('support-layer-label', { layer: layer.name }) }}
                     </p>
                   </v-col>
                 </v-row>
@@ -263,7 +262,7 @@
                   >
                   <v-col>
                     <p class="ml-1">
-                      {{ layer.name }}
+                      {{ $t('support-layer-label', { layer: layer.name }) }}
                     </p>
                   </v-col>
                 </v-row>
@@ -289,7 +288,7 @@
                   >
                   <v-col>
                     <p class="ml-1">
-                      {{ layer.name }}
+                      {{ $t('support-layer-label', { layer: layer.name }) }}
                     </p>
                   </v-col>
                 </v-row>
@@ -299,12 +298,11 @@
           <v-divider />
           <div class="ma-1">
             <p class="font-weight-bold">
-              Bases Cartográficas:
+              {{ $t('cartographic-bases-title') }}
             </p>
             <div v-if="showFeatures">
               <p>
-                - Polígonos Prioritários presentes no território
-                Brasileiro. Fonte: Banco de Dados Funai - 2022
+                {{ $t('priority-polygons-data-source') }}
               </p>
             </div>
             <div v-if="showFeaturesSupportLayers">
@@ -318,8 +316,7 @@
                 >
                   <v-col>
                     <p>
-                      - {{ layer.name }} presente no
-                      território brasileiro.
+                      {{ $t('support-layer-label', { layer: layer.name }) }}
                     </p>
                   </v-col>
                 </v-row>
@@ -336,8 +333,7 @@
                 >
                   <v-col>
                     <p>
-                      - {{ layer.name }} presente no
-                      território brasileiro.
+                      {{ $t('support-layer-label', { layer: layer.name }) }}
                     </p>
                   </v-col>
                 </v-row>
@@ -354,8 +350,7 @@
                 >
                   <v-col>
                     <p>
-                      - {{ layer.name }} presente no
-                      território brasileiro.
+                      {{ $t('support-layer-label', { layer: layer.name }) }}
                     </p>
                   </v-col>
                 </v-row>
@@ -363,21 +358,16 @@
             </div>
           </div>
           <v-divider />
-
-          <div class="ma-1">
+          <div class="ma-1 disclaimer">
             <p>
-              CENTRO DE MONITORAMENTO REMOTO -
-              https://cmr.funai.gov.br | Data da impressão:
-              {{ todayDate() }}
+              {{ $t('disclaimer-1',  todayDate() ) }}
             </p>
-          </div>
-          <v-divider />
-          <div class="ma-1">
             <p>
-              As informações podem apresentar distorções em função
-              das bases cartográficas utilizadas.
+              {{ $t('disclaimer-2') }}
             </p>
-            <p>Modelo de mapa adaptado para formato A4.</p>
+            <p>
+              {{ $t('disclaimer-3') }}
+            </p>
           </div>
         </div>
       </div>
@@ -391,6 +381,47 @@
     </div>
   </v-row>
 </template>
+<i18n>
+  {
+    "en": {
+      "map-title": "Monitoring Remote Center - National Indian Foundation",
+      "map-location-label": "AREA LOCATION",
+      "legend-title": "Legend:",
+      "priority-polygons": {
+        "very-high": "Priority Polygons: Very High",
+        "high": "Priority Polygons: High",
+        "medium": "Priority Polygons: Medium",
+        "low": "Priority Polygons: Low",
+        "very-low": "Priority Polygons: Very Low"
+      },
+      "cartographic-bases-title": "Cartographic Bases:",
+      "priority-polygons-data-source": "- Priority polygons present in the Brazilian territory. Source: Funai Database - 2022",
+      "support-layer-label": "- {layer} present in the Brazilian territory.",
+      "disclaimer-1": "Monitoring Remote Center - https://cmr.funai.gov.br | Print date: {date}",
+      "disclaimer-2": "The information may present distortions due to the cartographic bases used.",
+      "disclaimer-3": "Map model adapted for A4 format."
+    },
+    "pt": {
+      "map-title": "Centro de Monitoramento Remoto - Fundação Nacional do Índio",
+      "map-location-label": "LOCALIZAÇÃO DA ÁREA",
+      "legend-title": "Legenda:",
+      "priority-polygons": {
+        "very-high": "Polígonos Prioritários: Muito Alta",
+        "high": "Polígonos Prioritários: Alta",
+        "medium": "Polígonos Prioritários: Média",
+        "low": "Polígonos Prioritários: Baixa",
+        "very-low": "Polígonos Prioritários: Muito Baixa"
+      },
+      "cartographic-bases-title": "Bases Cartográficas:",
+      "priority-polygons-data-source": "- Polígonos Prioritários presentes no território Brasileiro. Fonte: Banco de Dados Funai - 2022",
+      "support-layer-label": "- {layer} presente no território brasileiro.",
+      "disclaimer-1": "Centro de Monitoramento Remoto - https://cmr.funai.gov.br | Data da impressão: {date}",
+      "disclaimer-2": "As informações podem apresentar distorções em função das bases cartográficas utilizadas.",
+      "disclaimer-3": "Modelo de mapa adaptado para formato A4."
+    }
+  }
+  </i18n>
+
 
 <script>
 import { mapState } from 'vuex';
@@ -398,7 +429,7 @@ import MiniMapForPrintPriority from '@/components/priority/MiniMapForPrintPriori
 import PriorityIndividualLayer from '@/components/priority/PriorityIndividualLayer';
 import MonitoringLayers from '@/components/monitoring/MonitoringLayers';
 import SupportLayers from '@/components/support/SupportLayers';
-import AlertLayers from '@/components/urgent-alerts/AlertLayers';
+import AlertLayers from '@/components/monitoring/AlertLayers';
 import SupportLayersHazard from '@/components/support/SupportLayersHazard';
 import SupportLayersProdes from '@/components/support/SupportLayersProdes';
 import SupportLayersRaster from '@/components/support/SupportLayersRaster';
@@ -474,7 +505,7 @@ export default {
     ...mapState('map', []),
     ...mapState('priority', ['showFeatures', 'detail']),
     ...mapState('monitoring', ['showFeaturesMonitoring']),
-    ...mapState('urgent-alerts', ['showFeaturesUrgentAlert']),
+    ...mapState('urgent-alerts', ['showFeaturesUrgentAlerts']),
     ...mapState('supportLayers', [
       'showFeaturesSupportLayers',
       'supportLayers',
@@ -561,30 +592,18 @@ export default {
 };
 </script>
 
-<style scoped>
-p {
-    font-size: xx-small;
-    margin: 0;
-}
+<style>
 .print-mini-map-text {
     color: dimgray !important;
-    font-size: xx-small;
+    background: white;
     white-space: nowrap;
 }
-.border_container {
-    border-right: 0.5px solid gray;
-    border-top: 0.5px solid gray;
-    border-bottom: 0.5px solid gray;
-    height: 100%;
-}
+
 .hight_container_mini_map {
     height: 150px;
     max-height: 150px;
     width: 100%;
 }
-</style>
-
-<style>
 
 .v-dialog:not(.v-dialog--fullscreen) {
   max-height: 100%;
@@ -601,8 +620,10 @@ p {
     padding-left: 2px;
     text-shadow: -2px 0 #ffffff, 0 2px #ffffff, 2px 0 #ffffff, 0 -2px #ffffff;
 }
-.leaflet-container .leaflet-control-mapbounds {
-    background-color: rgba(255, 255, 255, 0.7) !important;
+
+.leaflet-container .leaflet-control-mapbounds,
+.leaflet-container .leaflet-control-attribution {
+    background-color: rgba(255, 255, 255, 0.3) !important;
     box-shadow: 0 0 5px #bbb !important;
     padding: 0 5px !important;
     margin: 0 !important;

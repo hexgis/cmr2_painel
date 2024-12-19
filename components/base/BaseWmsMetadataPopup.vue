@@ -1,7 +1,11 @@
 <template>
-  <l-layer-group ref="popup">
+  <l-layer-group ref="popup" :visible="!isDrawing">
     <l-popup :options="popupOptions">
-      <v-card class="fill-height">
+      <LoadingIconVue v-if="isLoadingData" />
+      <v-card
+        v-else
+        class="fill-height"
+      >
         <v-tabs
           v-if="data && Object.keys(data).length"
           background-color="primary"
@@ -93,8 +97,7 @@
                 </template>
 
                 <div v-else-if="!layerData.layers.length">
-                  Não há dados nesse ponto para a camada
-                  selecionada.
+                  {{ $t('no-data') }}
                 </div>
               </v-card-text>
             </v-tab-item>
@@ -107,41 +110,55 @@
                 Object.keys(instrumentoGestao).length
             "
           >
-            Instrumento Gestão
+            {{ $t('instrument-management') }}
           </v-tab>
 
           <v-tab-item
-            v-if="
-              instrumentoGestao &&
-                Object.keys(instrumentoGestao).length
-            "
+            v-if="instrumentoGestao && instrumentoGestao.length"
             class="fill-height"
           >
-            <v-card-text
-              style="max-height: 312px; overflow-y: auto"
-            >
-              <v-row
-                v-for="(value, field) in instrumentoGestao"
-                :key="field"
-                class="mx-0 list-separator"
-                dense
+            <v-card-text style="max-height: 312px; overflow-y: auto">
+              <div
+                v-for="(item, index) in instrumentoGestao"
+                :key="index"
               >
-                <v-col
-                  cols="5"
-                  class="text-right"
+                <v-row class="mx-0 grey lighten-4 my-2">
+                  <v-col
+                    cols="12"
+                    class="text-center font-weight-bold"
+                  >
+                    {{ $t('instrument-management') }} {{ index + 1 }}
+                  </v-col>
+                </v-row>
+                <v-row
+                  v-for="(value, key) in item"
+                  :key="key + index"
+                  class="mx-0 list-separator"
+                  dense
                 >
-                  {{ formatField(field) }}:
-                </v-col>
-                <v-col
-                  cols="7"
-                  class="text-subtitle-2"
-                  style="overflow-wrap: anywhere"
-                >
-                  <span>
-                    {{ formatValue(value, field) }}
-                  </span>
-                </v-col>
-              </v-row>
+                  <v-col
+                    cols="5"
+                    class="text-right font-weight-bold"
+                  >
+                    {{ formatField(key) }}:
+                  </v-col>
+                  <v-col
+                    cols="7"
+                    class="text-subtitle-2"
+                    style="overflow-wrap: anywhere"
+                  >
+                    <span v-if="isValidUrl(value)">
+                      <a
+                        :href="value"
+                        target="_blank"
+                      >{{ value }}</a>
+                    </span>
+                    <span v-else>
+                      {{ formatValue(value, key) }}
+                    </span>
+                  </v-col>
+                </v-row>
+              </div>
             </v-card-text>
           </v-tab-item>
         </v-tabs>
@@ -153,20 +170,26 @@
   {
       "en": {
           "no-data": "There's no data at this point for the selected layer.",
-          "layer-api-error": "Unable to acquire support layer information."
+          "layer-api-error": "Unable to acquire support layer information.",
+          "instrument-management": "Management Instrument"
       },
       "pt-br": {
           "no-data": "Não há dados nesse ponto para a camada selecionada.",
-          "layer-api-error": "Não foi possível resgatar as informações das camadas de apoio."
+          "layer-api-error": "Não foi possível resgatar as informações das camadas de apoio.",
+          "instrument-management": "Instrumento de Gestão"
       }
   }
   </i18n>
 <script>
+import {mapState} from 'vuex';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import LoadingIconVue from '../map/file-loader/LoadingIcon.vue';
 
 export default {
   name: 'BaseWmsMetadataPopup',
-
+  components: {
+    LoadingIconVue,
+  },
   props: {
     map: {
       type: Object,
@@ -179,9 +202,13 @@ export default {
     popup: null,
     data: null,
     instrumentoGestao: {}, // Changed to an empty object
+    loadingData: false,
   }),
 
   computed: {
+    isLoadingData() {
+      return this.loadingData;
+    },
     isSmallScreen() {
       return window.innerWidth < 768;
     },
@@ -193,6 +220,8 @@ export default {
         color: 'secondary',
       };
     },
+
+    ...mapState('map', ['isDrawing']),
   },
 
   watch: {
@@ -284,7 +313,7 @@ export default {
           };
 
           const url = this.getFeatureInfoUrl(evt.latlng, layer);
-
+          this.loadingData = true;
           this.$axios
             .get(url)
             .then(({ data }) => {
@@ -312,6 +341,7 @@ export default {
               });
             })
             .finally(() => {
+              this.loadingData = false;
               this.data[layerName].loading = false;
               this.$forceUpdate();
             });
@@ -376,24 +406,17 @@ export default {
       );
     },
 
-    fetchInstrumentoGestao(co_funai) {
-      const url = this.$api.$get(`funai/instrumento-gestao/?co_funai=${co_funai}`);
-      this.$axios
-        .get(url)
-        .then((response) => {
-          if (response.data && response.data.length > 0) {
-            const data = response.data[0];
-            this.instrumentoGestao = Array.isArray(data)
-              ? data[0]
-              : data;
-          } else {
-            this.instrumentoGestao = {};
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching data:', error);
-          this.instrumentoGestao = {};
-        });
+    async fetchInstrumentoGestao(co_funai) {
+      this.loadingData = true;
+      const url = `funai/instrumento-gestao/?co_funai=${co_funai}`;
+      try {
+        this.instrumentoGestao = await this.$api.$get(url);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        this.instrumentoGestao = {};
+      } finally {
+        this.loadingData = false;
+      }
     },
   },
 };

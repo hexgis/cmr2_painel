@@ -48,7 +48,7 @@
         >
           <v-select
             v-model="filters.co_cr"
-            label="Coordenação Regional (Todas)"
+            :label="$t('regional-coordination-label')"
             :items="filterOptions.regionalFilters"
             item-value="co_cr"
             item-text="ds_cr"
@@ -68,7 +68,7 @@
           <v-slide-y-transition>
             <v-select
               v-model="filters.co_funai"
-              label="Terras Indigenas (Todas)"
+              :label="$t('indigenous-lands-label')"
               :items="filterOptions.tiFilters"
               item-text="no_ti"
               item-value="co_funai"
@@ -104,13 +104,17 @@
         "start-date-label": "Start date",
         "end-date-label": "End date",
         "cpf-label": "CPF/CNPJ",
-        "filter-button": "Filter"
+        "filter-button": "Filter",
+        "regional-coordination-label": "Regional Coordination (All)",
+        "indigenous-lands-label": "Indigenous Lands (All)"
     },
     "pt-br": {
         "start-date-label": "Data inicial",
         "end-date-label": "Data final",
         "cpf-label": "CPF/CNPJ",
-        "filter-button": "Filtrar"
+        "filter-button": "Filtrar",
+        "regional-coordination-label": "Coordenação Regional (Todas)",
+        "indigenous-lands-label": "Terras Indígenas (Todas)"
     }
 }
 </i18n>

@@ -15,9 +15,7 @@
             </v-icon>
           </template>
           <span>
-            O INPE enfatiza que o DETER é um sistema de alerta
-            <br>
-            desenvolvido para suporte à fiscalização de desmatamento.
+            {{ $t('tooltip') }}
           </span>
         </v-tooltip>
       </v-row>
@@ -38,7 +36,7 @@
     >
       <v-divider />
       <p class="font-weight-regular pt-2 grey--text text--darken-2">
-        Legenda:
+        {{ $t('legend') }}
       </p>
       <v-col class="grey--text text--darken-2">
         <v-row class="mb-2">
@@ -48,7 +46,7 @@
           >
             mdi-square
           </v-icon>
-          Cicatriz de Queimada
+          {{ $t('burnt-scar') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -57,7 +55,7 @@
           >
             mdi-square
           </v-icon>
-          Desmatamento Veg
+          {{ $t('deforestation-veg') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -66,7 +64,7 @@
           >
             mdi-square
           </v-icon>
-          Cs Desordenado
+          {{ $t('disorderly-cs') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -75,7 +73,7 @@
           >
             mdi-square
           </v-icon>
-          Desmatamento Cr
+          {{ $t('deforestation-cr') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -84,7 +82,7 @@
           >
             mdi-square
           </v-icon>
-          Cs Geométrico
+          {{ $t('geometric-cs') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -93,7 +91,7 @@
           >
             mdi-square
           </v-icon>
-          Degradação
+          {{ $t('degradation') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -102,27 +100,40 @@
           >
             mdi-square
           </v-icon>
-          Mineração
+          {{ $t('mining') }}
         </v-row>
         <v-spacer />
       </v-col>
     </div>
 
     <ShowDialog />
-
-    
   </v-container>
 </template>
-
 <i18n>
     {
         "en": {
-            "title": "Deter Polygons(INPE)"
-
+          "title": "Deter Polygons (INPE)",
+          "tooltip": "INPE emphasizes that DETER is an alert system developed to support deforestation enforcement.",
+          "legend": "Legend:",
+          "burnt-scar": "Burnt Scar",
+          "deforestation-veg": "Vegetation Deforestation",
+          "disorderly-cs": "Disorderly Cs",
+          "deforestation-cr": "Deforestation Cr",
+          "geometric-cs": "Geometric Cs",
+          "degradation": "Degradation",
+          "mining": "Mining"
         },
         "pt-br": {
-            "title": "Polígonos Deter(INPE)"
-
+          "title": "Polígonos Deter (INPE)",
+          "tooltip": "O INPE enfatiza que o DETER é um sistema de alerta desenvolvido para suporte à fiscalização de desmatamento.",
+          "legend": "Legenda:",
+          "burnt-scar": "Cicatriz de Queimada",
+          "deforestation-veg": "Desmatamento Veg",
+          "disorderly-cs": "Cs Desordenado",
+          "deforestation-cr": "Desmatamento Cr",
+          "geometric-cs": "Cs Geométrico",
+          "degradation": "Degradação",
+          "mining": "Mineração"
         }
     }
 </i18n>

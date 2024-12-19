@@ -1,57 +1,66 @@
 <template>
-    <v-tabs
-        v-model="activeTab"
-        vertical
-        optional
-        background-color="primary"
-        class="right-tabs fill-height"
+  <v-tabs
+    v-model="activeTab"
+    vertical
+    optional
+    background-color="primary"
+    class="right-tabs fill-height"
+  >
+    <v-tab
+      v-for="(tab, i) in tabs"
+      :key="i"
+      :to="localePath(tab.route)"
+      nuxt
+      :disabled="showTableDialog"
     >
-        <v-tab
+      <v-tooltip left>
+        <template #activator="{ on }">
+          <v-icon
+            class="tab-icon"
+            v-on="on"
+          >
+            {{ tab.icon }}
+          </v-icon>
+        </template>
+        <span>{{ tab.name }}</span>
+      </v-tooltip>
+    </v-tab>
+
+    <v-tab-item
+      :transition="false"
+      :reverse-transition="false"
+    >
+      <div
+        id="img-wrapper"
+        class="d-flex justify-center"
+      >
+        <v-img
+          contain
+          :src="logo_funai"
+        />
+      </div>
+      <nuxt-child keep-alive />
+
+      <div
+        v-if="isIndex"
+        class="info d-flex flex-column align-content-space-between"
+        style="height: 90%;"
+      >
+        <v-list>
+          <v-list-item
             v-for="(tab, i) in tabs"
             :key="i"
             :to="localePath(tab.route)"
-            nuxt
-            :disabled="showTableDialog"
-        >
-            <v-tooltip left>
-                <template #activator="{ on }">
-                    <v-icon class="tab-icon" v-on="on">
-                        {{ tab.icon }}
-                    </v-icon>
-                </template>
-                <span>{{ tab.name }}</span>
-            </v-tooltip>
-        </v-tab>
-
-        <v-tab-item :transition="false" :reverse-transition="false">
-            <div id="img-wrapper" class="d-flex justify-center">
-                <v-img
-                contain
-                :src="logo_funai"
-                />
-            </div>
-            <nuxt-child keep-alive />
-
-            <div
-                v-if="isIndex"
-                class="info d-flex flex-column align-content-space-between"
-                style="height: 90%;"
-            >
-                <v-list>
-                    <v-list-item
-                        v-for="(tab, i) in tabs"
-                        :key="i"
-                        :to="localePath(tab.route)"
-                    >
-                        <v-list-item-title class="text-right">
-                            {{ tab.name }}
-                        </v-list-item-title>
-                    </v-list-item>
-                </v-list>
-            </div>
-        </v-tab-item>
-        <ProfilePanel v-model="settings" />
-    </v-tabs>
+          >
+            <v-list-item-title class="text-right">
+              {{ tab.name }}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </div>
+    </v-tab-item>
+    <ProfilePanel v-model="settings" />
+  </v-tabs>
 </template>
 
 <i18n>
@@ -73,7 +82,7 @@
     "logs-tab": "Graphics View"
   },
   "pt-br": {
-    "analytics-tab": "Analytics",
+    "analytics-tab": "Analítico",
     "catalog-tab": "Meu acervo de imagens",
     "search-tab": "Monitoramento Diário",
     "layers-tab": "Camadas de Sobreposição",
@@ -92,154 +101,151 @@
 </i18n>
 
 <script>
-import { mapState, mapMutations } from 'vuex'
-import ProfilePanel from '@/components/profile/ProfilePanel'
+import { mapState, mapMutations } from 'vuex';
+import ProfilePanel from '@/components/profile/ProfilePanel';
 
 export default {
-    name: 'MapLayersPanel',
+  name: 'MapLayersPanel',
 
-    components: { ProfilePanel },
+  components: { ProfilePanel },
 
-    data() {
-        return {
-            logo_funai: process.env.DEFAULT_LOGO_IMAGE_CMR,
-            activeTab: 0,
-            compareTabIndex: null,
-            settings: false,
-        }
+  data() {
+    return {
+      logo_funai: process.env.DEFAULT_LOGO_IMAGE_CMR,
+      activeTab: 0,
+      compareTabIndex: null,
+      settings: false,
+    };
+  },
+
+  computed: {
+    isIndex() {
+      return this.getRouteBaseName() === 'index';
     },
+    allTabs() {
+      /*
+        TODO: Commented modules will be added post-launch cmr2
 
-    computed: {
-        isIndex() {
-            return this.getRouteBaseName() === 'index'
+        {
+          name: this.$t('priority-tab'),
+          icon: 'mdi-map-marker-alert',
+          route: '/priority',
+          show: process.env.ROUTE_PRIORITY === 'true',
         },
-        allTabs() {
-            return [
-                {
-                    name: this.$t('layers-tab'),
-                    icon: 'mdi-layers',
-                    route: '/support',
-                    show: process.env.ROUTE_SUPPORT === 'true',
-                },
-                {
-                    name: this.$t('priority-tab'),
-                    icon: 'mdi-map-marker-alert',
-                    route: '/priority',
-                    show: process.env.ROUTE_PRIORITY === 'true',
-                },
-                {
-                    name: this.$t('search-tab'),
-                    icon: 'mdi-map-search',
-                    route: '/monitoring',
-                    show: process.env.ROUTE_MONITORING === 'true',
-                },
-                {
-                    name: this.$t('urgent-alerts-tab'),
-                    icon: 'mdi-alarm-light',
-                    route: '/urgent-alerts',
-                    show: process.env.ROUTE_URGENT_ALERTS === 'true',
-                },
-                {
-                    name: this.$t('high-resolution-mosaics-tab'),
-                    icon: 'mdi-book-open-page-variant',
-                    route: '/support-raster',
-                    show: process.env.ROUTE_SUPPORT_RASTER === 'true',
-                },
-                {
-                    name: this.$t('support-fire-tab'),
-                    icon: 'mdi-fire',
-                    route: '/support-hazard',
-                    show: process.env.ROUTE_SUPPORT_HAZARD === 'true',
-                },
-                {
-                    name: this.$t('landuse-tab'),
-                    icon: 'mdi-sprout',
-                    route: '/land-use',
-                    show: process.env.ROUTE_LAND_USE === 'true',
-                },
-                {
-                    name: this.$t('prodes-tab'),
-                    icon: 'mdi-view-dashboard',
-                    route: '/support-prodes',
-                    show: process.env.ROUTE_SUPPORT_PRODES === 'true',
-                },
-                {
-                    name: this.$t('document-tab'),
-                    icon: 'mdi-file-document',
-                    route: '/document',
-                    show: process.env.ROUTE_DOCUMENT === 'true',
-                },
-                {
-                    name: this.$t('catalog-tab'),
-                    icon: 'mdi-folder-multiple-image',
-                    route: '/catalog',
-                    show: process.env.ROUTE_CATALOG === 'true',
-                },
-                {
-                    name: this.$t('mapoteca-tab'),
-                    icon: 'mdi-dresser',
-                    route: '/mapoteca',
-                    show: process.env.ROUTE_MAPOTECA === 'true',
-                },
-                {
-                    name: this.$t('deter-tab'),
-                    icon: 'mdi-leaf',
-                    route: '/deter',
-                    show: process.env.ROUTE_DETER === 'true',
-                },
-                {
-                    name: this.$t('analytics-tab'),
-                    icon: 'mdi-chart-box-outline',
-                    route: '/analytics',
-                    show: process.env.ROUTE_ANALYTICS === 'true',
-                },
-                {
-                    name: this.$t('logs-tab'),
-                    icon: 'mdi-chart-line',
-                    route: '/views-chart',
-                    show: process.env.ROUTE_VIEWS === 'true',
-                },
-            ]
+        {
+          name: this.$t('document-tab'),
+          icon: 'mdi-file-document',
+          route: '/document',
+          show: process.env.ROUTE_DOCUMENT === 'true',
         },
-        tabs() {
-            return this.allTabs.filter((tab) => tab.show)
+        {
+          name: this.$t('deter-tab'),
+          icon: 'mdi-leaf',
+          route: '/deter',
+          show: process.env.ROUTE_DETER === 'true',
         },
-        ...mapState('catalog', ['isComparing']),
-        ...mapState('tableDialog', ['showTableDialog']),
-    },
+        {
+          name: this.$t('prodes-tab'),
+          icon: 'mdi-view-dashboard',
+          route: '/support-prodes',
+          show: process.env.ROUTE_SUPPORT_PRODES === 'true',
+        },
+           {
+          name: this.$t('catalog-tab'),
+          icon: 'mdi-folder-multiple-image',
+          route: '/catalog',
+          show: process.env.ROUTE_CATALOG === 'true',
+        },
+          {
+          name: this.$t('support-fire-tab'),
+          icon: 'mdi-fire',
+          route: '/support-hazard',
+          show: process.env.ROUTE_SUPPORT_HAZARD === 'true',
+        },
+        */
 
-    watch: {
-        isComparing: 'handleCompareTab',
-    },
-
-    created() {
-        if (process.env.IMAGERY === 'false') {
-            this.tabs.splice(1, 1)
-        }
-        this.handleCompareTab()
-    },
-
-    methods: {
-        handleCompareTab() {
-            if (this.isComparing) {
-                this.tabs.push({
-                    name: this.$t('compare-tab'),
-                    icon: 'mdi-compare',
-                    route: '/catalog/comparator',
-                })
-                this.compareTabIndex = this.tabs.length - 1
-                this.$router.push(this.localePath('/catalog/comparator'))
-            } else if (this.compareTabIndex !== null) {
-                this.tabs.splice(this.compareTabIndex, 1)
-                this.compareTabIndex = null
-            }
+      return [
+        {
+          name: this.$t('layers-tab'),
+          icon: 'mdi-layers',
+          route: '/support',
+          show: process.env.ROUTE_SUPPORT === 'true',
         },
-        closeRightDrawer() {
-            this.closeDrawer()
+
+        {
+          name: this.$t('search-tab'),
+          icon: 'mdi-map-search',
+          route: '/monitoring',
+          show: process.env.ROUTE_MONITORING === 'true',
         },
-        ...mapMutations('userProfile', ['closeDrawer']),
+        {
+          name: this.$t('high-resolution-mosaics-tab'),
+          icon: 'mdi-book-open-page-variant',
+          route: '/support-raster',
+          show: process.env.ROUTE_SUPPORT_RASTER === 'true',
+        },
+        {
+          name: this.$t('landuse-tab'),
+          icon: 'mdi-sprout',
+          route: '/land-use',
+          show: process.env.ROUTE_LAND_USE === 'true',
+        },
+        {
+          name: this.$t('mapoteca-tab'),
+          icon: 'mdi-dresser',
+          route: '/mapoteca',
+          show: process.env.ROUTE_MAPOTECA === 'true',
+        },
+        {
+          name: this.$t('analytics-tab'),
+          icon: 'mdi-chart-box-outline',
+          route: '/statistics',
+          show: process.env.ROUTE_ANALYTICS === 'true',
+        },
+      ];
     },
-}
+    tabs() {
+      return this.allTabs.filter((tab) => tab.show);
+    },
+    ...mapState('catalog', ['isComparing']),
+    ...mapState('tableDialog', ['showTableDialog']),
+  },
+
+  watch: {
+    isComparing: 'handleCompareTab',
+  },
+
+  created() {
+    if (process.env.IMAGERY === 'false') {
+      this.tabs.splice(1, 1);
+    }
+    this.handleCompareTab();
+    if (this.$route.path === '/statistics') {
+      this.settings = true;
+    }
+  },
+
+  methods: {
+    handleCompareTab() {
+      if (this.isComparing) {
+        this.tabs.push({
+          name: this.$t('compare-tab'),
+          icon: 'mdi-compare',
+          route: '/catalog/comparator',
+        });
+        this.compareTabIndex = this.tabs.length - 1;
+        this.$router.push(this.localePath('/catalog/comparator'));
+      } else if (this.compareTabIndex !== null) {
+        this.tabs.splice(this.compareTabIndex, 1);
+        this.compareTabIndex = null;
+      }
+    },
+    closeRightDrawer() {
+      this.closeDrawer();
+    },
+    ...mapMutations('userProfile', ['closeDrawer']),
+  },
+};
 </script>
 
 <style lang="sass">
@@ -265,7 +271,7 @@ export default {
       left: 52px !important
 
     > .v-window, > .v-window > .v-window__container > .v-window-item
-      overflow-y: auto
+      overflow-y: hidden !important
       height: 100%
       display: block !important
       margin-bottom: 50px

@@ -30,13 +30,14 @@
                 justify="space-around"
               >
                 <v-col>
-                  <v-select
+                  <v-autocomplete
                     v-model="filters.id_acao"
                     :label="$t('action-label')"
                     item-value="id_action"
                     :items="filterOptions.actions"
                     item-text="no_action"
                     hide-details
+                    clearable
                     multiple
                     required
                     :loading="isLoadingDocumentActions"
@@ -44,7 +45,7 @@
                   />
                 </v-col>
                 <v-col>
-                  <v-select
+                  <v-autocomplete
                     v-model="filters.cr"
                     :disabled="!filters.id_acao.length"
                     label="Coordenação Regional (Todas)"
@@ -58,7 +59,7 @@
                   />
                 </v-col>
                 <v-col>
-                  <v-select
+                  <v-autocomplete
                     v-model="filters.ti"
                     label="Terras Indigenas (Todas)"
                     :items="filterOptions.tiFilters"

@@ -20,7 +20,7 @@
     >
       <v-divider class="mt-1" />
       <p class="font-weight-regular pt-2 grey--text text--darken-2">
-        Legenda:
+        {{ $t('legend') }}
       </p>
       <v-col class="grey--text text--darken-2">
         <v-row class="mb-2">
@@ -30,7 +30,7 @@
           >
             mdi-square
           </v-icon>
-          Agropecuária
+          {{ $t('land-use-categories.agriculture') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -39,7 +39,7 @@
           >
             mdi-square
           </v-icon>
-          Massa de Água
+          {{ $t('land-use-categories.water-body') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -48,7 +48,7 @@
           >
             mdi-square
           </v-icon>
-          Vilarejo
+          {{ $t('land-use-categories.village') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -57,7 +57,7 @@
           >
             mdi-square
           </v-icon>
-          Vegetação Natural
+          {{ $t('land-use-categories.natural-vegetation') }}
         </v-row>
         <v-row class="mb-2">
           <v-icon
@@ -66,29 +66,42 @@
           >
             mdi-square
           </v-icon>
-          Corte Raso
+          {{ $t('land-use-categories.clear-cut') }}
         </v-row>
         <v-spacer />
       </v-col>
     </div>
-
-   
   </v-container>
 </template>
 
 <i18n>
     {
         "en": {
-            "title": "Land Use And Ocupation",
+            "title": "Land Use and Occupation",
             "analytics-label": "Analytics",
             "map-label": "Map",
-            "table-name": "Land Use Table"
+            "table-name": "Land Use Table",
+            "legend": "Legend:",
+            "land-use-categories": {
+              "agriculture": "Agriculture",
+              "water-body": "Water Body",
+              "village": "Village",
+              "natural-vegetation": "Natural Vegetation",
+              "clear-cut": "Clear Cut"
+            
+          }
         },
         "pt-br": {
-            "title": "Uso e Ocupação Do Solo",
-            "analytics-label": "Analytics",
-            "map-label": "Mapa",
-            "table-name": "Tabela de Uso e Ocupação do Solo"
+            "title": "Uso e Ocupação do Solo",
+            "legend": "Legenda:",
+            "land-use-categories": {
+              "agriculture": "Agropecuária",
+              "water-body": "Massa de Água",
+              "village": "Vilarejo",
+              "natural-vegetation": "Vegetação Natural",
+              "clear-cut": "Corte Raso"
+             
+          }
         }
     }
 </i18n>
@@ -107,14 +120,7 @@ export default {
       items: ['MapStage', 'AnalytcalStage'],
       text: 'Texto de teste.',
       timer: '',
-      headers: [
-        { text: 'Código Funai', value: 'co_funai' },
-        { text: 'Terra Indígena', value: 'no_ti' },
-        { text: 'Coordenação Regional', value: 'ds_cr' },
-        { text: 'Data Cadastro', value: 'dt_cadastro' },
-        { text: 'Nu Área Km2', value: 'nu_area_km2' },
-        { text: 'Área do Polígono (ha)', value: 'nu_area_ha' },
-      ],
+   
       checkNewFilters: false,
     };
   },
@@ -137,7 +143,6 @@ export default {
       },
     },
     ...mapState('land-use', [
-      'showFeaturesLandUse',
       'features',
       'total',
       'tableLandUse',

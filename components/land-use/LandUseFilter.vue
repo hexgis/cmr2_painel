@@ -1,9 +1,10 @@
 <template>
   <v-col class="px-4">
     <v-row class="px-3 py-3">
-      <v-select
+      <v-autocomplete
+        ref="filters.cr"
         v-model="filters.cr"
-        label="Coordenação Regional"
+        :label="$t('regional-coordination-label')"
         :items="flattened"
         item-value="co_cr"
         item-text="ds_cr"
@@ -12,36 +13,42 @@
         clearable
         required
         :error="errorRegional"
+        :search-input.sync="searchCr"
+        @change="clearSearchCr"
       />
     </v-row>
 
     <v-slide-y-transition>
       <v-row
-        v-if="filters.cr && filterOptions.tiFilters"
         class="px-3 pb-3"
       >
-        <v-select
+        <v-autocomplete
+          ref="filters.ti"
           v-model="filters.ti"
-          label="Terras Indigenas"
-          :items="filterOptions.tiFilters"
+          :label="$t('indigenous-lands-label')"
+          :items="filteredTiFilters"
           item-text="no_ti"
           item-value="co_funai"
           hide-details
           clearable
+          chips
           required
           multiple
           :error="errorTi"
+          :search-input.sync="searchTi"
+          :disabled="isLoadingTi"
+          @change="clearSearchTi"
         />
       </v-row>
     </v-slide-y-transition>
 
     <v-row
-      v-if="filterOptions.tiFilters && filterOptions.year"
+      v-if="filters.ti && filterOptions.tiFilters && filterOptions.year"
       class="pt-1 px-3"
     >
       <v-select
         v-model="filters.year"
-        label="Ano"
+        :label="$t('year-label')"
         :items="filterOptions.year"
         item-text="nu_ano"
         item-value="map_year"
@@ -83,7 +90,7 @@
                 mdi-table
               </v-icon>
             </template>
-            <span>Tabela</span>
+            <span>{{ $t('table-label') }}</span>
           </v-tooltip>
         </v-btn>
       </v-col>
@@ -246,6 +253,9 @@
 <i18n>
     {
         "en": {
+            "regional-coordination-label": "Regional Coordination",
+            "indigenous-lands-label": "Indigenous Lands",
+            "year-label": "Year",
             "search-label": "Search",
             "opacity-label": "Opacity",
             "current-view-label": "Search in current area?",
@@ -254,15 +264,20 @@
             "heat-map-label": "Heat map",
             "polygon-label": "Total polygons count",
             "end-date-label": "End Date",
+            "table-label": "Table",
             "table-name": "Table Land Use"
         },
         "pt-br": {
+            "regional-coordination-label": "Coordenação Regional",
+            "indigenous-lands-label": "Terras Indígenas",
+            "year-label": "Ano",
             "search-label": "Buscar",
             "opacity-label": "Opacidade",
             "current-view-label": "Pesquisar nesta área?",
             "total-area-label": "Área total",
             "heat-map-label": "Mapa de calor",
             "polygon-label": "Total de polígonos",
+            "table-label": "Tabela",
             "start-date-label": "Data Início",
             "end-date-label": "Data Fim",
             "table-name": "Tabela de Uso e Ocupação do Solo"
@@ -283,7 +298,10 @@ export default {
 
   data() {
     return {
+      isLoadingTi: false,
       isGeoserver: process.env.MONITORING_GEOSERVER === 'true',
+      searchTi: '',
+      searchCr: '',
       filters: {
         currentView: false,
         year: [],
@@ -309,6 +327,7 @@ export default {
 
   watch: {
     'filters.cr': function (value) {
+      this.filters.ti = null;
       this.populateTiOptions(value);
     },
 
@@ -319,7 +338,6 @@ export default {
     'filterOptions.regionalFilters': function () {
       this.populateCrOptions();
     },
-
   },
 
   computed: {
@@ -340,7 +358,12 @@ export default {
         this.$store.commit('land-use/setHeatMap', value);
       },
     },
-
+    filteredTiFilters() {
+      if (this.searchTi) {
+        return this.filterOptions.tiFilters.filter((item) => item.no_ti.toLowerCase().includes(this.searchTi.toLowerCase()));
+      }
+      return this.filterOptions.tiFilters;
+    },
     ...mapState('land-use', [
       'features',
       'isLoadingGeoJson',
@@ -359,6 +382,7 @@ export default {
 
   mounted() {
     this.getFilterOptions();
+    this.populateTiOptions();
   },
 
   methods: {
@@ -372,18 +396,39 @@ export default {
       });
 
       Object.keys(groups).forEach((categoryId) => {
-        const category = groups[categoryId];
-        const categoryRegiao = categoryId;
-        this.flattened.push({ header: categoryRegiao });
-        this.flattened.push(...category.list);
+        const categoryExists = this.flattened.some((item) => item.header === categoryId);
+        if (!categoryExists) {
+          const category = groups[categoryId];
+          const categoryRegiao = categoryId;
+          this.flattened.push({ header: categoryRegiao });
+          this.flattened.push(...category.list);
+        }
       });
 
       return this.flattened;
     },
 
+    clearSearchCr() {
+      this.searchCr = '';
+    },
+
+    clearSearchTi() {
+      this.searchTi = '';
+    },
+
+    /**
+ * Populates the TI options based on the provided regional coordination.
+ * @param {Object|null} cr - The cr for filtering TI options. Pass `null` for no filtering.
+ */
     populateTiOptions(cr) {
-      if (cr) this.$store.dispatch('land-use/getTiOptions', cr);
-      else this.filters.ti = null;
+      this.isLoadingTi = true;
+      const action = cr
+        ? this.$store.dispatch('land-use/getTiOptions', cr)
+        : this.$store.dispatch('land-use/getTiOptions');
+
+      action.finally(() => {
+        this.isLoadingTi = false;
+      });
     },
 
     populateYearsOptions(ti) {

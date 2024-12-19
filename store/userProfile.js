@@ -16,17 +16,18 @@ export const mutations = {
 };
 
 export const actions = {
-  // async getUserData({ commit, dispatch }) {
-  //   await this.$api.$get('user/logged/').then((data) => {
-  //     commit('setUser', {
-  //       user: data,
-  //     });
-  //   }).catch((error) => {
-  //     console.error('Erro ao receber dados:', error);
-  //     dispatch('auth/logout', null, { root: true });
-  //   });
-  // },
-  
+//   async getUserData({ commit, dispatch }) {
+//     try {
+//       const data = await this.$api.$get('user/logged/');
+//       commit('setUser', { user: data });
+//     } catch (error) {
+//       console.error('Erro ao receber dados do usuário:', error);
+//       dispatch('auth/logout', null, { root: true });
+//       throw error; // Rejeita a promise com o erro para quem chamou
+//     }
+//   },
+// };
+
   getUserData({ commit }) {
     // return await this.$api.$get('user-profile/logged').then((data) => {
     //     commit('setUser', {

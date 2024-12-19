@@ -11,7 +11,7 @@
           height="36"
           width="36"
           class="button-drawer"
-          @click="removeAllFeatures()"
+          @click="toggleFileLoader()"
           v-on="on"
         >
           <transition name="slide-x-file-drawer-button">
@@ -62,9 +62,9 @@
             <div class="file-block">
               <div class="file-button-area">
                 <ConfirmButton
-                  icon="mdi-delete-outline"
+                  icon="mdi-delete"
                   :icon-tooltip="$t('remove-feature-tooltip')"
-                  @remove="remove(i)"
+                  @confirm="remove(i)"
                 />
 
                 <v-tooltip top>
@@ -76,15 +76,15 @@
                       v-on="on"
                       @click="flyToBound(file.feature)"
                     >
-                      <v-icon size="50">
-                        {{ 'mdi-navigation-outline' }}
+                      <v-icon size="50" class="icon-color">
+                        {{ 'mdi-navigation' }}
                       </v-icon>
                     </v-btn>
                   </template>
                   <span>{{ $t('go-to-tooltip') }}</span>
                 </v-tooltip>
                 <ConfirmButton
-                  icon="mdi-database-plus-outline"
+                  icon="mdi-database-plus"
                   :icon-tooltip="$t('database-tooltip')"
                   @confirm="saveIntoDb(i)"
                 />
@@ -154,7 +154,7 @@
                     align="center"
                   >
                     <v-col cols="4">
-                      Opacidade
+                      {{ $t('opacity') }}
                     </v-col>
                     <v-col cols="8">
                       <v-slider
@@ -194,7 +194,8 @@
         "file-error-parsing-gpx": "Found problems while parsing GPX file. Please, validate your file.",
         "file-error-parsing-kmlz": "Found problems while parsing KMZ/KML file. Please, validate your file",
         "file-error-general": "File type not acceptable on system.",
-        "file-error-internal": "Internal Error: "
+        "file-error-internal": "Internal Error: ",
+        "opacity": "Opacity"
     },
     "pt-br": {
         "go-to-tooltip": "Ir para feições",
@@ -207,7 +208,8 @@
         "file-error-parsing-gpx": "Problemas encontrados durante a análise do arquivo GPX. Por favor, valide o arquivo.",
         "file-error-parsing-kmlz": "Problemas encontrados durante a análise do arquivo KMZ/KML. Por favor, valide o arquivo",
         "file-error-general": "Arquivo não aceito pelo sistema.",
-        "file-error-internal": "Erro interno: "
+        "file-error-internal": "Erro interno: ",
+        "opacity": "Opacidade"
     }
 }
 </i18n>
@@ -287,8 +289,12 @@ export default {
     },
 
     remove(index) {
-      this.files.splice(index, 1);
-      this.removeFileFromMap(index);
+        this.files.splice(index, 1);
+        this.removeFileFromMap(index);
+        this.showOptions = false;
+        setTimeout(() => {
+          this.showOptions = true;
+        }, 0);      
     },
 
     saveIntoDb(index) {
@@ -296,7 +302,7 @@ export default {
       this.saveToDatabase({ index });
     },
 
-    removeAllFeatures() {
+    toggleFileLoader() {
       this.showOptions = !this.showOptions;
     },
 
@@ -460,6 +466,11 @@ export default {
 </script>
 
 <style lang="sass">
+.icon-color  
+  color: #31383A !important
+
+.button-drawer
+    z-index: 9999
 .file-option-class
     position: relative
     top: 36px
@@ -482,9 +493,7 @@ export default {
         margin-top: -3px
         > .v-icon
             transform: rotate(45deg)
-            opacity: 0.4
-.go-to-icon:hover
-    opacity: 1
+
 .file-legend
     width: 100%
     height: 100%
@@ -539,7 +548,7 @@ export default {
         flex-direction: column
         position: relative
         z-index: 1
-        margin: 5px 10px 0 50px
+        margin: 2px 10px 0 15px
         padding-bottom: 5px
         transition: ease all 0.6s
         .file-list-box
@@ -553,7 +562,7 @@ export default {
                 z-index: 1
                 align-items: center
                 background-color: white
-                border-radius: 40px
+                border-radius: 5px
                 border: 1px solid rgba(0, 0, 0, 0.1)
                 padding: 1px 20px 1px 0
                 margin: 2px 0
