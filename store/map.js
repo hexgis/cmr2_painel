@@ -258,6 +258,7 @@ export const actions = {
       const response = await this.$api.post('user/upload-file/', {
         name,
         geometry: feature,
+        visible: true
       });
 
       if (response) {

@@ -194,6 +194,7 @@
         "file-error-parsing-gpx": "Found problems while parsing GPX file. Please, validate your file.",
         "file-error-parsing-kmlz": "Found problems while parsing KMZ/KML file. Please, validate your file",
         "file-error-general": "File type not acceptable on system.",
+        "file-error-sizing": "File exceeds size maximum accepted by the system. Insert a file up to 10 MB.",
         "file-error-internal": "Internal Error: ",
         "opacity": "Opacity"
     },
@@ -208,6 +209,7 @@
         "file-error-parsing-gpx": "Problemas encontrados durante a análise do arquivo GPX. Por favor, valide o arquivo.",
         "file-error-parsing-kmlz": "Problemas encontrados durante a análise do arquivo KMZ/KML. Por favor, valide o arquivo",
         "file-error-general": "Arquivo não aceito pelo sistema.",
+        "file-error-sizing": "O arquivo excede o tamanho máximo aceito pelo sistema. Insira um arquivo de até 10 MB.",
         "file-error-internal": "Erro interno: ",
         "opacity": "Opacidade"
     }
@@ -284,7 +286,7 @@ export default {
 
     hasGeometryOnFeature(feature, geometries) {
       return (
-        feature.features.some((f) => geometries.includes(f.geometry.type)) || false
+        feature.features?.some((f) => geometries.includes(f.geometry.type)) || false
       );
     },
 
@@ -294,19 +296,46 @@ export default {
         this.showOptions = false;
         setTimeout(() => {
           this.showOptions = true;
-        }, 0);      
+        }, 0);
     },
 
     saveIntoDb(index) {
       this.files.splice(index, 1);
       this.saveToDatabase({ index });
+      if (this.fileList.length > 1) {
+        this.remove(index)
+      }
+      this.$store.dispatch('supportLayersUser/getLayersUser');
     },
 
     toggleFileLoader() {
       this.showOptions = !this.showOptions;
     },
 
-    addToMap(data, name) {
+    async toggleLayer() {
+      if (!this.supportLayerUser[this.layer.id].geometry) {
+        await this.getLayersUserGeoJson({
+          id: this.layer.id,
+        });
+      }
+      this.toggleLayerVisibility({
+        id: this.layer.id,
+        visible: !this.layer.visible,
+      });
+      this.isOpen = this.layer.visible;
+    },
+
+    findIdByName(data, name) {
+      const found = Object.values(data).find(item => item.name === name);
+      return found ? found.id : null;
+    },
+
+    async addToMap(data, name) {
+      const fileExists = this.findIdByName(this.$store.state.supportLayersUser.supportLayerUser, name);
+        if (fileExists) {
+          this.fileError(null, this.$i18n.t('file-already-exists', {name}))
+          return
+        }
       const isPoint = this.hasGeometryOnFeature(data, [
         'Point',
         'MultiPoint',
@@ -316,8 +345,9 @@ export default {
         feature: data,
         color: this.getRandomColor(),
         opacity: isPoint ? 0.8 : 0,
+        visible: true
       };
-      this.files.push(file);
+      await this.files.push(file);
       this.addFileToMap(file);
     },
 
@@ -446,6 +476,10 @@ export default {
     },
 
     loadFile(f) {
+      if (f.size > 10000000){
+        this.fileError(null, this.$i18n.t('file-error-sizing'))
+        return
+      }
       let type = null;
       this.$emit('loading');
       const reader = new FileReader();
@@ -454,19 +488,26 @@ export default {
       } else {
         type = f.type;
       }
-      reader.onload = (e) => this.$emit('load', e.target.result);
+      reader.onload = (e) => {
+        this.$emit('load', e.target.result)};
       const loadMethod = this.loadFileMethod(type);
       reader.addEventListener('load', (evt) => loadMethod(evt.target, f.name));
       this.readFile(f, reader, type);
     },
     ...mapMutations('map', ['addFileToMap', 'removeFileFromMap']),
     ...mapActions('map', ['changeStyle', 'saveToDatabase']),
+    ...mapState('supportLayersUser', ['supportLayerUser']),
+    ...mapMutations('supportLayersUser', ['toggleLayerVisibility']),
+    ...mapActions('supportLayersUser', [
+      'getLayersUserGeoJson',
+      'getLayersUser',
+    ]),
   },
 };
 </script>
 
 <style lang="sass">
-.icon-color  
+.icon-color
   color: #31383A !important
 
 .button-drawer
