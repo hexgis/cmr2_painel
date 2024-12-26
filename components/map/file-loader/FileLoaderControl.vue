@@ -339,6 +339,19 @@ export default {
       const isPoint = this.hasGeometryOnFeature(data, [
         'Point',
         'MultiPoint',
+        'Polygon',
+        'MultiPolygon',
+        'LineString',
+        'MultiLineString',
+        'GeometryCollection',
+        'CircularString',
+        'CompoundCurve',
+        'CurvePolygon',
+        'MultiCurve',
+        'MultiSurface',
+        'PolyhedralSurface',
+        'TIN',
+        'Triangle',
       ]);
       const file = {
         name,
