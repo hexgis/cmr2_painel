@@ -92,6 +92,9 @@ export const getters = {
 };
 
 export const mutations = {
+  setretractAllLayers(state, value) {
+    state.retractAllLayers = value;
+  },
 
   toggleLayerActive(state, layerId) {
     for (const group of Object.values(state.supportCategoryGroupsRaster)) {
@@ -293,7 +296,7 @@ export const mutations = {
         layer.filters = [];
         layer.data = [];
 
-        group.layers.push(layer.id);
+        group.layers.push({ layer: layer.id, name: layer.name });
         Vue.set(state.supportLayers, layer.id, layer);
       }
 
