@@ -27,6 +27,7 @@
         "circle-to-polygon": "^2.2.0",
         "cookie-universal-nuxt": "^2.1.4",
         "dom-to-image": "^2.6.0",
+        "html2pdf.js": "^0.10.2",
         "jspdf": "^2.5.1",
         "jszip": "^3.7.1",
         "jwt-decode": "^2.2.0",

@@ -78,7 +78,8 @@
     "priority-tab": "Priorities",
     "document-tab": "Document",
     "mapoteca-tab": "Map Library",
-    "deter-tab": "Deter"
+    "deter-tab": "Deter",
+    "logs-tab": "Graphics View"
   },
   "pt-br": {
     "analytics-tab": "Analítico",
@@ -93,7 +94,8 @@
     "priority-tab": "Polígonos Prioritários",
     "document-tab": "Documental",
     "mapoteca-tab": "Mapoteca",
-    "deter-tab": "Deter"
+    "deter-tab": "Deter",
+    "logs-tab": "Gráficos de Acesso"
   }
 }
 </i18n>
