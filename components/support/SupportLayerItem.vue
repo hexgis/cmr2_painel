@@ -13,11 +13,11 @@
 
   <l-tile-layer
     v-else-if="layer.layer_type == 'tms'"
-    :url="layer.tms.url_tms"
+    :url="layer.tms?.url_tms"
     :visible="layer.visible"
     :z-index="3"
     :options="{
-      maxNativeZoom: layer.tms.max_native_zoom
+      maxNativeZoom: layer.tms?.max_native_zoom
         ? layer.tms.max_native_zoom
         : 15,
     }"

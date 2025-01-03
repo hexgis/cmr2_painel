@@ -22,14 +22,14 @@
         ref="tms"
         :tms="true"
         :url="
-          scene.properties.url_tms.replace('.xml', '.tms') +
+          scene.properties?.url_tms.replace('.xml', '.tms') +
             '/{z}/{x}/{y}.png'
         "
         :visible="scene.tmsVisible"
         :options="{
           zIndex: 2,
           maxZoom: 21,
-          maxNativeZoom: scene.properties.max_native_zoom || 15,
+          maxNativeZoom: scene.properties?.max_native_zoom || 15,
         }"
       />
     </l-layer-group>
@@ -42,14 +42,14 @@
           ref="tms"
           :tms="true"
           :url="
-            layer.properties.url_tms.replace('.xml', '.tms') +
+            layer.properties?.url_tms.replace('.xml', '.tms') +
               '/{z}/{x}/{y}.png'
           "
           :visible="layer.visible"
           :options="{
             zIndex: 2,
             maxZoom: 21,
-            maxNativeZoom: layer.properties.max_native_zoom || 15,
+            maxNativeZoom: layer.properties?.max_native_zoom || 15,
           }"
         />
       </template>
