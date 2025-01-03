@@ -235,7 +235,7 @@ import MapUserViews from '@/components/map/MapUserViews.vue'
 
 export default {
     name: 'ViewsChartPage',
-    layout: 'analytics',
+    layout: 'fullPage',
     components: {
         TableDefault,
         BarChartDefault,
