@@ -435,7 +435,7 @@ export const actions = {
     commit('setLoading', true);
 
     try {
-      const response = await this.$api.$get('support/layers-groups/');
+      const response = await this.$api.$get('layer/layers-groups/');
 
       commit('setSupportLayersGroups', response);
       commit('setshowFeaturesSupportLayers', true);
@@ -474,7 +474,7 @@ export const actions = {
       category: 3,
     };
     try {
-      const response = await this.$api.$get('support/layers-groups/', {
+      const response = await this.$api.$get('layer/layers-groups/', {
         params,
       });
 
@@ -501,7 +501,7 @@ export const actions = {
       category: 2,
     };
     try {
-      const response = await this.$api.$get('support/layers-groups/', {
+      const response = await this.$api.$get('layer/layers-groups/', {
         params,
       });
 
@@ -529,7 +529,7 @@ export const actions = {
       category: 4,
     };
     try {
-      const response = await this.$api.$get('support/layers-groups/', {
+      const response = await this.$api.$get('layer/layers-groups/', {
         params,
       });
 
@@ -557,7 +557,7 @@ export const actions = {
       category: 5,
     };
     try {
-      const response = await this.$api.$get('support/layers-groups/', {
+      const response = await this.$api.$get('layer/layers-groups/', {
         params,
       });
 
@@ -584,7 +584,7 @@ export const actions = {
       category: 1,
     };
     try {
-      const response = await this.$api.$get('support/layers-groups/', {
+      const response = await this.$api.$get('layer/layers-groups/', {
         params,
       });
 

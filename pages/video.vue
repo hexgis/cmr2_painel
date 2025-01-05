@@ -3,20 +3,26 @@
     <HeroBanner
       :hero-title="$t('hero-title')"
       background-image="/img/portal/banner-projeto.jpg"
-      :hasCTA=false
+      :has-c-t-a="false"
     />
     <div class="d-flex justify-sm-center">
-    <v-row class="content">
-      <v-col>
-        <h2>{{ $t('hero-title')}}</h2>
+      <v-row class="content">
+        <v-col>
+          <h2>{{ $t('hero-title') }}</h2>
 
-        <div v-if="videoBlob">
-            <video controls :src="videoUrl" style="width: 100%;"></video>
+          <div v-if="videoBlob">
+            <video
+              controls
+              :src="videoUrl"
+              style="width: 100%;"
+            />
           </div>
-          <p v-else>{{ $t('loading-video') }}</p>
-      </v-col>
-    </v-row>
-  </div>
+          <p v-else>
+            {{ $t('loading-video') }}
+          </p>
+        </v-col>
+      </v-row>
+    </div>
   </div>
 </template>
 <i18n>
@@ -32,41 +38,41 @@
   }
   </i18n>
 <script>
-import HeroBanner from '@/components/panel/HeroBanner'
+import HeroBanner from '@/components/panel/HeroBanner';
 
 export default {
   name: 'ComoFunciona',
-  layout: 'portal',
   components: {
-    HeroBanner
+    HeroBanner,
   },
+  layout: 'portal',
   data() {
     return {
       videoUrl: null,
-      videoBlob: null
-    }
+      videoBlob: null,
+    };
   },
-  created(){
-    this.fetchVideo()
+  created() {
+    this.fetchVideo();
+  },
+  beforeDestroy() {
+    if (this.videoUrl) {
+      URL.revokeObjectURL(this.videoUrl);
+    }
   },
   methods: {
     async fetchVideo() {
       try {
-        const response = await this.$api.get('/portal/video', { responseType: 'blob' })
-        this.videoBlob = response.data
-        this.videoUrl = URL.createObjectURL(this.videoBlob)
+        const response = await this.$api.get('/portal/video/', { responseType: 'blob' });
+        this.videoBlob = response.data;
+        this.videoUrl = URL.createObjectURL(this.videoBlob);
       } catch (error) {
-        console.error('Erro ao carregar o vídeo:', error)
+        console.error('Erro ao carregar o vídeo:', error);
       }
-    }
+    },
   },
-  beforeDestroy() {
-    if (this.videoUrl) {
-      URL.revokeObjectURL(this.videoUrl)
-    }
-  }
 
-}
+};
 </script>
 
 <style lang="sass">
