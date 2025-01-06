@@ -1,5 +1,8 @@
 <template>
-  <v-list-group v-if="group">
+  <v-list-group
+     v-if="group && filteredSupportLayers.length > 0"
+     v-model="isGroupOpen"
+  >
     <template #activator>
       <v-list-item-content>
         <v-list-item-title class="text-wrap">
@@ -12,15 +15,14 @@
 
     <v-container class="py-0">
       <v-list expand>
-        <template v-for="layer in orderedSupportLayers">
+        <template v-for="layer in filteredSupportLayers">
           <SupportLayersGroupItem
-            :key="layer"
-            :layer-id="layer"
+            :key="layer.layer_id"
+            :layer-id="layer.layer"
           />
         </template>
       </v-list>
     </v-container>
-
     <v-divider />
   </v-list-group>
 </template>
@@ -41,15 +43,43 @@ export default {
       type: Object,
       default: null,
     },
+  
+    selectedLayers: {
+      type: Array,
+      default: () => [],
+    },
+  },
+
+  data: () => ({
+    isGroupOpen: false,
+  }),
+
+  watch: {
+    selectedLayers() {
+      this.isGroupOpen = this.selectedLayers.length > 0
+    },
   },
 
   computed: {
     supportLayers() {
-      return this.supportCategoryGroupsBase[this.group.id].layers;
+      const group = this.supportCategoryGroupsBase[this.group.id]
+        if (group && group.layers) {
+          return group.layers
+        }
+        return []
     },
 
     orderedSupportLayers() {
       return _.sortBy(this.supportLayers, 'order');
+    },
+
+    filteredSupportLayers() {
+      if (this.selectedLayers.length === 0) {
+        return this.orderedSupportLayers
+      }
+      return this.orderedSupportLayers.filter((layer) =>
+        this.selectedLayers.includes(layer.layer)
+      )
     },
 
     ...mapState('supportLayers', ['supportCategoryGroupsBase']),
