@@ -145,7 +145,7 @@
                 hide-details
               />
               <p
-                v-if="isPointType"
+
                 class="mt-4"
               >
                 {{ $t('info-text') }}
@@ -153,7 +153,7 @@
             </v-col>
             <v-col class="mt-n8">
               <v-tooltip
-                v-if="isPointType"
+
                 bottom
               >
                 <template #activator="{ on }">
@@ -349,7 +349,7 @@ export default {
 
     async saveColor() {
       try {
-        await this.$api.patch(
+        await this.$api.post(
           'user/upload-file/geo/update-properties/',
           {
             id: this.layer.id,
@@ -372,6 +372,7 @@ export default {
         if (marker.options.layerId === layerId) {
           marker.setStyle({ color });
         }
+        marker.options.fillColor = color;
       });
     },
 
