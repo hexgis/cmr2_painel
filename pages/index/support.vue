@@ -21,6 +21,23 @@
                 hide-details
             />
         </div>
+
+        <v-col cols="12" class="pb-0 mb-n8">
+            <v-autocomplete
+                v-model="selectedLayers"
+                :label="$t('search-label')"
+                multiple
+                clearable
+                :items="sortedLayersList"
+                :item-text="'name'"
+                :item-value="'id'"
+                outlined
+                :search-input.sync="searchInput"
+                @input="searchInput = null"
+                @click:clear="clearInput"
+            />
+        </v-col>
+
         <v-list v-if="!$fetchState.pending" expand>
             <SupportLayersActive />
             <SupportUser v-if="user" />
@@ -28,12 +45,14 @@
                 <SupportLayersGroupBase
                     :key="'group_' + group.id"
                     :group="group"
+                    :selected-layers="selectedLayers"
                 />
             </template>
             <template v-for="group in orderedSupportLayersGroupsAntropismo">
                 <SupportLayersGroupAntropismo
                     :key="'group_antropismo_' + group.id"
                     :group="group"
+                    :selected-layers="selectedLayers"
                 />
             </template>
         </v-list>
@@ -49,10 +68,12 @@
 {
     "en": {
         "title": "Layers",
+        "search-label": "Search layer",
         "data-source": "Data source: Geoserver - FUNAI"
     },
     "pt-br": {
         "title": "Camadas",
+        "search-label": "Buscar camada",
         "data-source": "Fonte de dados: Geoserver - FUNAI"
     }
 }
@@ -70,14 +91,19 @@ import SupportUser from '@/components/support/SupportUser'
 export default {
     name: 'Support',
 
-    components: { SupportLayersGroupBase, SupportLayersGroupAntropismo, SupportUser, SupportLayersActive },
+    components: {
+        SupportLayersGroupBase,
+        SupportLayersGroupAntropismo,
+        SupportUser,
+        SupportLayersActive,
+    },
 
     transition: 'scroll-y-transition',
 
     data: () => ({
-    selectedLayers: [],
-    searchInput: null,
-  }),
+        selectedLayers: [],
+        searchInput: null,
+    }),
 
     async fetch() {
         if (!Object.keys(this.supportCategoryGroupsBase).length) {
@@ -91,6 +117,20 @@ export default {
     },
 
     computed: {
+        layersList() {
+            return Object.values(this.supportCategoryGroupsBase).flatMap(
+                (group) =>
+                    group.layers.map((layer) => ({
+                        name: layer.name,
+                        id: layer.layer,
+                    }))
+            )
+        },
+
+        sortedLayersList() {
+            return this.layersList.slice().sort((a, b) => a.name.localeCompare(b.name))
+        },
+
         orderedSupportLayersGroups() {
             return _.sortBy(this.supportCategoryGroupsBase, 'order')
         },
@@ -130,12 +170,9 @@ export default {
             'supportCategoryGroupsAntropismo',
             'loading',
             'showFeaturesSupportLayers',
-
           ]),
         ...mapState('supportLayersUser', ['supportLayerUser']),
         ...mapState('userProfile', ['user']),
-
-
     },
 
     methods: {
@@ -154,7 +191,6 @@ export default {
     clearInput() {
       this.retractAllGroups();
     },
-
     ...mapMutations('supportLayers', [
       'changeDisplayLayer',
       'setSearchLayer',
@@ -173,9 +209,9 @@ export default {
 }
 .layers-tab {
   height: calc(100vh - 124px);
-  overflow-y: auto !important; ;
+  overflow-y: auto !important;
 }
 .support-tab {
-  overflow-y: hidden !important; ;
+  overflow-y: hidden !important;
 }
 </style>
