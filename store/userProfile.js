@@ -41,6 +41,7 @@ export const actions = {
         id: 1,
         last_name: 'Teste',
         username: 'root',
+        user_staff: true,
         settings: {
           map_zoom_buttons_visible: true,
           drawer_open_on_init: true,
@@ -52,4 +53,8 @@ export const actions = {
       },
     });
   },
+};
+
+export const getters = {
+  userData: state => state.user
 };
