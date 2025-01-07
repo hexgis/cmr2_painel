@@ -108,7 +108,7 @@ export default {
 
     disabledHeatmap() {
       return (
-        this.layer.layer_filters.length > 0
+        this.layer.filters.length > 0
                 && this.layer.layer_type === 'heatmap'
                 && Object.keys(this.layer.filters).length === 0
                 && !this.layer.loading
