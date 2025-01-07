@@ -145,7 +145,7 @@
                 hide-details
               />
               <p
-                v-if="isPointType"
+
                 class="mt-4"
               >
                 {{ $t('info-text') }}
@@ -153,7 +153,7 @@
             </v-col>
             <v-col class="mt-n8">
               <v-tooltip
-                v-if="isPointType"
+
                 bottom
               >
                 <template #activator="{ on }">
@@ -371,6 +371,7 @@ export default {
         if (marker.options.layerId === layerId) {
           marker.setStyle({ color });
         }
+        marker.options.fillColor = color;
       });
     },
 

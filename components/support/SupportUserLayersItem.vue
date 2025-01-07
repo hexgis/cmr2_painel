@@ -121,7 +121,7 @@ export default {
         },
 
         setStyle(feature) {
-            if (feature.geometry && feature.geometry.type === 'Point') {
+            if (feature.geometry) {
                 const fillColor =
                 feature.properties.properties.color || this.color
                 return {
