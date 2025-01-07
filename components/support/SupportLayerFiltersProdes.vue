@@ -1,5 +1,5 @@
 <template>
-    <v-form v-if="layer.layer_filters.length" v-model="valid">
+    <v-form v-if="layer.filters.length" v-model="valid">
         <v-row dense class="my-4">
             <template v-if="hasDoubleDate">
                 <v-col cols="6">
@@ -23,7 +23,7 @@
                 </v-col>
             </template>
 
-            <template v-for="layer_filter in layer.layer_filters">
+            <template v-for="layer_filter in layer.filters">
                 <template
                     v-if="
                         !hasDoubleDate &&
@@ -45,7 +45,7 @@
             <template>
                 <v-col
                     v-if="verifyFilterType('co_cr')"
-                    :key="layer.layer_filters.filter_type"
+                    :key="layer.filters.filter_type"
                     cols="12"
                     class="mb-5"
                 >
@@ -64,7 +64,7 @@
 
                 <v-col
                     v-if="verifyFilterType('co_funai')"
-                    :key="layer.layer_filters.filter_type"
+                    :key="layer.filters.filter_type"
                     class="mb-5"
                     cols="12"
                 >
@@ -161,8 +161,8 @@ export default {
         let hasStartDate = false
         let hasEndDate = false
 
-        if (this.layer.layer_filters) {
-            this.layer.layer_filters.forEach((layerFilter) => {
+        if (this.layer.filters) {
+            this.layer.filters.forEach((layerFilter) => {
                 let defaultValue = null
                 if (this.layer.active_on_init) {
                     defaultValue = this.layer.filters[layerFilter.filter_type]
@@ -200,9 +200,9 @@ export default {
         },
 
         verifyFilterType(type) {
-            const keys = Object.keys(this.layer.layer_filters)
+            const keys = Object.keys(this.layer.filters)
             for (const key in keys) {
-                if (this.layer.layer_filters[key].filter_type.includes(type)) {
+                if (this.layer.filters[key].filter_type.includes(type)) {
                     return true
                 }
             }

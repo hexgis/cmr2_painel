@@ -3,7 +3,7 @@
     <HeroBanner
       :hero-title="$t('hero-title')"
       background-image="/img/portal/banner-contato.jpg"
-      :hasCTA="false"
+      :has-c-t-a="false"
     />
     <div class="d-flex justify-sm-center">
       <v-row class="content">
@@ -12,24 +12,33 @@
           <p>{{ $t('contact-description') }}</p>
         </v-col>
         <v-col>
-          <v-form v-model="valid" @submit.prevent="submitForm">
+          <v-form
+            v-model="valid"
+            @submit.prevent="submitForm"
+          >
             <v-container>
               <v-row>
-                <v-col cols="12" md="6">
+                <v-col
+                  cols="12"
+                  md="6"
+                >
                   <v-text-field
                     v-model="firstname"
                     :rules="nameRules"
                     :label="$t('contact-firstname')"
                     required
-                  ></v-text-field>
+                  />
                 </v-col>
-                <v-col cols="12" md="6">
+                <v-col
+                  cols="12"
+                  md="6"
+                >
                   <v-text-field
                     v-model="lastname"
                     :rules="nameRules"
                     :label="$t('contact-lastname')"
                     required
-                  ></v-text-field>
+                  />
                 </v-col>
               </v-row>
               <v-row>
@@ -39,18 +48,18 @@
                     :rules="emailRules"
                     :label="$t('contact-email')"
                     required
-                  ></v-text-field>
+                  />
                 </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12">
                   <v-text-field
                     v-model="phone"
-                    :rules="phoneRules"
                     v-mask="phoneMask"
+                    :rules="phoneRules"
                     :label="$t('contact-phone')"
                     required
-                  ></v-text-field>
+                  />
                 </v-col>
               </v-row>
               <v-row>
@@ -60,11 +69,16 @@
                     :rules="messageRules"
                     :label="$t('contact-message')"
                     required
-                  ></v-textarea>
+                  />
                 </v-col>
               </v-row>
               <v-row justify="center">
-                <v-btn class="w-100" color="primary" type="submit" :disabled="!valid">
+                <v-btn
+                  class="w-100"
+                  color="primary"
+                  type="submit"
+                  :disabled="!valid"
+                >
                   {{ $t('contact-submit') }}
                 </v-btn>
               </v-row>
@@ -73,13 +87,23 @@
         </v-col>
       </v-row>
     </div>
-    <v-dialog v-model="showSuccessDialog" max-width="400">
+    <v-dialog
+      v-model="showSuccessDialog"
+      max-width="400"
+    >
       <v-card>
-        <v-card-title class="text-h5">{{ $t('success-title') }}</v-card-title>
+        <v-card-title class="text-h5">
+          {{ $t('success-title') }}
+        </v-card-title>
         <v-card-text>{{ $t('success-message') }}</v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" @click="closeDialog">{{ $t('close') }}</v-btn>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            @click="closeDialog"
+          >
+            {{ $t('close') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -142,16 +166,16 @@
 </i18n>
 
 <script>
-import { TheMask } from 'vue-the-mask'
-import HeroBanner from '@/components/panel/HeroBanner'
+import { TheMask } from 'vue-the-mask';
+import HeroBanner from '@/components/panel/HeroBanner';
 
 export default {
   name: 'Contact',
-  layout: 'portal',
   components: {
     HeroBanner,
-    TheMask
+    TheMask,
   },
+  layout: 'portal',
   data: () => ({
     valid: false,
     firstname: '',
@@ -159,65 +183,65 @@ export default {
     email: '',
     phone: '',
     message: '',
-    showSuccessDialog: false
+    showSuccessDialog: false,
   }),
   computed: {
     phoneMask() {
-      return this.phone.length <= 14 ? '(##) ####-####' : '(##) # ####-####'
+      return this.phone.length <= 14 ? '(##) ####-####' : '(##) # ####-####';
     },
     nameRules() {
       return [
-        value => !!value || this.$t('name-required'),
-        value => (value && value.length <= 50) || this.$t('name-max-length'),
-        value => /^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(value) || this.$t('name-only-letters')
-      ]
+        (value) => !!value || this.$t('name-required'),
+        (value) => (value && value.length <= 50) || this.$t('name-max-length'),
+        (value) => /^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(value) || this.$t('name-only-letters'),
+      ];
     },
     emailRules() {
       return [
-        value => !!value || this.$t('email-required'),
-        value => /.+@.+\..+/.test(value) || this.$t('email-valid')
-      ]
+        (value) => !!value || this.$t('email-required'),
+        (value) => /.+@.+\..+/.test(value) || this.$t('email-valid'),
+      ];
     },
     phoneRules() {
       return [
-        value => !!value || this.$t('phone-required'),
-        value => /^\(\d{2}\) \d \d{4}-\d{4}$/.test(value) || /^\(\d{2}\) \d{4}-\d{4}$/.test(value) || this.$t('phone-valid')
-      ]
+        (value) => !!value || this.$t('phone-required'),
+        (value) => /^\(\d{2}\) \d \d{4}-\d{4}$/.test(value) || /^\(\d{2}\) \d{4}-\d{4}$/.test(value) || this.$t('phone-valid'),
+      ];
     },
     messageRules() {
       return [
-        value => !!value || this.$t('message-required'),
-        value => (value && value.length >= 10) || this.$t('message-min-length'),
-        value => (value && value.length <= 200) || this.$t('message-max-length'),
-        value => /^[A-Za-z0-9\s]*$/.test(value) || this.$t('message-no-special-characters')
-      ]
-    }
+        (value) => !!value || this.$t('message-required'),
+        (value) => (value && value.length >= 10) || this.$t('message-min-length'),
+        (value) => (value && value.length <= 200) || this.$t('message-max-length'),
+        (value) => /^[A-Za-z0-9\s]*$/.test(value) || this.$t('message-no-special-characters'),
+      ];
+    },
   },
   methods: {
     async submitForm() {
       if (this.valid) {
-        await this.$api.post('/portal/contato', {
-          "name":  this.firstname,
-          "surname": this.lastname,
-          "email": this.email,
-          "phone": this.phone,
-          "message": this.message
-        })
-        this.showSuccessDialog = true
+        await this.$api.post('/portal/contato/', {
+          name: this.firstname,
+          surname: this.lastname,
+          email: this.email,
+          phone: this.phone,
+          message: this.message,
+        });
+        this.showSuccessDialog = true;
 
-        this.firstname = ''
-        this.lastname = ''
-        this.email = ''
-        this.phone = ''
-        this.message = ''
+        this.firstname = '';
+        this.lastname = '';
+        this.email = '';
+        this.phone = '';
+        this.message = '';
       }
     },
     closeDialog() {
-      this.showSuccessDialog = false
-      this.$router.push(this.localePath('/portal'))
-    }
-  }
-}
+      this.showSuccessDialog = false;
+      this.$router.push(this.localePath('/portal'));
+    },
+  },
+};
 </script>
 
 <style lang="sass">

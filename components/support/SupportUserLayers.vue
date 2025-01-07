@@ -295,11 +295,11 @@ export default {
     isPointType: false,
   }),
 
-  created(){
-    this.getLayersUser()
+  created() {
+    this.getLayersUser();
     this.hasAddLayer ? (
       this.toggleLayer()
-   ) : ''
+    ) : '';
   },
 
   computed: {
@@ -349,10 +349,9 @@ export default {
 
     async saveColor() {
       try {
-        await this.$api.post(
-          'user/upload-file/geo/update-properties/',
+        await this.$api.patch(
+          `user/upload-file/geo/${this.layer.id}/update-properties/`,
           {
-            id: this.layer.id,
             color: this.layerStyle,
             name: this.name,
           },
@@ -396,8 +395,8 @@ export default {
 
     async removeLayer() {
       try {
-        await this.$api.$put(
-          `user/upload-file/${this.layer.id}/delete/`,
+        await this.$api.$delete(
+          `user/upload-file/${this.layer.id}`,
         );
         await this.getLayersUser();
       } catch (exc) {

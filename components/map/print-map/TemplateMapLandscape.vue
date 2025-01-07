@@ -28,33 +28,55 @@
           style="width: 1230px; height: 780px"
         >
           <v-col
+            id="monitoring-data-details"
             cols="9"
             class="pr-0 mt-2"
-            id="monitoring-data-details"
           >
             <div
-            v-if="showFeaturesMonitoring && !hasLongMonitoringInfo"
-            class="leaflet-bottom leaflet-right mt-2"
-            id="data-table"
+              v-if="showFeaturesMonitoring && !hasLongMonitoringInfo"
+              id="data-table"
+              class="leaflet-bottom leaflet-right mt-2"
             >
-              <div v-for="item in analyticsMonitoring" :key="item.no_ti" class="text-center">
+              <div
+                v-for="item in analyticsMonitoring"
+                :key="item.no_ti"
+                class="text-center"
+              >
                 <p><strong>TI {{ item.no_ti }}</strong></p>
-                <p>Área da TI: {{formatNumber(item.ti_nu_area_ha)}} ha</p>
-                <p v-if="item.cr_nu_area_ha">CR: {{formatNumber(item.cr_nu_area_ha)}} ha</p>
-                <p v-if="item.dg_nu_area_ha">DG: {{formatNumber(item.dg_nu_area_ha)}} ha</p>
-                <p v-if="item.dr_nu_area_ha">DR: {{formatNumber(item.dr_nu_area_ha)}} ha</p>
-                <p v-if="item.ff_nu_area_ha">FF: {{formatNumber(item.ff_nu_area_ha)}} ha</p>
+                <p>Área da TI: {{ formatNumber(item.ti_nu_area_ha) }} ha</p>
+                <p v-if="item.cr_nu_area_ha">
+                  CR: {{ formatNumber(item.cr_nu_area_ha) }} ha
+                </p>
+                <p v-if="item.dg_nu_area_ha">
+                  DG: {{ formatNumber(item.dg_nu_area_ha) }} ha
+                </p>
+                <p v-if="item.dr_nu_area_ha">
+                  DR: {{ formatNumber(item.dr_nu_area_ha) }} ha
+                </p>
+                <p v-if="item.ff_nu_area_ha">
+                  FF: {{ formatNumber(item.ff_nu_area_ha) }} ha
+                </p>
               </div>
             </div>
-            <v-card class="warning-message" v-if="showWarningMessage" elevated>
-                <v-card-text>
-                  <p class="text-subtitle-1">{{ $t('warning-message') }}</p>
-                </v-card-text>
-                <v-card-actions>
-                  <v-btn color="primary" text @click="showWarningMessage = false">
-                    {{ $t('agree') }}
-                  </v-btn>
-                </v-card-actions>
+            <v-card
+              v-if="showWarningMessage"
+              class="warning-message"
+              elevated
+            >
+              <v-card-text>
+                <p class="text-subtitle-1">
+                  {{ $t('warning-message') }}
+                </p>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn
+                  color="primary"
+                  text
+                  @click="showWarningMessage = false"
+                >
+                  {{ $t('agree') }}
+                </v-btn>
+              </v-card-actions>
             </v-card>
             <MapForPrint
               :leaf-size="leafSize"
@@ -118,7 +140,7 @@
                     >
                       <LayerList
                         :layers="supportLayerUser"
-                        :isUserLayer="true"
+                        :is-user-layer="true"
                       />
                       <LayerList
                         v-if="showFeaturesSupportLayers"
@@ -156,8 +178,14 @@
                     >
                       Bases Cartográficas:
                     </p>
-                    <div v-if="activeRasterLayers.length" class="ml-1">
-                      <span v-for="item in activeRasterLayers" :key="item.id">
+                    <div
+                      v-if="activeRasterLayers.length"
+                      class="ml-1"
+                    >
+                      <span
+                        v-for="item in activeRasterLayers"
+                        :key="item.id"
+                      >
                         <p v-if="item.wms">{{ item.name }}, fonte: {{ item.wms?.geoserver?.name }}.</p>
                         <p v-else-if="item.tms">{{ item.name }}, fonte: {{ item.tms?.url_tms ? 'SCCON. Atualizado em: ' + handleData(item.tms?.date) : ''}}.</p>
                       </span>
@@ -179,8 +207,8 @@
                           <v-col>
                             <p class="ml-1">
                               <strong>{{ layer.name || '-' }}. </strong>
-                              Fonte: {{ layer.layer_info.fonte || '-' }},
-                              Data de atualização: {{ handleData(layer.layer_info.dt_atualizacao) }}.
+                              Fonte: {{ layer.fonte || '-' }},
+                              Data de atualização: {{ handleData(layer.dt_atualizacao) }}.
                             </p>
                           </v-col>
                         </v-row>
@@ -188,7 +216,9 @@
                     </div>
                   </div>
                   <div v-if="showFeaturesMonitoring">
-                    <p class="ml-1">{{ $t('monitoring-print-label')}} {{ handleData(filters.startDate) }} {{ $t('and') }} {{ handleData(filters.endDate) }}</p>
+                    <p class="ml-1">
+                      {{ $t('monitoring-print-label') }} {{ handleData(filters.startDate) }} {{ $t('and') }} {{ handleData(filters.endDate) }}
+                    </p>
                   </div>
                 </div>
 
@@ -231,8 +261,8 @@
             <v-spacer />
             <v-btn
               color="primary"
-              @click="print"
               :disabled="showWarningMessage"
+              @click="print"
             >
               <v-icon dark>
                 mdi-file-export-outline
@@ -401,18 +431,18 @@ export default {
       { label: 'land-use-categories.clear-cut', color: '#ff3333' },
     ],
   }),
-  watch:{
+  watch: {
     analyticsMonitoring(newVal) {
-      if(this.hasLongMonitoringInfo = newVal.length > 7){
-          this.showWarningMessage = true
-          return
-      };
-      this.showWarningMessage = false
+      if (this.hasLongMonitoringInfo = newVal.length > 7) {
+        this.showWarningMessage = true;
+        return;
+      }
+      this.showWarningMessage = false;
     },
   },
   computed: {
-    hasLongMonitoringInfo(){
-        return this.analyticsMonitoring.length > 7
+    hasLongMonitoringInfo() {
+      return this.analyticsMonitoring.length > 7;
     },
     showDialog() {
       return this.showDialogLandscape;
@@ -439,10 +469,10 @@ export default {
         { name: 'Prodes Category Layers', layers: this.supportLayersCategoryProdes, show: true },
       ].filter((category) => category.show);
     },
-    activeRasterLayers(){
+    activeRasterLayers() {
       return Object.values(
-          this.supportLayersCategoryRaster,
-        ).filter((layer) => layer.visible);
+        this.supportLayersCategoryRaster,
+      ).filter((layer) => layer.visible);
     },
     ...mapState('supportLayersUser', ['supportLayerUser']),
     ...mapState('map', ['bounds']),
@@ -494,12 +524,12 @@ export default {
 
   methods: {
     formatNumber(value) {
-    const number = parseFloat(value)
-    if (!isNaN(number)) {
-      return number.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    return '-';
-  },
+      const number = parseFloat(value);
+      if (!isNaN(number)) {
+        return number.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      return '-';
+    },
 
     vectorImage(layer) {
       return layer.vector.thumbnail_blob || layer.vector.image;

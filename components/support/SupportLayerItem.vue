@@ -52,7 +52,7 @@ export default {
     defaultFilters() {
       const filters = {};
 
-      this.layer.layer_filters.forEach((layerFilter) => {
+      this.layer.filters.forEach((layerFilter) => {
         const label = layerFilter.filter_type;
         const value = layerFilter.default;
         filters[label] = value;
@@ -104,7 +104,7 @@ export default {
 
         const { filters } = this.layer;
         if (filters.startData || filters.endData) {
-          const [aliasStartDate, aliasEndDate] = this.layer.layer_filters; // Destructuring filter alias
+          const [aliasStartDate, aliasEndDate] = this.layer.filters; // Destructuring filter alias
 
           if (filters.startData.length && filters.endData.length) {
             const valueStartData = filters.startData;
@@ -120,7 +120,7 @@ export default {
         }
 
         if (filters.co_cr || filters.co_funai) {
-          const [firstInput, secondInput] = this.layer.layer_filters; // Destructuring filter alias
+          const [firstInput, secondInput] = this.layer.filters; // Destructuring filter alias
           const valueCo_cr = filters.co_cr.join(',');
           const valueCo_funai = filters.co_funai.join(',');
 
