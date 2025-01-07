@@ -271,7 +271,7 @@ export default {
       left: 52px !important
 
     > .v-window, > .v-window > .v-window__container > .v-window-item
-      overflow-y: hidden !important
+      overflow-y: auto
       height: 100%
       display: block !important
       margin-bottom: 50px
