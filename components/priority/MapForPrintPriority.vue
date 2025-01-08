@@ -86,9 +86,9 @@
               />
               <l-control
                 position="topleft"
-                class="ma-0 pa-0"
+                class="ma-0"
               >
-                <p class="ma-1 pa-0 print-mini-map-text">
+                <p class="ma-1 print-mini-map-text">
                   {{ $t('map-location-label') }}
                 </p>
               </l-control>
@@ -592,30 +592,18 @@ export default {
 };
 </script>
 
-<style scoped>
-p {
-    font-size: xx-small;
-    margin: 0;
-}
+<style>
 .print-mini-map-text {
     color: dimgray !important;
-    font-size: xx-small;
+    background: white;
     white-space: nowrap;
 }
-.border_container {
-    border-right: 0.5px solid gray;
-    border-top: 0.5px solid gray;
-    border-bottom: 0.5px solid gray;
-    height: 100%;
-}
+
 .hight_container_mini_map {
     height: 150px;
     max-height: 150px;
     width: 100%;
 }
-</style>
-
-<style>
 
 .v-dialog:not(.v-dialog--fullscreen) {
   max-height: 100%;
@@ -632,8 +620,10 @@ p {
     padding-left: 2px;
     text-shadow: -2px 0 #ffffff, 0 2px #ffffff, 2px 0 #ffffff, 0 -2px #ffffff;
 }
-.leaflet-container .leaflet-control-mapbounds {
-    background-color: rgba(255, 255, 255, 0.7) !important;
+
+.leaflet-container .leaflet-control-mapbounds,
+.leaflet-container .leaflet-control-attribution {
+    background-color: rgba(255, 255, 255, 0.3) !important;
     box-shadow: 0 0 5px #bbb !important;
     padding: 0 5px !important;
     margin: 0 !important;

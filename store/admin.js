@@ -118,15 +118,34 @@ export const actions = {
     }
   },
 
-  async createTicket({ commit }, {ticketData}) {
-    console.log(ticketData)
+  async createTicket({ commit }, { ticketData }) {
     try {
-      const response = await this.$axios.post('/adm-panel/tickets/', ticketData)
-      commit('addTicket', response.data)
-      return response.data
+      const formData = new FormData();
+
+      formData.append('solicitation_type', ticketData.solicitation_type);
+      formData.append('functionality', ticketData.functionality);
+      formData.append('subject', ticketData.subject);
+      formData.append('description', ticketData.description);
+      formData.append('status_category', ticketData.status_category);
+
+      if (ticketData.attachments && ticketData.attachments.length > 0) {
+        ticketData.attachments.forEach((file, index) => {
+          formData.append(`attachments[${index}]`, file);
+        });
+      }
+
+      const response = await this.$axios.post('/adm-panel/tickets/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      commit('addTicket', response.data);
+      return response.data;
+
     } catch (error) {
-      console.error("Erro ao enviar nova solicitação:", error)
-      throw error
+      console.error("Erro ao enviar nova solicitação:", error);
+      throw error;
     }
   },
 

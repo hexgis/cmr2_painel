@@ -15,40 +15,29 @@
                 />
             </l-popup>
             <l-geo-json
-                v-if="!isVectorGrid && featuresLoaded"
+                v-if="featuresLoaded"
                 :geojson="features"
                 :options="{ onEachFeature }"
-                @ready="onMonitoringReady"
             />
-            <!-- <BaseMetadataPopup
-                v-show="false"
-                ref="popupComponent"
-                :feature="selectedMonitoringFeature"
-            /> -->
         </l-feature-group>
     </l-layer-group>
 </template>
 
 <i18n>
-{
-    "en": {
-        "detail-api-error": "Error while retrieving polygon data, contact a system administrator in case it persists."
-    },
-    "pt-br": {
-        "detail-api-error": "Não foi possível resgatar os dados do polígono, entre em contato com um administrador caso persista."
+    {
+        "en": {
+            "detail-api-error": "Error while retrieving polygon data, contact a system administrator in case it persists."
+        },
+        "pt-br": {
+            "detail-api-error": "Não foi possível resgatar os dados do polígono, entre em contato com um administrador caso persista."
+        }
     }
-}
-</i18n>
+    </i18n>
 
 <script>
 import { mapState, mapGetters } from 'vuex'
 
 import BaseMetadataPopup from '@/components/base/BaseMetadataPopup'
-
-if (typeof window !== 'undefined') {
-    require('leaflet.vectorgrid')
-    require('leaflet.heat')
-}
 
 export default {
     name: 'MonitoringLayers',
@@ -67,34 +56,6 @@ export default {
     data: () => ({
         selectedMonitoringFeature: null,
         heatmapLayer: null,
-        isVectorGrid: process.env.MONITORING_VECTOR2TILES === 'true',
-        vectorGrid: null,
-        style: {
-            CR: {
-                weight: 2.5,
-                color: '#ff3333',
-                fill: true,
-                fillOpacity: 1,
-            },
-            DG: {
-                weight: 2.5,
-                color: '#ff8000',
-                fill: true,
-                fillOpacity: 1,
-            },
-            FF: {
-                weight: 2.5,
-                color: '#b35900',
-                fill: true,
-                fillOpacity: 1,
-            },
-            DR: {
-                weight: 2.5,
-                color: '#990099',
-                fill: true,
-                fillOpacity: 1,
-            },
-        },
     }),
 
     computed: {
@@ -125,70 +86,32 @@ export default {
         },
 
         opacity() {
-            if (this.isVectorGrid) {
-                this.recreateVectorGrid()
-            } else {
-                this.$refs.monitoringPolygons.mapObject.invoke(
-                    'setStyle',
-                    this.setMonitoringStyle
-                )
-            }
+            this.$refs.monitoringPolygons.mapObject.invoke(
+                'setStyle',
+                this.setMonitoringStyle
+            )
         },
     },
 
     methods: {
-        recreateVectorGrid() {
-            // Remove o vectorGrid atual, se existir
-            if (this.vectorGrid) {
-                this.vectorGrid.removeFrom(
-                    this.$refs.monitoringPolygons.mapObject
-                )
-            }
-            // Recria o vectorGrid com a nova opacidade
-            this.vectorGrid = this.$L.vectorGrid
-                .slicer(this.features, {
-                    maxZoom: 21,
-                    zIndex: 4,
-                    vectorTileLayerStyles: {
-                        sliced: (e) =>
-                            this.vectorGridStyleFunction(e.no_estagio),
-                    },
-                    interactive: true,
-                    getFeatureId: (e) => {
-                        return { CR: 4, DG: 3, FF: 2, DR: 1 }[
-                            e.properties.no_estagio
-                        ]
-                    },
-                })
-                .on('click', (e) => {
-                    this.getFeatureDetails(e.layer.properties.id)
-                })
-                .addTo(this.$refs.monitoringPolygons.mapObject)
-        },
-
-        vectorGridStyleFunction(no_estagio) {
-            if (!this.selectedStages.includes(no_estagio)) {
-                return { weight: 0, opacity: 0, fillOpacity: 0 }
-            }
-            Object.keys(this.style).forEach((item) => {
-                this.style[item].fillOpacity = this.opacity / 100
-            })
-            return this.style[no_estagio] || {}
-        },
-
         addFeatures() {
             if (!this.features || !this.features.features) {
                 console.warn('Features are not loaded yet')
                 return
             }
+
             this.$refs.monitoringPolygons.mapObject.clearLayers()
-            if (this.isVectorGrid && this.features.features.length) {
+
+            if (this.selectedStages.length === 0) {
+                console.log('Nenhum estágio ativo, não adicionando camadas')
+                return
+            }
+
+            if (this.features.features.length) {
                 this.createMonitoramentoHeatLayer()
                 if (this.getShowFeaturesMonitoring) {
                     this.flyTo()
                 }
-                this.recreateVectorGrid()
-            } else if (!this.isVectorGrid) {
                 this.$refs.monitoringPolygons.mapObject.addLayer(
                     this.createGeoJsonLayer()
                 )
@@ -196,12 +119,21 @@ export default {
         },
 
         createGeoJsonLayer() {
-            return this.$L.geoJSON(this.features, {
-                style: this.setMonitoringStyle,
+            const filteredFeatures = {
+                ...this.features,
+                features: this.features.features.filter((feature) =>
+                    this.selectedStages.includes(feature.properties.no_estagio)
+                ),
+            }
+
+            return this.$L.geoJSON(filteredFeatures, {
+                style: (feature) => {
+                    const appliedStyle = this.setMonitoringStyle(feature)
+                    return appliedStyle
+                },
                 onEachFeature: this.onEachFeature,
             })
         },
-
         onEachFeature(feature, layer) {
             layer.setStyle(this.setMonitoringStyle(feature))
             layer.on('click', () => {
@@ -210,32 +142,36 @@ export default {
         },
 
         setMonitoringStyle(feature) {
-            const { style } = this
-            style.fillOpacity = this.opacity / 100
-            switch (feature.properties.stage) {
-                case 'Corte Raso':
-                    style.color = '#ff3333'
-                    break
-                case 'Degradação':
-                    style.color = '#ff8000'
-                    break
-                case 'Fogo em Floresta':
-                    style.color = '#b35900'
-                    break
-                case 'Desmatamento em Regeneração':
-                    style.color = '#990099'
-                    break
+            const estagio = feature.properties.no_estagio
+            const style = {
+                weight: 3,
+                fill: true,
+                fillOpacity: this.opacity / 100,
             }
-            return style
-        },
 
-        onMonitoringReady() {
-            if (this.features.features && this.features.features.length) {
-                this.map.fitBounds(
-                    this.$refs.monitoringPolygons.mapObject.getBounds()
-                )
-                this.createMonitoramentoHeatLayer()
+            switch (estagio) {
+                case 'CR': // Corte Raso
+                    style.color = '#ff3333'
+                    style.fillColor = '#ff3333'
+                    break
+                case 'DG': // Degradação
+                    style.color = '#ff8000'
+                    style.fillColor = '#ff8000'
+                    break
+                case 'FF': // Fogo em Floresta
+                    style.color = '#b35900'
+                    style.fillColor = '#b35900'
+                    break
+                case 'DR': // Desmatamento em Regeneração
+                    style.color = '#990099'
+                    style.fillColor = '#990099'
+                    break
+                default: // Estilo padrão
+                    style.color = '#000000'
+                    style.fillColor = '#000000'
             }
+
+            return style
         },
 
         async getFeatureDetails(featureId) {

@@ -2,9 +2,7 @@
     <v-container class="pa-0">
         <div class="tab-header justify-space-between">
             <v-row>
-                <h6
-                    class="subtitle-2 text-uppercase font-weight-regular tab-title"
-                >
+                <h6 class="subtitle-2 text-uppercase font-weight-regular header-title">
                     {{ $t('title') }}
                 </h6>
                 <v-tooltip>
@@ -74,16 +72,18 @@
                             @click:clear="clearInput"
                         />
                     </v-col>
-                    <v-list v-if="!$fetchState.pending" expand class="pt-0">
-                        <template v-for="group in filteredGroups">
-                            <SupportLayersGroupRaster
-                                :key="group.id"
-                                :group="group"
-                                :open-group="searchLayer"
-                                :isPlanet="false"
-                            />
-                        </template>
-                    </v-list>
+                    <div class="list-container">
+                        <v-list v-if="!$fetchState.pending" expand class="pt-0">
+                            <template v-for="group in filteredGroups">
+                                <SupportLayersGroupRaster
+                                    :key="group.id"
+                                    :group="group"
+                                    :open-group="searchLayer"
+                                    :isPlanet="false"
+                                />
+                            </template>
+                        </v-list>
+                    </div>
                 </v-card>
             </v-tab-item>
             <v-tab-item value="tab-2">
@@ -115,17 +115,22 @@
                             @click:clear="clearInput"
                         />
                     </v-col>
-
-                    <v-list v-if="!$fetchState.pending" expand class="pt-0">
-                        <template v-for="group in filteredGroups">
-                            <SupportLayersGroupRaster
-                                :key="group.id"
-                                :group="group"
-                                :open-group="searchLayer"
-                                :isPlanet="true"
-                            />
-                        </template>
-                    </v-list>
+                    <div class="list-container">
+                        <v-list
+                            v-if="!$fetchState.pending"
+                            class="pt-0 list-scroll"
+                            expand
+                        >
+                            <template v-for="group in filteredGroups">
+                                <SupportLayersGroupRaster
+                                    :key="group.id"
+                                    :group="group"
+                                    :open-group="searchLayer"
+                                    :isPlanet="true"
+                                />
+                            </template>
+                        </v-list>
+                    </div>
                 </v-card>
             </v-tab-item>
         </v-tabs-items>
@@ -233,6 +238,13 @@ export default {
                 .sortBy('order')
                 .value()
         },
+        visibleLayers() {
+          const rasterLayers = this.$store.state.supportLayers?.supportLayersCategoryRaster;
+          if (Array.isArray(rasterLayers)) {
+            return rasterLayers.filter(layer => layer.visible);
+          }
+          return [];
+        },
 
         showFeatures: {
             get() {
@@ -334,12 +346,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.container-height {
-    max-height: 90vh;
-}
-
-.selected {
-    background-color: red;
+.header-title {
+    margin-top: 8px;
 }
 
 .infoIconMargin {
@@ -350,13 +358,15 @@ export default {
     margin-left: 60px;
 }
 
+.list-container {
+    max-height: 64vh;
+    overflow-y: auto;
+    padding-right: 0px;
+}
+
 @media (max-width: 768px) {
     .infoIconMargin {
         margin-left: 2px;
-    }
-
-    .tab-title {
-        font-size: 90% !important;
     }
 
     .switch-margin {

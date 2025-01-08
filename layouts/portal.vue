@@ -65,7 +65,7 @@
                   <v-col class="card-mobile">
                     {{ $t('we-are-help-title') }}
                     <a
-                      :href="helpLinks.cmrProjectUrl"
+                      :href="localePath(helpLinks.cmrProjectUrl)"
                       target="_blank"
                     >
                       {{ $t('we-are-help-link') }}</a>
@@ -75,7 +75,7 @@
                   <v-col class="card-mobile">
                     {{ $t('access-help-title') }}
                     <a
-                      :href="helpLinks.cmrProjectUrl"
+                      :href="localePath(helpLinks.requestAcessUrl)"
                       target="_blank"
                     >
                       {{ $t('access-help-link') }}</a>
@@ -85,7 +85,7 @@
                   <v-col class="card-mobile">
                     {{ $t('project-help-title') }}
                     <a
-                      :href="helpLinks.cmrProjectUrl"
+                      :href="localePath(helpLinks.cmrTalkToUs)"
                       target="_blank"
                     >
                       {{ $t('project-help-link') }}</a>
@@ -120,7 +120,7 @@
               <v-card-subtitle class="card-subtitle">
                 <p class="link-footer-dark text-h7">
                   <a
-                    :href="helpLinks.cmrProjectUrl"
+                    :href="localePath(helpLinks.cmrProjectUrl)"
                     target="_blank"
                   >{{ $t('we-are-help-link') }}</a>
                 </p>
@@ -143,7 +143,7 @@
               <v-card-subtitle class="card-subtitle">
                 <p class="link-footer-dark text-h7">
                   <a
-                    :href="helpLinks.cmrProjectUrl"
+                    :href="localePath(helpLinks.requestAcessUrl)"
                     target="_blank"
                   >
                     {{ $t('access-help-link') }}</a>
@@ -167,7 +167,7 @@
               <v-card-subtitle class="card-subtitle">
                 <p class="link-footer-dark text-h7">
                   <a
-                    :href="helpLinks.cmrProjectUrl"
+                    :href="localePath(helpLinks.cmrProjectUrl)"
                     target="_blank"
                   >
                     {{ $t('project-help-link') }}</a>
@@ -256,10 +256,9 @@ export default {
       helpLinks: {
         cmrManualUrl:
           'https://cmr.funai.gov.br/api/media/Manual/Mapa Interativo/CMR_Manual_2021_V1.7.1.pdf',
-        solicitacaoAcessoCmr2:
-          'https://cmr.funai.gov.br/app/#/solicitacao-acesso',
-        cmrProjectUrl: 'https://cmr.funai.gov.br/o-projeto/',
-        cmrTalkToUs: 'https://cmr.funai.gov.br/contato/',
+        cmrProjectUrl: '/o-projeto/',
+        cmrTalkToUs: '/contato/',
+        requestAcessUrl: '/cadastro/'
       },
     };
   },

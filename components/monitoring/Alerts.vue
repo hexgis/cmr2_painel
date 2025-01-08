@@ -97,7 +97,7 @@
 <script>
 import { mapActions, mapState } from 'vuex'
 import ShowDialog from '@/components/show-dialog/ShowDialog'
-import AlertFilter from '@/components/monitoring/AlertFilter.vue';
+import AlertFilter from '@/components/monitoring/AlertFilter';
 
 export default {
     components: {
@@ -131,7 +131,18 @@ export default {
     },
 
     computed: {
-       
+        featuresUrgentAlerts: {
+            get() {
+                return this.$store.state.urgent-alerts.showFeaturesUrgentAlerts
+            },
+
+            set(value) {
+                this.$store.commit(
+                    'urgent-alerts/setshowFeaturesUrgentAlerts',
+                    value
+                )
+            },
+        },
 
         ...mapState('urgent-alerts', [
             'showFeaturesUrgentAlerts',

@@ -14,7 +14,7 @@
         position="topleft"
         class="ma-0 pa-0"
       >
-        <p class="ma-1 pa-0 print-mini-map-text">
+        <p class="ma-1 pl-1 pr-1 print-mini-map-text">
           LOCALIZAÇÃO DA ÁREA
         </p>
       </l-control>

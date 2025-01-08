@@ -92,6 +92,9 @@ export const getters = {
 };
 
 export const mutations = {
+  setretractAllLayers(state, value) {
+    state.retractAllLayers = value;
+  },
 
   toggleLayerActive(state, layerId) {
     for (const group of Object.values(state.supportCategoryGroupsRaster)) {
@@ -293,7 +296,7 @@ export const mutations = {
         layer.filters = [];
         layer.data = [];
 
-        group.layers.push(layer.id);
+        group.layers.push({ layer: layer.id, name: layer.name });
         Vue.set(state.supportLayers, layer.id, layer);
       }
 
@@ -435,7 +438,7 @@ export const actions = {
     commit('setLoading', true);
 
     try {
-      const response = await this.$api.$get('support/layers-groups/');
+      const response = await this.$api.$get('layer/layers-groups/');
 
       commit('setSupportLayersGroups', response);
       commit('setshowFeaturesSupportLayers', true);
@@ -474,7 +477,7 @@ export const actions = {
       category: 3,
     };
     try {
-      const response = await this.$api.$get('support/layers-groups/', {
+      const response = await this.$api.$get('layer/layers-groups/', {
         params,
       });
 
@@ -501,7 +504,7 @@ export const actions = {
       category: 2,
     };
     try {
-      const response = await this.$api.$get('support/layers-groups/', {
+      const response = await this.$api.$get('layer/layers-groups/', {
         params,
       });
 
@@ -529,7 +532,7 @@ export const actions = {
       category: 4,
     };
     try {
-      const response = await this.$api.$get('support/layers-groups/', {
+      const response = await this.$api.$get('layer/layers-groups/', {
         params,
       });
 
@@ -557,7 +560,7 @@ export const actions = {
       category: 5,
     };
     try {
-      const response = await this.$api.$get('support/layers-groups/', {
+      const response = await this.$api.$get('layer/layers-groups/', {
         params,
       });
 
@@ -584,7 +587,7 @@ export const actions = {
       category: 1,
     };
     try {
-      const response = await this.$api.$get('support/layers-groups/', {
+      const response = await this.$api.$get('layer/layers-groups/', {
         params,
       });
 

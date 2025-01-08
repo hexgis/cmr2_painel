@@ -1,71 +1,80 @@
 <template>
-    <div class="d-flex">
-        <v-tooltip right :disabled="isSearching">
-            <template #activator="{ on }">
-                <v-btn
-                    fab
-                    ripple
-                    height="36"
-                    width="36"
-                    class="search-button"
-                    :loading="isLoading"
-                    v-on="on"
-                    @click.stop="isSearching = !isSearching"
-                >
-                    <v-icon> mdi-image-search-outline </v-icon>
-                </v-btn>
-            </template>
-            <span> {{ $t('search-label') }} </span>
-        </v-tooltip>
-        <div class="search-input-container">
-            <transition name="slide-x">
-                <v-autocomplete
-                    v-if="isSearching"
-                    :label="$t('search-label')"
-                    :loading="isLoading"
-                    :items="searchResults"
-                    :search-input.sync="searchQuery"
-                    background-color="white"
-                    class="search-input"
-                    flat
-                    auto-select-first
-                    height="40px"
-                    hide-no-data
-                    hide-details
-                    item-text="label"
-                    solo
-                    :filter="filterItems"
-                    @click.stop="searchQuery = ''"
-                >
-                    <template v-slot:item="searchResults">
-                        <div
-                            v-html="formatItem(searchResults)"
-                            @click="handleItemClick(searchResults)"
-                        ></div>
-                    </template>
-                </v-autocomplete>
-            </transition>
+    <div>
+        <div class="d-flex">
+            <v-tooltip right :disabled="isSearching">
+                <template #activator="{ on }">
+                    <v-btn
+                        fab
+                        ripple
+                        height="36"
+                        width="36"
+                        class="search-button"
+                        :loading="isLoading"
+                        v-on="on"
+                        @click.stop="toggleSearch"
+                    >
+                        <v-icon>mdi-image-search-outline</v-icon>
+                    </v-btn>
+                </template>
+                <span>{{ $t('search-label') }}</span>
+            </v-tooltip>
+            <div class="search-input-container">
+                <transition name="slide-x">
+                    <v-autocomplete
+                        v-if="isSearching"
+                        :label="$t('search-label')"
+                        :loading="isLoading"
+                        :items="searchResults"
+                        :search-input.sync="searchQuery"
+                        background-color="white"
+                        class="search-input"
+                        flat
+                        auto-select-first
+                        height="40px"
+                        hide-no-data
+                        hide-details
+                        item-text="label"
+                        solo
+                        :filter="filterItems"
+                        @click.stop="resetSearchQuery"
+                    >
+                        <template v-slot:item="item">
+                            <div
+                                v-html="formatItem(item)"
+                                @click="handleItemClick(item)"
+                            ></div>
+                        </template>
+                    </v-autocomplete>
+                </transition>
+            </div>
         </div>
+        <BaseTiMetadata
+            v-if="isItemSelected"
+            @close="handleCardClose"
+            @tab-selected="handleTabSelection"
+            class="infoDialog"
+        />
     </div>
 </template>
-
+  
 <i18n>
-{
-  "en": {
-      "search-label": "Search for Indigenous Lands"
-  },
-  "pt-br": {
-      "search-label": "Pesquisar por Terras Indígenas"
+  {
+    "en": { "search-label": "Search for Indigenous Lands" },
+    "pt-br": { "search-label": "Pesquisar por Terras Indígenas" }
   }
-}
 </i18n>
-
+  
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 import { convertTextToHtml, convertHtmlToText } from '@/utils/formatText'
+import BaseTiMetadata from '../base/BaseTiMetadata.vue'
 
 export default {
     name: 'MapSearchTi',
+
+    components: {
+        BaseTiMetadata,
+    },
 
     props: {
         map: {
@@ -76,139 +85,156 @@ export default {
 
     data() {
         return {
-            searchQuery: null,
+            searchQuery: '',
             searchResults: [],
             isLoading: false,
             isSearching: false,
+            searchTimeout: null,
+            polygons: [],
+            isItemSelected: false,
         }
     },
 
     watch: {
-        searchQuery() {
-            if (!this.searchQuery || !(this.searchQuery.length >= 1)) {
-                this.searchResults = []
-                this.isLoading = false
+        searchQuery(newQuery) {
+            if (!newQuery || newQuery.length < 3) {
+                this.clearSearch()
                 return
             }
-            if (this.searchTimeout) {
-                clearTimeout(this.searchTimeout)
-            }
+            clearTimeout(this.searchTimeout)
             this.searchTimeout = setTimeout(
-                () => this.searchOnProvider(this.searchQuery),
+                () => this.searchOnProvider(newQuery),
                 1000
             )
         },
     },
 
     computed: {
-        ...mapState('map', ['indigenousLand']),
+        ...mapState('map', [
+            'indigenousLand',
+            'savedSelectedItems',
+            'selectedItems',
+        ]),
     },
 
     methods: {
-        async searchOnProvider(response) {
-            try {
-                const data = await this.fetchSearchResults(response)
-                data.map((item) =>
-                    this.searchResults.push(
-                        `**Terra Indígena:** ${item?.no_ti || '-'}
-                  **Município:** ${item?.no_municipio || '-'}
-                  **Coordenação Regional:** ${item?.ds_cr || '-'}`
-                    )
-                )
-            } catch (error) {
-                console.error('Erro ao buscar os resultados:', error)
+        ...mapActions('map', ['fetchSearchResults', 'addSelectedItem']),
+
+        handleTabSelection(item) {
+            if (item && item.id) {
+                this.goToIndigenousLands(item)
             }
         },
 
-        formatItem(text) {
-            return convertTextToHtml(text)
+        handleCardClose() {
+            this.polygons.forEach((polygon) => {
+                this.map.removeLayer(polygon)
+            })
+            this.polygons = []
+        },
+
+        toggleSearch() {
+            if (this.isSearching) {
+                this.clearSearch()
+            }
+            this.isSearching = !this.isSearching
+        },
+
+        resetSearchQuery() {
+            this.searchQuery = ''
+        },
+
+        clearSearch() {
+            this.searchResults = []
+            this.isLoading = false
+        },
+
+        async searchOnProvider(query) {
+            try {
+                this.isLoading = true
+                const data = await this.fetchSearchResults(query)
+                this.searchResults = data.map((item) =>
+                    this.formatSearchResult(item)
+                )
+                this.$store.commit('map/setSelectedItems', data)
+                this.isLoading = false
+            } catch (error) {
+                console.error('Error fetching results:', error)
+                this.isLoading = false
+            }
+        },
+
+        formatSearchResult(item) {
+            return `**Terra Indígena:** ${item?.no_ti || '-'}
+          **Município:** ${item?.no_municipio || '-'}
+          **Coordenação Regional:** ${item?.ds_cr || '-'}`
+        },
+
+        formatItem(item) {
+            return convertTextToHtml(item)
         },
 
         removeAccents(text) {
             return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         },
 
-        filterItems(item, searchQuery, textToFilter) {
-            const normalizedQuery =
-                this.removeAccents(searchQuery).toLowerCase()
-            const normalizedText =
-                this.removeAccents(textToFilter).toLowerCase()
+        filterItems(item, query, text) {
+            const normalizedQuery = this.removeAccents(query).toLowerCase()
+            const normalizedText = this.removeAccents(text).toLowerCase()
             return normalizedText.includes(normalizedQuery)
         },
 
-        clearItem(text) {
-            this.searchQuery = convertHtmlToText(text)
-        },
-
-        findMatchingLandIndex(item) {
-            const itemName = item.toLowerCase()
-            for (let i = 0; i < this.indigenousLand.length; i++) {
-                if (
-                    itemName.includes(
-                        this.indigenousLand[i].no_ti.toLowerCase()
-                    ) &&
-                    itemName.includes(
-                        this.indigenousLand[i].ds_cr.toLowerCase()
-                    )
-                ) {
-                    return i
-                }
-            }
-            return -1
-        },
-
-        async goToIndigenousLands({ item }) {
-            const index = this.findMatchingLandIndex(item)
-            if (index === -1) {
-                console.error('No matching indigenous land found.')
-                return
-            }
-            const matchingLand = this.indigenousLand[index]
+        async goToIndigenousLands(matchingLand) {
             try {
                 const data = await this.$api.$get(
                     `/funai/busca-geo-ti/?id=${matchingLand.id}`
                 )
-                if (data && data.features && data.features.length > 0) {
-                    let bounds = L.latLngBounds()
-                    let polygons = []
-
-                    data.features.forEach((feature) => {
-                        feature.geometry.coordinates.forEach((polygon) => {
-                            let latLngs = polygon[0].map((coordinate) => {
-                                bounds.extend(
-                                    L.latLng(coordinate[1], coordinate[0])
-                                )
-                                return [coordinate[1], coordinate[0]]
-                            })
-                            polygons.push(latLngs)
-                        })
-                    })
-
-                    if (this.map) {
-                        this.map.flyToBounds(bounds)
-                        polygons.forEach((latLngs) => {
-                            L.polygon(latLngs).addTo(this.map)
-                        })
-                    } else {
-                        console.error('O objeto do mapa não está definido.')
-                    }
+                if (data?.features?.length) {
+                    this.displayPolygonsOnMap(data.features)
                 }
             } catch (error) {
-                console.error('Erro ao buscar os resultados:', error)
+                console.error('Error fetching geo data:', error)
             }
+        },
+
+        displayPolygonsOnMap(features) {
+            let bounds = L.latLngBounds()
+            features.forEach((feature) => {
+                feature.geometry.coordinates.forEach((polygon) => {
+                    const latLngs = polygon[0].map((coord) => [
+                        coord[1],
+                        coord[0],
+                    ])
+                    bounds.extend(latLngs)
+                    const polygonLayer = L.polygon(latLngs).addTo(this.map)
+                    this.polygons.push(polygonLayer) // Armazena o polígono
+                })
+            })
+            this.map?.flyToBounds(bounds)
         },
 
         handleItemClick(item) {
             this.searchQuery = item.label
-            this.goToIndigenousLands(item)
-            this.clearItem(item)
-        },
+            const selectedItem = this.$store.state.map.selectedItems.find(
+                (ti) =>
+                    ti.no_ti ===
+                    item.item.match(/(?<=\*\*Terra Indígena:\*\*\s).*/)?.[0]
+            )
 
-        ...mapActions('map', ['fetchSearchResults']),
+            if (selectedItem) {
+                this.addSelectedItem(selectedItem)
+                this.$emit('item-selected', this.savedSelectedItems)
+                this.goToIndigenousLands(selectedItem)
+                this.isItemSelected = true
+            }
+            this.isSearching = false
+            this.resetSearchQuery()
+        },
     },
 }
 </script>
-
+  
+  
 <style lang="sass">
 .search-button
     z-index: 5
@@ -222,7 +248,14 @@ export default {
 .v-input__control
     min-height: 36px !important
 
-div[role=listbox] > div:nth-child(n):not(:last-child)
-    border-bottom: 1px solid lightgray
-    margin-bottom: 10px
+    div[role=listbox] > div:nth-child(n):not(:last-child)
+        border-bottom: 1px solid lightgray
+        margin-bottom: 10px
+        
+.infoDialog
+    position: fixed
+    top: 45%
+    height: 230px
+    width: 400px
 </style>
+  

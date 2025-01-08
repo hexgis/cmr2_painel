@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" :width="width">
+  <v-dialog v-model="dialog" :width="width" persistent>
     <v-card>
       <v-card-title class="headline d-flex justify-space-between" color="#D92B3F">
           <p class="mb-0 text-subtitle-1 font-weight-bold">{{ title }}</p>
@@ -11,9 +11,7 @@
       <v-card-actions v-if="hasCta">
           <v-spacer></v-spacer>
           <v-btn color="#9A9997" plain @click="dialog = false">{{ $t('cancel') }}</v-btn>
-          <v-btn id="save-btn" color="#D92B3F" style="color: #FFFFFF" elevated @click="saveBtn">
-            {{ $t('save') }}
-          </v-btn>
+          <v-btn id="save-btn" color="#D92B3F" :disabled="!saveActive" style="color: #FFFFFF" elevated @click="saveBtn">{{ $t('save') }}</v-btn>
         </v-card-actions>
     </v-card>
   </v-dialog>
@@ -55,6 +53,10 @@ export default {
     },
     saveBtn:{
       type: Function,
+    },
+    saveActive: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {

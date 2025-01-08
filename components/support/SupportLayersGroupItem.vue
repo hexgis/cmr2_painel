@@ -35,7 +35,7 @@
           </v-list-item-title>
         </v-list-item-content>
         <v-list-item-action
-          v-if="layer.visible && layer.layer_filters.length != 0"
+          v-if="layer.visible && layer.filters.length != 0"
           @click.stop=""
         >
           <v-icon
@@ -188,7 +188,7 @@ export default {
 
     disabledHeatmap() {
       return (
-        this.layer.layer_filters.length > 0
+        this.layer.filters.length > 0
                 && this.layer.layer_type === 'heatmap'
                 && Object.keys(this.layer.filters).length === 0
                 && !this.layer.loading

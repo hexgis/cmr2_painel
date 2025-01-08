@@ -31,7 +31,6 @@
     "manage_permissions": "Gerenciar Permissões",
     "manage_layers": "Gerenciar Camadas",
     "manage_documents": "Gerenciar Documentos",
-    "mapoteca": "Mapoteca",
     "feedback": "Críticas e Sugestões"
   },
   "en": {
@@ -41,7 +40,6 @@
     "manage_permissions": "Manage Permissions",
     "manage_layers": "Manage Layers",
     "manage_documents": "Manage Documents",
-    "mapoteca": "Map Library",
     "feedback": "Feedback and Suggestions"
   }
 }
@@ -58,7 +56,6 @@ export default {
         { route: '/admin/permissoes', label: this.$t('manage_permissions') },
         { route: '/admin/camadas', label: this.$t('manage_layers') },
         { route: '/admin/documentos', label: this.$t('manage_documents') },
-        { route: '/mapoteca', label: this.$t('mapoteca') },
         { route: '/admin/criticas', label: this.$t('feedback') }
       ],
       selectedRoute: this.$route.path,

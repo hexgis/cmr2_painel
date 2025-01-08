@@ -18,9 +18,9 @@
           <v-spacer></v-spacer>
           <v-icon>mdi-plus</v-icon>
         </v-btn>
-        <CustomDialog title="Nova Solicitação" v-model="showModal" max-width="500px" :hasCta=true :saveBtn="saveTicket" >
+        <CustomDialog title="Nova Solicitação" v-model="showModal" max-width="500px" :hasCta=true :saveBtn="saveTicket" :saveActive="formValid">
             <v-card-text>
-              <v-form ref="form">
+              <v-form ref="form" v-model="formValid">
                 <v-row>
                   <v-select
                     :label="$t('requestType')"
@@ -28,6 +28,7 @@
                     :items="solicitationInputTypeList"
                     item-text="solicitation_name"
                     item-value="solicitation_type"
+                    :rules="[v => !!v || $t('field-required')]"
                     required
                   ></v-select>
                   <v-spacer></v-spacer>
@@ -37,28 +38,45 @@
                     :items="functionalityInputList"
                     item-text="functionality_name"
                     item-value="functionality_id"
+                    :rules="[v => !!v || $t('field-required')]"
                     required
                   ></v-select>
                 </v-row>
                 <v-row class="pa-3">
-                  <v-text-field label="Solicitante" v-model="user.username" disabled></v-text-field>
+                  <v-text-field
+                    label="Solicitante"
+                    v-model="user.username"
+                    disabled
+                  ></v-text-field>
                   <v-spacer></v-spacer>
-                  <v-text-field label="E-mail" v-model="user.email" disabled></v-text-field>
+                  <v-text-field
+                    label="E-mail"
+                    v-model="user.email"
+                    disabled
+                  ></v-text-field>
                 </v-row>
                 <v-text-field
                   :label="$t('subject')"
                   v-model="newTicketData.subject"
+                  :rules="[
+                    v => !!v || $t('field-required'),
+                    v => (v && v.length <= 100) || $t('max-characters', { max: 100 })
+                  ]"
                   required
                 ></v-text-field>
                 <v-textarea
                   :label="$t('description')"
                   v-model="newTicketData.description"
+                  :rules="[
+                    v => !!v || $t('field-required'),
+                    v => (v && v.length <= 500) || $t('max-characters', { max: 500 })
+                  ]"
                   required
                 ></v-textarea>
                 <v-checkbox
                   :label="$t('approveRequestCreation')"
                   v-model="checkbox"
-                  ></v-checkbox>
+                ></v-checkbox>
                 <span class="file-input">
                   <v-file-input
                     :label="$t('attachFile')"
@@ -68,7 +86,9 @@
                     prepend-icon="mdi-paperclip"
                     multiple
                   ></v-file-input>
-                  <p class="ml-8 file-input--legend">Selecione seu arquivo (PDF, JPG, JPEG, PNG)</p>
+                  <p class="ml-8 file-input--legend">
+                    Selecione seu arquivo (PDF, JPG, JPEG, PNG)
+                  </p>
                 </span>
               </v-form>
             </v-card-text>
@@ -87,6 +107,19 @@
           </div>
         </div>
       </v-col>
+      <CustomDialog :title="$t('success-request-title')" v-model="sucessModal" width="350px" :hasCta="false">
+        <span class="d-flex mt-2">
+          <v-icon color="#12A844">mdi-check</v-icon>
+          <h3 class="ml-2">{{ $t('success-request-message') }}</h3>
+        </span>
+      </CustomDialog>
+
+      <CustomDialog :title="$t('error-request-title')" v-model="errorModal" width="350px" :hasCta="false">
+        <span class="d-flex mt-2">
+          <v-icon color="#D92B3F">mdi-alert-circle</v-icon>
+          <h3 class="ml-2">{{ $t('error-request-message') }}</h3>
+        </span>
+      </CustomDialog>
     </v-row>
     <div class="filter mt-4 mb-4">
       <StatusFilter
@@ -130,7 +163,13 @@
       "functionality": "Functionality",
       "requestType": "Request Type",
       "addNewRequest": "Add new request",
-      "criticismsSuggestions": "Criticisms and Suggestions"
+      "criticismsSuggestions": "Criticisms and Suggestions",
+      "field-required": "Field Required",
+      "max-characters": "Maximum of {max} characters allowed.",
+      "success-request-title": "We have received your request!",
+      "success-request-message": "Request successfully created!",
+      "error-request-title": "Request error",
+      "error-request-message": "Something went wrong with your request creation. Please try again."
     },
     "pt-br": {
       "export": "Exportar",
@@ -143,7 +182,13 @@
       "functionality": "Funcionalidade",
       "requestType": "Tipo de Solicitação",
       "addNewRequest": "Adicionar nova solicitação",
-      "criticismsSuggestions": "Críticas e Sugestões"
+      "criticismsSuggestions": "Críticas e Sugestões",
+      "field-required": "Campo obrigatório",
+      "max-characters": "Máximo de {max} caracteres permitido.",
+      "success-request-title": "Recebemos sua solicitação!",
+      "success-request-message": "Solicitação criada com sucesso!",
+      "error-request-title": "Erro na solicitação",
+      "error-request-message": "Algo deu errado na criação da sua solicitação. Tente novamente."
     }
   }
 </i18n>
@@ -167,6 +212,9 @@ export default {
       selectedStatus: null,
       showFilters: false,
       showModal: false,
+      formValid: false,
+      sucessModal: false,
+      errorModal: false,
       checkbox: false,
       newTicketData: {
         solicitation_type: '',
@@ -243,7 +291,7 @@ export default {
 
     cardStatusList() {
       return [...new Set(this.tickets
-        .map(card => card.ticket_status?.formated_info.status_category_display)
+        .map(card => card.ticket_status?.formated_info?.status_category_display)
         .filter(Boolean))
       ];
     },
@@ -284,7 +332,7 @@ export default {
     },
     priorityList() {
       return [...new Set(this.tickets
-        .map(card => card.ticket_status?.formated_info.priority_display)
+        .map(card => card.ticket_status?.formated_info?.priority_display)
         .filter(Boolean))
       ];
     },
@@ -334,10 +382,10 @@ export default {
     },
     updateStoreCategories(){
       this.tickets.forEach((ticket)=> {
-        if (ticket.ticket_status.formated_info.status_category_display === 'Concluído'){
+        if (ticket.ticket_status?.formated_info?.status_category_display === 'Concluído'){
           this.storeCategories[2].total += 1
         }
-        if (ticket.ticket_status.formated_info.status_category_display === 'Em Andamento'){
+        if (ticket.ticket_status?.formated_info?.status_category_display === 'Em Andamento'){
           this.storeCategories[1].total += 1
         }
         this.storeCategories[0].total += 1
@@ -359,10 +407,11 @@ export default {
     try {
       this.newTicketData.status_category = this.isAlreadyDeferred;
       await this.$store.dispatch('admin/createTicket',  {ticketData: this.newTicketData});
-      console.log("Solicitação criada com sucesso!");
+      this.sucessModal = true
     } catch (error) {
       console.log("Erro ao criar nova solicitação:", error);
       console.error("Erro ao criar solicitação.");
+      this.errorModal = true
     } finally {
       this.showModal = !this.showModal
       this.resetForm();

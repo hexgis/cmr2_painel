@@ -1,13 +1,13 @@
 <template>
   <v-form
-    v-if="layer.layer_filters.length"
+    v-if="layer.filters.length"
     v-model="valid"
   >
     <v-row
       dense
       class="my-4"
     >
-      <template v-for="layer_filter in layer.layer_filters">
+      <template v-for="layer_filter in layer.filters">
         <template>
           <v-col
             v-if="layer_filter.filter_type === 'start_date'"
@@ -153,8 +153,8 @@ export default {
   },
 
   created() {
-    if (this.layer.layer_filters) {
-      this.layer.layer_filters.forEach((layerFilter) => {
+    if (this.layer.filters) {
+      this.layer.filters.forEach((layerFilter) => {
         let defaultValue;
 
         if (this.layer.active_on_init) {

@@ -28,24 +28,56 @@
           style="width: 1230px; height: 780px"
         >
           <v-col
-            cols="8"
-            class="pr-0 mt-2"
             id="monitoring-data-details"
+            cols="9"
+            class="pr-0 mt-2"
           >
             <div
-            v-if="showFeaturesMonitoring"
-            class="leaflet-bottom leaflet-right mt-2"
-            id="data-table"
+              v-if="showFeaturesMonitoring && !hasLongMonitoringInfo"
+              id="data-table"
+              class="leaflet-bottom leaflet-right mt-2"
             >
-              <div v-for="item in analyticsMonitoring" :key="item" class="text-center">
+              <div
+                v-for="item in analyticsMonitoring"
+                :key="item.no_ti"
+                class="text-center"
+              >
                 <p><strong>TI {{ item.no_ti }}</strong></p>
-                <p>Área da TI: {{formatNumber(item.ti_nu_area_ha)}} ha</p>
-                <p v-if="item.cr_nu_area_ha">CR: {{formatNumber(item.cr_nu_area_ha)}} ha</p>
-                <p v-if="item.dg_nu_area_ha">DG: {{formatNumber(item.dg_nu_area_ha)}} ha</p>
-                <p v-if="item.dr_nu_area_ha">DR: {{formatNumber(item.dr_nu_area_ha)}} ha</p>
-                <p v-if="item.ff_nu_area_ha">FF: {{formatNumber(item.ff_nu_area_ha)}} ha</p>
+                <p>Área da TI: {{ formatNumber(item.ti_nu_area_ha) }} ha</p>
+                <p v-if="item.cr_nu_area_ha">
+                  CR: {{ formatNumber(item.cr_nu_area_ha) }} ha
+                </p>
+                <p v-if="item.dg_nu_area_ha">
+                  DG: {{ formatNumber(item.dg_nu_area_ha) }} ha
+                </p>
+                <p v-if="item.dr_nu_area_ha">
+                  DR: {{ formatNumber(item.dr_nu_area_ha) }} ha
+                </p>
+                <p v-if="item.ff_nu_area_ha">
+                  FF: {{ formatNumber(item.ff_nu_area_ha) }} ha
+                </p>
               </div>
             </div>
+            <v-card
+              v-if="showWarningMessage"
+              class="warning-message"
+              elevated
+            >
+              <v-card-text>
+                <p class="text-subtitle-1">
+                  {{ $t('warning-message') }}
+                </p>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn
+                  color="primary"
+                  text
+                  @click="showWarningMessage = false"
+                >
+                  {{ $t('agree') }}
+                </v-btn>
+              </v-card-actions>
+            </v-card>
             <MapForPrint
               :leaf-size="leafSize"
               :main-map="mainMap"
@@ -56,29 +88,27 @@
             />
           </v-col>
           <v-col
-            cols="4"
+            cols="3"
             class="pl-1 mt-2"
           >
             <div class="border_container">
               <div class="d-flex justify-space-between pl-8 pr-8 ga-1 align-center ma-4">
-                <div style="width: 25%">
+                <div style="width: 20%">
                   <v-img
-                    style="opacity: 0.5;"
                     contain
                     :src="logo_funai"
                     class="logo"
                   />
                 </div>
-                <div style="width: 50%">
+                <div style="width: 60%">
                   <v-img
-                    style="opacity: 0.5;"
                     contain
                     :src="logo_cmr"
                     class="logo"
                   />
                 </div>
               </div>
-              <div class="font-title">
+              <div class="font-title pb-2">
                 <p>
                   {{ mapTitle }}
                 </p>
@@ -110,7 +140,7 @@
                     >
                       <LayerList
                         :layers="supportLayerUser"
-                        :isUserLayer="true"
+                        :is-user-layer="true"
                       />
                       <LayerList
                         v-if="showFeaturesSupportLayers"
@@ -149,6 +179,18 @@
                       Bases Cartográficas:
                     </p>
                     <div
+                      v-if="activeRasterLayers.length"
+                      class="ml-1"
+                    >
+                      <span
+                        v-for="item in activeRasterLayers"
+                        :key="item.id"
+                      >
+                        <p v-if="item.wms">{{ item.name }}, fonte: {{ item.wms?.geoserver?.name }}.</p>
+                        <p v-else-if="item.tms">{{ item.name }}, fonte: {{ item.tms?.url_tms ? 'SCCON. Atualizado em: ' + handleData(item.tms?.date) : ''}}.</p>
+                      </span>
+                    </div>
+                    <div
                       v-for="layerCategory in layerCategories"
                       :key="layerCategory.name"
                     >
@@ -165,8 +207,8 @@
                           <v-col>
                             <p class="ml-1">
                               <strong>{{ layer.name || '-' }}. </strong>
-                              Fonte: {{ layer.layer_info.fonte || '-' }},
-                              Data de atualização: {{ handleData(layer.layer_info.dt_atualizacao) }}.
+                              Fonte: {{ layer.fonte || '-' }},
+                              Data de atualização: {{ handleData(layer.dt_atualizacao) }}.
                             </p>
                           </v-col>
                         </v-row>
@@ -174,7 +216,9 @@
                     </div>
                   </div>
                   <div v-if="showFeaturesMonitoring">
-                    <p class="ml-1">{{ $t('monitoring-print-label')}} {{ handleData(filters.startDate) }} {{ $t('and') }} {{ handleData(filters.endDate) }}</p>
+                    <p class="ml-1">
+                      {{ $t('monitoring-print-label') }} {{ handleData(filters.startDate) }} {{ $t('and') }} {{ handleData(filters.endDate) }}
+                    </p>
                   </div>
                 </div>
 
@@ -217,6 +261,7 @@
             <v-spacer />
             <v-btn
               color="primary"
+              :disabled="showWarningMessage"
               @click="print"
             >
               <v-icon dark>
@@ -261,8 +306,9 @@
               "clear-cut": "Clear Cut"
           },
           "monitoring-print-label": "Daily Monitoring Data between",
-          "and": "and"
-
+          "and": "and",
+          "warning-message": "The number of selected TIs exceeds the limit for display on the print map. Only deforestation polygons will be shown. To view the statistics, reduce the selected TIs or access the 'Statistics' menu.",
+          "agree": "I agree"
       },
       "pt-br": {
           "print-out": "Impressão",
@@ -292,7 +338,9 @@
               "clear-cut": "Corte Raso"
           },
           "monitoring-print-label": "Dados de Monitoramento Diário entre",
-          "and": "e"
+          "and": "e",
+          "warning-message": "O número de TIs selecionadas excede o limite para visualização no mapa de impressão. Apenas os polígonos de desmatamento serão exibidos. Para ver as estatísticas, reduza as TIs selecionadas ou acesse o menu 'Estatísticas'.",
+          "agree": "Ciente"
       }
   }
 </i18n>
@@ -359,6 +407,7 @@ export default {
     logo_cmr: process.env.DEFAULT_LOGO_IMAGE_CMR,
     print_title: process.env.PRINT_TITLE,
     print_info: process.env.PRINT_INFO,
+    showWarningMessage: false,
     activeMonitoringLabel: [],
     deterItems: [
       { label: 'burnt-scar', color: '#330000' },
@@ -382,8 +431,19 @@ export default {
       { label: 'land-use-categories.clear-cut', color: '#ff3333' },
     ],
   }),
-
+  watch: {
+    analyticsMonitoring(newVal) {
+      if (this.hasLongMonitoringInfo = newVal.length > 7) {
+        this.showWarningMessage = true;
+        return;
+      }
+      this.showWarningMessage = false;
+    },
+  },
   computed: {
+    hasLongMonitoringInfo() {
+      return this.analyticsMonitoring.length > 7;
+    },
     showDialog() {
       return this.showDialogLandscape;
     },
@@ -408,6 +468,11 @@ export default {
         { name: 'Fire Category Layers', layers: this.supportLayersCategoryFire, show: true },
         { name: 'Prodes Category Layers', layers: this.supportLayersCategoryProdes, show: true },
       ].filter((category) => category.show);
+    },
+    activeRasterLayers() {
+      return Object.values(
+        this.supportLayersCategoryRaster,
+      ).filter((layer) => layer.visible);
     },
     ...mapState('supportLayersUser', ['supportLayerUser']),
     ...mapState('map', ['bounds']),
@@ -459,12 +524,12 @@ export default {
 
   methods: {
     formatNumber(value) {
-    const number = parseFloat(value)
-    if (!isNaN(number)) {
-      return number.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    return '-';
-  },
+      const number = parseFloat(value);
+      if (!isNaN(number)) {
+        return number.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      return '-';
+    },
 
     vectorImage(layer) {
       return layer.vector.thumbnail_blob || layer.vector.image;
@@ -503,7 +568,7 @@ export default {
     getMapDimensions(tamanho) {
       switch (tamanho) {
         case 'A4':
-          return { width: 1100, height: 750 }; // in mm or appropriate units
+          return { width: 1105, height: 770 }; // in mm or appropriate units
         case 'A3':
           return { width: 1450, height: 860 };
           // Add more cases as needed
@@ -603,6 +668,11 @@ p {
     text-align: center;
     line-break: anywhere;
     max-width: 750px;
+    font-family: 'Roboto', sans-serif;
+    text-transform: uppercase;
+    font-size: 10px;
+    font-weight: 700;
+    color: #6c6c6c;
 }
 
 .font-title {
@@ -625,9 +695,6 @@ p {
 }
 
 .border_container {
-    border-right: 0.5px solid gray;
-    border-top: 0.5px solid gray;
-    border-bottom: 0.5px solid gray;
     height: 100%;
 }
 
@@ -651,5 +718,14 @@ p {
 
 img.layer-thumbnail{
     width: 25px;
+}
+
+.warning-message{
+  position: absolute;
+  max-width: 350px;
+  top: 35%;
+  left: 30%;
+  z-index: 20;
+  background: #FFFFFF;
 }
 </style>

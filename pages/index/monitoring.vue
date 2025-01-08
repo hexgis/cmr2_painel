@@ -1,54 +1,53 @@
 <template>
-    <v-container class="overflow-auto container-height">
-        <div v-if="tab === 'tab-1'">
+    <v-container class="pa-0">
+        <div v-if="tab === 'tab-1'" class="tab-header justify-space-between">
             <v-row>
-                <v-col cols="8">
-                    <h4 class="subtitle-2 text-uppercase font-weight-regular">
-                        {{ $t('title-monitoring') }}
-                    </h4>
-                </v-col>
-                <v-col cols="4">
-                    <v-tooltip>
-                        <template #activator="{ on }">
-                            <v-icon class="infoIconMargin" v-on="on">
-                                mdi-information
-                            </v-icon>
-                        </template>
-                        <span>
-                            {{ $t('monitoring-info-part1') }}
-                            <br />
-                            {{ $t('monitoring-info-part2') }}
-                            <br />
-                            {{ $t('monitoring-info-part3') }}
-                            <br />
-                            {{ $t('monitoring-info-part4') }}
-                        </span>
-                    </v-tooltip>
-                </v-col>
+                <h6
+                    class="subtitle-2 text-uppercase font-weight-regular header-title"
+                >
+                    {{ $t('title-monitoring') }}
+                </h6>
+
+                <v-tooltip>
+                    <template #activator="{ on }">
+                        <v-icon class="infoIconMargin" v-on="on">
+                            mdi-information
+                        </v-icon>
+                    </template>
+                    <span>
+                        {{ $t('monitoring-info-part1') }}
+                        <br />
+                        {{ $t('monitoring-info-part2') }}
+                        <br />
+                        {{ $t('monitoring-info-part3') }}
+                        <br />
+                        {{ $t('monitoring-info-part4') }}
+                    </span>
+                </v-tooltip>
             </v-row>
         </div>
-        <div v-else-if="tab === 'tab-2'">
+        <div
+            v-else-if="tab === 'tab-2'"
+            class="tab-header justify-space-between"
+        >
             <v-row>
-                <v-col cols="8">
-                    <h4 class="subtitle-2 text-uppercase font-weight-regular">
-                        {{ $t('title-alerts') }}
-                    </h4>
-                </v-col>
-                <v-col cols="4">
-                    <v-tooltip>
-                        <template #activator="{ on }">
-                            <v-icon class="infoIconMargin" v-on="on">
-                                mdi-information
-                            </v-icon>
-                        </template>
-                        <span>
-                            {{ $t('update-info') }}
-                            <br />
-                            {{ $t('data-source') }}
-                        </span>
-                    </v-tooltip>
-                </v-col>
-               
+                <h4
+                    class="subtitle-2 text-uppercase font-weight-regular header-title"
+                >
+                    {{ $t('title-alerts') }}
+                </h4>
+                <v-tooltip>
+                    <template #activator="{ on }">
+                        <v-icon class="infoIconMargin" v-on="on">
+                            mdi-information
+                        </v-icon>
+                    </template>
+                    <span>
+                        {{ $t('update-info') }}
+                        <br />
+                        {{ $t('data-source') }}
+                    </span>
+                </v-tooltip>
             </v-row>
         </div>
 
@@ -58,10 +57,9 @@
             centered
             dark
             icons-and-text
-            class="mt-4"
         >
             <v-tabs-slider></v-tabs-slider>
-            <v-tab href="#tab-1" class="text-center">
+            <v-tab href="#tab-1">
                 Monitoramento<br />
                 Diário
                 <v-icon>mdi-map-search</v-icon>
@@ -74,7 +72,7 @@
             </v-tab>
         </v-tabs>
 
-        <div class="tab-header">
+        <div class="list-container">
             <v-tabs-items v-model="tab">
                 <v-tab-item value="tab-1">
                     <Monitoring />
@@ -142,12 +140,19 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.tab-header {
-    padding: 0px 0px 10px 0px;
-    margin-top: 0px;
+.header-title {
+    margin-top: 2px;
 }
 
-.container-height {
-    max-height: 90vh;
+.list-container {
+    max-height: 79.5vh;
+    overflow-y: auto;
+    padding-right: 0px;
+}
+
+@media (max-width: 768px) {
+    .infoIconMargin {
+        margin-left: 2px;
+    }
 }
 </style>

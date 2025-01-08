@@ -227,6 +227,16 @@
             </div>
             <Timeline :ticket="ticketDetail" />
         </v-card>
+        <v-overlay v-if="isLoading">
+          <LoadingIconVue />
+        </v-overlay>
+
+        <CustomDialog :title="$t('error-request-title')" v-model="errorModal" width="350px" :hasCta="false">
+          <span class="d-flex mt-2">
+            <v-icon color="#D92B3F">mdi-alert-circle</v-icon>
+            <h3 class="ml-2">{{ $t('error-request-message') }}</h3>
+          </span>
+        </CustomDialog>
 
         <v-card-actions>
             <v-btn color="primary" text @click="$router.back()">{{ $t('back') }}</v-btn>
@@ -260,7 +270,9 @@
           "comment": "Comment",
           "selectYourFile": "Select your file (PDF, JPG, JPEG, PNG, XLS, XLSX, CSV)",
           "back": "Back",
-          "description": "Description:"
+          "description": "Description:",
+          "error-request-title": "Request error",
+          "error-request-message": "Something went wrong. Please try again."
       },
       "pt-br": {
           "reopenRequest": "REABRIR SOLICITAÇÃO",
@@ -287,19 +299,23 @@
           "comment": "Comentário",
           "selectYourFile": "Selecione seu arquivo (PDF, JPG, JPEG, PNG, XLS, XLSX, CSV)",
           "back": "Voltar",
-          "description": "Descrição:"
+          "description": "Descrição:",
+          "error-request-title": "Erro na solicitação",
+          "error-request-message": "Algo deu errado. Tente novamente."
       }
   }
 </i18n>
 
 <script>
+import LoadingIconVue from '../map/file-loader/LoadingIcon.vue';
 import PriorityBadge from './PriorityBadge.vue'
 import StatusBadge from './StatusBadge.vue'
 import { mapGetters } from 'vuex'
 import Timeline from './Timeline.vue'
+import CustomDialog from './CustomDialog.vue';
 export default {
     layout: 'admin',
-    components: { PriorityBadge, StatusBadge, Timeline },
+    components: { PriorityBadge, StatusBadge, Timeline, LoadingIconVue, CustomDialog },
     props: {
         cardId: {
             type: String,
@@ -319,6 +335,8 @@ export default {
             checkbox: false,
             teste: null,
             text: '',
+            isLoading: false,
+            errorModal: false
         }
     },
     async mounted() {
@@ -425,7 +443,7 @@ export default {
             }
         },
         async handleSave() {
-            this.sendEmail()
+            this.isLoading = true
             try {
                 const updatedData = {
                     ticket_status: {
@@ -455,6 +473,26 @@ export default {
                     [...this.file].forEach((file) => formData.append('attachments', file))
                 }
 
+                this.updateStatusAndSendEmail(formData)
+
+                await this.$store.dispatch('admin/fetchTicketDetail', {
+                    ticketId: this.cardId,
+                })
+                this.text = ''
+
+            } catch (error) {
+                this.errorModal = true
+                console.error(
+                    'Erro ao salvar informações:',
+                    error.response?.data || error.message
+                )
+            } finally {
+              this.isLoading = false
+            }
+        },
+
+        async updateStatusAndSendEmail(formData) {
+            try {
                 await this.$api.patch(
                     `/adm-panel/tickets/status-update/${this.cardId}/`,
                     formData,
@@ -463,21 +501,15 @@ export default {
                             'Content-Type': 'multipart/form-data',
                         },
                     }
-                )
-
-                await this.$store.dispatch('admin/fetchTicketDetail', {
-                    ticketId: this.cardId,
-                })
-                this.text = ''
-
+                );
+                this.sendEmail();
             } catch (error) {
-                console.error(
-                    'Erro ao salvar informações:',
-                    error.response?.data || error.message
-                )
+                console.error('Erro ao atualizar status:', error);
             }
         },
+
         async reopenSolicitation() {
+            this.isLoading = true
             try {
                 const updatedData = {
                     ticket_status: {
@@ -516,6 +548,8 @@ export default {
                 this.text = ''
             } catch {
                 console.error('Erro ao solicitar')
+            } finally {
+              this.isLoading = false
             }
         },
     },
