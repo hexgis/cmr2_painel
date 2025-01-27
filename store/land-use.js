@@ -163,7 +163,7 @@ export const actions = {
   },
 
   async getFilterOptions({ commit }) {
-    const regional_coordinators = await this.$api.$get('land-use/cr/');
+    const regional_coordinators = await this.$api.$get('/land-use/search/');
     const data = {};
 
     if (regional_coordinators) {
@@ -176,12 +176,12 @@ export const actions = {
   },
 
   async getTiOptions({ commit, state }, cr) {
-    let tis = await this.$api.$get('land-use/ti/');
+    let tis = await this.$api.$get('/land-use/search/');
     if (cr){
       const params = {
         co_cr: cr.toString(),
       };
-      tis = await this.$api.$get('land-use/ti/', {
+      tis = await this.$api.$get('/land-use/search/', {
         params,
       });
     }
@@ -199,7 +199,7 @@ export const actions = {
       co_funai: ti.toString(),
     };
 
-    const years = await this.$api.$get('land-use/years/', {
+    const years = await this.$api.$get('/land-use/search/', {
       params,
     });
 
@@ -220,14 +220,14 @@ export const actions = {
 
     if (state.filters.ti && state.filters.ti.length) { params.co_funai = state.filters.ti.toString(); }
 
-    if (state.filters.year && state.filters.year.length) { params.map_year = state.filters.year.toString(); }
+    if (state.filters.year && state.filters.year.length) { params.nu_ano = state.filters.year.toString(); }
 
     if (state.filters.cr && state.filters.cr.length) { params.co_cr = state.filters.cr.toString(); }
 
     if (state.filters.currentView) params.in_bbox = rootGetters['map/bbox'];
 
     try {
-      const tableLandUse = await this.$api.$get('land-use/table/', {
+      const tableLandUse = await this.$api.$get('/land-use/table/', {
         params,
       });
 
