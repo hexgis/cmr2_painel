@@ -2,13 +2,13 @@
   <div v-if="isRestrictedAreaCard">
     <span v-if="isRestrictedAreaCard === 'Pendente'" class="center">
       <a class="link" @click="viewFileDetails">{{ $t('viewForm') }}</a>
-      <p class="light--text text-center">{{ $t('requestedOn') }} {{ requestData.access_request.solicitation_date_formatted || '-'}}.</p>
+      <p class="light--text text-center">{{ $t('requestedOn') }} {{ requestData.created_at_formatted || '-'}}.</p>
     </span>
     <span v-else-if="isRestrictedAreaCard" class="light--text">
       <p v-if="requestData.denied_details">{{ $t('rejectedBy') }}</p>
       <p v-else-if="isRestrictedAreaCard === 'Concedida'">{{ $t('grantedBy') }}</p>
       <p class="font-weight-bold text-uppercase">{{ requestData.reviewed_by_name || '-' }}</p>
-      <p>{{ $t('evaluatedOn') }} {{ requestData.reviewed_date_formatted || '-' }}.</p>
+      <p>{{ $t('evaluatedOn') }} {{ requestData.reviewed_at_formatted || '-' }}.</p>
     </span>
   </div>
   <div v-else>
@@ -17,8 +17,8 @@
       <p class="font-weight-bold text-uppercase">{{ requestData.requesting || '-' }}</p>
     </span>
     <span v-if="ticketAlreadyAnalyzed" class="light--text">
-      <p>{{ $t('analyzedOn') }} {{ requestData.ticket_status.analyzed_in_formatted || requestData.ticket_status?.formated_info?.analyzed_in_formatted || '-' }}</p>
-      <p>por {{ requestData.ticket_status.analyzed_by || requestData.ticket_status?.user_info?.analyzer || '-' }}</p>
+      <p>{{ $t('analyzedOn') }} {{ requestData.reviewed_at_formatted || requestData.ticket_status?.formated_info?.analyzed_in_formatted || '-' }}</p>
+      <p>por {{ requestData.reviewed_by_name || requestData.ticket_status?.user_info?.analyzer || '-' }}</p>
     </span>
     <span v-else class="light--text">
       <p>{{ $t('notAnalyzed')}}</p>
@@ -61,8 +61,8 @@ export default {
   },
   methods: {
     viewFileDetails() {
-      if (this.requestData.access_request.attachment) {
-        window.open(this.requestData.access_request.attachment, '_blank');
+      if (this.requestData.attachment) {
+        window.open(this.requestData.attachment, '_blank');
       } else {
         console.warn("Nenhum arquivo disponível para visualização.");
       }

@@ -23,6 +23,8 @@ export default {
         'Recusada': '#D92B3F',
         'Recusado': '#D92B3F',
         'Inviável': '#D92B3F',
+        true: '#12A844',
+        false: '#D92B3F',
       };
       return statusColors[this.status] || '#9A9997';
     },

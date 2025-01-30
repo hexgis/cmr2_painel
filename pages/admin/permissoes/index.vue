@@ -15,17 +15,17 @@ export default {
         return {
             props: [
                 {
-                    url: 'grupos',
+                    url: 'permissoes/grupos/',
                     icon: 'mdi-group',
                     optionLabel: 'Grupos',
                 },
                 {
-                    url: 'instituicoes',
+                    url: 'permissoes/instituicoes/',
                     icon: 'mdi-office-building',
                     optionLabel: 'Instituições',
                 },
                 {
-                    url: 'fpe',
+                    url: 'permissoes/fpe/',
                     icon: 'mdi-tree',
                     optionLabel: 'FPE - Frente de Proteção Etnoambiental',
                 },

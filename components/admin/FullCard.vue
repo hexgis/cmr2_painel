@@ -1,11 +1,10 @@
 <template>
-    <v-card
-        class="card"
-        @click="getUrl()"
-    >
-        <v-icon color="#F58A1F" size="40">{{ props.icon }}</v-icon>
-        <p class="text-uppercase">{{ props.optionLabel }}</p>
-    </v-card>
+    <NuxtLink :to="getUrl">
+        <v-card class="card">
+            <v-icon color="#F58A1F" size="40">{{ props.icon }}</v-icon>
+            <p class="text-uppercase">{{ props.optionLabel }}</p>
+        </v-card>
+    </NuxtLink>
 </template>
 
 <script>
@@ -17,11 +16,11 @@ export default {
             required: true,
         },
     },
-    computed:{
-      getUrl(){
-        return this.$router.push(this.localePath(`/admin/permissoes/${this.props.url}`))
-      }
-    }
+    computed: {
+        getUrl() {
+            return this.localePath(`/admin/${this.props.url}`)
+        },
+    },
 }
 </script>
 
@@ -29,6 +28,9 @@ export default {
 p
   margin-bottom: 0
   align-content: center
+
+a
+  text-decoration: none
 
 .card
   display: flex

@@ -50,7 +50,7 @@ export default {
   data() {
     return {
       adminLabels: [
-        { route: '/dashboard', label: this.$t('dashboard') },
+        { route: '/views-chart', label: this.$t('dashboard') },
         { route: '/admin/usuarios', label: this.$t('manage_users') },
         { route: '/admin/area-restrita', label: this.$t('restricted_access') },
         { route: '/admin/permissoes', label: this.$t('manage_permissions') },

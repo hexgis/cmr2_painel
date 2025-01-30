@@ -2,15 +2,21 @@
   <div class="group">
     <h1 class="text-uppercase">Gerenciamento de Grupos</h1>
     <span class="card--wrapper mt-4">
-      <CardGroup v-for="card in groupCards" :key="card.title" :card="card"/>
+      <CardGroup v-for="group in groupList" :key="group.id" :card="group" from="groups"/>
     </span>
     <div class="add--btn">
       <v-btn height="50" color="primary" rounded @click="dialog = !dialog">
         <v-icon size="20">mdi-plus</v-icon>
       </v-btn>
     </div>
-    <CustomDialog v-model="dialog" title="Adicionar" :hasCta="true">
+    <CustomDialog v-model="dialog" title="Adicionar" :hasCta="true" :saveActive="true" width="800px" @save="addCardPermission">
       <v-text-field class="pt-8" hide-details="auto" v-model="groupName" label="Nome do Grupo"></v-text-field>
+      <v-text-field
+                class="pt-8"
+                v-model="cardDescription"
+                hide-details="auto"
+                label="Descrição"
+            />
       <PermissionManager
         :grantedPermissions="grantedPermissions"
         :revokedPermissions="revokedPermissions"
@@ -24,43 +30,54 @@
 import CustomDialog from '/components/admin/CustomDialog.vue'
 import CardGroup from '/components/admin/CardGroup.vue'
 import PermissionManager from '/components/admin/PermissionManager.vue';
+import { mapGetters } from 'vuex'
 
 
 export default {
-  components: { CardGroup, CustomDialog, PermissionManager },
+  components: { CardGroup, CustomDialog, PermissionManager},
   name: 'Grupos',
   layout: 'admin',
   data(){
     return {
       dialog: false,
       groupName: '',
-      groupCards:[
-        {
-          id: 1,
-          title: 'Teste',
-          type: 'Desenvolvedor'
-        },
-        {
-          id: 2,
-          title: 'Teste 2',
-          type: 'Visualizar'
-        },
-        {
-          id: 3,
-          title: 'Teste 3',
-          type: 'Inserir Mapas'
-        },
-      ],
-      grantedPermissions: ['Permissão Add 1', 'Permissão Add 2', 'Permissão Add 8', 'Permissão Add 9','Permissão Add 10','Permissão Add 11','Permissão Add 12','Permissão Add 13','Permissão Add 3', 'Permissão Add 4'],
-      revokedPermissions: [],
+      permissions: [],
+      grantedPermissions: [],
+      cardDescription: ''
     }
+  },
+  async mounted(){
+    this.$store.dispatch('admin/fetchGroupList')
+    this.permissions = await this.$api.get(`permission/`)
+  },
+  computed: {
+    ...mapGetters('admin', ['groupList']),
+
+    revokedPermissions: {
+        get() {
+            return this.permissions.data
+        },
+        set(value) {
+          this.permissions.data = value
+        },
+    },
+
   },
   methods: {
     updatePermissions({ grantedPermissions, revokedPermissions }) {
       this.grantedPermissions = grantedPermissions;
       this.revokedPermissions = revokedPermissions;
     },
-  }
+    async addCardPermission() {
+      const response = await this.$api.post('user/group/', {
+        name: this.groupName,
+        description: this.cardDescription,
+        layer_permissions: this.grantedPermissions.map(permission => permission.id),
+      })
+      this.$store.dispatch('admin/fetchGroupList')
+      this.dialog = false;
+    },
+    },
 }
 
 </script>
