@@ -2,7 +2,11 @@
     <v-layout align-center justify-center>
         <v-flex xs12 sm8 md4 lg3 xl3>
             <v-form @submit.prevent="login">
-                <v-card tile class="elevation-6 login-card" style="margin-top: 40%">
+                <v-card
+                    tile
+                    class="elevation-6 login-card"
+                    style="margin-top: 40%"
+                >
                     <div v-if="this.$vuetify.theme.dark">
                         <v-toolbar flat dark color="black">
                             <v-progress-linear
@@ -46,74 +50,112 @@
                         </v-toolbar>
                     </div>
                     <div v-if="!showResetPasswordModal">
-                    <v-card-text class="px-6 pt-6 pb-0">
-                        <v-alert
-                            v-show="showAuthenticationError"
-                            type="error"
-                            class="mb-3"
+                        <v-card-text class="px-6 pt-6 pb-0">
+                            <v-alert
+                                v-show="showAuthenticationError"
+                                type="error"
+                                class="mb-3"
+                            >
+                                {{ $t('error') }}
+                            </v-alert>
+
+                            <div class="text-subtitle-1 text-center mb-2">
+                                {{ $t('title') }}
+                            </div>
+
+                            <v-text-field
+                                v-model="username"
+                                outlined
+                                prepend-inner-icon="mdi-account"
+                                :label="$t('user-label')"
+                                single-line
+                            />
+                            <v-text-field
+                                v-model="password"
+                                outlined
+                                prepend-inner-icon="mdi-lock"
+                                :label="$t('password-label')"
+                                single-line
+                                type="password"
+                            />
+                        </v-card-text>
+
+                        <v-card-actions class="justify-center pa-6 flex-column">
+                            <v-btn block outlined color="primary" type="submit">
+                                {{ $t('login-button') }}
+                            </v-btn>
+                        </v-card-actions>
+                        <div
+                            class="d-flex align-md-center justify-md-center pb-4"
+                            @click="openResetPasswordModal"
                         >
-                            {{ $t('error') }}
-                        </v-alert>
-
-                        <div class="text-subtitle-1 text-center mb-2">
-                            {{ $t('title') }}
+                            <span class="forgot-password-btn"
+                                >{{ $t('forgot-password-btn') }}
+                                <strong>{{
+                                    $t('click-here-btn')
+                                }}</strong></span
+                            >
                         </div>
-
-                        <v-text-field
-                            v-model="username"
-                            outlined
-                            prepend-inner-icon="mdi-account"
-                            :label="$t('user-label')"
-                            single-line
-                        />
-                        <v-text-field
-                            v-model="password"
-                            outlined
-                            prepend-inner-icon="mdi-lock"
-                            :label="$t('password-label')"
-                            single-line
-                            type="password"
-                        />
-                    </v-card-text>
-
-                    <v-card-actions class="justify-center pa-6 flex-column">
-                        <v-btn block outlined color="primary" type="submit">
-                            {{ $t('login-button') }}
-                        </v-btn>
-                    </v-card-actions>
-                    <div class="d-flex align-md-center justify-md-center pb-4" @click="showResetPasswordModal =   true">
-                      <span class="forgot-password-btn">{{ $t('forgot-password-btn') }} <strong>{{ $t ('click-here-btn') }}</strong></span>
-                    </div>
                     </div>
                     <div v-else class="pa-4">
-                      <p class="pa-2">{{ $t('reset-password-instructions') }}</p>
-                      <v-responsive class="mx-auto">
-                        <v-text-field
-                          v-model="email"
-                          class="pa-4 w-100"
-                          hide-details="auto"
-                          :label="$t('email-label')"
-                          :placeholder="$t('email-placeholder')"
-                          type="email"
-                        ></v-text-field>
-                      </v-responsive>
-                      <p class="pa-2" style="font-size: 12px;">{{ $t('email-note') }}</p>
-                      <v-row class="pb-4 mt-10">
-                        <v-btn class="ml-4" color="primary" @click="handleResetPassword">{{ $t  ('reset-access-button') }}</v-btn>
-                        <v-spacer/>
-                        <v-btn text @click="showResetPasswordModal = false">{{ $t('back-button') }}</v-btn>
-                      </v-row>
+                        <p class="pa-2">
+                            {{ $t('reset-password-instructions') }}
+                        </p>
+                        <v-responsive class="mx-auto">
+                            <v-text-field
+                                v-model="email"
+                                class="pa-4 w-100"
+                                hide-details="auto"
+                                :label="$t('email-label')"
+                                :placeholder="$t('email-placeholder')"
+                                type="email"
+                                @keydown.enter.prevent="handleResetPassword"
+                               ></v-text-field
+                            >
+                        </v-responsive>
+                        <p class="pa-2" style="font-size: 12px">
+                            {{ $t('email-note') }}
+                        </p>
+                        <v-row class="pb-4 mt-10">
+                            <v-btn
+                                class="ml-4"
+                                color="primary"
+                                @click="handleResetPassword"
+                                >{{ $t('reset-access-button') }}</v-btn
+                            >
+                            <v-spacer />
+                            <v-btn
+                            class="mr-4"
+                                text
+                                @click="showResetPasswordModal = false"
+                                >{{ $t('back-button') }}</v-btn
+                            >
+                        </v-row>
                     </div>
                 </v-card>
                 <v-dialog v-model="showStatusModal" max-width="550">
                     <v-card>
-                        <v-card-title :style="{ backgroundColor: statusTitle === $t('success') ? '#ffcc00' :  '#D92B3F' }">
+                        <v-card-title
+                            :style="{
+                                backgroundColor:
+                                    statusTitle === $t('success')
+                                        ? '#ffcc00'
+                                        : '#D92B3F',
+                            }"
+                        >
                             {{ statusTitle }}
                         </v-card-title>
-                        <v-card-text class="pt-4">{{ statusMessage }}</v-card-text>
+                        <v-card-text class="pt-4">{{
+                            statusMessage
+                        }}</v-card-text>
                         <v-card-actions>
                             <v-spacer></v-spacer>
-                            <v-btn color="primary" text @click="showStatusModal = false">{{ $t('ok-button') }}</v-btn>
+                            <v-btn
+                                color="primary"
+                                text
+                                @click="showStatusModal = false"
+                                >{{ $t('ok-button') }}</v-btn
+                            >
                         </v-card-actions>
                     </v-card>
                 </v-dialog>
@@ -175,7 +217,6 @@
 
 <script>
 import { mapActions } from 'vuex'
-import axios from 'axios'
 
 export default {
     name: 'Login',
@@ -204,12 +245,17 @@ export default {
 
     methods: {
         login() {
+            // Verifica se o modal de reset de senha está aberto
+            if (this.showResetPasswordModal) {
+                return // Não faz nada se o modal de reset de senha estiver aberto
+            }
+
             this.isLoading = true
             this.showAuthenticationError = false
 
             this.authenticate({
                 username: this.username,
-                password: this.password
+                password: this.password,
             })
                 .then((_) => {
                     this.isLoading = false
@@ -222,21 +268,32 @@ export default {
         },
         async handleResetPassword() {
             try {
-                await this.$api.$post('auth/password-reset/', { email: this.email });
-                this.showStatusModal = true;
-                this.statusTitle = this.$t('success');
-                this.statusMessage = `${this.$t('email-found')} ${this.email}. ${this.$t('check-email')}`;
+                await this.$api.$post('auth/password-reset/', {
+                    email: this.email,
+                })
+                this.showStatusModal = true
+                this.statusTitle = this.$t('success')
+                this.statusMessage = `${this.$t('email-found')} ${
+                    this.email
+                }. ${this.$t('check-email')}`
             } catch (err) {
-                this.showStatusModal = true;
+                this.showStatusModal = true
                 if (err.response && err.response.status === 400) {
-                    this.statusTitle = this.$t('email-not-found');
-                    this.statusMessage = this.$t('email-not-found-message');
+                    this.statusTitle = this.$t('email-not-found')
+                    this.statusMessage = this.$t('email-not-found-message')
                 } else {
-                    this.statusTitle = this.$t('generic-error');
-                    this.statusMessage = this.$t('generic-error-message');
+                    this.statusTitle = this.$t('generic-error')
+                    this.statusMessage = this.$t('generic-error-message')
                 }
             }
         },
+
+        openResetPasswordModal() {
+            this.showResetPasswordModal = true
+            this.username = '' // Limpa o campo de usuário
+            this.password = '' // Limpa o campo de senha
+        },
+
         ...mapActions('auth', ['authenticate']),
     },
 
@@ -260,26 +317,25 @@ export default {
     max-width: 80%;
 }
 
-.forgot-password-btn{
-  cursor: pointer;
-  color: #757575;
+.forgot-password-btn {
+    cursor: pointer;
+    color: #757575;
 }
 
-.forgot-password-btn:hover{
-  color:#D92B3F;
-  text-decoration: underline;
+.forgot-password-btn:hover {
+    color: #d92b3f;
+    text-decoration: underline;
 }
-
 
 @media (max-width: 768px) {
-.login-card {
-    width: 60%;
-    margin-top: 25% !important;
-    margin-left: auto;
-    margin-right: auto;
-}
-.logo-img  {
-    width: 150px !important;
-}
+    .login-card {
+        width: 60%;
+        margin-top: 25% !important;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .logo-img {
+        width: 150px !important;
+    }
 }
 </style>
