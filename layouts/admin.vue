@@ -4,15 +4,22 @@
       <div class="admin-panel">
         <v-card class="admin-panel--menu">
           <nuxt-link :to="localePath('/admin')">
-            <img class="admin-panel--menu-img" src="\img\logo-cmr.svg" alt="Logo CMR">
+            <img
+              class="admin-panel--menu-img"
+              src="\img\logo-cmr.svg"
+              alt="Logo CMR"
+            >
           </nuxt-link>
           <div
-            class="admin-panel--menu-tabs"
             v-for="tab in adminLabels"
             :key="tab.label"
+            class="admin-panel--menu-tabs"
             :class="{ 'selected-tab': selectedRoute === tab.route }"
           >
-            <nuxt-link :to="localePath(tab.route)" @click="setSelectedRoute(tab.route)">
+            <nuxt-link
+              :to="localePath(tab.route)"
+              @click="setSelectedRoute(tab.route)"
+            >
               {{ tab.label }}
             </nuxt-link>
           </div>
@@ -49,18 +56,22 @@ export default {
   name: 'App',
   data() {
     return {
+      // TODO: Menu when document functionality is implemented
+      // { route: '/admin/documentos', label: this.$t('manage_documents') },
       adminLabels: [
         { route: '/views-chart', label: this.$t('dashboard') },
         { route: '/admin/usuarios', label: this.$t('manage_users') },
         { route: '/admin/area-restrita', label: this.$t('restricted_access') },
         { route: '/admin/permissoes', label: this.$t('manage_permissions') },
         { route: '/admin/camadas', label: this.$t('manage_layers') },
-        { route: '/admin/documentos', label: this.$t('manage_documents') },
-        { route: '/admin/criticas', label: this.$t('feedback') }
+        { route: '/admin/criticas', label: this.$t('feedback') },
       ],
       selectedRoute: this.$route.path,
     };
   },
+  head: () => ({
+    title: 'CMR | Administrativo',
+  }),
   watch: {
     $route(to) {
       this.selectedRoute = to.path;
@@ -71,9 +82,6 @@ export default {
       this.selectedRoute = route;
     },
   },
-  head: () => ({
-    title: 'CMR | Administrativo',
-  }),
 };
 </script>
 
