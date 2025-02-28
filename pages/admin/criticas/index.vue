@@ -349,25 +349,43 @@ export default {
     },
 
     filteredCards() {
-    return this.tickets.filter(card => {
-        const { code, subject, requesting, status, type, priority, analyzedBy, dataInicial, dataFinal } = this.filters;
-        const matchesCode = !code || card.code.toString().includes(code.toString());
-        const matchesSubject = !subject || card.subject.toLowerCase().includes(subject.toLowerCase());
-        const matchesRequesting = !requesting || card.requesting.toLowerCase().includes(requesting.toLowerCase());
-        const matchesType = !type || card.solicitation_name.toLowerCase() === type.toLowerCase();
-        const matchesStatusBar = !this.selectedStatus || card.ticket_status.formated_info.status_category_display === this.selectedStatus;
-        const matchesStatus = !status || card.ticket_status.formated_info.status_category_display === status;
-        const matchesPriority = !priority || card.ticket_status.formated_info.priority_display === priority;
-        const matchesAnalyzedBy = !analyzedBy || (card.ticket_status.analyzed_by && card.ticket_status.analyzed_by.toLowerCase().includes(analyzedBy.toLowerCase()));
+  const { code, subject, requesting, status, type, priority, analyzedBy, dataInicial, dataFinal } = this.filters;
 
-        const matchesDateRange =
-            (!dataInicial || new Date(card.opened_in_formatted) >= new Date(dataInicial)) &&
-            (!dataFinal || new Date(card.ticket_status.analyzed_in_formatted) <= new Date(dataFinal));
+  // Utility function to compare text
+  const matchesText = (text, filterValue) => !filterValue || text.toLowerCase().includes(filterValue.toLowerCase());
 
-        return matchesCode && matchesSubject && matchesRequesting && matchesType &&
-               matchesStatus && matchesStatusBar && matchesPriority && matchesAnalyzedBy && matchesDateRange;
-      });
-    }
+  // Utility function to compare dates
+  const matchesDate = (dateStr, dateFilter, isEndDate = false) => {
+    const cardDate = new Date(dateStr);
+    const filterDate = new Date(dateFilter);
+    return !dateFilter || (isEndDate ? cardDate <= filterDate : cardDate >= filterDate);
+  };
+
+  return this.tickets.filter(card => {
+    const statusCategory = card.ticket_status?.formated_info?.status_category_display || '';
+    const analyzedByName = card.ticket_status?.analyzed_by || '';
+    const cardPriority = card.ticket_status?.formated_info?.priority_display || '';
+
+    // If ticket_status is not present, return false to not include the card
+    if (!card.ticket_status) return false;
+
+    const cardCode = card.code.toString();
+
+    return (
+      (!code || cardCode.includes(code.toString())) &&
+      (!subject || matchesText(card.subject, subject)) &&
+      (!requesting || matchesText(card.requesting, requesting)) &&
+      (!type || matchesText(card.solicitation_name, type)) &&
+      (!status || statusCategory === status) &&
+      (!this.selectedStatus || statusCategory === this.selectedStatus) &&
+      (!priority || cardPriority === priority) &&
+      (!analyzedBy || matchesText(analyzedByName, analyzedBy)) &&
+      matchesDate(card.opened_in_formatted, dataInicial) &&
+      matchesDate(card.ticket_status.analyzed_in_formatted, dataFinal, true)
+    );
+  });
+}
+
   },
   methods:{
     getStatusButtonStyle(status) {
