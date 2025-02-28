@@ -618,8 +618,9 @@ export default {
       data.append('attachment', this.formData.attachment);
 
       if (this.$refs.form.validate()) {
+        console.log("AQUI", data)
         try {
-          await this.$api.post('/user/register/', data, {
+          await this.$api.post('/user/access-requests/', data, {
             headers: {
               'Content-Type': 'multipart/form-data',
             },

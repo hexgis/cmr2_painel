@@ -72,10 +72,10 @@ export default {
         const { siape, servidor, coordenador, lotacao, dataInicial, dataFinal, avaliadoPor } = this.filters;
 
         const matchesStatus = !this.selectedStatus || testCase.status_name === this.selectedStatus;
-        const matchesSIAPE = !siape || testCase.access_request.user_siape_registration.toString().includes(siape);
-        const matchesServidor = !servidor || testCase.access_request.name.toLowerCase().includes(servidor.toLowerCase());
-        const matchesCoordenador = !coordenador || testCase.access_request.coordinator_name.toLowerCase().includes(coordenador.toLowerCase());
-        const matchesLotacao = !lotacao || testCase.access_request.department.toLowerCase().includes(lotacao.toLowerCase());
+        const matchesSIAPE = !siape || testCase.user_siape_registration.toString().includes(siape);
+        const matchesServidor = !servidor || testCase.name.toLowerCase().includes(servidor.toLowerCase());
+        const matchesCoordenador = !coordenador || testCase.coordinator_name.toLowerCase().includes(coordenador.toLowerCase());
+        const matchesLotacao = !lotacao || testCase.department.toLowerCase().includes(lotacao.toLowerCase());
 
         const matchesDateRange =
           (!dataInicial || new Date(testCase.access_request.solicitation_date_formatted) >= new Date(dataInicial)) &&

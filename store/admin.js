@@ -5,7 +5,10 @@ export const state = () => ({
   newUsersRequest: [],
   tickets: [],
   ticketDetail: [],
-  labels: []
+  labels: [],
+  groupList: [],
+  institutionList: [],
+  rolesList: []
 });
 
 export const mutations = {
@@ -30,6 +33,18 @@ export const mutations = {
 
   setAllLabelsOptions(state, labelOptions) {
     state.labels = labelOptions
+  },
+
+  setInstitutionList(state, institutionList) {
+    state.institutionList = institutionList
+  },
+
+  setRolesList(state, rolesList) {
+    state.rolesList = rolesList
+  },
+
+  setGroupList(state, groupList) {
+    state.groupList = groupList
   },
   addTicket(state, ticket) {
     state.tickets.push(ticket)
@@ -62,7 +77,7 @@ export const actions = {
   },
 
   async fetchRequestListAccess({commit, state}){
-    const url = `/portal/aprovar-acesso/`
+    const url = `/user/access-requests/`
     const { data } = await this.$api.get(url)
     commit('setNewUsersRequest', data)
   },
@@ -89,6 +104,29 @@ export const actions = {
     const url = `/adm-panel/tickets/choices/`
     const { data } = await this.$api.get(url)
     commit('setAllLabelsOptions', data)
+  },
+
+  async fetchInstitutionList({commit, state}){
+    const url = `/user/institution/`
+    const { data } = await this.$api.get(url)
+    commit('setInstitutionList', data)
+  },
+
+  async fetchRolesList({commit, state}){
+    const url = `/user/role/`
+    const { data } = await this.$api.get(url)
+    commit('setRolesList', data)
+  },
+
+  async fetchGroupList({commit, state}){
+    const url = `/user/group/`
+    const { data } = await this.$api.get(url)
+    commit('setGroupList', data)
+  },
+
+  async deniedAccessRequest({ commit }, {id, denied_details}) {
+    const url = `/user/access-requests/${id}/reject/`
+    return await this.$api.patch(url, { denied_details: denied_details })
   },
 
   async sendCsvData({ commit, state }, {filteredData}) {
@@ -149,6 +187,11 @@ export const actions = {
     }
   },
 
+  approveUser({ commit }, { id , permissions }) {
+    console.log(permissions)
+    const url = `/user/access-requests/${id}/approve/`
+    return this.$api.post(url, { permissions })
+  }
 };
 
 export const getters = {
@@ -158,5 +201,8 @@ export const getters = {
   newUsersRequest: state => state.newUsersRequest,
   tickets: state => state.tickets,
   ticketDetail: state => state.ticketDetail,
-  labels: state => state.labels
+  labels: state => state.labels,
+  groupList: state => state.groupList,
+  institutionList: state => state.institutionList,
+  rolesList: state => state.rolesList
 };
