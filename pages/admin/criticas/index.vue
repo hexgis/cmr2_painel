@@ -18,7 +18,7 @@
           <v-spacer></v-spacer>
           <v-icon>mdi-plus</v-icon>
         </v-btn>
-        <CustomDialog title="Nova Solicitação" v-model="showModal" max-width="500px" :hasCta=true :saveBtn="saveTicket" :saveActive="formValid">
+        <CustomDialog  @save="saveTicket" title="Nova Solicitação" v-model="showModal" max-width="500px" :hasCta=true :saveBtn="saveTicket" :saveActive="formValid">
             <v-card-text>
               <v-form ref="form" v-model="formValid">
                 <v-row>
