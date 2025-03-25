@@ -130,6 +130,7 @@
 <script>
 import { mapState, mapMutations } from 'vuex';
 import tmsLegend from '@/assets/tmsLegend.png';
+import legendLocIndigenas from '@/assets/legendLocIndigenas.png';
 
 import SupportLayerFilters from '@/components/support/SupportLayerFilters';
 import SupportLayerMetadata from '@/components/support/SupportLayerMetadata';
@@ -179,6 +180,10 @@ export default {
 
     layerPreview() {
       if (this.layer.layer_type === 'tms') return tmsLegend;
+
+      if (this.layer.wms.geoserver_layer_name === 'loc_indigenas') {
+        return legendLocIndigenas;
+      }
 
       return (
         this.layer.wms.geoserver.preview_url
