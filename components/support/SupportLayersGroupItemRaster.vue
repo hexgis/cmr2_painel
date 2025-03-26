@@ -12,20 +12,6 @@
     "
   >
     <template #activator>
-      <v-list-item-avatar
-        v-if="
-          !hidePreview &&
-            ((layer.layer_type == 'wms' && layer.wms.has_preview) ||
-              layer.layer_type == 'tms')
-        "
-        tile
-        size="40"
-      >
-        <v-img
-          :src="layerPreview"
-          :lazy-src="layerPreview"
-        />
-      </v-list-item-avatar>
       <v-list-item-content>
         <v-list-item-title class="text-wrap">
           <span class="text-cursor">
