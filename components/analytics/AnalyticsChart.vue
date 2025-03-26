@@ -384,7 +384,6 @@ export default {
       const graphData = this.esBuckets.graph6;
       let labels = [];
 
-      //  get returned states with value
       Object.keys(graphData).forEach(
         (system) => (labels = [...labels, ...Object.keys(graphData[system])]),
       );

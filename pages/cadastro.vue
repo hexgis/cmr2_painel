@@ -5,163 +5,422 @@
       style="
         background: #D92B3F;
         color: white;
-      ">
+      "
+    >
       {{ $t('restricted-access-request') }}
     </v-card-title>
-    <v-form ref="form" v-model="valid" lazy-validation>
+    <v-form
+      ref="form"
+      v-model="valid"
+      lazy-validation
+    >
       <v-stepper v-model="step">
         <v-stepper-header style="justify-content: center;">
-          <v-stepper-step @click="handleStepClick(1)" :complete="step > 1" step="1">{{ $t('server') }}</v-stepper-step>
-          <v-stepper-step @click="handleStepClick(2)" :complete="step > 2" step="2">{{ $t('coordinator') }}</v-stepper-step>
-          <v-stepper-step @click="handleStepClick(3)" :complete="step > 3" step="3">{{ $t('form') }}</v-stepper-step>
-          <v-stepper-step @click="handleStepClick(4)" :complete="step > 4" step="4">{{ $t('review') }}</v-stepper-step>
+          <v-stepper-step
+            :complete="step > 1"
+            step="1"
+            @click="handleStepClick(1)"
+          >
+            {{ $t('server') }}
+          </v-stepper-step>
+          <v-stepper-step
+            :complete="step > 2"
+            step="2"
+            @click="handleStepClick(2)"
+          >
+            {{ $t('coordinator') }}
+          </v-stepper-step>
+          <v-stepper-step
+            :complete="step > 3"
+            step="3"
+            @click="handleStepClick(3)"
+          >
+            {{ $t('form') }}
+          </v-stepper-step>
+          <v-stepper-step
+            :complete="step > 4"
+            step="4"
+            @click="handleStepClick(4)"
+          >
+            {{ $t('review') }}
+          </v-stepper-step>
         </v-stepper-header>
 
         <v-stepper-items>
+          <!-- STEP 1 -->
           <v-stepper-content step="1">
             <v-container>
               <v-row>
-                <p class="text-h6 pt-4">{{ $t('server') }}</p>
+                <p class="text-h6 pt-4">
+                  {{ $t('server') }}
+                </p>
               </v-row>
               <v-row>
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="formData.name" :label="$t('name')" :rules="[v => !!v || $t('name-required')]" required @input="validateStep1"></v-text-field>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-text-field
+                    v-model="formData.name"
+                    :label="$t('name')"
+                    :rules="[v => !!v || $t('name-required')]"
+                    required
+                    @input="validateStep1"
+                  />
                 </v-col>
 
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="formData.email" :label="$t('email')" :rules="[v => !!v || $t('email-required'), v => /.+@.+\..+/.test(v) || $t('email-valid')]" required @input="validateStep1"></v-text-field>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-text-field
+                    v-model="formData.email"
+                    :label="$t('email')"
+                    :rules="[
+                      v => !!v || $t('email-required'),
+                      v => /.+@.+\..+/.test(v) || $t('email-valid')
+                    ]"
+                    required
+                    @input="validateStep1"
+                  />
                 </v-col>
 
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="formData.department" :label="$t('department')" :rules="[v => !!v || $t('department-required')]" required @input="validateStep1"></v-text-field>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-text-field
+                    v-model="formData.department"
+                    :label="$t('department')"
+                    :rules="[v => !!v || $t('department-required')]"
+                    required
+                    @input="validateStep1"
+                  />
                 </v-col>
 
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="formData.registration" :label="$t('registration')" :rules="[v => !!v || $t('registration-required')]" required @input="validateStep1"></v-text-field>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-text-field
+                    v-model="formData.user_siape_registration"
+                    :label="$t('registration')"
+                    type="number"
+                    :rules="[v => !!v || $t('registration-required')]"
+                    required
+                    @input="validateStep1"
+                  />
                 </v-col>
               </v-row>
-              <v-btn color="primary" class="mt-8" :disabled="!isStep1Valid" @click="nextStep">{{ $t('next') }}</v-btn>
+              <v-btn
+                color="primary"
+                class="mt-8"
+                :disabled="!isStep1Valid"
+                @click="nextStep"
+              >
+                {{ $t('next') }}
+              </v-btn>
             </v-container>
           </v-stepper-content>
 
+          <!-- STEP 2 -->
           <v-stepper-content step="2">
             <v-container>
               <v-row class="align-center">
-                <p class="text-h6 pt-4">{{ $t('coordinator') }}</p>
-                <v-spacer/>
-                <v-btn color="primary" text @click="prevStep"><v-icon>mdi-arrow-left</v-icon>{{ $t('back') }}</v-btn>
+                <p class="text-h6 pt-4">
+                  {{ $t('coordinator') }}
+                </p>
+                <v-spacer />
+                <v-btn
+                  color="primary"
+                  text
+                  @click="prevStep"
+                >
+                  <v-icon>mdi-arrow-left</v-icon>{{ $t('back') }}
+                </v-btn>
               </v-row>
               <v-row>
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="formData.coordinatorName" :label="$t('coordinator-name')" :rules="[v => !!v || $t('coordinator-name-required')]" required @input="validateStep2"></v-text-field>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-text-field
+                    v-model="formData.coordinator_name"
+                    :label="$t('coordinator-name')"
+                    :rules="[v => !!v || $t('coordinator-name-required')]"
+                    required
+                    @input="validateStep2"
+                  />
                 </v-col>
 
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="formData.coordinatorEmail" :label="$t('coordinator-email')" :rules="[v => !!v || $t('coordinator-email-required'), v => /.+@.+\..+/.test(v) || $t('email-valid')]" required @input="validateStep2"></v-text-field>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-text-field
+                    v-model="formData.coordinator_email"
+                    :label="$t('coordinator-email')"
+                    :rules="[
+                      v => !!v || $t('coordinator-email-required'),
+                      v => /.+@.+\..+/.test(v) || $t('email-valid')
+                    ]"
+                    required
+                    @input="validateStep2"
+                  />
                 </v-col>
 
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="formData.coordinatorDepartment" :label="$t('coordinator-department')" :rules="[v => !!v || $t('coordinator-department-required')]" required @input="validateStep2"></v-text-field>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-text-field
+                    v-model="formData.coordinator_department"
+                    :label="$t('coordinator-department')"
+                    :rules="[v => !!v || $t('coordinator-department-required')]"
+                    required
+                    @input="validateStep2"
+                  />
                 </v-col>
 
-                <v-col cols="12" md="6">
-                  <v-text-field v-model="formData.siapeRegistration" :label="$t('siape-registration')" :rules="[v => !!v || $t('siape-registration-required')]" required @input="validateStep2"></v-text-field>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-text-field
+                    v-model="formData.coordinator_siape_registration"
+                    :label="$t('siape-registration')"
+                    type="number"
+                    :rules="[v => !!v || $t('siape-registration-required')]"
+                    required
+                    @input="validateStep2"
+                  />
                 </v-col>
               </v-row>
-              <v-btn color="primary" class="mt-8" :disabled="!isStep2Valid" @click="nextStep">{{ $t('next') }}</v-btn>
+              <v-btn
+                color="primary"
+                class="mt-8"
+                :disabled="!isStep2Valid"
+                @click="nextStep"
+              >
+                {{ $t('next') }}
+              </v-btn>
             </v-container>
           </v-stepper-content>
 
+          <!-- STEP 3 -->
           <v-stepper-content step="3">
             <v-container>
               <v-row class="align-center">
-                <p class="text-h6 pt-4">{{ $t('form') }}</p>
-                <v-spacer/>
-                <v-btn color="primary" text @click="prevStep"><v-icon>mdi-arrow-left</v-icon>{{ $t('back') }}</v-btn>
+                <p class="text-h6 pt-4">
+                  {{ $t('form') }}
+                </p>
+                <v-spacer />
+                <v-btn
+                  color="primary"
+                  text
+                  @click="prevStep"
+                >
+                  <v-icon>mdi-arrow-left</v-icon>{{ $t('back') }}
+                </v-btn>
               </v-row>
-              <v-card class="mt-4" outlined>
+              <v-card
+                class="mt-4"
+                outlined
+              >
                 <v-card-subtitle>
-                  <a :href="pdfLink" target="_blank" rel="noopener" class="font-weight-bold">{{ $t('click-here') }}</a>
-                  {{ $t('download-form') }}<br/>
+                  <a
+                    :href="pdfLink"
+                    target="_blank"
+                    rel="noopener"
+                    class="font-weight-bold"
+                  >{{ $t('click-here') }}</a>
+                  {{ $t('download-form') }}<br>
                   {{ $t('attach-form') }}
                 </v-card-subtitle>
               </v-card>
               <v-row>
                 <v-col cols="12">
-                  <v-file-input class="mt-8" v-model="formData.attachment" :label="$t('attach-file')" :rules="[v => !!v || $t('attachment-required')]" accept=".pdf,.doc,.docx" required @change="validateStep3">
-                  </v-file-input>
+                  <v-file-input
+                    v-model="formData.attachment"
+                    class="mt-8"
+                    :label="$t('attach-file')"
+                    :rules="[v => !!v || $t('attachment-required')]"
+                    accept=".pdf,.doc,.docx"
+                    required
+                    @change="validateStep3"
+                  />
                 </v-col>
 
                 <v-col cols="12">
-                  <v-btn color="primary" class="mt-1" :disabled="!isStep3Valid" @click="nextStep">{{ $t('next') }}</v-btn>
+                  <v-btn
+                    color="primary"
+                    class="mt-1"
+                    :disabled="!isStep3Valid"
+                    @click="nextStep"
+                  >
+                    {{ $t('next') }}
+                  </v-btn>
                 </v-col>
               </v-row>
             </v-container>
           </v-stepper-content>
+
+          <!-- STEP 4 -->
           <v-stepper-content step="4">
             <v-container>
-              <p style="font-size: 18px;">{{ $t('review-data') }}</p>
-              <v-divider/>
+              <p style="font-size: 18px;">
+                {{ $t('review-data') }}
+              </p>
+              <v-divider />
               <p>{{ $t('server') }}</p>
               <v-row>
-                <v-col cols="12" md="6">
+                <v-col
+                  cols="12"
+                  md="6"
+                >
                   <p><strong>{{ $t('name') }}:</strong> {{ formData.name }}</p>
                   <p><strong>{{ $t('email') }}:</strong> {{ formData.email }}</p>
                 </v-col>
-                <v-col cols="12" md="6">
-                  <p><strong>{{ $t('department') }}:</strong> {{ formData.department }}</p>
-                  <p><strong>{{ $t('registration') }}:</strong> {{ formData.registration }}</p>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <p>
+                    <strong>{{ $t('department') }}:</strong> {{ formData.department }}
+                  </p>
+                  <p>
+                    <strong>{{ $t('registration') }}:</strong>
+                    {{ formData.user_siape_registration }}
+                  </p>
                 </v-col>
               </v-row>
-              <v-divider/>
+              <v-divider />
               <p>{{ $t('coordinator') }}</p>
-                <v-row>
-                <v-col cols="12" md="6">
-                  <p><strong>{{ $t('coordinator-name') }}:</strong> {{ formData.coordinatorName }}</p>
-                  <p><strong>{{ $t('coordinator-email') }}:</strong> {{ formData.coordinatorEmail }}</p>
+              <v-row>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <p>
+                    <strong>{{ $t('coordinator-name') }}:</strong>
+                    {{ formData.coordinator_name }}
+                  </p>
+                  <p>
+                    <strong>{{ $t('coordinator-email') }}:</strong>
+                    {{ formData.coordinator_email }}
+                  </p>
                 </v-col>
-                <v-col cols="12" md="6">
-                  <p><strong>{{ $t('coordinator-department') }}:</strong> {{ formData.coordinatorDepartment }}</p>
-                  <p><strong>{{ $t('siape-registration') }}:</strong> {{ formData.siapeRegistration }}</p>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <p>
+                    <strong>{{ $t('coordinator-department') }}:</strong>
+                    {{ formData.coordinator_department }}
+                  </p>
+                  <p>
+                    <strong>{{ $t('siape-registration') }}:</strong>
+                    {{ formData.coordinator_siape_registration }}
+                  </p>
                 </v-col>
               </v-row>
-              <v-divider/>
+              <v-divider />
               <p>{{ $t('form') }}</p>
               <v-row>
-                <v-col cols="12" md="6">
-                  <p><strong>{{ $t('attached-file') }}:</strong> {{ formData.attachment?.name }}</p>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <p>
+                    <strong>{{ $t('attached-file') }}:</strong>
+                    {{ formData.attachment?.name }}
+                  </p>
                 </v-col>
               </v-row>
-              <v-btn color="primary" class="mt-4" @click="submitForm">{{ $t('submit-request') }}</v-btn>
-              <v-btn color="primary" text class="mt-4" @click="step = 1">{{ $t('review-info') }}</v-btn>
+              <v-btn
+                color="primary"
+                class="mt-4"
+                @click="submitForm"
+              >
+                {{ $t('submit-request') }}
+              </v-btn>
+              <v-btn
+                color="primary"
+                text
+                class="mt-4"
+                @click="step = 1"
+              >
+                {{ $t('review-info') }}
+              </v-btn>
             </v-container>
           </v-stepper-content>
         </v-stepper-items>
       </v-stepper>
     </v-form>
-    <v-dialog v-model="showModal" max-width="400">
-    <v-card>
-        <v-card-title :style="{background: isSuccess ? '#ffce03' : ''}" class="pb-0">{{ modalTitle }}</v-card-title>
-        <v-card-text :style="{background: isSuccess ? '#ffce03' : ''}">{{ modalMessage }}</v-card-text>
-        <p class="pa-6 pt-2 pb-0" v-if="isSuccess">
-          <strong>{{ formData.name }}</strong>,<br/>{{ $t('sucess-message') }} <strong>{{ formData.email }}</strong> {{ $t('sucess-message2') }}
+
+    <!-- DIALOGS -->
+    <v-dialog
+      v-model="showModal"
+      max-width="400"
+    >
+      <v-card>
+        <v-card-title
+          :style="{ background: isSuccess ? '#ffce03' : '' }"
+          class="pb-0"
+        >
+          {{ modalTitle }}
+        </v-card-title>
+        <v-card-text :style="{ background: isSuccess ? '#ffce03' : '' }">
+          {{ modalMessage }}
+        </v-card-text>
+        <p
+          v-if="isSuccess"
+          class="pa-6 pt-2 pb-0"
+        >
+          <strong>{{ formData.name }}</strong>,<br>
+          {{ $t('sucess-message') }}
+          <strong>{{ formData.email }}</strong>
+          {{ $t('sucess-message2') }}
         </p>
         <v-card-actions>
-          <v-spacer/>
-          <v-btn v-if="isSuccess" color="primary" @click="redirectToPortal">{{ $t('ok') }}</v-btn>
-          <v-btn v-else color="primary" @click="closeModal">{{ $t('close') }}</v-btn>
+          <v-spacer />
+          <v-btn
+            v-if="isSuccess"
+            color="primary"
+            @click="redirectToPortal"
+          >
+            {{ $t('ok') }}
+          </v-btn>
+          <v-btn
+            v-else
+            color="primary"
+            @click="closeModal"
+          >
+            {{ $t('close') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="welcomeModal" max-width="400">
-    <v-card style="background: #ffce03;">
-        <v-card-title class="pb-0">{{ $t('important') }}</v-card-title>
+
+    <v-dialog
+      v-model="welcomeModal"
+      max-width="400"
+    >
+      <v-card style="background: #ffce03;">
+        <v-card-title class="pb-0">
+          {{ $t('important') }}
+        </v-card-title>
         <p class="pa-6 pt-2 pb-0">
           {{ $t('restricted-area-request') }}
         </p>
         <v-card-actions>
-          <v-spacer/>
-          <v-btn text @click="welcomeModal = false">{{ $t('ok') }}</v-btn>
+          <v-spacer />
+          <v-btn
+            text
+            @click="welcomeModal = false"
+          >
+            {{ $t('ok') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -260,7 +519,7 @@
       "restricted-area-request": "O envio de solicitação de acesso à área restrita do CMR deve ser realizado, exclusivamente, pelo servidor interessado.",
       "important": "Importante!"
     }
-}
+  }
 </i18n>
 
 <script>
@@ -271,16 +530,17 @@ export default {
     return {
       valid: false,
       step: 1,
-      pdfLink: 'https://cmr.funai.gov.br/api/media/Documentos/formulario_solicitacao_area_restrita_cmr_23abr2018_v1.4.pdf',
+      pdfLink:
+        'https://cmr.funai.gov.br/api/media/Documentos/formulario_solicitacao_area_restrita_cmr_23abr2018_v1.4.pdf',
       formData: {
         name: '',
         email: '',
         department: '',
-        registration: '',
-        coordinatorName: '',
-        coordinatorEmail: '',
-        coordinatorDepartment: '',
-        siapeRegistration: '',
+        user_siape_registration: '',
+        coordinator_name: '',
+        coordinator_email: '',
+        coordinator_department: '',
+        coordinator_siape_registration: '',
         attachment: null,
       },
       isStep1Valid: false,
@@ -293,12 +553,33 @@ export default {
       welcomeModal: true,
     };
   },
+  watch: {
+    formData: {
+      handler() {
+        this.validateStep1();
+        this.validateStep2();
+        this.validateStep3();
+      },
+      deep: true,
+    },
+  },
+  mounted() {
+    this.validateStep1();
+    this.validateStep2();
+    this.validateStep3();
+  },
   methods: {
     validateStep1() {
-      this.isStep1Valid = this.formData.name && this.formData.email && this.formData.department && this.formData.registration;
+      this.isStep1Valid = this.formData.name
+        && this.formData.email
+        && this.formData.department
+        && this.formData.user_siape_registration;
     },
     validateStep2() {
-      this.isStep2Valid = this.formData.coordinatorName && this.formData.coordinatorEmail && this.formData.coordinatorDepartment && this.formData.siapeRegistration;
+      this.isStep2Valid = this.formData.coordinator_name
+        && this.formData.coordinator_email
+        && this.formData.coordinator_department
+        && this.formData.coordinator_siape_registration;
     },
     validateStep3() {
       this.isStep3Valid = this.formData.attachment;
@@ -309,7 +590,10 @@ export default {
       }
     },
     handleStepClick(stepNumber) {
-      if (stepNumber < this.step || (stepNumber > this.step && this[`isStep${this.step}Valid`])) {
+      if (
+        stepNumber < this.step
+        || (stepNumber > this.step && this[`isStep${this.step}Valid`])
+      ) {
         this.step = stepNumber;
       }
     },
@@ -323,20 +607,24 @@ export default {
       data.append('name', this.formData.name);
       data.append('email', this.formData.email);
       data.append('department', this.formData.department);
-      data.append('registration', this.formData.registration);
-      data.append('coordinatorName', this.formData.coordinatorName);
-      data.append('coordinatorEmail', this.formData.coordinatorEmail);
-      data.append('coordinatorDepartment', this.formData.coordinatorDepartment);
-      data.append('siapeRegistration', this.formData.siapeRegistration);
+      data.append('user_siape_registration', this.formData.user_siape_registration);
+      data.append('coordinator_name', this.formData.coordinator_name);
+      data.append('coordinator_email', this.formData.coordinator_email);
+      data.append('coordinator_department', this.formData.coordinator_department);
+      data.append(
+        'coordinator_siape_registration',
+        this.formData.coordinator_siape_registration,
+      );
       data.append('attachment', this.formData.attachment);
 
       if (this.$refs.form.validate()) {
+        console.log("AQUI", data)
         try {
-          await this.$api.post('/portal/cadastro', data, {
-            headers:{
-              'Content-Type': 'multipart/form-data'
-            }
-          })
+          await this.$api.post('/user/access-requests/', data, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
           this.isSuccess = true;
           this.modalTitle = this.$t('success');
           this.modalMessage = this.$t('request-submitted-successfully');
@@ -356,21 +644,5 @@ export default {
       this.showModal = false;
     },
   },
-  watch: {
-    formData: {
-      handler() {
-        this.validateStep1();
-        this.validateStep2();
-        this.validateStep3();
-      },
-      deep: true,
-    },
-  },
-  mounted() {
-    this.validateStep1();
-    this.validateStep2();
-    this.validateStep3();
-  }
 };
 </script>
-

@@ -153,7 +153,7 @@ export const mutations = {
 export const actions = {
   async getGeoserverLayers({ commit }) {
     try {
-      const response = await this.$api.$get('support/layers-groups');
+      const response = await this.$api.$get('layer/layers-groups');
       commit('setLayers', response);
     } catch (exception) {
       commit(

@@ -12,20 +12,6 @@
     "
   >
     <template #activator>
-      <v-list-item-avatar
-        v-if="
-          !hidePreview &&
-            ((layer.layer_type == 'wms' && layer.wms.has_preview) ||
-              layer.layer_type == 'tms')
-        "
-        tile
-        size="40"
-      >
-        <v-img
-          :src="layerPreview"
-          :lazy-src="layerPreview"
-        />
-      </v-list-item-avatar>
       <v-list-item-content>
         <v-list-item-title class="text-wrap">
           <span class="text-cursor">
@@ -139,7 +125,7 @@ export default {
 
     disabledHeatmap() {
       return (
-        this.layer.layer_filters.length > 0
+        this.layer.filters.length > 0
                 && this.layer.layer_type === 'heatmap'
                 && Object.keys(this.layer.filters).length === 0
                 && !this.layer.loading

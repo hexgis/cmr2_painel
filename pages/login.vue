@@ -1,125 +1,200 @@
 <template>
-    <v-layout align-center justify-center>
-        <v-flex xs12 sm8 md4 lg3 xl3>
-            <v-form @submit.prevent="login">
-                <v-card tile class="elevation-6 login-card" style="margin-top: 40%">
-                    <div v-if="this.$vuetify.theme.dark">
-                        <v-toolbar flat dark color="black">
-                            <v-progress-linear
-                                v-show="isLoading"
-                                class="my-0 progress"
-                                :indeterminate="true"
-                                height="3"
-                                color="primary"
-                            />
-                            <v-toolbar-title class="flex text-center pa-5">
-                                <v-container class="d-flex justify-center">
-                                    <v-img
-                                        max-width="200"
-                                        class="logo-img"
-                                        contain
-                                        src="/img/logo-inteira-antiga-branca.svg"
-                                    />
-                                </v-container>
-                            </v-toolbar-title>
-                        </v-toolbar>
-                    </div>
-                    <div v-if="!this.$vuetify.theme.dark">
-                        <v-toolbar flat dark color="white">
-                            <v-progress-linear
-                                v-show="isLoading"
-                                class="my-0 progress"
-                                :indeterminate="true"
-                                height="3"
-                                color="primary"
-                            />
-                            <v-toolbar-title class="flex text-center pa-5">
-                                <v-container class="d-flex justify-center">
-                                    <v-img
-                                        max-width="200"
-                                        class="logo-img"
-                                        contain
-                                        src="/img/logo-inteira-antiga.svg"
-                                    />
-                                </v-container>
-                            </v-toolbar-title>
-                        </v-toolbar>
-                    </div>
-                    <div v-if="!showResetPasswordModal">
-                    <v-card-text class="px-6 pt-6 pb-0">
-                        <v-alert
-                            v-show="showAuthenticationError"
-                            type="error"
-                            class="mb-3"
-                        >
-                            {{ $t('error') }}
-                        </v-alert>
+  <v-layout
+    align-center
+    justify-center
+  >
+    <v-flex
+      xs12
+      sm8
+      md4
+      lg3
+      xl3
+    >
+      <v-form @submit.prevent="login">
+        <v-card
+          tile
+          class="elevation-6 login-card"
+          style="margin-top: 40%"
+        >
+          <div v-if="$vuetify.theme.dark">
+            <v-toolbar
+              flat
+              dark
+              color="black"
+            >
+              <v-progress-linear
+                v-show="isLoading"
+                class="my-0 progress"
+                :indeterminate="true"
+                height="3"
+                color="primary"
+              />
+              <v-toolbar-title class="flex text-center pa-5">
+                <v-container class="d-flex justify-center">
+                  <v-img
+                    max-width="200"
+                    class="logo-img"
+                    contain
+                    src="/img/logo-inteira-antiga-branca.svg"
+                  />
+                </v-container>
+              </v-toolbar-title>
+            </v-toolbar>
+          </div>
+          <div v-if="!$vuetify.theme.dark">
+            <v-toolbar
+              flat
+              dark
+              color="white"
+            >
+              <v-progress-linear
+                v-show="isLoading"
+                class="my-0 progress"
+                :indeterminate="true"
+                height="3"
+                color="primary"
+              />
+              <v-toolbar-title class="flex text-center pa-5">
+                <v-container class="d-flex justify-center">
+                  <v-img
+                    max-width="200"
+                    class="logo-img"
+                    contain
+                    src="/img/logo-inteira-antiga.svg"
+                  />
+                </v-container>
+              </v-toolbar-title>
+            </v-toolbar>
+          </div>
+          <div v-if="!showResetPasswordModal">
+            <v-card-text class="px-6 pt-6 pb-0">
+              <v-alert
+                v-show="showAuthenticationError"
+                type="error"
+                class="mb-3"
+              >
+                {{ $t('error') }}
+              </v-alert>
 
-                        <div class="text-subtitle-1 text-center mb-2">
-                            {{ $t('title') }}
-                        </div>
+              <div class="text-subtitle-1 text-center mb-2">
+                {{ $t('title') }}
+              </div>
 
-                        <v-text-field
-                            v-model="username"
-                            outlined
-                            prepend-inner-icon="mdi-account"
-                            :label="$t('user-label')"
-                            single-line
-                        />
-                        <v-text-field
-                            v-model="password"
-                            outlined
-                            prepend-inner-icon="mdi-lock"
-                            :label="$t('password-label')"
-                            single-line
-                            type="password"
-                        />
-                    </v-card-text>
+              <v-text-field
+                v-model="username"
+                outlined
+                prepend-inner-icon="mdi-account"
+                :label="$t('user-label')"
+                single-line
+              />
+              <v-text-field
+                v-model="password"
+                outlined
+                prepend-inner-icon="mdi-lock"
+                :label="$t('password-label')"
+                single-line
+                type="password"
+              />
+            </v-card-text>
 
-                    <v-card-actions class="justify-center pa-6 flex-column">
-                        <v-btn block outlined color="primary" type="submit">
-                            {{ $t('login-button') }}
-                        </v-btn>
-                    </v-card-actions>
-                    <div class="d-flex align-md-center justify-md-center pb-4" @click="showResetPasswordModal =   true">
-                      <span class="forgot-password-btn">{{ $t('forgot-password-btn') }} <strong>{{ $t ('click-here-btn') }}</strong></span>
-                    </div>
-                    </div>
-                    <div v-else class="pa-4">
-                      <p class="pa-2">{{ $t('reset-password-instructions') }}</p>
-                      <v-responsive class="mx-auto">
-                        <v-text-field
-                          v-model="email"
-                          class="pa-4 w-100"
-                          hide-details="auto"
-                          :label="$t('email-label')"
-                          :placeholder="$t('email-placeholder')"
-                          type="email"
-                        ></v-text-field>
-                      </v-responsive>
-                      <p class="pa-2" style="font-size: 12px;">{{ $t('email-note') }}</p>
-                      <v-row class="pb-4 mt-10">
-                        <v-btn class="ml-4" color="primary" @click="handleResetPassword">{{ $t  ('reset-access-button') }}</v-btn>
-                        <v-spacer/>
-                        <v-btn text @click="showResetPasswordModal = false">{{ $t('back-button') }}</v-btn>
-                      </v-row>
-                    </div>
-                </v-card>
-                <v-dialog v-model="showStatusModal" max-width="550">
-                    <v-card>
-                        <v-card-title :style="{ backgroundColor: statusTitle === $t('success') ? '#ffcc00' :  '#D92B3F' }">
-                            {{ statusTitle }}
-                        </v-card-title>
-                        <v-card-text class="pt-4">{{ statusMessage }}</v-card-text>
-                        <v-card-actions>
-                            <v-spacer></v-spacer>
-                            <v-btn color="primary" text @click="showStatusModal = false">{{ $t('ok-button') }}</v-btn>
-                        </v-card-actions>
-                    </v-card>
-                </v-dialog>
-            </v-form>
-        </v-flex>
-    </v-layout>
+            <v-card-actions class="justify-center pa-6 flex-column">
+              <v-btn
+                block
+                outlined
+                color="primary"
+                type="submit"
+              >
+                {{ $t('login-button') }}
+              </v-btn>
+            </v-card-actions>
+            <div
+              class="d-flex align-md-center justify-md-center pb-4"
+              @click="openResetPasswordModal"
+            >
+              <span class="forgot-password-btn">{{ $t('forgot-password-btn') }}
+                <strong>{{
+                  $t('click-here-btn')
+                }}</strong></span>
+            </div>
+          </div>
+          <div
+            v-else
+            class="pa-4"
+          >
+            <p class="pa-2">
+              {{ $t('reset-password-instructions') }}
+            </p>
+            <v-responsive class="mx-auto">
+              <v-text-field
+                v-model="email"
+                class="pa-4 w-100"
+                hide-details="auto"
+                :label="$t('email-label')"
+                :placeholder="$t('email-placeholder')"
+                type="email"
+                @keydown.enter.prevent="handleResetPassword"
+              />
+            </v-responsive>
+            <p
+              class="pa-2"
+              style="font-size: 12px"
+            >
+              {{ $t('email-note') }}
+            </p>
+            <v-row class="pb-4 mt-10">
+              <v-btn
+                class="ml-4"
+                color="primary"
+                @click="handleResetPassword"
+              >
+                {{ $t('reset-access-button') }}
+              </v-btn>
+              <v-spacer />
+              <v-btn
+                class="mr-4"
+                text
+                @click="showResetPasswordModal = false"
+              >
+                {{ $t('back-button') }}
+              </v-btn>
+            </v-row>
+          </div>
+        </v-card>
+        <v-dialog
+          v-model="showStatusModal"
+          max-width="550"
+        >
+          <v-card>
+            <v-card-title
+              :style="{
+                backgroundColor:
+                  statusTitle === $t('success')
+                    ? '#ffcc00'
+                    : '#D92B3F',
+              }"
+            >
+              {{ statusTitle }}
+            </v-card-title>
+            <v-card-text class="pt-4">
+              {{
+                statusMessage
+              }}
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn
+                color="primary"
+                text
+                @click="showStatusModal = false"
+              >
+                {{ $t('ok-button') }}
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-form>
+    </v-flex>
+  </v-layout>
 </template>
 
 <i18n>
@@ -174,76 +249,90 @@
 </i18n>
 
 <script>
-import { mapActions } from 'vuex'
-import axios from 'axios'
+import { mapActions } from 'vuex';
 
 export default {
-    name: 'Login',
-    layout: 'login',
+  name: 'Login',
+  layout: 'login',
 
-    middleware: false,
+  middleware: false,
 
-    data: () => ({
-        username: '',
-        password: '',
-        isLoading: false,
-        showAuthenticationError: false,
-        appName: process.env.APP_NAME,
-        showResetPasswordModal: false,
-        email: '',
-        showStatusModal: false,
-        statusTitle: '',
-        statusMessage: '',
-    }),
+  data: () => ({
+    username: '',
+    password: '',
+    isLoading: false,
+    showAuthenticationError: false,
+    appName: process.env.APP_NAME,
+    showResetPasswordModal: false,
+    email: '',
+    showStatusModal: false,
+    statusTitle: '',
+    statusMessage: '',
+  }),
 
-    computed: {
-        theme() {
-            return this.$vuetify.theme.dark ? 'dark' : 'light'
-        },
+  computed: {
+    theme() {
+      return this.$vuetify.theme.dark ? 'dark' : 'light';
+    },
+  },
+
+  methods: {
+    login() {
+      if (this.showResetPasswordModal) {
+        return;
+      }
+
+      this.isLoading = true;
+      this.showAuthenticationError = false;
+
+      this.authenticate({
+        username: this.username,
+        password: this.password,
+      })
+        .then((_) => {
+          this.isLoading = false;
+          this.$router.go(this.localePath('/'));
+        })
+        .catch((_) => {
+          this.isLoading = false;
+          this.showAuthenticationError = true;
+        });
+    },
+    async handleResetPassword() {
+      try {
+        await this.$api.$post('auth/password-reset/', {
+          email: this.email,
+        });
+        this.showStatusModal = true;
+        this.statusTitle = this.$t('success');
+        this.statusMessage = `${this.$t('email-found')} ${
+          this.email
+        }. ${this.$t('check-email')}`;
+      } catch (err) {
+        this.showStatusModal = true;
+        if (err.response && err.response.status === 400) {
+          this.statusTitle = this.$t('email-not-found');
+          this.statusMessage = this.$t('email-not-found-message');
+        } else {
+          this.statusTitle = this.$t('generic-error');
+          this.statusMessage = this.$t('generic-error-message');
+        }
+      }
     },
 
-    methods: {
-        login() {
-            this.isLoading = true
-            this.showAuthenticationError = false
-
-            this.authenticate({
-                username: this.username,
-                password: this.password
-            })
-                .then((_) => {
-                    this.isLoading = false
-                    this.$router.go(this.localePath('/'))
-                })
-                .catch((_) => {
-                    this.isLoading = false
-                    this.showAuthenticationError = true
-                })
-        },
-        async handleResetPassword() {
-            try {
-                await this.$api.$post('auth/password-reset/', { email: this.email });
-                this.showStatusModal = true;
-                this.statusTitle = this.$t('success');
-                this.statusMessage = `${this.$t('email-found')} ${this.email}. ${this.$t('check-email')}`;
-            } catch (err) {
-                this.showStatusModal = true;
-                if (err.response && err.response.status === 400) {
-                    this.statusTitle = this.$t('email-not-found');
-                    this.statusMessage = this.$t('email-not-found-message');
-                } else {
-                    this.statusTitle = this.$t('generic-error');
-                    this.statusMessage = this.$t('generic-error-message');
-                }
-            }
-        },
-        ...mapActions('auth', ['authenticate']),
+    openResetPasswordModal() {
+      this.showResetPasswordModal = true;
+      this.username = '';
+      this.password = '';
     },
 
-    head: () => ({
-        title: 'Login',
-    }),
-}
+    ...mapActions('auth', ['authenticate']),
+  },
+
+  head: () => ({
+    title: 'Login',
+  }),
+};
 </script>
 
 <style scoped>
@@ -260,26 +349,25 @@ export default {
     max-width: 80%;
 }
 
-.forgot-password-btn{
-  cursor: pointer;
-  color: #757575;
+.forgot-password-btn {
+    cursor: pointer;
+    color: #757575;
 }
 
-.forgot-password-btn:hover{
-  color:#D92B3F;
-  text-decoration: underline;
+.forgot-password-btn:hover {
+    color: #d92b3f;
+    text-decoration: underline;
 }
-
 
 @media (max-width: 768px) {
-.login-card {
-    width: 60%;
-    margin-top: 25% !important;
-    margin-left: auto;
-    margin-right: auto;
-}
-.logo-img  {
-    width: 150px !important;
-}
+    .login-card {
+        width: 60%;
+        margin-top: 25% !important;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .logo-img {
+        width: 150px !important;
+    }
 }
 </style>

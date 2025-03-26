@@ -145,7 +145,7 @@
                 hide-details
               />
               <p
-                v-if="isPointType"
+
                 class="mt-4"
               >
                 {{ $t('info-text') }}
@@ -153,7 +153,7 @@
             </v-col>
             <v-col class="mt-n8">
               <v-tooltip
-                v-if="isPointType"
+
                 bottom
               >
                 <template #activator="{ on }">
@@ -295,8 +295,16 @@ export default {
     isPointType: false,
   }),
 
+  created() {
+    this.getLayersUser();
+    this.hasAddLayer ? (
+      this.toggleLayer()
+    ) : '';
+  },
+
   computed: {
     ...mapState('supportLayersUser', ['supportLayerUser']),
+    ...mapState('map', ['hasAddLayer']),
   },
 
   methods: {
@@ -341,10 +349,9 @@ export default {
 
     async saveColor() {
       try {
-        await this.$api.post(
-          'user/upload-file/geo/update-properties/',
+        await this.$api.patch(
+          `user/upload-file/geo/${this.layer.id}/update-properties/`,
           {
-            id: this.layer.id,
             color: this.layerStyle,
             name: this.name,
           },
@@ -364,6 +371,7 @@ export default {
         if (marker.options.layerId === layerId) {
           marker.setStyle({ color });
         }
+        marker.options.fillColor = color;
       });
     },
 
@@ -387,8 +395,8 @@ export default {
 
     async removeLayer() {
       try {
-        await this.$api.$put(
-          `user/upload-file/${this.layer.id}/delete/`,
+        await this.$api.$delete(
+          `user/upload-file/${this.layer.id}`,
         );
         await this.getLayersUser();
       } catch (exc) {

@@ -133,7 +133,7 @@ export const actions = {
     { oldPassword, newPassword1, newPassword2 },
   ) {
     return this.$api
-      .$put('auth/change-password/', {
+      .$post('auth/change-password/', {
         oldPassword,
         newPassword1,
         newPassword2,

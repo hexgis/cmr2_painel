@@ -25,6 +25,7 @@ export default {
         'go-to-catalog': 'Go to my image database',
         'error-getting-usage': 'Error trying to get data usage values',
         'no-data': 'No available data',
+        'file-already-exists': "The file {name} is already in the user's layer list."
     },
     'pt-br': {
         'default-error':
@@ -52,5 +53,6 @@ export default {
         'go-to-catalog': 'Ir para o Acervo',
         'error-getting-usage': 'Erro ao buscar valores de dados usados',
         'no-data': 'Sem dados disponíveis',
+        'file-already-exists': "O arquivo {name} já está na lista de camadas do usuário."
     },
 }
