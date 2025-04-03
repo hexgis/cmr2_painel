@@ -70,7 +70,10 @@ export default {
     },
 
     orderedSupportLayers() {
-      return _.sortBy(this.supportLayers, 'order');
+      if (!this.supportLayers) return [];
+      return [...this.supportLayers].sort((a, b) =>
+        a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+      );
     },
 
     filteredSupportLayers() {

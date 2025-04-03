@@ -132,7 +132,10 @@ export default {
         },
 
         orderedSupportLayersGroups() {
-            return _.sortBy(this.supportCategoryGroupsBase, 'order')
+            if (!this.supportCategoryGroupsBase) return [];
+            return Object.values(this.supportCategoryGroupsBase).sort((a, b) => 
+                a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+            );
         },
 
         orderedSupportLayersGroupsAntropismo() {

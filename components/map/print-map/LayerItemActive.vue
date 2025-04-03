@@ -28,7 +28,7 @@
         :class="prodes ? 'prodes-thumbnail' : 'layer-thumbnail'"
         alt="Layer Image" />
       <v-col>
-        <p class="ml-1">{{ layers.name }}</p>
+        <p class="ml-1">{{ layers.name }} ({{ layers.id?.toString().toUpperCase() }})</p>
       </v-col>
     </v-row>
   </div>
@@ -51,14 +51,18 @@ export default {
       type: Boolean
     }
   },
+ 
   computed: {
     isActiveLayer() {
       if (this.monitoring) {
         return true
       }
       return this.layers.visible || this.layers.active;
+      
     },
+   
   },
+  
   methods: {
     vectorImage(layers) {
       return layers.vector?.thumbnail_blob || layers.vector?.image;

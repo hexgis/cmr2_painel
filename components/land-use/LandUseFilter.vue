@@ -56,6 +56,7 @@
         multiple
         :error="errorAno"
         required
+        @change="handleYearChange" 
       />
     </v-row>
     <v-row
@@ -395,6 +396,12 @@ export default {
   },
 
   methods: {
+    handleYearChange() {
+      if (this.filters.year.length > 1) {
+        this.filters.year = [this.filters.year[0]];
+      }
+    },
+
     populateCrOptions() {
       const groups = {};
 
