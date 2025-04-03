@@ -1,105 +1,107 @@
 <template>
-    <client-only>
-        <div class="map-container">
-            <l-map
-                id="map"
-                ref="map"
-                :zoom="zoom"
-                :bounds="localBounds"
-                :min-zoom="minZoom"
-                :max-zoom="21"
-                :max-bounds="maxBounds"
-                :max-bounds-viscosity="1"
-                :options="mapOptions"
-                @update:bounds="updateBounds"
-            >
-                <l-control position="topleft">
-                    <div class="pa-1 map-action-buttons">
-                        <MapSearch
-                            v-if="user.settings.map_search_button_visible"
-                            :map="map"
-                        />
-                        <div class="pt-2">
-                            <MapSearchTi
-                                v-if="user.settings.map_search_button_visible"
-                                :map="map"
-                                @item-selected="onItemSelected"
-                            />
-                        </div>
+  <client-only>
+    <div class="map-container">
+      <l-map
+        id="map"
+        ref="map"
+        :zoom="zoom"
+        :bounds="localBounds"
+        :min-zoom="minZoom"
+        :max-zoom="21"
+        :max-bounds="maxBounds"
+        :max-bounds-viscosity="1"
+        :options="mapOptions"
+        @update:bounds="updateBounds"
+      >
+        <l-control position="topleft">
+          <div class="pa-1 map-action-buttons">
+            <MapSearch
+              :map="map"
+            />
+            <div class="pt-2">
+              <MapSearchTi
+                :map="map"
+                @item-selected="onItemSelected"
+              />
+            </div>
 
-                        <div v-if="user.settings.map_zoom_buttons_visible">
-                            <div class="d-flex">
-                                <v-tooltip right>
-                                    <template #activator="{ on }">
-                                        <v-btn
-                                            fab
-                                            ripple
-                                            height="36"
-                                            width="36"
-                                            class="mt-3"
-                                            v-on="on"
-                                            @click.stop="
-                                                map.setZoom(map.getZoom() + 1)
-                                            "
-                                        >
-                                            <v-icon medium> mdi-plus </v-icon>
-                                        </v-btn>
-                                    </template>
-                                    <span> {{ $t('zoom-in') }} </span>
-                                </v-tooltip>
-                            </div>
+            <div>
+              <div class="d-flex">
+                <v-tooltip right>
+                  <template #activator="{ on }">
+                    <v-btn
+                      fab
+                      ripple
+                      height="36"
+                      width="36"
+                      class="mt-3"
+                      v-on="on"
+                      @click.stop="
+                        map.setZoom(map.getZoom() + 1)
+                      "
+                    >
+                      <v-icon medium>
+                        mdi-plus
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span> {{ $t('zoom-in') }} </span>
+                </v-tooltip>
+              </div>
 
-                            <div class="d-flex">
-                                <v-tooltip right>
-                                    <template #activator="{ on }">
-                                        <v-btn
-                                            fab
-                                            ripple
-                                            height="36"
-                                            width="36"
-                                            class="mt-3"
-                                            v-on="on"
-                                            @click.stop="
-                                                map.setZoom(map.getZoom() - 1)
-                                            "
-                                        >
-                                            <v-icon medium> mdi-minus </v-icon>
-                                        </v-btn>
-                                    </template>
-                                    <span> {{ $t('zoom-out') }} </span>
-                                </v-tooltip>
-                            </div>
-                        </div>
+              <div class="d-flex">
+                <v-tooltip right>
+                  <template #activator="{ on }">
+                    <v-btn
+                      fab
+                      ripple
+                      height="36"
+                      width="36"
+                      class="mt-3"
+                      v-on="on"
+                      @click.stop="
+                        map.setZoom(map.getZoom() - 1)
+                      "
+                    >
+                      <v-icon medium>
+                        mdi-minus
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span> {{ $t('zoom-out') }} </span>
+                </v-tooltip>
+              </div>
+            </div>
 
-                        <div class="div-spacer" />
+            <div class="div-spacer" />
 
-                        <FileLoaderControl
-                            :map="map"
-                            :files="loadedFiles"
-                            @loading="isLoading()"
-                            @loads="loaded()"
-                        />
+            <FileLoaderControl
+              :map="map"
+              :files="loadedFiles"
+              @loading="isLoading()"
+              @loads="loaded()"
+            />
 
-                        <DrawingPanel
-                            :map="map"
-                            :show="activeMenu === 'DrawingPanel'"
-                            @toggleTool="setActiveMenu"
-                        />
+            <DrawingPanel
+              :map="map"
+              :show="activeMenu === 'DrawingPanel'"
+              @toggleTool="setActiveMenu"
+            />
 
-                        <MapPrinter
-                            :map="map"
-                            :selected-base-map="selectedBaseMap"
-                            :show-tms="tmsToPrint.visible"
-                        />
-                        <Highlighter
-                            :map="map"
-                            :show="activeMenu === 'Highlighter'"
-                            @toggleTool="setActiveMenuMarker"
-                        />
-                    </div>
-                </l-control>
+            <MapPrinter
+              :map="map"
+              :selected-base-map="selectedBaseMap"
+              :show-tms="tmsToPrint.visible"
+            />
+            <Highlighter
+              :map="map"
+              :show="activeMenu === 'Highlighter'"
+              @toggleTool="setActiveMenuMarker"
+            />
+          </div>
+        </l-control>
 
-                <!-- <l-control
+        <!-- <l-control
 
           position="bottomleft"
         >
@@ -113,107 +115,125 @@
             </v-col>
           </div>
         </l-control>-->
-                <l-control
-                    class="leaflet-coordinates-control"
-                    position="bottomleft"
-                >
-                    <div v-if="user.settings.map_pointer_coordinates_visible">
-                        {{ cursorCoordinates.lat }},
-                        {{ cursorCoordinates.lng }}
-                    </div>
-                </l-control>
+        <l-control
+          class="leaflet-coordinates-control"
+          position="bottomleft"
+        >
+          <div v-if="user.settings.map_pointer_coordinates_visible">
+            {{ cursorCoordinates.lat }},
+            {{ cursorCoordinates.lng }}
+          </div>
+        </l-control>
 
-                <l-control-scale
-                    v-if="user.settings.map_scale_visible"
-                    position="bottomleft"
-                />
+        <l-control-scale
+          v-if="user.settings.map_scale_visible"
+          position="bottomleft"
+        />
 
-                <l-control position="bottomleft" class="leaflet-logo-control">
-                    <!-- <BaseTiMetadata
+        <l-control
+          position="bottomleft"
+          class="leaflet-logo-control"
+        >
+          <!-- <BaseTiMetadata
                         v-if="isItemSelected"
                         :selectedItems="selectedItems"
                         @close="handleClose"
 
                     /> -->
 
-                    <v-img
-                        class="my-4 ml-0 northArrow"
-                        height="40"
-                        width="35"
-                        :src="northArrow"
-                    />
+          <v-img
+            class="my-4 ml-0 northArrow"
+            height="40"
+            width="35"
+            :src="northArrow"
+          />
 
-                    <v-col cols="12" class="pa-0">
-                        <a
-                            href="https://www.gov.br/funai/pt-br"
-                            target="_blank"
-                        >
-                            <v-img
-                                contain
-                                width="50"
-                                :src="logo_funai"
-                                class="logo-flags"
-                            />
-                        </a>
-                    </v-col>
-                </l-control>
+          <v-col
+            cols="12"
+            class="pa-0"
+          >
+            <a
+              href="https://www.gov.br/funai/pt-br"
+              target="_blank"
+            >
+              <v-img
+                contain
+                width="50"
+                :src="logo_funai"
+                class="logo-flags"
+              />
+            </a>
+          </v-col>
+        </l-control>
 
-                <l-geo-json
-                    ref="interestArea"
-                    :geojson="interestArea"
-                    :options-style="interestStyle"
-                    :visible="showInterestArea"
-                />
-                <SupportUserLayersMap />
+        <l-geo-json
+          ref="interestArea"
+          :geojson="interestArea"
+          :options-style="interestStyle"
+          :visible="showInterestArea"
+        />
+        <SupportUserLayersMap />
 
-                <MapIndigenousLand />
+        <MapIndigenousLand />
 
-                <SupportLayers />
+        <SupportLayers />
 
-                <SupportLayersRaster />
+        <SupportLayersRaster />
 
-                <SupportLayersProdes />
+        <SupportLayersProdes />
 
-                <SupportLayersHazard />
+        <SupportLayersHazard />
 
-                <!-- <ImageryLayers v-if="showImagery" :map="map" /> -->
+        <!-- <ImageryLayers v-if="showImagery" :map="map" /> -->
 
-                <CatalogLayers :map="map" />
+        <CatalogLayers :map="map" />
 
-                <!-- <ChangeDetectionLayers :map="map" /> -->
+        <!-- <ChangeDetectionLayers :map="map" /> -->
 
-                <FileLoaderLayers
-                    :map="map"
-                    :files="loadedFiles"
-                    @loads="loaded()"
-                />
+        <FileLoaderLayers
+          :map="map"
+          :files="loadedFiles"
+          @loads="loaded()"
+        />
 
-                <MonitoringLayers :map="map" />
+        <MonitoringLayers :map="map" />
 
-                <DeterLayers :map="map" />
+        <DeterLayers :map="map" />
 
-                <!-- <AlgorithmLayers /> -->
+        <!-- <AlgorithmLayers /> -->
 
-                <!-- <WebhooksLayers /> -->
+        <!-- <WebhooksLayers /> -->
 
-                <BaseWmsMetadataPopup :map="map" />
+        <BaseWmsMetadataPopup :map="map" />
 
-                <LandUseLayers :map="map" />
+        <LandUseLayers :map="map" />
 
-                <PriorityLayers :map="map" />
+        <PriorityLayers :map="map" />
 
-                <AlertLayers :map="map" />
-            </l-map>
+        <AlertLayers :map="map" />
+      </l-map>
 
-            <div v-if="loading" class="loading-background">
-                <div>
-                    <v-skeleton-loader type="chip" width="32" />
-                    <v-skeleton-loader type="chip" width="32" />
-                    <v-skeleton-loader type="chip" width="32" />
-                </div>
-            </div>
+      <div
+        v-if="loading"
+        class="loading-background"
+      >
+        <div>
+          <v-skeleton-loader
+            type="chip"
+            width="32"
+          />
+          <v-skeleton-loader
+            type="chip"
+            width="32"
+          />
+          <v-skeleton-loader
+            type="chip"
+            width="32"
+          />
         </div>
-    </client-only>
+      </div>
+    </div>
+  </client-only>
 </template>
 
 <i18n>
@@ -230,40 +250,40 @@
 </i18n>
 
 <script>
-import 'leaflet-draw/dist/leaflet.draw.css'
-import Vue from 'vue'
-import { mapState, mapMutations } from 'vuex'
-import interestArea from '@/assets/interest_area.json'
-import MapPrinter from '@/components/map/print-map/MapPrinter'
+import 'leaflet-draw/dist/leaflet.draw.css';
+import Vue from 'vue';
+import { mapState, mapMutations } from 'vuex';
+import interestArea from '@/assets/interest_area.json';
+import MapPrinter from '@/components/map/print-map/MapPrinter';
 
-import MapSearch from '@/components/map/MapSearch.vue'
-import MapSearchTi from '@/components/map/MapSearchTi.vue'
-import FileLoaderControl from '@/components/map/file-loader/FileLoaderControl.vue'
-import FileLoaderLayers from '@/components/map/file-loader/FileLoaderLayers.vue'
+import MapSearch from '@/components/map/MapSearch.vue';
+import MapSearchTi from '@/components/map/MapSearchTi.vue';
+import FileLoaderControl from '@/components/map/file-loader/FileLoaderControl.vue';
+import FileLoaderLayers from '@/components/map/file-loader/FileLoaderLayers.vue';
 // import ImageryLayers from '@/components/imagery/ImageryLayers'
-import CatalogLayers from '@/components/catalog/CatalogLayers'
-import MonitoringLayers from '@/components/monitoring/MonitoringLayers'
+import CatalogLayers from '@/components/catalog/CatalogLayers';
+import MonitoringLayers from '@/components/monitoring/MonitoringLayers';
 // import MonitoringLayersGeoserver from '@/components/monitoring/MonitoringLayersGeoserver'
-import SupportLayers from '@/components/support/SupportLayers'
-import SupportLayersHazard from '@/components/support/SupportLayersHazard'
-import SupportLayersProdes from '@/components/support/SupportLayersProdes'
-import SupportLayersRaster from '@/components/support/SupportLayersRaster'
+import SupportLayers from '@/components/support/SupportLayers';
+import SupportLayersHazard from '@/components/support/SupportLayersHazard';
+import SupportLayersProdes from '@/components/support/SupportLayersProdes';
+import SupportLayersRaster from '@/components/support/SupportLayersRaster';
 // import ChangeDetectionLayers from '@/components/change-detection/ChangeDetectionLayers'
-import BaseWmsMetadataPopup from '@/components/base/BaseWmsMetadataPopup'
+import BaseWmsMetadataPopup from '@/components/base/BaseWmsMetadataPopup';
 // import AlgorithmLayers from '@/components/algorithms/AlgorithmLayers'
 // import WebhooksLayers from '@/components/webhooks/WebhooksLayers'
-import PriorityLayers from '@/components/priority/PriorityLayers'
-import DeterLayers from '@/components/deter/DeterLayers'
-import AlertLayers from '@/components/monitoring/AlertLayers'
-import LandUseLayers from '@/components/land-use/LandUseLayers'
-import SupportUserLayersMap from '@/components/support/SupportUserLayersMap'
-import 'leaflet/dist/leaflet.css'
-import 'leaflet-basemaps/L.Control.Basemaps.css'
-import 'leaflet-minimap/dist/Control.MiniMap.min.css'
-import DrawingPanel from '@/components/map/drawing-tool/DrawingPanel.vue'
-import BaseTiMetadata from '../base/BaseTiMetadata.vue'
-import Highlighter from '@/components/map/Highlighter.vue'
-import MapIndigenousLand from '@/components/map/MapIndigenousLand'
+import PriorityLayers from '@/components/priority/PriorityLayers';
+import DeterLayers from '@/components/deter/DeterLayers';
+import AlertLayers from '@/components/monitoring/AlertLayers';
+import LandUseLayers from '@/components/land-use/LandUseLayers';
+import SupportUserLayersMap from '@/components/support/SupportUserLayersMap';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet-basemaps/L.Control.Basemaps.css';
+import 'leaflet-minimap/dist/Control.MiniMap.min.css';
+import DrawingPanel from '@/components/map/drawing-tool/DrawingPanel.vue';
+import BaseTiMetadata from '../base/BaseTiMetadata.vue';
+import Highlighter from '@/components/map/Highlighter.vue';
+import MapIndigenousLand from '@/components/map/MapIndigenousLand';
 
 if (typeof window !== 'undefined') {
   require('leaflet-bing-layer');
@@ -274,430 +294,430 @@ if (typeof window !== 'undefined') {
 }
 
 export default {
-    name: 'Map',
+  name: 'Map',
 
-    components: {
-        // ImageryLayers,
-        CatalogLayers,
-        MonitoringLayers,
-        // MonitoringLayersGeoserver,
-        SupportLayers,
-        MapSearch,
-        MapSearchTi,
-        FileLoaderControl,
-        FileLoaderLayers,
-        PriorityLayers,
-        // ChangeDetectionLayers,
-        BaseWmsMetadataPopup,
-        // AlgorithmLayers,
-        // WebhooksLayers,
-        MapPrinter,
-        LandUseLayers,
-        AlertLayers,
-        DeterLayers,
-        SupportLayersRaster,
-        SupportLayersProdes,
-        SupportLayersHazard,
-        SupportUserLayersMap,
-        DrawingPanel,
-        MapIndigenousLand,
-        Highlighter,
-        BaseTiMetadata,
+  components: {
+    // ImageryLayers,
+    CatalogLayers,
+    MonitoringLayers,
+    // MonitoringLayersGeoserver,
+    SupportLayers,
+    MapSearch,
+    MapSearchTi,
+    FileLoaderControl,
+    FileLoaderLayers,
+    PriorityLayers,
+    // ChangeDetectionLayers,
+    BaseWmsMetadataPopup,
+    // AlgorithmLayers,
+    // WebhooksLayers,
+    MapPrinter,
+    LandUseLayers,
+    AlertLayers,
+    DeterLayers,
+    SupportLayersRaster,
+    SupportLayersProdes,
+    SupportLayersHazard,
+    SupportUserLayersMap,
+    DrawingPanel,
+    MapIndigenousLand,
+    Highlighter,
+    BaseTiMetadata,
+  },
+
+  props: {
+    mainMap: {
+      type: Object,
+      default: null,
     },
+  },
 
-    props: {
-        mainMap: {
-            type: Object,
-            default: null,
-        },
+  data: () => ({
+    selectedItems: [],
+    isItemSelected: false,
+    northArrow: process.env.NORTH_ARROW,
+    logo_cmr: process.env.DEFAULT_LOGO_IMAGE_CMR,
+    logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
+    map: null,
+    zoom: 4,
+    minZoom: 2,
+    maxBounds: [
+      [-90, -280],
+      [90, 280],
+    ],
+    mapOptions: {
+      zoomControl: false,
+      name: 'mainMap',
     },
+    areaBounds: null,
+    initialBounds: [
+      [-33.8689056, -73.9830625],
+      [5.2842873, -28.6341164],
+    ],
 
-    data: () => ({
-        selectedItems: [],
-        isItemSelected: false,
-        northArrow: process.env.NORTH_ARROW,
-        logo_cmr: process.env.DEFAULT_LOGO_IMAGE_CMR,
-        logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
-        map: null,
-        zoom: 4,
-        minZoom: 2,
-        maxBounds: [
-            [-90, -280],
-            [90, 280],
-        ],
-        mapOptions: {
-            zoomControl: false,
-            name: 'mainMap',
-        },
-        areaBounds: null,
-        initialBounds: [
-            [-33.8689056, -73.9830625],
-            [5.2842873, -28.6341164],
-        ],
+    loadedFiles: [],
+    mapLoading: false,
 
-        loadedFiles: [],
-        mapLoading: false,
+    interestArea,
+    showInterestArea: process.env.INTEREST_AREA_OUTLINE === 'true',
+    interestStyle: {
+      fillOpacity: 0,
+      fill: false,
+      color: '#fcd40d',
+      dashArray: '5',
+    },
+    selectedBaseMap: null,
+    showMapPrinterButton: true,
+    showImagery: process.env.IMAGERY === 'true',
+    monitoringGeoserver: process.env.MONITORING_GEOSERVER === 'true',
 
-        interestArea,
-        showInterestArea: process.env.INTEREST_AREA_OUTLINE === 'true',
-        interestStyle: {
-            fillOpacity: 0,
-            fill: false,
-            color: '#fcd40d',
-            dashArray: '5',
-        },
-        selectedBaseMap: null,
-        showMapPrinterButton: true,
-        showImagery: process.env.IMAGERY === 'true',
-        monitoringGeoserver: process.env.MONITORING_GEOSERVER === 'true',
-
-        baseLayers: [
-            {
-                url: '//{s}.tile.osm.org/{z}/{x}/{y}.png',
-                options: {
-                    label: 'Open Street Map',
-                    tag: 'OSM',
-                    attribution:
+    baseLayers: [
+      {
+        url: '//{s}.tile.osm.org/{z}/{x}/{y}.png',
+        options: {
+          label: 'Open Street Map',
+          tag: 'OSM',
+          attribution:
                         '&copy; <a href="//www.openstreetmap.org/">OpenStreetMap</a> contributors',
-                    maxZoom: 21,
-                    maxNativeZoom: 18,
-                    zIndex: 1,
-                },
-            },
-            {
-                url: '//{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-                options: {
-                    label: 'Google Satellite',
-                    tag: 'Google Satellite',
-                    attribution:
+          maxZoom: 21,
+          maxNativeZoom: 18,
+          zIndex: 1,
+        },
+      },
+      {
+        url: '//{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        options: {
+          label: 'Google Satellite',
+          tag: 'Google Satellite',
+          attribution:
                         'Map data &copy; <a href="//maps.google.com/">Google</a> sattelite imagery',
-                    maxZoom: 21,
-                    maxNativeZoom: 19,
-                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-                    zIndex: 1,
-                },
-            },
-            // {
-            //   url: '//mt0.google.com/vt/lyrs=r&hl=en&x={x}&y={y}&z={z}',
-            //   options: {
-            //     label: 'Google Roadmap',
-            //     tag: 'Google Roadmap',
-            //     attribution:
-            //                   'Map data &copy; <a href="//maps.google.com/">Google</a> Altered roadmap',
-            //     maxZoom: 21,
-            //     maxNativeZoom: 19,
-            //     subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-            //     zIndex: 1,
-            //   },
-            // },
-            {
-                url: '//mt0.google.com/vt/lyrs=y&hl=pt&x={x}&y={y}&z={z}',
-                options: {
-                    label: 'Google Hybrid',
-                    tag: 'Google Hybrid',
-                    attribution:
+          maxZoom: 21,
+          maxNativeZoom: 19,
+          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+          zIndex: 1,
+        },
+      },
+      // {
+      //   url: '//mt0.google.com/vt/lyrs=r&hl=en&x={x}&y={y}&z={z}',
+      //   options: {
+      //     label: 'Google Roadmap',
+      //     tag: 'Google Roadmap',
+      //     attribution:
+      //                   'Map data &copy; <a href="//maps.google.com/">Google</a> Altered roadmap',
+      //     maxZoom: 21,
+      //     maxNativeZoom: 19,
+      //     subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+      //     zIndex: 1,
+      //   },
+      // },
+      {
+        url: '//mt0.google.com/vt/lyrs=y&hl=pt&x={x}&y={y}&z={z}',
+        options: {
+          label: 'Google Hybrid',
+          tag: 'Google Hybrid',
+          attribution:
                         'Map data &copy; <a href="//maps.google.com/">Google</a> Hybrid',
-                    maxZoom: 21,
-                    maxNativeZoom: 19,
-                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-                    zIndex: 1,
-                },
-            },
-            // {
-            //     url:
-            //         '//securewatch.digitalglobe.com/earthservice/wmtsaccess?connectId={connectid}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=EPSG:3857&LAYER=DigitalGlobe:ImageryTileService&FORMAT=image/jpeg&STYLE=&featureProfile=Vivid_2019&TileMatrix=EPSG:3857:{z}&TILEROW={y}&TILECOL={x}',
-            //     options: {
-            //         connectid: '750ba857-7952-41af-b189-316d907cc12a',
-            //         label: 'MAXAR',
-            //         tag: 'MAXAR',
-            //         attribution:
-            //             'Map data &copy; <a href="//securewatch.digitalglobe.com">Secure Watch</a> Digital Globe',
-            //         maxZoom: 21,
-            //         maxNativeZoom: 19,
-            //         zIndex: 1,
-            //     },
-            // },
-            {
-                url: '//{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-                options: {
-                    label: 'CartoDB',
-                    tag: 'CartoDB',
-                    attribution:
+          maxZoom: 21,
+          maxNativeZoom: 19,
+          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+          zIndex: 1,
+        },
+      },
+      // {
+      //     url:
+      //         '//securewatch.digitalglobe.com/earthservice/wmtsaccess?connectId={connectid}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=EPSG:3857&LAYER=DigitalGlobe:ImageryTileService&FORMAT=image/jpeg&STYLE=&featureProfile=Vivid_2019&TileMatrix=EPSG:3857:{z}&TILEROW={y}&TILECOL={x}',
+      //     options: {
+      //         connectid: '750ba857-7952-41af-b189-316d907cc12a',
+      //         label: 'MAXAR',
+      //         tag: 'MAXAR',
+      //         attribution:
+      //             'Map data &copy; <a href="//securewatch.digitalglobe.com">Secure Watch</a> Digital Globe',
+      //         maxZoom: 21,
+      //         maxNativeZoom: 19,
+      //         zIndex: 1,
+      //     },
+      // },
+      {
+        url: '//{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+        options: {
+          label: 'CartoDB',
+          tag: 'CartoDB',
+          attribution:
                         'Map data &copy; <a href="//www.openstreetmap.org/">OpenStreetMap</a> contributors, CartoDB Imagery <a href="//creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
-                    maxZoom: 21,
-                    maxNativeZoom: 19,
-                    zIndex: 1,
-                },
-            },
-            // {
-            //     url: '//view.geoapi-airbusds.com/maps/wmts/52a994d7-f215-4c66-aa10-439221c29ee0/tile/1.0.0/8659bd97-ea52-474d-a3e9-072c335cd6bb/default/3857/{z}/{y}/{x}',
-            //     options: {
-            //         label: 'AirBus OneAtlas',
-            //         tag: 'AirBus OneAtlas',
-            //         attribution:
-            //             'GeoAPI Airbus Service; Powered by: <a href="//oneatlas.airbus.com/">OneAtlas - AIRBUS</a>',
-            //         maxZoom: 21,
-            //         maxNativeZoom: 14,
-            //         zIndex: 1,
-            //     },
-            // },
-            // {
-            //     url: '//view.geoapi-airbusds.com/maps/wmts/eebb802c-9605-475f-8830-b7c00107cdc8/tile/1.0.0/61476829-d968-4588-821c-b0f9fae6ff8c/default/3857/{z}/{y}/{x}.png',
-            //     options: {
-            //         label: 'AirBus WorldDEM',
-            //         tag: 'AirBus WorldDEM',
-            //         attribution:
-            //             'GeoAPI Airbus Service; Powered by: <a href="//oneatlas.airbus.com/">OneAtlas - AIRBUS</a>',
-            //         maxZoom: 21,
-            //         maxNativeZoom: 14,
-            //         zIndex: 1,
-            //     },
-            // },
-            {
-                url: '//server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                options: {
-                    label: 'ArcMap',
-                    tag: 'ArcMap',
-                    attribution:
+          maxZoom: 21,
+          maxNativeZoom: 19,
+          zIndex: 1,
+        },
+      },
+      // {
+      //     url: '//view.geoapi-airbusds.com/maps/wmts/52a994d7-f215-4c66-aa10-439221c29ee0/tile/1.0.0/8659bd97-ea52-474d-a3e9-072c335cd6bb/default/3857/{z}/{y}/{x}',
+      //     options: {
+      //         label: 'AirBus OneAtlas',
+      //         tag: 'AirBus OneAtlas',
+      //         attribution:
+      //             'GeoAPI Airbus Service; Powered by: <a href="//oneatlas.airbus.com/">OneAtlas - AIRBUS</a>',
+      //         maxZoom: 21,
+      //         maxNativeZoom: 14,
+      //         zIndex: 1,
+      //     },
+      // },
+      // {
+      //     url: '//view.geoapi-airbusds.com/maps/wmts/eebb802c-9605-475f-8830-b7c00107cdc8/tile/1.0.0/61476829-d968-4588-821c-b0f9fae6ff8c/default/3857/{z}/{y}/{x}.png',
+      //     options: {
+      //         label: 'AirBus WorldDEM',
+      //         tag: 'AirBus WorldDEM',
+      //         attribution:
+      //             'GeoAPI Airbus Service; Powered by: <a href="//oneatlas.airbus.com/">OneAtlas - AIRBUS</a>',
+      //         maxZoom: 21,
+      //         maxNativeZoom: 14,
+      //         zIndex: 1,
+      //     },
+      // },
+      {
+        url: '//server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        options: {
+          label: 'ArcMap',
+          tag: 'ArcMap',
+          attribution:
                         'Map data &copy; <a href="//desktop.arcgis.com/en/arcmap/">ArcGis Basemap</a>',
-                    maxZoom: 21,
-                    maxNativeZoom: 19,
-                    zIndex: 1,
-                },
-            },
-        ],
+          maxZoom: 21,
+          maxNativeZoom: 19,
+          zIndex: 1,
+        },
+      },
+    ],
 
-        bingKey:
+    bingKey:
             'AuhiCJHlGzhg93IqUH_oCpl_-ZUrIE6SPftlyGYUvr9Amx5nzA-WqGcPquyFZl4L',
 
-        lastZoom: null,
-        zoomControlGrid: 7,
+    lastZoom: null,
+    zoomControlGrid: 7,
 
-        tooltipsRef: null,
-        tooltipsGridRef: null,
-        cursorCoordinates: {
-            lat: '',
-            lng: '',
-        },
-        miniMap: null,
-        miniMapLayer: null,
-        miniMapLayerOptions: {
-            minZoom: 0,
-            maxZoom: 18,
-        },
-        miniMapOptions: {
-            togglePreview: false,
-            height: 0,
-            width: 0,
-        },
-        localBounds: [],
-    }),
+    tooltipsRef: null,
+    tooltipsGridRef: null,
+    cursorCoordinates: {
+      lat: '',
+      lng: '',
+    },
+    miniMap: null,
+    miniMapLayer: null,
+    miniMapLayerOptions: {
+      minZoom: 0,
+      maxZoom: 18,
+    },
+    miniMapOptions: {
+      togglePreview: false,
+      height: 0,
+      width: 0,
+    },
+    localBounds: [],
+  }),
 
-    computed: {
-        minimapVisibleSettings() {
-            return this.user.settings.minimap_visible
-        },
-        initialExtentCoords() {
-            return this.user.settings.initial_extent.coordinates
-                ? this.$L.GeoJSON.coordsToLatLngs(
-                      this.user.settings.initial_extent.coordinates[0]
-                  )
-                : []
-        },
-
-        ...mapState('map', [
-            'bounds',
-            'boundsZoomed',
-            'loading',
-            'activeMenu',
-            'tmsToPrint',
-            'indigenousLand',
-        ]),
-        ...mapState('userProfile', ['user']),
+  computed: {
+    minimapVisibleSettings() {
+      return this.user.settings.minimap_visible;
+    },
+    initialExtentCoords() {
+      return this.user.settings.initial_extent.coordinates
+        ? this.$L.GeoJSON.coordsToLatLngs(
+          this.user.settings.initial_extent.coordinates[0],
+        )
+        : [];
     },
 
-    watch: {
-        boundsZoomed() {
-            this.map.flyToBounds(this.bounds)
-        },
+    ...mapState('map', [
+      'bounds',
+      'boundsZoomed',
+      'loading',
+      'activeMenu',
+      'tmsToPrint',
+      'indigenousLand',
+    ]),
+    ...mapState('userProfile', ['user']),
+  },
 
-        minimapVisibleSettings(visible) {
-            visible ? this.miniMap.addTo(this.map) : this.miniMap.remove()
-        },
+  watch: {
+    boundsZoomed() {
+      this.map.flyToBounds(this.bounds);
     },
 
-    mounted() {
-        this.$nextTick(() => {
-            this.createMap()
-        })
+    minimapVisibleSettings(visible) {
+      visible ? this.miniMap.addTo(this.map) : this.miniMap.remove();
+    },
+  },
+
+  mounted() {
+    this.$nextTick(() => {
+      this.createMap();
+    });
+  },
+
+  methods: {
+    handleClose() {
+      this.selectedItems = [];
     },
 
-    methods: {
-        handleClose() {
-            this.selectedItems = []
-        },
-
-        onItemSelected(item) {
-            const isAlreadySelected = this.selectedItems.some(
-                (selected) => selected.terraIndigena === item.terraIndigena
-            )
-            if (!isAlreadySelected) {
-                this.selectedItems.push(item)
-                this.isItemSelected = true
-            }
-        },
-
-        clearSelection() {
-            this.selectedItems = []
-            this.isItemSelected = false
-        },
-
-        isLoading() {
-            this.setMapLoading(true)
-        },
-
-        loaded() {
-            this.setMapLoading(false)
-        },
-
-        createMap() {
-            this.map = this.$refs.map.mapObject
-            Vue.prototype.$mainMap = this.map
-            this.map.on('zoomend', this.onZoomEnd)
-            this.map.addEventListener('mousemove', this.refreshCoordinates)
-            this.map.on('baselayerchange', this.changeBaseMap)
-            this.createMapLayers()
-            this.createCssRefs()
-            this.createMiniMap()
-            this.$emit('mapCreated')
-            if (this.bounds) {
-                this.localBounds = this.bounds
-            } else if (
-                this.user &&
-                (this.user.settings.initial_extent ||
-                    this.user.settings.interest_area_zoom_on_init)
-            ) {
-                let areaBounds
-                if (this.user.settings.initial_extent) {
-                    areaBounds = this.$L.polygon(this.initialExtentCoords)
-                } else areaBounds = this.$refs.interestArea.mapObject
-                this.updateBounds(areaBounds.getBounds())
-                this.localBounds = areaBounds.getBounds()
-                setTimeout(() => {
-                    const map = this.$refs.map.mapObject
-                    map.invalidateSize()
-                    map.setZoom(map.getZoom() + 1)
-                }, 100)
-            } else {
-                this.localBounds = this.initialBounds
-            }
-        },
-
-        createMapLayers() {
-            const tileLayers = []
-            for (const layer of this.baseLayers) {
-                const tileLayer = this.$L.tileLayer(layer.url, layer.options)
-                tileLayers.push(tileLayer)
-            }
-            const bingLayer = this.createBingLayer()
-            tileLayers.push(bingLayer)
-            this.map.addControl(
-                this.$L.control.basemaps({
-                    basemaps: tileLayers,
-                    tileX: 0,
-                    tileY: 0,
-                    tileZ: 1,
-                })
-            )
-        },
-
-        createBingLayer() {
-            // Bing layer has need to be generated before being inserted
-            // on tileLayers array, and is generated by the Plugin
-            // leaflet-bing-layer
-            const bingLayer = this.$L.tileLayer.bing(this.bingKey, {
-                imagerySet: 'AerialWithLabelsOnDemand',
-                maxZoom: 21,
-                maxNativeZoom: 16,
-            })
-            bingLayer.options.attribution = 'Map data &copy; Bing contributors'
-            bingLayer.options.iconURL = '/img/bing.png'
-            bingLayer.options.label = 'Bing'
-            bingLayer.options.tag = 'Bing'
-            return bingLayer
-        },
-
-        createMiniMap() {
-            const osm = this.baseLayers[0]
-            const miniMapLayer = this.$L.tileLayer(
-                osm.url,
-                this.miniMapLayerOptions
-            )
-            if (window.innerWidth <= 768) {
-                this.miniMapOptions.height = 75
-                this.miniMapOptions.width = 75
-            } else {
-                this.miniMapOptions.height = 125
-                this.miniMapOptions.width = 125
-            }
-            this.miniMap = new this.$L.Control.MiniMap(
-                miniMapLayer,
-                this.miniMapOptions
-            )
-            if (this.minimapVisibleSettings) {
-                this.miniMap.addTo(this.map)
-            }
-        },
-
-        createCssRefs() {
-            this.tooltipsRef = this.map.getPane('tooltipPane')
-            this.tooltipsRef.style.visibility = 'hidden'
-        },
-
-        onZoomEnd(event) {
-            const map = event.target
-            const zoom = map.getZoom()
-            if (
-                zoom < this.zoomControlGrid &&
-                (!this.lastZoom || this.lastZoom >= this.zoomControlGrid)
-            ) {
-                this.tooltipsRef.style.visibility = 'hidden'
-            } else if (
-                zoom >= this.zoomControlGrid &&
-                (!this.lastZoom || this.lastZoom < this.zoomControlGrid)
-            ) {
-                this.tooltipsRef.style.visibility = 'visible'
-            }
-            this.lastZoom = zoom
-        },
-
-        updateBounds(latLngBounds) {
-            this.setBounds(latLngBounds)
-        },
-
-        changeBaseMap(event) {
-            this.selectedBaseMap = event
-            if (event.options.tag === 'Mosaics Planet 2024-02') {
-                this.showMapPrinterButton = false
-            } else {
-                this.showMapPrinterButton = true
-            }
-        },
-
-        refreshCoordinates(event) {
-            this.cursorCoordinates.lat = event.latlng.lat.toFixed(4)
-            this.cursorCoordinates.lng = event.latlng.lng.toFixed(4)
-        },
-
-        ...mapMutations('map', [
-            'setBounds',
-            'setMapLoading',
-            'setLocalBounds',
-            'setActiveMenu',
-            'setActiveMenuMarker',
-        ]),
+    onItemSelected(item) {
+      const isAlreadySelected = this.selectedItems.some(
+        (selected) => selected.terraIndigena === item.terraIndigena,
+      );
+      if (!isAlreadySelected) {
+        this.selectedItems.push(item);
+        this.isItemSelected = true;
+      }
     },
-}
+
+    clearSelection() {
+      this.selectedItems = [];
+      this.isItemSelected = false;
+    },
+
+    isLoading() {
+      this.setMapLoading(true);
+    },
+
+    loaded() {
+      this.setMapLoading(false);
+    },
+
+    createMap() {
+      this.map = this.$refs.map.mapObject;
+      Vue.prototype.$mainMap = this.map;
+      this.map.on('zoomend', this.onZoomEnd);
+      this.map.addEventListener('mousemove', this.refreshCoordinates);
+      this.map.on('baselayerchange', this.changeBaseMap);
+      this.createMapLayers();
+      this.createCssRefs();
+      this.createMiniMap();
+      this.$emit('mapCreated');
+      if (this.bounds) {
+        this.localBounds = this.bounds;
+      } else if (
+        this.user
+                && (this.user.settings.initial_extent
+                    || this.user.settings.interest_area_zoom_on_init)
+      ) {
+        let areaBounds;
+        if (this.user.settings.initial_extent) {
+          areaBounds = this.$L.polygon(this.initialExtentCoords);
+        } else areaBounds = this.$refs.interestArea.mapObject;
+        this.updateBounds(areaBounds.getBounds());
+        this.localBounds = areaBounds.getBounds();
+        setTimeout(() => {
+          const map = this.$refs.map.mapObject;
+          map.invalidateSize();
+          map.setZoom(map.getZoom() + 1);
+        }, 100);
+      } else {
+        this.localBounds = this.initialBounds;
+      }
+    },
+
+    createMapLayers() {
+      const tileLayers = [];
+      for (const layer of this.baseLayers) {
+        const tileLayer = this.$L.tileLayer(layer.url, layer.options);
+        tileLayers.push(tileLayer);
+      }
+      const bingLayer = this.createBingLayer();
+      tileLayers.push(bingLayer);
+      this.map.addControl(
+        this.$L.control.basemaps({
+          basemaps: tileLayers,
+          tileX: 0,
+          tileY: 0,
+          tileZ: 1,
+        }),
+      );
+    },
+
+    createBingLayer() {
+      // Bing layer has need to be generated before being inserted
+      // on tileLayers array, and is generated by the Plugin
+      // leaflet-bing-layer
+      const bingLayer = this.$L.tileLayer.bing(this.bingKey, {
+        imagerySet: 'AerialWithLabelsOnDemand',
+        maxZoom: 21,
+        maxNativeZoom: 16,
+      });
+      bingLayer.options.attribution = 'Map data &copy; Bing contributors';
+      bingLayer.options.iconURL = '/img/bing.png';
+      bingLayer.options.label = 'Bing';
+      bingLayer.options.tag = 'Bing';
+      return bingLayer;
+    },
+
+    createMiniMap() {
+      const osm = this.baseLayers[0];
+      const miniMapLayer = this.$L.tileLayer(
+        osm.url,
+        this.miniMapLayerOptions,
+      );
+      if (window.innerWidth <= 768) {
+        this.miniMapOptions.height = 75;
+        this.miniMapOptions.width = 75;
+      } else {
+        this.miniMapOptions.height = 125;
+        this.miniMapOptions.width = 125;
+      }
+      this.miniMap = new this.$L.Control.MiniMap(
+        miniMapLayer,
+        this.miniMapOptions,
+      );
+      if (this.minimapVisibleSettings) {
+        this.miniMap.addTo(this.map);
+      }
+    },
+
+    createCssRefs() {
+      this.tooltipsRef = this.map.getPane('tooltipPane');
+      this.tooltipsRef.style.visibility = 'hidden';
+    },
+
+    onZoomEnd(event) {
+      const map = event.target;
+      const zoom = map.getZoom();
+      if (
+        zoom < this.zoomControlGrid
+                && (!this.lastZoom || this.lastZoom >= this.zoomControlGrid)
+      ) {
+        this.tooltipsRef.style.visibility = 'hidden';
+      } else if (
+        zoom >= this.zoomControlGrid
+                && (!this.lastZoom || this.lastZoom < this.zoomControlGrid)
+      ) {
+        this.tooltipsRef.style.visibility = 'visible';
+      }
+      this.lastZoom = zoom;
+    },
+
+    updateBounds(latLngBounds) {
+      this.setBounds(latLngBounds);
+    },
+
+    changeBaseMap(event) {
+      this.selectedBaseMap = event;
+      if (event.options.tag === 'Mosaics Planet 2024-02') {
+        this.showMapPrinterButton = false;
+      } else {
+        this.showMapPrinterButton = true;
+      }
+    },
+
+    refreshCoordinates(event) {
+      this.cursorCoordinates.lat = event.latlng.lat.toFixed(4);
+      this.cursorCoordinates.lng = event.latlng.lng.toFixed(4);
+    },
+
+    ...mapMutations('map', [
+      'setBounds',
+      'setMapLoading',
+      'setLocalBounds',
+      'setActiveMenu',
+      'setActiveMenuMarker',
+    ]),
+  },
+};
 </script>
 
 <style lang="sass">
