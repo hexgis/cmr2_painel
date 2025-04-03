@@ -34,11 +34,8 @@
 </i18n>
 <script>
 import { mapGetters } from 'vuex';
-// import SearchFilters from '/components/admin/SearchFilters.vue'
 import SearchFilters from '@/components/admin/SearchFilters.vue'
-// import RestrictedAreaCard from '/components/admin/restrictedAreaCard.vue'
 import RestrictedAreaCard from '@/components/admin/RestrictedAreaCard.vue'
-// import StatusFilter from '/components/admin/StatusFilter.vue'
 import StatusFilter from '@/components/admin/StatusFilter.vue'
 
 export default {
