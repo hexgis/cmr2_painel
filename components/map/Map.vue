@@ -119,14 +119,13 @@
           class="leaflet-coordinates-control"
           position="bottomleft"
         >
-          <div v-if="user.settings.map_pointer_coordinates_visible">
+          <div>
             {{ cursorCoordinates.lat }},
             {{ cursorCoordinates.lng }}
           </div>
         </l-control>
 
         <l-control-scale
-          v-if="user.settings.map_scale_visible"
           position="bottomleft"
         />
 
@@ -664,9 +663,7 @@ export default {
         miniMapLayer,
         this.miniMapOptions,
       );
-      if (this.minimapVisibleSettings) {
-        this.miniMap.addTo(this.map);
-      }
+      this.miniMap.addTo(this.map);
     },
 
     createCssRefs() {
