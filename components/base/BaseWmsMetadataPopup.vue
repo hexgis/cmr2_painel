@@ -116,6 +116,7 @@
   </i18n>
 <script>
 import { mapState } from 'vuex';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import LoadingIconVue from '../map/file-loader/LoadingIcon.vue';
 
 export default {
@@ -134,9 +135,7 @@ export default {
     hasPopup: false,
     popup: null,
     data: null,
-    instrumentoGestao: {}, // Changed to an empty object
     loadingData: false,
-    isInstrumentoGestaoLayerActive: false,
   }),
 
   computed: {
@@ -275,6 +274,19 @@ export default {
               this.data[layerName].loading = false;
               this.$forceUpdate();
             });
+        } else if (layer.feature) {
+          if (layer.feature.geometry.type === 'MultiPolygon' || layer.feature.geometry.type === 'Polygon') {
+            // Verifique se o ponto está dentro de um MultiPolygon.
+            if (booleanPointInPolygon([evt.latlng.lng, evt.latlng.lat], layer.feature)) {
+              const name = layer.feature.properties.no_ti;
+              const layerName = name;
+              this.hasPopup = true;
+              this.data[layerName] = {
+                layers: [layer.feature.properties],
+                loading: false,
+              };
+            }
+          }
         }
       });
 
