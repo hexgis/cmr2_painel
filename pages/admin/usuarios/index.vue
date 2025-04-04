@@ -356,9 +356,8 @@ export default {
 
     async fetchUsers() {
       try {
-        const response = await this.$axios.get(
-          'https://cmrhomolog.funai.gov.br/priority_api/user/',
-        );
+        const response = await this.$api.get('/user/');
+
         if (Array.isArray(response.data) && response.data.length > 0) {
           this.users = response.data;
           this.filteredUsers = this.users;
@@ -386,8 +385,8 @@ export default {
 
     async addUser() {
       try {
-        const response = await this.$axios.post(
-          'https://cmrhomolog.funai.gov.br/priority_api/user/',
+        const response = await this.$api.post(
+          '/user/',
           {
             username: this.newUser.username,
             email: this.newUser.email,
@@ -422,8 +421,8 @@ export default {
         if (!this.editUserData.id) {
           throw new Error('ID do usuário não definido.');
         }
-        const response = await this.$axios.patch(
-          `https://cmrhomolog.funai.gov.br/priority_api/user/${this.editUserData.id}/`,
+        const response = await this.$api.patch(
+          `/user/${this.editUserData.id}/`,
           {
             username: this.editUserData.username,
             email: this.editUserData.email,
