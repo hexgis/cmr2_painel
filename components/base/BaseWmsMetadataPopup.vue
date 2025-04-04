@@ -1,13 +1,16 @@
 <template>
-  <l-layer-group ref="popup" :visible="!isDrawing">
+  <l-layer-group
+    ref="popup"
+    :visible="!isDrawing"
+  >
     <l-popup :options="popupOptions">
       <LoadingIconVue v-if="isLoadingData" />
+
       <v-card
         v-else
         class="fill-height"
       >
         <v-tabs
-          v-if="data && Object.keys(data).length"
           background-color="primary"
           dark
           class="fill-height"
@@ -16,17 +19,12 @@
             <v-tab :key="layerName">
               {{ layerName }}
             </v-tab>
-
             <v-tab-item
               :key="layerName"
               class="fill-height"
             >
-              <v-card-text
-                style="max-height: 312px; overflow-y: auto"
-              >
-                <template
-                  v-for="(feature, i) in layerData.layers"
-                >
+              <v-card-text style="max-height: 312px; overflow-y: auto">
+                <template v-for="(feature, i) in layerData.layers">
                   <v-row
                     v-show="i != 0"
                     :key="i"
@@ -60,12 +58,7 @@
                           {{ value }}
                         </a>
                         <span v-else>
-                          {{
-                            formatValue(
-                              value,
-                              field
-                            )
-                          }}
+                          {{ formatValue(value,field) }}
                         </span>
                       </v-col>
                     </v-row>
@@ -102,65 +95,6 @@
               </v-card-text>
             </v-tab-item>
           </template>
-
-          <!-- New tab for InstrumentoGestao -->
-          <v-tab
-            v-if="
-              instrumentoGestao &&
-                Object.keys(instrumentoGestao).length
-            "
-          >
-            {{ $t('instrument-management') }}
-          </v-tab>
-
-          <v-tab-item
-            v-if="instrumentoGestao && instrumentoGestao.length"
-            class="fill-height"
-          >
-            <v-card-text style="max-height: 312px; overflow-y: auto">
-              <div
-                v-for="(item, index) in instrumentoGestao"
-                :key="index"
-              >
-                <v-row class="mx-0 grey lighten-4 my-2">
-                  <v-col
-                    cols="12"
-                    class="text-center font-weight-bold"
-                  >
-                    {{ $t('instrument-management') }} {{ index + 1 }}
-                  </v-col>
-                </v-row>
-                <v-row
-                  v-for="(value, key) in item"
-                  :key="key + index"
-                  class="mx-0 list-separator"
-                  dense
-                >
-                  <v-col
-                    cols="5"
-                    class="text-right font-weight-bold"
-                  >
-                    {{ formatField(key) }}:
-                  </v-col>
-                  <v-col
-                    cols="7"
-                    class="text-subtitle-2"
-                    style="overflow-wrap: anywhere"
-                  >
-                    <span v-if="isValidUrl(value)">
-                      <a
-                        :href="value"
-                        target="_blank"
-                      >{{ value }}</a>
-                    </span>
-                    <span v-else>
-                      {{ formatValue(value, key) }}
-                    </span>
-                  </v-col>
-                </v-row>
-              </div>
-            </v-card-text>
-          </v-tab-item>
         </v-tabs>
       </v-card>
     </l-popup>
@@ -181,7 +115,7 @@
   }
   </i18n>
 <script>
-import {mapState} from 'vuex';
+import { mapState } from 'vuex';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import LoadingIconVue from '../map/file-loader/LoadingIcon.vue';
 
@@ -201,7 +135,6 @@ export default {
     hasPopup: false,
     popup: null,
     data: null,
-    instrumentoGestao: {}, // Changed to an empty object
     loadingData: false,
   }),
 
@@ -233,8 +166,9 @@ export default {
   },
 
   methods: {
-    formatField(field) {
-      if (!field || typeof field !== 'string') {
+    formatField(value) {
+      let fieldValue = value;
+      if (!fieldValue || typeof fieldValue !== 'string') {
         return ''; // or handle appropriately if field is not a string
       }
 
@@ -249,42 +183,43 @@ export default {
         ranking: ['Ranking Desmate 2022', 'ranking'],
       };
 
-      const prefix = field.match(/^\w+_/)
-        ? field.match(/^\w+_/)
-        : field.match(/^\w+/);
+      const prefix = fieldValue.match(/^\w+_/)
+        ? fieldValue.match(/^\w+_/)
+        : fieldValue.match(/^\w+/);
       const key = prefix ? prefix[0] : ''; // handle case where prefix is null or undefined
       const regex = /^[A-Za-z]{2}_\w+$/;
 
       if (key && key in replacements) {
-        field = field.replace(
+        fieldValue = fieldValue.replace(
           replacements[key][1],
           replacements[key][0],
         );
-      } else if (field.match(regex)) {
-        field = field.substring(3);
+      } else if (fieldValue.match(regex)) {
+        fieldValue = fieldValue.substring(3);
       }
 
-      field = field
+      fieldValue = fieldValue
         .replaceAll('_', ' ')
         .split(' ')
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
-      return field;
+      return fieldValue;
     },
 
     formatValue(value, field) {
+      let fieldValue = value;
       if (
-        typeof value === 'string'
+        typeof fieldValue === 'string'
                 && (field.startsWith('dt_')
                     || field.startsWith('data_')
                     || field.startsWith('date'))
-                && this.$moment(value).isValid()
+                && this.$moment(fieldValue).isValid()
       ) {
-        value = this.$moment(value).format('DD/MM/YYYY');
-      } else if (typeof value === 'boolean') {
-        value = value ? 'Sim' : 'Não';
+        fieldValue = this.$moment(fieldValue).format('DD/MM/YYYY');
+      } else if (typeof fieldValue === 'boolean') {
+        fieldValue = fieldValue ? 'Sim' : 'Não';
       }
-      return value;
+      return fieldValue;
     },
 
     isValidUrl(value) {
@@ -297,16 +232,14 @@ export default {
       return url.protocol === 'http:' || url.protocol === 'https:';
     },
 
-    getFeatureInfo(evt) {
+    async getFeatureInfo(evt) {
       this.hasPopup = false;
       this.data = {};
-      this.instrumentoGestao = {}; // Clear previous data
-
-      this.map.eachLayer((layer) => {
+      await this.map.eachLayer(async (layer) => {
         if (Object.prototype.hasOwnProperty.call(layer, 'wmsParams')) {
           this.hasPopup = true;
-
           const layerName = layer.wmsParams.name;
+
           this.data[layerName] = {
             layers: [],
             loading: true,
@@ -316,23 +249,19 @@ export default {
           this.loadingData = true;
           this.$axios
             .get(url)
-            .then(({ data }) => {
+            .then(async ({ data }) => {
               if (data && data.features && data.features.length) {
+                // eslint-disable-next-line no-restricted-syntax
                 for (const feature of data.features) {
-                  this.data[layerName].layers.push(
-                    feature.properties,
-                  );
+                  // TODO: Remover essa logica de Camada Instrumento de Gestão
+                  if (layerName.toLowerCase().includes('instrumento') || layerName.toLowerCase().includes('gestão')) {
+                    // eslint-disable-next-line no-await-in-loop
+                    const res = await this.fetchInstrumentoGestao(feature.properties.co_funai);
+                    this.data[layerName].layers = res || [];
+                    return;
+                  }
+                  this.data[layerName].layers.push(feature.properties);
                 }
-              }
-
-              // Fetch InstrumentoGestao data if available
-              const coFunaiLayer = this.data[
-                layerName
-              ].layers.find((layer) => layer.co_funai);
-              if (coFunaiLayer) {
-                this.fetchInstrumentoGestao(
-                  coFunaiLayer.co_funai,
-                );
               }
             })
             .catch(() => {
@@ -346,17 +275,9 @@ export default {
               this.$forceUpdate();
             });
         } else if (layer.feature) {
-          if (
-            layer.feature.geometry.type === 'MultiPolygon'
-                        || layer.feature.geometry.type === 'Polygon'
-          ) {
-            if (
-              booleanPointInPolygon(
-                [evt.latlng.lng, evt.latlng.lat],
-                layer.feature,
-              )
-            ) {
-              // Verifique se o ponto está dentro de um MultiPolygon.
+          if (layer.feature.geometry.type === 'MultiPolygon' || layer.feature.geometry.type === 'Polygon') {
+            // Verifique se o ponto está dentro de um MultiPolygon.
+            if (booleanPointInPolygon([evt.latlng.lng, evt.latlng.lat], layer.feature)) {
               const name = layer.feature.properties.no_ti;
               const layerName = name;
               this.hasPopup = true;
@@ -379,6 +300,7 @@ export default {
         latlng,
         this.map.getZoom(),
       );
+
       const size = this.map.getSize();
       const params = {
         request: 'GetFeatureInfo',
@@ -388,6 +310,7 @@ export default {
         transparent: layer.wmsParams.transparent,
         version: layer.wmsParams.version,
         format: layer.wmsParams.format,
+        // eslint-disable-next-line no-underscore-dangle
         bbox: layer._map.getBounds().toBBoxString(),
         feature_count: 50,
         height: size.y,
@@ -397,23 +320,21 @@ export default {
         info_format: 'application/json',
       };
 
-      params[params.version === '1.3.0' ? 'i' : 'x'] = point.x;
-      params[params.version === '1.3.0' ? 'j' : 'y'] = point.y;
+      params[params.version === '1.3.0' ? 'i' : 'x'] = Math.trunc(point.x);
+      params[params.version === '1.3.0' ? 'j' : 'y'] = Math.trunc(point.y);
 
-      return (
-        layer._url
-                + this.$L.Util.getParamString(params, layer._url, true)
-      );
+      // eslint-disable-next-line no-underscore-dangle
+      return (layer._url + this.$L.Util.getParamString(params, layer._url, true));
     },
 
-    async fetchInstrumentoGestao(co_funai) {
+    async fetchInstrumentoGestao(CoFunai) {
       this.loadingData = true;
-      const url = `funai/instrumento-gestao/?co_funai=${co_funai}`;
+      const url = `funai/management-instrument/?co_funai=${CoFunai}`;
       try {
-        this.instrumentoGestao = await this.$api.$get(url);
+        return await this.$api.$get(url);
       } catch (error) {
         console.error('Error fetching data:', error);
-        this.instrumentoGestao = {};
+        return [];
       } finally {
         this.loadingData = false;
       }
