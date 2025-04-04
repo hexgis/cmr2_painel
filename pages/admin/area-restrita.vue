@@ -3,7 +3,7 @@
     <h1 class="pb-5 text-uppercase">
       {{ $t('restricted-area') }}
     </h1>
-    <!-- <StatusFilter
+    <StatusFilter
       :requestStatus="requestStatus"
       :selectedStatus="selectedStatus"
       :showFilters="showFilters"
@@ -12,14 +12,14 @@
     />
     <div v-if="showFilters" class="search mt-4">
       <SearchFilters :filters="filters" :reviewersList="reviewersList" :isNewAccessRequest="true"/>
-    </div> -->
-    <!-- <div class="card--wrapper mt-6">
+    </div>
+    <div class="card--wrapper mt-6">
       <RestrictedAreaCard
         v-for="(data, index) in filteredTestCases"
         :key="index"
         :userRequestData="data"
       />
-    </div> -->
+    </div>
   </div>
 </template>
 <i18n>
@@ -34,14 +34,17 @@
 </i18n>
 <script>
 import { mapGetters } from 'vuex';
-// import SearchFilters from '/components/admin/SearchFilters.vue'
-// import RestrictedAreaCard from '/components/admin/restrictedAreaCard.vue'
-// import StatusFilter from '/components/admin/StatusFilter.vue'
+import SearchFilters from '@/components/admin/SearchFilters.vue'
+import RestrictedAreaCard from '@/components/admin/RestrictedAreaCard.vue'
+import StatusFilter from '@/components/admin/StatusFilter.vue'
 
 export default {
   name: 'AreaRestrita',
+
   layout: 'admin',
-  // components: { RestrictedAreaCard, SearchFilters, StatusFilter },
+
+  components: { RestrictedAreaCard, SearchFilters, StatusFilter },
+  
   data: () => ({
     requestStatus: [],
     selectedStatus: null,
@@ -58,8 +61,8 @@ export default {
     menuStartDate: false,
     menuEndDate: false,
   }),
+
   computed: {
-    ...mapGetters('admin', ['newUsersRequest']),
     reviewersList() {
       const reviewers = this.newUsersRequest
         .map((testCase) => testCase.reviewed_by_name)
@@ -67,6 +70,7 @@ export default {
 
       return [...new Set(reviewers)];
     },
+
     filteredTestCases() {
       return this.newUsersRequest.filter((testCase) => {
         const {
@@ -90,25 +94,31 @@ export default {
       });
     },
 
+    ...mapGetters('admin', ['newUsersRequest']),
   },
+
   async mounted() {
     await this.$store.dispatch('admin/fetchRequestListAccess');
     this.requestStatus = [...new Set(this.newUsersRequest.map((testCase) => testCase.status_name))];
   },
+
   methods: {
     toggleStatus(status) {
       this.selectedStatus = this.selectedStatus === status ? null : status;
       this.applySearch();
     },
+
     applySearch() {
       this.filteredTestCases;
     },
+
     getStatusButtonStyle(status) {
       return {
         backgroundColor: status === this.selectedStatus ? '#9A9997' : '',
         color: status === this.selectedStatus ? '#FFFFFF' : '',
       };
     },
+
     toggleFilters() {
       this.showFilters = !this.showFilters;
     },
