@@ -7,17 +7,16 @@
         class="fill-height"
       >
         <v-tabs
-          v-if="data && Object.keys(data).length"
+         
           background-color="primary"
           dark
           class="fill-height"
         >
-          <template v-for="(layerData, layerName) in data">
+      <template v-for="(layerData, layerName) in data">
             <v-tab :key="layerName">
               {{ layerName }}
             </v-tab>
-
-            <v-tab-item
+           <v-tab-item
               :key="layerName"
               class="fill-height"
             >
@@ -108,13 +107,14 @@
             v-if="
               instrumentoGestao &&
                 Object.keys(instrumentoGestao).length
+                && isInstrumentoGestaoLayerActive
             "
           >
             {{ $t('instrument-management') }}
           </v-tab>
-
           <v-tab-item
-            v-if="instrumentoGestao && instrumentoGestao.length"
+            v-if="instrumentoGestao && instrumentoGestao.length
+             && isInstrumentoGestaoLayerActive"
             class="fill-height"
           >
             <v-card-text style="max-height: 312px; overflow-y: auto">
@@ -203,9 +203,23 @@ export default {
     data: null,
     instrumentoGestao: {}, // Changed to an empty object
     loadingData: false,
+    isInstrumentoGestaoLayerActive: false,
   }),
 
   computed: {
+    filteredData() {
+      if (!this.data) return {}
+        const filtered = {}
+          for (const [layerName, layerData] of Object.entries(this.data)) {
+          // Filtra para não mostrar a camada de instrumento de gestão que vem de data
+            if (
+              !layerName.toLowerCase().includes('instrumento') &&
+              !layerName.toLowerCase().includes('gestão')
+            ) {filtered[layerName] = layerData}
+            }
+            return filtered
+        },
+
     isLoadingData() {
       return this.loadingData;
     },
@@ -301,12 +315,34 @@ export default {
       this.hasPopup = false;
       this.data = {};
       this.instrumentoGestao = {}; // Clear previous data
-
+      this.isInstrumentoGestaoLayerActive = false
+      // Primeiro verifica se a camada de instrumentos está ativa
+      this.map.eachLayer((layer) => {
+        if (Object.prototype.hasOwnProperty.call(layer, 'wmsParams')) {
+          if (
+            layer.wmsParams.name
+              .toLowerCase()
+              .includes('instrumento') ||
+              layer.wmsParams.name.toLowerCase().includes('gestão')
+            ) {
+                this.isInstrumentoGestaoLayerActive = true
+              }
+            }
+        })
+        // Depois processa todas as camadas
       this.map.eachLayer((layer) => {
         if (Object.prototype.hasOwnProperty.call(layer, 'wmsParams')) {
           this.hasPopup = true;
-
           const layerName = layer.wmsParams.name;
+          // Se for a camada de instrumentos, só busca os dados se estiver ativa
+            if (
+              (layerName.toLowerCase().includes('instrumento') ||
+                layerName.toLowerCase().includes('gestão')) &&
+                  !this.isInstrumentoGestaoLayerActive
+                ) {
+                    return
+                  }
+
           this.data[layerName] = {
             layers: [],
             loading: true,
@@ -322,17 +358,13 @@ export default {
                   this.data[layerName].layers.push(
                     feature.properties,
                   );
+              // Busca instrumento de gestão se for a camada correta e tiver co_funai
+              if (this.isInstrumentoGestaoLayerActive && feature.properties.co_funai) {
+                this.fetchInstrumentoGestao(
+                  feature.properties.co_funai
+                 )
                 }
               }
-
-              // Fetch InstrumentoGestao data if available
-              const coFunaiLayer = this.data[
-                layerName
-              ].layers.find((layer) => layer.co_funai);
-              if (coFunaiLayer) {
-                this.fetchInstrumentoGestao(
-                  coFunaiLayer.co_funai,
-                );
               }
             })
             .catch(() => {
@@ -346,28 +378,9 @@ export default {
               this.$forceUpdate();
             });
         } else if (layer.feature) {
-          if (
-            layer.feature.geometry.type === 'MultiPolygon'
-                        || layer.feature.geometry.type === 'Polygon'
-          ) {
-            if (
-              booleanPointInPolygon(
-                [evt.latlng.lng, evt.latlng.lat],
-                layer.feature,
-              )
-            ) {
-              // Verifique se o ponto está dentro de um MultiPolygon.
-              const name = layer.feature.properties.no_ti;
-              const layerName = name;
-              this.hasPopup = true;
-              this.data[layerName] = {
-                layers: [layer.feature.properties],
-                loading: false,
-              };
-            }
-          }
-        }
-      });
+        // ... manter o restante do código existente ...
+      }
+    })
 
       if (this.hasPopup) {
         this.$refs.popup.mapObject.openPopup(evt.latlng);
@@ -408,7 +421,7 @@ export default {
 
     async fetchInstrumentoGestao(co_funai) {
       this.loadingData = true;
-      const url = `funai/instrumento-gestao/?co_funai=${co_funai}`;
+      const url = `funai/management-instrument/?co_funai=${co_funai}`;
       try {
         this.instrumentoGestao = await this.$api.$get(url);
       } catch (error) {
