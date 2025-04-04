@@ -1,6 +1,6 @@
 export const state = () => ({
   user: null,
-  showDrawer: false,
+  showDrawer: true,
 });
 
 export const mutations = {
