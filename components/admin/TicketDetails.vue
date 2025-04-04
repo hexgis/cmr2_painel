@@ -108,11 +108,23 @@
                     ></v-text-field>
                 </v-col>
             </v-row>
-            <div class="mt-4" v-if="!isCompletedCard">
+            <div class="mt-4" v-if="!isCompletedCard && showAnalysisFieldsUser">
                 <h3 class="text-uppercase">{{ $t('analyzeRequest') }}</h3>
                 <v-divider></v-divider>
                 <v-row class="mt-6 mb-0">
                     <v-col cols="12" md="6">
+                        <v-select
+                            v-model="status"
+                            :items="statusLabelOptions"
+                            label="Status"
+                            outlined
+                        ></v-select>
+                    </v-col>
+                    <v-col v-if="(showAnalysisFieldsAdmin || this.status == 'DEFERIDO') && 
+                                showAnalysisFieldsDev"
+                        cols="12"
+                        md="6"
+                    >
                         <v-select
                             v-model="priority"
                             :items="priorityLabelOptions"
@@ -120,8 +132,31 @@
                             outlined
                         ></v-select>
                     </v-col>
-
-                    <v-col v-if="!dueOn" cols="12" md="6">
+                    <v-col v-if="showAnalysisFieldsAdmin" cols="12" md="6">
+                        <v-select
+                            v-model="substatus"
+                            :items="substatusLabelOptions"
+                            label="Substatus"
+                            outlined
+                        ></v-select>
+                    </v-col>
+                    <v-col v-if="!dueOn && showAnalysisFieldsAdmin && (showAnalysisFieldsDev ||
+                                this.substatus == 'EM_DESENVOLVIMENTO')"
+                        cols="12"
+                        md="6"
+                    >
+                        <v-select
+                            v-model="complexity"
+                            :items="complexityLabelOptions"
+                            :label="$t('complexityLabel')"
+                            outlined
+                        ></v-select>
+                    </v-col>
+                    <v-col v-if="!dueOn && showAnalysisFieldsAdmin && (showAnalysisFieldsDev ||
+                                this.substatus == 'EM_DESENVOLVIMENTO')"
+                        cols="12"
+                        md="6"
+                    >
                         <v-menu
                             ref="menu"
                             v-model="menu"
@@ -148,34 +183,11 @@
                             ></v-date-picker>
                         </v-menu>
                     </v-col>
-                    <v-col cols="12" md="6">
-                        <v-select
-                            v-model="status"
-                            :items="statusLabelOptions"
-                            label="Status"
-                            outlined
-                        ></v-select>
-                    </v-col>
-
-                    <v-col cols="12" md="6">
-                        <v-select
-                            v-model="substatus"
-                            :items="substatusLabelOptions"
-                            label="Substatus"
-                            outlined
-                        ></v-select>
-                    </v-col>
-
-                    <v-col v-if="!dueOn" cols="12" md="6">
-                        <v-select
-                            v-model="complexity"
-                            :items="complexityLabelOptions"
-                            :label="$t('complexityLabel')"
-                            outlined
-                        ></v-select>
-                    </v-col>
-
-                    <v-col v-if="!dueOn" cols="12" md="6">
+                    <v-col v-if="!dueOn && showAnalysisFieldsAdmin &&
+                                showAnalysisFieldsDev"
+                        cols="12"
+                        md="6"
+                    >
                         <v-select
                             v-model="functionality"
                             :items="solicitationTypeLabelOptions"
@@ -183,8 +195,11 @@
                             outlined
                         ></v-select>
                     </v-col>
-
-                    <v-col cols="12" md="6" class="relative-input">
+                    <v-col v-if="showAnalysisFieldsAdmin"
+                        cols="12"
+                        md="6"
+                        class="relative-input"
+                    >
                         <v-file-input
                             v-model="file"
                             :label="$t('chooseFile')"
@@ -195,7 +210,9 @@
                     </v-col>
                 </v-row>
                 <v-row>
-                    <v-col cols="12">
+                    <v-col v-if="showAnalysisFieldsAdmin && showAnalysisFieldsDev"
+                        cols="12"
+                    >
                         <v-checkbox
                             v-model="checkbox"
                             :label="$t('sendEmailToUser')"
@@ -205,7 +222,9 @@
                     </v-col>
                 </v-row>
                 <v-row>
-                    <v-col cols="12">
+                    <v-col v-if="showAnalysisFieldsAdmin && showAnalysisFieldsDev"
+                        cols="12"
+                    >
                         <v-text-field
                             v-model="text"
                             :label="$t('comment')"
@@ -218,7 +237,6 @@
                 <span class="d-flex justify-end">
                     <v-btn
                         color="primary"
-                        :disabled="!isSaveEnabled"
                         @click="handleSave"
                     >
                         Salvar
@@ -310,7 +328,7 @@
 import LoadingIconVue from '../map/file-loader/LoadingIcon.vue';
 import PriorityBadge from './PriorityBadge.vue'
 import StatusBadge from './StatusBadge.vue'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import Timeline from './Timeline.vue'
 import CustomDialog from './CustomDialog.vue';
 export default {
@@ -347,6 +365,21 @@ export default {
     },
     computed: {
         ...mapGetters('admin', ['ticketDetail', 'labels']),
+        ...mapState('userProfile', ['user']),
+
+        showAnalysisFieldsAdmin() {
+            return this.user?.components?.feedback_admin === false
+        },
+
+        showAnalysisFieldsDev() {
+            return this.user?.components?.feedback_dev === false
+        },
+
+        showAnalysisFieldsUser() {
+            return !(this.user?.components?.feedback_admin === false && 
+            this.user?.components?.feedback_dev === false)
+        },
+
         isSaveEnabled() {
             return this.text.trim().length > 0 && (this.date || this.dueOn)
         },
@@ -366,7 +399,15 @@ export default {
             return this.ticketDetail.ticket_status?.due_on
         },
         statusLabelOptions() {
-            return this.labels?.status_category?.map((label) => ({
+            const isDev = this.user?.components?.feedback_dev === true;
+            return this.labels?.status_category
+                ?.filter(label => {
+                    if (isDev && label.value === 'DEFERIDO') {
+                        return false;
+                    }
+                    return true;
+                })
+            ?.map((label) => ({
                 text: label.label,
                 value: label.value,
                 disabled: label.label === 'Não Analisado',
@@ -479,7 +520,6 @@ export default {
                     ticketId: this.cardId,
                 })
                 this.text = ''
-
             } catch (error) {
                 this.errorModal = true
                 console.error(

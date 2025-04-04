@@ -15,13 +15,12 @@ export const state = () => ({
     csv: 'csv',
     json: 'json',
   },
-
   opacity: 100,
   heatMap: false,
   total: null,
   tableLandUse: [],
   tableCSVLandUse: [],
-});
+ });
 
 export const getters = {
   featuresLoaded(state) {
@@ -232,10 +231,10 @@ export const actions = {
       });
 
       if (tableLandUse) commit('setTable', tableLandUse);
-
       const total = await this.$api.$get('land-use/stats/', {
         params,
       });
+      
       if (total) commit('setTotal', total);
     } catch (error) {
       commit(

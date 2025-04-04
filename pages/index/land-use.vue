@@ -11,9 +11,7 @@
         hide-details
       />
     </div>
-
     <LandUseFilter @onSearch="search()" />
-
     <div
       v-if="showFeaturesLandUse && !isLoadingFeatures"
       class="px-4"
@@ -23,87 +21,60 @@
         {{ $t('legend') }}
       </p>
       <v-col class="grey--text text--darken-2">
-        <v-row class="mb-2">
-          <v-icon
-            class="mr-2"
-            color="#ffff00"
-          >
+        <v-row
+          v-for="(category, index) in landUseCategories"
+          :key="index"
+          class="mb-2"
+        >
+          <v-icon class="mr-2" :color="category.color">
             mdi-square
           </v-icon>
-          {{ $t('land-use-categories.agriculture') }}
+          {{ $t(`land-use-categories.${category.key}`) }}
         </v-row>
-        <v-row class="mb-2">
-          <v-icon
-            class="mr-2"
-            color="#66ffff"
-          >
-            mdi-square
-          </v-icon>
-          {{ $t('land-use-categories.water-body') }}
-        </v-row>
-        <v-row class="mb-2">
-          <v-icon
-            class="mr-2"
-            color="#cc9966"
-          >
-            mdi-square
-          </v-icon>
-          {{ $t('land-use-categories.village') }}
-        </v-row>
-        <v-row class="mb-2">
-          <v-icon
-            class="mr-2"
-            color="#00cc00"
-          >
-            mdi-square
-          </v-icon>
-          {{ $t('land-use-categories.natural-vegetation') }}
-        </v-row>
-        <v-row class="mb-2">
-          <v-icon
-            class="mr-2"
-            color="#ff3333"
-          >
-            mdi-square
-          </v-icon>
-          {{ $t('land-use-categories.clear-cut') }}
-        </v-row>
-        <v-spacer />
       </v-col>
     </div>
   </v-container>
 </template>
 
 <i18n>
-    {
-        "en": {
-            "title": "Land Use and Occupation",
-            "analytics-label": "Analytics",
-            "map-label": "Map",
-            "table-name": "Land Use Table",
-            "legend": "Legend:",
-            "land-use-categories": {
-              "agriculture": "Agriculture",
-              "water-body": "Water Body",
-              "village": "Village",
-              "natural-vegetation": "Natural Vegetation",
-              "clear-cut": "Clear Cut"
-            
-          }
-        },
-        "pt-br": {
-            "title": "Uso e Ocupação do Solo",
-            "legend": "Legenda:",
-            "land-use-categories": {
-              "agriculture": "Agropecuária",
-              "water-body": "Massa de Água",
-              "village": "Vilarejo",
-              "natural-vegetation": "Vegetação Natural",
-              "clear-cut": "Corte Raso"
-             
-          }
-        }
+{
+  "en": {
+      "title": "Land Use and Occupation",
+      "analytics-label": "Analytics",
+      "map-label": "Map",
+      "table-name": "Land Use Table",
+      "legend": "Legend:",
+      "land-use-categories": {
+        "agriculture": "Agriculture",
+        "clear-cut": "Clear Cut",
+        "degradation": "Degradation",
+        "water-body": "Water Body",
+        "mining": "Mining",
+        "not-observed": "Not observed",
+        "highway": "Highway",
+        "forestry": "Forestry",
+        "natural-vegetation": "Natural Vegetation",
+        "village": "Village"
     }
+  },
+
+  "pt-br": {
+      "title": "Uso e Ocupação do Solo",
+      "legend": "Legenda:",
+      "land-use-categories": {
+        "agriculture": "Agropecuária",
+        "clear-cut": "Corte Raso",
+        "degradation": "Degradação",
+        "water-body": "Massa de Água",
+        "mining": "Mineração",
+        "not-observed": "Não observado",
+        "highway": "Rodovia",
+        "forestry": "Silvicultura",
+        "natural-vegetation": "Vegetação Natural",
+        "village": "Vilarejo"
+    }
+  }
+}
 </i18n>
 
 <script>
@@ -119,11 +90,23 @@ export default {
       tab: null,
       items: ['MapStage', 'AnalytcalStage'],
       text: 'Texto de teste.',
-      timer: '',
-   
+      timer: '',   
       checkNewFilters: false,
+      landUseCategories: [
+        { key: 'agriculture', color: '#ffff00' },
+        { key: 'clear-cut', color: '#ff0000' },
+        { key: 'degradation', color: '#ff00ff' },
+        { key: 'water-body', color: '#00ffff' },
+        { key: 'mining', color: '#e9dcc6' },
+        { key: 'not-observed', color: '#000000' },
+        { key: 'highway', color: '#708090' },
+        { key: 'forestry', color: '#FF8000' },
+        { key: 'natural-vegetation', color: '#228b22' },
+        { key: 'village', color: '#A0522d' },
+      ],
     };
   },
+
   computed: {
     hasFeatures() {
       return (
@@ -142,6 +125,7 @@ export default {
         this.$store.commit('land-use/setShowFeaturesLandUse', value);
       },
     },
+
     ...mapState('land-use', [
       'features',
       'total',
@@ -201,7 +185,9 @@ export default {
     ]),
 
     ...mapMutations('tableDialog', ['setshowTableDialog']),
+
     ...mapMutations('priority', ['setVisualizationStage']),
+    
     ...mapMutations('land-use', ['settableDialogLand']),
   },
 };
