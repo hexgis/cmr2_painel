@@ -207,19 +207,42 @@ export default {
     },
 
     formatValue(value, field) {
-      let fieldValue = value;
-      if (
-        typeof fieldValue === 'string'
-                && (field.startsWith('dt_')
-                    || field.startsWith('data_')
-                    || field.startsWith('date'))
-                && this.$moment(fieldValue).isValid()
-      ) {
-        fieldValue = this.$moment(fieldValue).format('DD/MM/YYYY');
-      } else if (typeof fieldValue === 'boolean') {
-        fieldValue = fieldValue ? 'Sim' : 'Não';
+      const fieldName = field.toLowerCase();
+
+      const isDateField = (
+        typeof value === 'string'
+        && (fieldName.startsWith('dt_') || fieldName.startsWith('data_') || fieldName.startsWith('date'))
+        && this.$moment(value).isValid()
+      );
+
+      const isBooleanField = typeof value === 'boolean';
+
+      const isNumberField = typeof value === 'number';
+
+      const isLatLongField = ['lat', 'lng', 'long', 'latitude', 'longitude'].some((key) => fieldName.includes(key));
+
+      if (isDateField) {
+        return this.$moment(value).format('DD/MM/YYYY');
       }
-      return fieldValue;
+
+      if (isBooleanField) {
+        return value ? 'Sim' : 'Não';
+      }
+
+      if (isNumberField) {
+        if (isLatLongField) {
+          return value.toFixed(5);
+        }
+
+        const rounded = value.toFixed(2);
+        const [intPart, decimalPart] = rounded.split('.');
+
+        return decimalPart !== '00'
+          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
+          : String(parseInt(value, 10));
+      }
+
+      return value;
     },
 
     isValidUrl(value) {
