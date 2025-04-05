@@ -1,5 +1,5 @@
 <template>
-    <l-layer-group name="monitoring" :visible="showFeaturesMonitoring">
+    <!-- <l-layer-group name="monitoring" :visible="showFeaturesMonitoring">
         <l-layer-group ref="monitoringHeat" :visible="heatMap" />
         <l-feature-group ref="monitoringPolygons">
             <l-popup
@@ -20,7 +20,17 @@
                 :options="{ onEachFeature }"
             />
         </l-feature-group>
-    </l-layer-group>
+    </l-layer-group> -->
+    <l-lwms-tile-layer
+        ref="wmsLayerMonitoring"
+        :base-url="currentUrlWmsMonitoring"
+        :layers="geoserverLayerMonitoring"
+        format="image/png"
+        :transparent="true"
+        :z-index="3"
+        :visible="showFeaturesMonitoring"
+        :options="MonitoringWmsOptions"
+    />
 </template>
 
 <i18n>
@@ -60,10 +70,14 @@ export default {
 
     computed: {
         ...mapState('monitoring', [
+            'currentUrlWmsMonitoring',
+            'showFeaturesMonitoring',
+            'geoserverLayerMonitoring',
+            'MonitoringWmsOptions',
+            // provavel delete
             'features',
             'opacity',
             'heatMap',
-            'showFeaturesMonitoring',
             'selectedStages',
         ]),
         ...mapGetters('monitoring', [
@@ -85,11 +99,14 @@ export default {
             this.addFeatures()
         },
 
-        opacity() {
-            this.$refs.monitoringPolygons.mapObject.invoke(
-                'setStyle',
-                this.setMonitoringStyle
-            )
+        currentUrlWmsMonitoring() {
+            if (this.$refs.wmsLayerMonitoring) {
+                this.$nextTick(() => {
+                    this.$refs.wmsLayerMonitoring.mapObject.setUrl(
+                        this.currentUrlWmsMonitoring
+                    )
+                });
+            }
         },
     },
 

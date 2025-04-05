@@ -121,7 +121,7 @@
                     small
                     color="primary"
                     outlined
-                    :loading="isLoadingFeatures"
+                    :loading="loadingMonitoring"
                     @click="searchMonitoring"
                 >
                     {{ $t('search-label') }}
@@ -133,7 +133,7 @@
                     small
                     color="primary"
                     outlined
-                    :loading="isLoadingFeatures"
+                    :loading="loadingMonitoring"
                     @click="searchMonitoring"
                 >
                     {{ $t('search-label') }}
@@ -365,6 +365,7 @@ export default {
 
             set(value) {
                 this.$store.commit('monitoring/setOpacity', value)
+                this.$store.dispatch('monitoring/generateUrlWmsMonitoring')
             },
         },
 
@@ -393,6 +394,7 @@ export default {
 
         ...mapState('monitoring', [
             'isLoadingFeatures',
+            'loadingMonitoring',
             'filterOptions',
             'features',
             'showFeaturesMonitoring',
