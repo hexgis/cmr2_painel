@@ -1,6 +1,20 @@
+const { stringify } = require('wkt');
+import bbox from '@turf/bbox';
+
 export const state = () => ({
   features: null,
+  urlWmsMonitoring: 'https://cmr.funai.gov.br/geoserver/ows?',
+  geoserverLayerMonitoring: 'CMR-PUBLICO:img_monitoramento_terra_indigena_cr_a',
+  MonitoringWmsOptions: {
+    name: 'monitoring',
+    maxZoom: 21,
+    maxNativeZoom: 19,
+    queryable: true,
+  },
+  currentUrlWmsMonitoring: '',
+  wmsMonitoringOpacity: 100,
   showFeaturesMonitoring: false,
+  loadingMonitoring: false,
   visualizationStage: 'stage1',
   tableDialogMonitoring: false,
   analyticsMonitoringDialog: false,
@@ -142,6 +156,14 @@ export const mutations = {
       ...filters,
     };
   },
+
+  setUrlCurrentWmsMonitoring(state, url) {
+    state.currentUrlWmsMonitoring = url;
+  },
+
+  setLoadingMonitoring(state, loadingMonitoring) {
+    state.loadingMonitoring = loadingMonitoring;
+  }
 };
 
 export const actions = {
@@ -152,66 +174,148 @@ export const actions = {
   },
 
   async getFeatures({ state, commit, rootGetters }) {
-    commit('setLoadingGeoJson', true);
-    commit('setLoadingStatistic', true);
-    commit('setLoadingFeatures', true);
-    commit('setLoadingTableMonitoring', true);
-    commit('clearFeatures');
+    // commit('setLoadingGeoJson', true);
+    // commit('setLoadingStatistic', true);
+    // commit('setLoadingFeatures', true);
+    // commit('setLoadingTableMonitoring', true);
+    // commit('clearFeatures');
+    commit('setUrlCurrentWmsMonitoring', '');
 
     const params = {
-      start_date: state.filters.startDate,
-      end_date: state.filters.endDate,
+      env: `percentage:${state.wmsMonitoringOpacity}`,
+      CQL_FILTER: '',
     };
 
-    if (state.filters.ti && state.filters.ti.length) {
-      const arrayTI = [];
-      Object.values(state.filters.ti).forEach((item) => {
-        arrayTI.push(item.co_funai);
-      });
-      params.co_funai = arrayTI.toString();
-    }
-
-    if (state.filters.currentView) params.in_bbox = rootGetters['map/bbox'];
-
-    if (state.filters.cr && state.filters.cr.length) {
-      const arrayCR = [];
-      Object.values(state.filters.cr).forEach((item) => {
-        arrayCR.push(item.co_cr);
-      });
-      params.co_cr = arrayCR.toString();
-    }
-
     try {
-      const response = await this.$api.$get('monitoring/consolidated/', {
-        params,
-      });
+      commit('setLoadingMonitoring', true);
 
-      if (!response.features || !response.features.length) {
-        commit('setshowFeaturesMonitoring', false);
-        commit(
-          'alert/addAlert',
-          { message: this.$i18n.t('no-result') },
-          { root: true },
-        );
-      } else {
-        let stageItemActive = []
-        response.features.map((item)=>{
-          state.selectedStages.map((stageActive) => {
-            stageActive === item.properties.no_estagio ? stageItemActive.push(item) : ""
-          })
-        })
-        commit('setFeatures', response);
-        commit('setshowFeaturesMonitoring', true);
-        commit('setStageItemActive', stageItemActive);
-        const total = await this.$api.$get(
-          'monitoring/consolidated/map-stats/',
-          {
-            params,
-          },
-        );
-        if (total) commit('setTotal', total);
+      const map = window.mapMain;
+
+      let url = state.urlWmsMonitoring;
+
+      // gera os parametros
+      if (state.filters.currentView) {
+        const bounds = map.getBounds();
+
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        const nw = L.latLng(ne.lat, sw.lng);
+        const se = L.latLng(sw.lat, ne.lng);
+
+        const bboxPolygon = L.polygon([sw, se, ne, nw, sw]);
+
+        const geojson = bboxPolygon.toGeoJSON();
+
+        const wkt = stringify(geojson.geometry);
+
+        params.CQL_FILTER += `INTERSECTS(geom,${wkt})`;
       }
+
+      console.log('params', params);
+      
+
+      if (state.filters.ti && state.filters.ti.length) {
+        const arrayTI = [];
+        Object.values(state.filters.ti).forEach((item) => {
+          arrayTI.push(item.co_funai);
+        });
+        if (params.CQL_FILTER.length) {
+          params.CQL_FILTER += ' AND ';          
+        }
+        params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
+      }
+
+      if (state.filters.cr && state.filters.cr.length) {
+        const arrayCR = [];
+        Object.values(state.filters.cr).forEach((item) => {
+          arrayCR.push(item.co_cr);
+        });
+        if (params.CQL_FILTER.length) {
+          params.CQL_FILTER += ' AND ';
+        }
+        params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
+      }
+
+      if (state.filters.startDate && state.filters.endDate) {
+        if (params.CQL_FILTER.length) {
+          params.CQL_FILTER += ' AND ';
+        }
+        params.CQL_FILTER += `dt_t_um >= (${state.filters.startDate}) AND dt_t_um <= (${state.filters.endDate})`;
+      }
+
+      // Fazendo a requisição para pegar o bbox e qnt total de features
+      // const paramsWFS = new URLSearchParams({
+      //   service: 'WFS',
+      //   version: '1.0.0',
+      //   request: 'GetFeature',
+      //   typeName: state.geoserverLayerMonitoring,
+      //   outputFormat: 'application/json',
+      //   propertyName: 'geom',
+      //   CQL_FILTER: params.CQL_FILTER,
+      // });
+      
+      // const response = await this.$api.$get(`${url}${paramsWFS}`, {
+      //   responseType: 'text', // Importante: para evitar que Axios tente parsear como JSON
+      // });
+
+      // if (!response.features || !response.features.length) {
+      //   commit('setshowFeaturesMonitoring', false);
+      //   commit('setUrlCurrentWmsMonitoring', '');
+      //   commit(
+      //     'alert/addAlert',
+      //     { message: this.$i18n.t('no-result') },
+      //     { root: true },
+      //   );
+      //   return;
+      // }
+
+      // const bbox = response.bbox;
+      // if (bbox.length) {
+      //   map.fitBounds([
+      //     [bbox[1], bbox[0]],
+      //     [bbox[3], bbox[2]],
+      //   ]);
+      // }
+
+      const paramsUrl = new URLSearchParams(params);
+
+      commit('setUrlCurrentWmsMonitoring', `${url}${paramsUrl}`);
+      commit('setshowFeaturesMonitoring', true);
+
+      
+      
+      // const response = await this.$api.$get('monitoring/consolidated/', {
+      //   params,
+      // });
+
+      // if (!response.features || !response.features.length) {
+      //   commit('setshowFeaturesMonitoring', false);
+      //   commit(
+      //     'alert/addAlert',
+      //     { message: this.$i18n.t('no-result') },
+      //     { root: true },
+      //   );
+      // } else {
+      //   let stageItemActive = []
+      //   response.features.map((item)=>{
+      //     state.selectedStages.map((stageActive) => {
+      //       stageActive === item.properties.no_estagio ? stageItemActive.push(item) : ""
+      //     })
+      //   })
+      //   commit('setFeatures', response);
+      //   commit('setshowFeaturesMonitoring', true);
+      //   commit('setStageItemActive', stageItemActive);
+      //   const total = await this.$api.$get(
+      //     'monitoring/consolidated/map-stats/',
+      //     {
+      //       params,
+      //     },
+      //   );
+      //   if (total) commit('setTotal', total);
+      // }
     } catch (exception) {
+      console.log(exception);
+      
       commit(
         'alert/addAlert',
         {
@@ -227,6 +331,7 @@ export const actions = {
       commit('setLoadingGeoJson', false);
       commit('setLoadingStatistic', false);
       commit('setLoadingTableMonitoring', false);
+      commit('setLoadingMonitoring', false);
     }
   },
 
