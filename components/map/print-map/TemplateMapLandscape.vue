@@ -25,7 +25,7 @@
                 >
                     <v-col
                         id="monitoring-data-details"
-                        cols="9"
+                        cols="8"
                         class="pr-0 mt-2"
                     >
                         <div
@@ -155,7 +155,7 @@
                             @getCenter="getCenter"
                         />
                     </v-col>
-                    <v-col cols="3" class="pl-1 mt-2">
+                    <v-col cols="4" class="pl-1 mt-2">
                         <div class="border_container">
                             <div
                                 class="d-flex justify-space-between pl-8 pr-8 ga-1 align-center ma-4"
@@ -211,17 +211,74 @@
                                                 overflow: hidden;
                                             "
                                         >
-                                            <LayerList
-                                                :layers="supportLayerUser"
-                                                :is-user-layer="true"
-                                            />
-                                            <LayerList
-                                                v-if="showFeaturesSupportLayers"
-                                                :layers="supportLayers"
-                                            />
+                                                    <LayerList
+                                                        :layers="supportLayerUser"
+                                                        :is-user-layer="true"
+                                                    />
+                                            <div style="
+                                                    display: flex;
+                                                    justify-content: flex-start;
+                                                    align-items: flex-start; 
+                                                    gap: 5px;
+                                                "
+                                            >
+                                            </div>
                                             <LayerList
                                                 :layers="supportLayersCategoryFire"
                                             />
+                                            
+                                            <div style="
+                                                    display: flex;
+                                                    justify-content: flex-start;
+                                                    align-items: flex-start; 
+                                                    gap: 5px;
+                                                "
+                                            >
+                                                <div v-if="showFeaturesMonitoring">
+                                                    <p>
+                                                        <strong> Monitoramento Diário </strong>
+                                                        <v-chip x-small>
+                                                            {{ totalMonitoring }}
+                                                        </v-chip>
+                                                    </p>
+                                                    <hr
+                                                        style="
+                                                            border: 1px solid red;
+                                                            margin: 0;
+                                                        "
+                                                    />
+                                                    <LayerList
+                                                        v-if="showFeaturesMonitoring "
+                                                        :layers="activeMonitoringLabel"
+                                                        :monitoring="true"
+                                                    />
+                                                
+                                                </div>
+                                                <div v-if="showFeaturesLandUse">
+                                                    <p>
+                                                        <strong>Uso e Ocupação</strong>
+                                                        <v-chip x-small>
+                                                            {{ this.tableLandUse.length }}
+                                                        </v-chip>
+                                                    </p>
+                                                    <hr style="border: 1px solid blue;margin: 0;" />
+                                                    <CustomizedLegend
+                                                        v-if="showFeaturesLandUse"
+                                                        :items="landUseCategories"
+                                                    />
+                                                </div>
+                                                <div v-if="showFeaturesSupportLayers">
+                                                    <p>
+                                                        <strong>Sobreposição de camadas</strong>
+                                                    </p>
+                                                    <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;" />
+                                                    <LayerList
+                                                        v-if="showFeaturesSupportLayers"
+                                                        :layers="supportLayers"
+                                                        class="mt-1"
+                                                    />
+                                                </div>
+                                            </div>
                                             <LayerList
                                                 :layers="supportLayersCategoryProdes"
                                                 :prodes="true"
@@ -235,56 +292,6 @@
                                                 v-if="showFeaturesUrgentAlerts && !showFeaturesMonitoring"
                                                 :items="urgentAlertItems"
                                             />
-                                            <div v-if="showFeaturesMonitoring">
-                                                <p>
-                                                    <strong> Monitoramento Diário </strong
-                                                    ><v-chip
-                                                        x-small
-                                                        style="
-                                                            margin-left: 10px;
-                                                            margin-bottom: 2px;
-                                                        "
-                                                        >{{ totalMonitoring }}
-                                                    </v-chip>
-                                                </p>
-                                                <hr
-                                                    style="
-                                                        border: 1px solid red;
-                                                        margin: 0;
-                                                    "
-                                                />
-                                                <LayerList
-                                                    v-if="showFeaturesMonitoring "
-                                                    :layers="activeMonitoringLabel"
-                                                    :monitoring="true"
-                                                />
-                                            </div>
-                                            <div
-                                                v-if="showFeaturesLandUse"
-                                                class="mt-2"
-                                            >
-                                                <p>
-                                                    <strong>Uso e Ocupação</strong
-                                                    ><v-chip
-                                                        x-small
-                                                        style="
-                                                            margin-left: 10px;
-                                                            margin-bottom: 2px;
-                                                        "
-                                                        >{{ this.tableLandUse.length }}
-                                                    </v-chip>
-                                                </p>
-                                                <hr
-                                                    style="
-                                                        border: 1px solid blue;
-                                                        margin: 0;
-                                                    "
-                                                />
-                                                <CustomizedLegend
-                                                    v-if="showFeaturesLandUse"
-                                                    :items="landUseCategories"
-                                                />
-                                            </div>
                                         </div>
                                     </div>
                                     <div>
