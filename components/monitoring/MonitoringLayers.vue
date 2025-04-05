@@ -100,7 +100,6 @@ export default {
         },
 
         currentUrlWmsMonitoring() {
-            console.log('currentUrlWmsMonitoring', this.currentUrlWmsMonitoring)
             if (this.$refs.wmsLayerMonitoring) {
                 this.$nextTick(() => {
                     this.$refs.wmsLayerMonitoring.mapObject.setUrl(
