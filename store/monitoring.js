@@ -187,9 +187,7 @@ export const actions = {
     commit('setshowFeaturesMonitoring', true);
   },
 
-  generateUrlWmsMonitoring({ state, commit }, newBbox = false) {
-    console.log(newBbox);
-    
+  generateUrlWmsMonitoring({ state, commit }, newBbox = false) {    
     const map = window.mapMain;
 
     const params = {
@@ -244,9 +242,7 @@ export const actions = {
     
     const filtersSubLayersTrue = Object.keys(state.monitoringSubLayers).filter(key => state.monitoringSubLayers[key] === true);
     if (filtersSubLayersTrue && filtersSubLayersTrue.length) {
-      params.CQL_FILTER += ' AND';
-      console.log(filtersSubLayersTrue);
-      
+      params.CQL_FILTER += ' AND';      
       let sublayers = '';
       filtersSubLayersTrue.forEach((value, key) => {
         if (!state.monitoringSubLayers[value]) {
@@ -303,9 +299,7 @@ export const actions = {
 
       await dispatch('generateUrlWmsMonitoring');
       
-    } catch (exception) {
-      console.log(exception);
-      
+    } catch (exception) {      
       commit(
         'alert/addAlert',
         {
