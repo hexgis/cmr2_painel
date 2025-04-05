@@ -581,6 +581,7 @@ export default {
 
     createMap() {
       this.map = this.$refs.map.mapObject;
+      window.mapMain = this.map;
       Vue.prototype.$mainMap = this.map;
       this.map.on('zoomend', this.onZoomEnd);
       this.map.addEventListener('mousemove', this.refreshCoordinates);
