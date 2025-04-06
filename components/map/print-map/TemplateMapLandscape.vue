@@ -30,7 +30,7 @@
         <v-row
           id="map-for-print"
           no-gutters
-          style="width: 1230px; height: 780px; max-height: 780px; overflow-y: hidden"
+          style="width: 1230px; height: 780px; max-height: 780px; overflow: hidden"
         >
           <v-col
             id="monitoring-data-details"
