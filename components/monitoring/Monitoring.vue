@@ -264,6 +264,10 @@ export default {
             //     this.isLoadingStatistic = true
             //     this.getDataAnalyticsMonitoringByFunaiYear()
             // }
+
+            if (this.showTableDialog) {
+                this.$store.dispatch('monitoring/getPropertiesTableMonitoring')
+            }
             if (!this.tableDialogMonitoring) this.getFeatures()
         },
 

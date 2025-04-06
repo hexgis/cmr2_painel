@@ -28,6 +28,7 @@
         format="image/png"
         :transparent="true"
         :z-index="3"
+        :opacity="opacity / 100"
         :visible="showFeaturesMonitoring"
         :options="MonitoringWmsOptions"
     />
