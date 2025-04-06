@@ -14,8 +14,8 @@
         required
         :error="errorRegional"
         :search-input.sync="searchCr"
-        @change="clearSearchCr"
         outlined
+        @change="clearSearchCr"
       />
     </v-row>
 
@@ -38,8 +38,8 @@
           :error="errorTi"
           :search-input.sync="searchTi"
           :disabled="isLoadingTi"
-          @change="clearSearchTi"
           outlined
+          @change="clearSearchTi"
         />
       </v-row>
     </v-slide-y-transition>
@@ -213,7 +213,7 @@
         />
       </v-col>
     </v-row>
-    <v-row
+    <!-- <v-row
       v-if="showFeaturesLandUse && !isLoadingFeatures"
       align="center"
       justify="space-between"
@@ -233,7 +233,7 @@
           hide-details
         />
       </v-col>
-    </v-row>
+    </v-row> -->
     <div
       v-if="tableDialogLand"
       class="d-none"
