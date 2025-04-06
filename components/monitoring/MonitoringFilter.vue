@@ -6,6 +6,7 @@
                     v-model="filters.currentView"
                     :label="$t('current-view-label')"
                     :error="error"
+                    hide-details
                 />
             </v-col>
             <v-col cols="3">
@@ -30,6 +31,7 @@
                     multiple
                     :error="error"
                     class="pa-0"
+                    outlined
                 />
             </v-col>
             <v-col cols="12">
@@ -45,6 +47,7 @@
                         multiple
                         clearable
                         class="pa-0"
+                        outlined
                     />
                 </v-slide-y-transition>
             </v-col>
@@ -69,7 +72,7 @@
                 />
             </v-col>
         </v-row>
-        <v-row no-gutters align="center">
+        <v-row no-gutters align="center" class="mt-3">
             <v-col v-show="showFeaturesMonitoring">
                 <v-btn
                     color="accent"
@@ -217,6 +220,7 @@
         <v-row
             v-if="showFeaturesMonitoring && !isLoadingFeatures"
             align="center"
+            class="mt-2"
         >
             <v-col cols="4" class="grey--text text--darken-2">
                 {{ $t('opacity-label') }}
