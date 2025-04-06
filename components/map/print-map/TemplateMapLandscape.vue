@@ -771,7 +771,6 @@ export default {
   },
 
   async mounted() {
-    // await this.getDataTableLandUse()
     if (this.showFeaturesMonitoring) {
       this.getDataAnalyticsMonitoringByFunai();
     }
@@ -803,6 +802,7 @@ export default {
                 })
                 : '';
       });
+      await this.getDataTableLandUse();
     }
   },
 
