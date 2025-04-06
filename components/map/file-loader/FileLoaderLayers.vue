@@ -1,5 +1,5 @@
 <template>
-  <l-layer-group>
+  <l-layer-group :visible="showFeaturesSupportLayers">
     <l-feature-group ref="feats">
       <l-popup
         :options="{
@@ -61,6 +61,8 @@ export default {
 
   computed: {
     ...mapState('map', ['fileList']),
+
+    ...mapState('supportLayers', ['showFeaturesSupportLayers']),
   },
 
   watch: {
