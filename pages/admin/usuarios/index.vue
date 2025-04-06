@@ -5,9 +5,9 @@
       <v-btn
         color="primary"
         text
-        @click="$router.back()"
+        @click="$router.push('/')"
       >
-        <v-icon color="primary">mdi-keyboard-backspace</v-icon>
+        <v-icon color="primary">mdi-home</v-icon>
       </v-btn>
     </span>
     <v-row class="mt-4">

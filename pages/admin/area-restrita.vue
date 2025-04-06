@@ -1,8 +1,17 @@
 <template>
   <div class="restricted-area pa-5">
-    <h1 class="pb-5 text-uppercase">
-      {{ $t('restricted-area') }}
-    </h1>
+    <span class="d-flex align-center justify-space-between">
+      <h1 class="pb-5 text-uppercase">
+        {{ $t('restricted-area') }}
+      </h1>
+      <v-btn
+        color="primary"
+        text
+        @click="$router.push('/')"
+      >
+        <v-icon color="primary">mdi-home</v-icon>
+      </v-btn>
+    </span>
     <StatusFilter
       :requestStatus="requestStatus"
       :selectedStatus="selectedStatus"

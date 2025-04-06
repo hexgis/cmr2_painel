@@ -1,13 +1,24 @@
 <template>
   <div class="layers">
-    <h1 class="text-uppercase pb-4">
-      Gerenciar Camadas
-    </h1>
-    <FullCard
-      v-for="label in props"
-      :key="label.to"
-      :props="label"
-    />
+    <span class="d-flex align-center justify-space-between">
+      <h1 class="text-uppercase pb-4">
+        Gerenciar Camadas
+      </h1>
+      <v-btn
+        color="primary"
+        text
+        @click="$router.push('/')"
+      >
+        <v-icon color="primary">mdi-home</v-icon>
+      </v-btn>
+    </span>
+    <v-col cols="4">
+      <FullCard
+        v-for="label in props"
+        :key="label.to"
+        :props="label"
+      />
+    </v-col>
   </div>
 </template>
 
@@ -45,7 +56,8 @@ export default {
 
 <style lang="sass" scoped>
 .layers
+  height: 100vh
+  overflow-y: auto
   width: 100%
-  max-width: 800px
-  padding: 1rem 1.5rem
+  padding: 2rem
 </style>

@@ -1,6 +1,15 @@
 <template>
   <div class="institution">
+      <span class="d-flex align-center justify-space-between">
       <h1 class="text-uppercase">Gerenciamento de Instituições</h1>
+      <v-btn
+        color="primary"
+        text
+        @click="$router.back()"
+      >
+        <v-icon color="primary">mdi-arrow-left</v-icon>
+      </v-btn>
+    </span>
       <span class="card--wrapper mt-4">
           <Institutions
               v-for="institution in institutionList"
