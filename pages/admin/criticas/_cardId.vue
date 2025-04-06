@@ -2,8 +2,8 @@
   <div class="ticket-details">
     <span class="d-flex justify-space-between align-center">
       <h1>{{ $t('criticismsSuggestions') }}</h1>
-      <v-btn color="primary" text @click="$router.back()">
-        <v-icon color="primary">mdi-keyboard-backspace</v-icon>
+      <v-btn color="primary" text @click="$router.push('/')">
+        <v-icon color="primary">mdi-home</v-icon>
       </v-btn>
     </span>
     <TicketDetails :cardId="cardId" />

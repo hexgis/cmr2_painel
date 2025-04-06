@@ -2,7 +2,7 @@
     <v-app id="main-page">
         <v-main>
             <div>
-                <v-icon class="ma-2 btn-back" @click="$router.push('/')">
+                <v-icon class="ma-2 btn-back" @click="$router.back()">
                     mdi-arrow-left
                 </v-icon>
                 <nuxt />
