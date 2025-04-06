@@ -1,27 +1,30 @@
 <template>
-    <l-layer-group>
-        <template v-for="layer in supportLayerUser">
-            <SupportUserLayersItem :key="layer.id" :layer="layer" />
-        </template>
-    </l-layer-group>
+  <l-layer-group :visible="showFeaturesSupportLayers">
+    <template v-for="layer in supportLayerUser">
+      <SupportUserLayersItem
+        :key="layer.id"
+        :layer="layer"
+      />
+    </template>
+  </l-layer-group>
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'vuex';
 
-import SupportUserLayersItem from '@/components/support/SupportUserLayersItem'
+import SupportUserLayersItem from '@/components/support/SupportUserLayersItem';
 
 export default {
-    name: 'SupportUserLayersMap',
+  name: 'SupportUserLayersMap',
 
-    components: {
-        SupportUserLayersItem,
-    },
+  components: {
+    SupportUserLayersItem,
+  },
 
-    computed: {
-        ...mapState('supportLayersUser', ['supportLayerUser']),
-        ...mapState('supportLayers', ['supportLayers', 'showFeatures']),
-        ...mapState('map', ['hasAddLayer']),
-    },
-}
+  computed: {
+    ...mapState('supportLayersUser', ['supportLayerUser']),
+    ...mapState('supportLayers', ['supportLayers', 'showFeatures', 'showFeaturesSupportLayers']),
+    ...mapState('map', ['hasAddLayer']),
+  },
+};
 </script>

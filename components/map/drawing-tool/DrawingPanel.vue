@@ -289,7 +289,7 @@ export default {
 
   computed: {
     ...mapState('map', ['buttonPopup', 'activeMenu']),
-    ...mapState('supportLayers', ['supportLayers']),
+    ...mapState('supportLayers', ['supportLayers', 'showFeaturesSupportLayers']),
     ...mapState('searchInArea', ['layersGroups']),
   },
 
@@ -302,6 +302,14 @@ export default {
       if (!this.show) {
         this.clearActiveButton();
         this.isButtonEditClicked = false;
+      }
+    },
+
+    showFeaturesSupportLayers() {
+      if (!this.showFeaturesSupportLayers) {
+        this.map.removeLayer(this.drawnItems);
+      } else {
+        this.map.addLayer(this.drawnItems);
       }
     },
   },
