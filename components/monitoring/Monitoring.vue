@@ -20,7 +20,7 @@
                         </span>
                     </v-col>
                     <v-col cols="3" class="px-0 d-flex justify-end">
-                        <v-switch v-model="dr" class="mt-0 pt-0" />
+                        <v-switch v-model="monitoringSubLayersDR" class="mt-0 pt-0" />
                     </v-col>
                 </v-row>
 
@@ -34,7 +34,7 @@
                         </span>
                     </v-col>
                     <v-col cols="3" class="px-0 d-flex justify-end">
-                        <v-switch v-model="ff" class="mt-0 pt-0" />
+                        <v-switch v-model="monitoringSubLayersFF" class="mt-0 pt-0" />
                     </v-col>
                 </v-row>
 
@@ -49,7 +49,7 @@
                         </span>
                     </v-col>
                     <v-col cols="3" class="px-0 d-flex justify-end">
-                        <v-switch v-model="dg" class="mt-0 pt-0" />
+                        <v-switch v-model="monitoringSubLayersDG" class="mt-0 pt-0" />
                     </v-col>
                 </v-row>
 
@@ -63,7 +63,7 @@
                         </span>
                     </v-col>
                     <v-col cols="3" class="px-0 d-flex justify-end">
-                        <v-switch v-model="cr" class="mt-0 pt-0" />
+                        <v-switch v-model="monitoringSubLayersCR" class="mt-0 pt-0" />
                     </v-col>
                 </v-row>
 
@@ -150,7 +150,65 @@ export default {
             },
         },
 
+        monitoringSubLayersFF: {
+            get() {
+                return this.$store.state.monitoring.monitoringSubLayers.FF
+            },
+
+            set(value) {
+                this.$store.commit('monitoring/setMonitoringSubLayers', {
+                    type: 'FF',
+                    value,
+                })
+                this.$store.dispatch('monitoring/generateUrlWmsMonitoring')
+            },
+        },
+
+        monitoringSubLayersDR: {
+            get() {
+                return this.$store.state.monitoring.monitoringSubLayers.DR
+            },
+
+            set(value) {
+                this.$store.commit('monitoring/setMonitoringSubLayers', {
+                    type: 'DR',
+                    value,
+                })
+                this.$store.dispatch('monitoring/generateUrlWmsMonitoring')
+            },
+        },
+
+        monitoringSubLayersDG: {
+            get() {
+                return this.$store.state.monitoring.monitoringSubLayers.DG
+            },
+
+            set(value) {
+                this.$store.commit('monitoring/setMonitoringSubLayers', {
+                    type: 'DG',
+                    value,
+                })
+                // fire method to update the URL (action in vuex)
+                this.$store.dispatch('monitoring/generateUrlWmsMonitoring')
+            },
+        },
+
+        monitoringSubLayersCR: {
+            get() {
+                return this.$store.state.monitoring.monitoringSubLayers.CR
+            },
+
+            set(value) {
+                this.$store.commit('monitoring/setMonitoringSubLayers', {
+                    type: 'CR',
+                    value,
+                })
+                this.$store.dispatch('monitoring/generateUrlWmsMonitoring')
+            },
+        },
+
         ...mapState('monitoring', [
+            'monitoringSubLayers',
             'showFeaturesMonitoring',
             'features',
             'tableDialogMonitoring',
@@ -197,15 +255,15 @@ export default {
         },
 
         search() {
-            if (this.tableDialogMonitoring) {
-                this.checkNewFilters = true
-                this.getDataTableMonitoring()
-            }
-            if (this.analyticsMonitoringDialog) {
-                this.checkNewFilters = true
-                this.isLoadingStatistic = true
-                this.getDataAnalyticsMonitoringByFunaiYear()
-            }
+            // if (this.tableDialogMonitoring) {
+            //     this.checkNewFilters = true
+            //     this.getDataTableMonitoring()
+            // }
+            // if (this.analyticsMonitoringDialog) {
+            //     this.checkNewFilters = true
+            //     this.isLoadingStatistic = true
+            //     this.getDataAnalyticsMonitoringByFunaiYear()
+            // }
             if (!this.tableDialogMonitoring) this.getFeatures()
         },
 
@@ -214,6 +272,7 @@ export default {
             'updateFeatures',
             'getDataTableMonitoring',
             'getDataAnalyticsMonitoringByFunaiYear',
+            'generateUrlWmsMonitoring',
         ]),
     },
 }
