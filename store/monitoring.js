@@ -6,6 +6,8 @@ export const state = () => ({
   features: null,
   urlWmsMonitoring: 'https://cmr.funai.gov.br/geoserver/ows?',
   geoserverLayerMonitoring: 'CMR-PUBLICO:img_monitoramento_terra_indigena_cr_a',
+  urlWmsMonitoringHeatmap: 'https://cmr.funai.gov.br/geoserver/ows?',
+  geoserverLayerMonitoringHeatmap: 'CMR-PUBLICO:img_monitoramento_terra_indigena_cr_a_heatmap',
   monitoringSubLayers: {
     CR: true,
     DG: true,
@@ -15,6 +17,12 @@ export const state = () => ({
   intersectsWmsMonitoring: '',
   MonitoringWmsOptions: {
     name: 'monitoring',
+    maxZoom: 21,
+    maxNativeZoom: 19,
+    queryable: true,
+  },
+  MonitoringWmsOptionsHeatmap: {
+    name: 'monitoringHeatmap',
     maxZoom: 21,
     maxNativeZoom: 19,
     queryable: true,

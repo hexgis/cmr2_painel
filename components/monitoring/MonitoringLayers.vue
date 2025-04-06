@@ -1,37 +1,28 @@
 <template>
-    <!-- <l-layer-group name="monitoring" :visible="showFeaturesMonitoring">
-        <l-layer-group ref="monitoringHeat" :visible="heatMap" />
-        <l-feature-group ref="monitoringPolygons">
-            <l-popup
-                ref="popup"
-                :options="{
-                    minWidth: 500,
-                    className: 'card-popup',
-                }"
-            >
-                <BaseMetadataPopup
-                    ref="popupComponent"
-                    :feature="selectedMonitoringFeature"
-                />
-            </l-popup>
-            <l-geo-json
-                v-if="featuresLoaded"
-                :geojson="features"
-                :options="{ onEachFeature }"
-            />
-        </l-feature-group>
-    </l-layer-group> -->
-    <l-lwms-tile-layer
-        ref="wmsLayerMonitoring"
-        :base-url="currentUrlWmsMonitoring"
-        :layers="geoserverLayerMonitoring"
-        format="image/png"
-        :transparent="true"
-        :z-index="3"
-        :opacity="opacity / 100"
-        :visible="showFeaturesMonitoring"
-        :options="MonitoringWmsOptions"
-    />
+    <div>
+        <l-lwms-tile-layer
+            ref="wmsLayerMonitoring"
+            :base-url="currentUrlWmsMonitoring"
+            :layers="geoserverLayerMonitoring"
+            format="image/png"
+            :transparent="true"
+            :z-index="3"
+            :opacity="opacity / 100"
+            :visible="showFeaturesMonitoring && !heatMap"
+            :options="MonitoringWmsOptions"
+        />
+        <l-lwms-tile-layer
+            ref="wmsLayerMonitoringHeatmap"
+            :base-url="currentUrlWmsMonitoring"
+            :layers="geoserverLayerMonitoringHeatmap"
+            format="image/png"
+            :transparent="true"
+            :z-index="3"
+            :opacity="opacity / 100"
+            :visible="showFeaturesMonitoring && heatMap"
+            :options="MonitoringWmsOptionsHeatmap"
+        />
+    </div>
 </template>
 
 <i18n>
@@ -43,7 +34,7 @@
             "detail-api-error": "Não foi possível resgatar os dados do polígono, entre em contato com um administrador caso persista."
         }
     }
-    </i18n>
+</i18n>
 
 <script>
 import { mapState, mapGetters } from 'vuex'
@@ -74,7 +65,9 @@ export default {
             'currentUrlWmsMonitoring',
             'showFeaturesMonitoring',
             'geoserverLayerMonitoring',
+            'geoserverLayerMonitoringHeatmap',
             'MonitoringWmsOptions',
+            'MonitoringWmsOptionsHeatmap',
             // provavel delete
             'features',
             'opacity',
@@ -102,11 +95,15 @@ export default {
 
         currentUrlWmsMonitoring() {
             if (this.$refs.wmsLayerMonitoring) {
-                this.$nextTick(() => {
-                    this.$refs.wmsLayerMonitoring.mapObject.setUrl(
-                        this.currentUrlWmsMonitoring
-                    )
-                });
+                this.$refs.wmsLayerMonitoring.mapObject.setUrl(
+                    this.currentUrlWmsMonitoring
+                )
+            }
+
+            if (this.$refs.wmsLayerMonitoringHeatmap) {
+                this.$refs.wmsLayerMonitoringHeatmap.mapObject.setUrl(
+                    this.currentUrlWmsMonitoring
+                )
             }
         },
     },
