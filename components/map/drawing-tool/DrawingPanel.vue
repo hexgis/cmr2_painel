@@ -306,10 +306,12 @@ export default {
     },
 
     showFeaturesSupportLayers() {
-      if (!this.showFeaturesSupportLayers) {
-        this.map.removeLayer(this.drawnItems);
-      } else {
-        this.map.addLayer(this.drawnItems);
+      if (this.drawnItems) {
+        if (!this.showFeaturesSupportLayers) {
+          this.map.removeLayer(this.drawnItems);
+        } else {
+          this.map.addLayer(this.drawnItems);
+        }
       }
     },
   },
