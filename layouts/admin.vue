@@ -3,7 +3,7 @@
     <v-main>
       <div class="admin-panel">
         <v-card class="admin-panel--menu">
-          <nuxt-link :to="localePath('/admin/criticas')">
+          <nuxt-link :to="localePath('/admin')">
             <img
               class="admin-panel--menu-img"
               src="/img/logo-cmr.svg"

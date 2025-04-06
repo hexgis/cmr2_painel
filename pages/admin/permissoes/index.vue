@@ -4,13 +4,20 @@
       <h1 class="text-uppercase pb-4">
         Gerenciar Permissões
       </h1>
-      <v-btn
-        color="primary"
-        text
-        @click="$router.push('/')"
-      >
-        <v-icon color="primary">mdi-home</v-icon>
-      </v-btn>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            color="primary"
+            text
+            v-bind="attrs"
+            v-on="on"
+            @click="$router.push('/')"
+          >
+            <v-icon color="primary">mdi-home</v-icon>
+          </v-btn>
+        </template>
+        <span>Ir para o CMR</span>
+      </v-tooltip>
     </span>
     <v-col cols="4">
       <FullCard
