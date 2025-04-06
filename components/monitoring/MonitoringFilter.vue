@@ -6,6 +6,7 @@
                     v-model="filters.currentView"
                     :label="$t('current-view-label')"
                     :error="error"
+                    hide-details
                 />
             </v-col>
             <v-col cols="3">
@@ -15,6 +16,7 @@
                         v-model="featuresMonitoring"
                         class="mt-3"
                         hide-details
+                        :title="$t('title-switch-disable-features')"
                     />
                 </div>
             </v-col>
@@ -30,6 +32,7 @@
                     multiple
                     :error="error"
                     class="pa-0"
+                    outlined
                 />
             </v-col>
             <v-col cols="12">
@@ -45,6 +48,7 @@
                         multiple
                         clearable
                         class="pa-0"
+                        outlined
                     />
                 </v-slide-y-transition>
             </v-col>
@@ -69,7 +73,7 @@
                 />
             </v-col>
         </v-row>
-        <v-row no-gutters align="center">
+        <v-row no-gutters align="center" class="mt-3">
             <v-col v-show="showFeaturesMonitoring">
                 <v-btn
                     color="accent"
@@ -217,6 +221,7 @@
         <v-row
             v-if="showFeaturesMonitoring && !isLoadingFeatures"
             align="center"
+            class="mt-2"
         >
             <v-col cols="4" class="grey--text text--darken-2">
                 {{ $t('opacity-label') }}
@@ -251,42 +256,44 @@
     </v-col>
 </template>
 
-  <i18n>
-    {
+<i18n>
+{
     "en": {
-    "search-label": "Search",
-    "opacity-label": "Opacity",
-    "current-view-label": "Search in current area?",
-    "start-date-label": "Start Date",
-    "end-date-label": "End Date",
-    "total-area-label": "Total Area",
-    "heat-map-label": "Heat Map",
-    "polygon-label": "Polygon Count",
-    "table-name": "Monitoring Table",
-    "regional-coordination-label": "Regional Coordination (All)",
-    "indigenous-lands-label": "Indigenous Lands",
-    "download-label": "Download",
-    "statistics-label": "Statistics",
-    "table-label": "Table"
+        "search-label": "Search",
+        "opacity-label": "Opacity",
+        "current-view-label": "Search in current area?",
+        "start-date-label": "Start Date",
+        "end-date-label": "End Date",
+        "total-area-label": "Total Area",
+        "heat-map-label": "Heat Map",
+        "polygon-label": "Polygon Count",
+        "table-name": "Monitoring Table",
+        "regional-coordination-label": "Regional Coordination (All)",
+        "indigenous-lands-label": "Indigenous Lands",
+        "download-label": "Download",
+        "statistics-label": "Statistics",
+        "table-label": "Table",
+        "title-switch-disable-features": "Disable Monitoring Layer"
     },
     "pt-br": {
-    "search-label": "Buscar",
-    "opacity-label": "Opacidade",
-    "current-view-label": "Pesquisar nesta área?",
-    "start-date-label": "Data Início",
-    "end-date-label": "Data Final",
-    "total-area-label": "Área total",
-    "heat-map-label": "Mapa de Calor",
-    "polygon-label": "Total de polígonos",
-    "table-name": "Tabela de Monitoramento",
-      "regional-coordination-label": "Coordenação Regional (Todas)",
-      "indigenous-lands-label": "Terras Indígenas",
-      "download-label": "Baixar",
-      "statistics-label": "Estatísticas",
-      "table-label": "Tabela"
+        "search-label": "Buscar",
+        "opacity-label": "Opacidade",
+        "current-view-label": "Pesquisar nesta área?",
+        "start-date-label": "Data Início",
+        "end-date-label": "Data Final",
+        "total-area-label": "Área total",
+        "heat-map-label": "Mapa de Calor",
+        "polygon-label": "Total de polígonos",
+        "table-name": "Tabela de Monitoramento",
+        "regional-coordination-label": "Coordenação Regional (Todas)",
+        "indigenous-lands-label": "Terras Indígenas",
+        "download-label": "Baixar",
+        "statistics-label": "Estatísticas",
+        "table-label": "Tabela",
+        "title-switch-disable-features": "Desabilitar Camada de Monitoramento"
     }
-    }
-  </i18n>
+}
+</i18n>
 
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex'

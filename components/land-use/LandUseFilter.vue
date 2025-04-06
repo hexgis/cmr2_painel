@@ -15,6 +15,7 @@
         :error="errorRegional"
         :search-input.sync="searchCr"
         @change="clearSearchCr"
+        outlined
       />
     </v-row>
 
@@ -38,6 +39,7 @@
           :search-input.sync="searchTi"
           :disabled="isLoadingTi"
           @change="clearSearchTi"
+          outlined
         />
       </v-row>
     </v-slide-y-transition>
@@ -55,6 +57,7 @@
         clearable
         :error="errorAno"
         required
+        outlined
       />
     </v-row>
     <v-row

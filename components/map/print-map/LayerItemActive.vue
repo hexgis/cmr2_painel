@@ -15,6 +15,7 @@
       <v-icon
         v-else-if="!layers.wms"
         :color="layers.properties?.color || layers.color"
+        size="x-small"
         class="layer-thumbnail">
         mdi-square
       </v-icon>
@@ -76,8 +77,8 @@ export default {
 
 <style scoped lang="sass">
 .layer-thumbnail
-  width: 24px
-  height: 24px
+  width: 15px
+  height: 15px
 
 .prodes-thumbnail
   width: 30px

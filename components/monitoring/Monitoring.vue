@@ -10,62 +10,61 @@
                 {{ $t('legend') }}
             </p>
             <v-col class="grey--text text--darken-2">
-                <v-row>
-                    <v-col>
-                        <v-icon class="mr-2" color="#990099">
-                            mdi-square
-                        </v-icon>
-                        <span class="grey--text text--darken-2">
+                <div class="d-flex align-center justify-space-between mb-2">
+                    <div class="d-flex align-center">
+                        <v-icon class="mr-2" color="#990099">mdi-square</v-icon>
+                        <span class="grey--text text--darken-2 text-body-2">
                             {{ $t('recovery-deforestation') }}
                         </span>
-                    </v-col>
-                    <v-col cols="3" class="px-0 d-flex justify-end">
-                        <v-switch v-model="monitoringSubLayersDR" class="mt-0 pt-0" />
-                    </v-col>
-                </v-row>
+                    </div>
+                    <v-switch
+                        v-model="monitoringSubLayersDR"
+                        class="mt-0 pt-0"
+                        hide-details
+                    />
+                </div>
 
-                <v-row>
-                    <v-col>
-                        <v-icon class="mr-2" color="#b35900">
-                            mdi-square
-                        </v-icon>
-                        <span class="grey--text text--darken-2">
+                <div class="d-flex align-center justify-space-between mb-2">
+                    <div class="d-flex align-center">
+                        <v-icon class="mr-2" color="#b35900">mdi-square</v-icon>
+                        <span class="grey--text text--darken-2 text-body-2">
                             {{ $t('forest-fire') }}
                         </span>
-                    </v-col>
-                    <v-col cols="3" class="px-0 d-flex justify-end">
-                        <v-switch v-model="monitoringSubLayersFF" class="mt-0 pt-0" />
-                    </v-col>
-                </v-row>
+                    </div>
+                    <v-switch
+                        v-model="monitoringSubLayersFF"
+                        class="mt-0 pt-0"
+                        hide-details
+                    />
+                </div>
 
-                <v-row>
-                    <v-col>
-                        <v-icon class="mr-2" color="#ff8000">
-                            mdi-square
-                        </v-icon>
-
-                        <span class="grey--text text--darken-2">
+                <div class="d-flex align-center justify-space-between mb-2">
+                    <div class="d-flex align-center">
+                        <v-icon class="mr-2" color="#ff8000">mdi-square</v-icon>
+                        <span class="grey--text text--darken-2 text-body-2">
                             {{ $t('degradation') }}
                         </span>
-                    </v-col>
-                    <v-col cols="3" class="px-0 d-flex justify-end">
-                        <v-switch v-model="monitoringSubLayersDG" class="mt-0 pt-0" />
-                    </v-col>
-                </v-row>
+                    </div>
+                    <v-switch
+                        v-model="monitoringSubLayersDG"
+                        class="mt-0 pt-0"
+                        hide-details
+                    />
+                </div>
 
-                <v-row>
-                    <v-col>
-                        <v-icon class="mr-2" color="#ff3333">
-                            mdi-square
-                        </v-icon>
-                        <span class="grey--text text--darken-2">
+                <div class="d-flex align-center justify-space-between mb-2">
+                    <div class="d-flex align-center">
+                        <v-icon class="mr-2" color="#ff3333">mdi-square</v-icon>
+                        <span class="grey--text text--darken-2 text-body-2">
                             {{ $t('clear-cutting') }}
                         </span>
-                    </v-col>
-                    <v-col cols="3" class="px-0 d-flex justify-end">
-                        <v-switch v-model="monitoringSubLayersCR" class="mt-0 pt-0" />
-                    </v-col>
-                </v-row>
+                    </div>
+                    <v-switch
+                        v-model="monitoringSubLayersCR"
+                        class="mt-0 pt-0"
+                        hide-details
+                    />
+                </div>
 
                 <v-spacer />
             </v-col>

@@ -2,7 +2,7 @@
   <v-col class="grey--text text--darken-2 pa-0 pb-0">
     <div>
       <v-row class="align-center" v-for="(item, index) in items" :key="index">
-        <v-icon class="mr-2" :color="item.color">mdi-square</v-icon>
+        <v-icon class="mr-2" size="x-small" :color="item.color">mdi-square</v-icon>
         <p>{{ $t(item.label) }}  ({{ item.abbreviation?.toString().toUpperCase() }})</p>      
       </v-row>
     </div>
