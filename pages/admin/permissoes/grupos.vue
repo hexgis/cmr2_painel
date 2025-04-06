@@ -1,6 +1,15 @@
 <template>
   <div class="group">
-    <h1 class="text-uppercase">Gerenciamento de Grupos</h1>
+    <span class="d-flex align-center justify-space-between">
+      <h1 class="text-uppercase">Gerenciamento de Grupos</h1>
+      <v-btn
+        color="primary"
+        text
+        @click="$router.back()"
+      >
+        <v-icon color="primary">mdi-arrow-left</v-icon>
+      </v-btn>
+    </span>
     <span class="card--wrapper mt-4">
       <CardGroup v-for="group in groupList" :key="group.id" :card="group" from="groups"/>
     </span>

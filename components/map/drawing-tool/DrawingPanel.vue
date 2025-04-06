@@ -120,7 +120,7 @@
                     class="btn-action"
                     @click.stop="cancel()"
                   >
-                    Cancel
+                    {{ $t('cancel-tool') }}
                   </v-btn>
                 </div>
                 <div class="col-4">
@@ -129,7 +129,7 @@
                     class="btn-action"
                     @click.stop="save()"
                   >
-                    <span>Save</span>
+                    <span>{{ $t('save-label') }}</span>
                   </v-btn>
                 </div>
                 <div class="col-4">
@@ -139,7 +139,7 @@
                     color="accent"
                     @click.stop="clearAllDrawings"
                   >
-                    <span>Clear All</span>
+                    <span>{{ $t('clear-all-label') }}</span>
                   </v-btn>
                 </div>
               </div>
@@ -200,6 +200,7 @@
     "download-label": "Download",
     "save-label": "Save",
     "cancel-tool": "Cancel",
+    "clear-all-label": "Clear all",
     "layers-active-label": "No active layer."
   },
   "pt-br": {
@@ -220,6 +221,7 @@
     "download-label": "Baixar",
     "save-label": "Salvar",
     "cancel-tool": "Cancelar",
+    "clear-all-label": "Limpar",
     "layers-active-label": "Nenhuma camada ativa."
   }
 }
@@ -287,7 +289,7 @@ export default {
 
   computed: {
     ...mapState('map', ['buttonPopup', 'activeMenu']),
-    ...mapState('supportLayers', ['supportLayers']),
+    ...mapState('supportLayers', ['supportLayers', 'showFeaturesSupportLayers']),
     ...mapState('searchInArea', ['layersGroups']),
   },
 
@@ -300,6 +302,14 @@ export default {
       if (!this.show) {
         this.clearActiveButton();
         this.isButtonEditClicked = false;
+      }
+    },
+
+    showFeaturesSupportLayers() {
+      if (!this.showFeaturesSupportLayers) {
+        this.map.removeLayer(this.drawnItems);
+      } else {
+        this.map.addLayer(this.drawnItems);
       }
     },
   },

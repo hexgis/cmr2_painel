@@ -135,7 +135,7 @@ export default {
             this.$router.replace(this.localePath('/portal'))
         },
         goToCriticisms() {
-          window.location.href = this.localePath('/admin/criticas/')
+          window.location.href = this.localePath('/admin')
         },
 
         ...mapActions('auth', ['logout']),

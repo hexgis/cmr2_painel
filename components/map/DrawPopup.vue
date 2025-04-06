@@ -1,28 +1,28 @@
 <template>
-  <div>
+  <div class="pa-2">
     <div v-if="content.position">
       <span class="font-weight-bold">
-        {{ $t('position-popup-label') }}
+        {{ $t('position-popup-label') }}:
       </span>
-      :{{ content.position }}
+      {{ content.position }}
     </div>
     <div v-if="content.distance">
       <span class="font-weight-bold">
-        {{ $t('distance-popup-label') }}
+        {{ $t('distance-popup-label') }}:
       </span>
-      :{{ ' ~ ' + content.distance + ' m' }}
+      ~ {{ Intl.NumberFormat().format(content.distance) }}m
     </div>
     <div v-if="content.area">
       <span class="font-weight-bold">
-        {{ $t('area-popup-label') }}
+        {{ $t('area-popup-label') }}:
       </span>
-      :{{ ' ~ ' + content.area }}
+      ~ {{ formattedArea }}
     </div>
     <div v-if="content.radius">
       <span class="font-weight-bold">
-        {{ $t('radius-popup-label') }}
+        {{ $t('radius-popup-label') }}:
       </span>
-      :{{ ' ~ ' + content.radius + ' m' }}
+      ~ {{ content.radius }}m
     </div>
     <div
       v-if="!!(layer instanceof $L.Marker)"
@@ -386,6 +386,12 @@ export default {
       pallete: false,
       layerStyle: '#3285DF63',
     };
+  },
+
+  computed: {
+    formattedArea() {
+      return `${Intl.NumberFormat().format(this.content.area.replace('ha', ''))} ha`;
+    },
   },
 
   watch: {

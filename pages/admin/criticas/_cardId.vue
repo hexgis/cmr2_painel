@@ -2,9 +2,20 @@
   <div class="ticket-details">
     <span class="d-flex justify-space-between align-center">
       <h1>{{ $t('criticismsSuggestions') }}</h1>
-      <v-btn color="primary" text @click="$router.back()">
-        <v-icon color="primary">mdi-keyboard-backspace</v-icon>
-      </v-btn>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            color="primary"
+            text
+            v-bind="attrs"
+            v-on="on"
+            @click="$router.push('/')"
+          >
+            <v-icon color="primary">mdi-home</v-icon>
+          </v-btn>
+        </template>
+        <span>Ir para o CMR</span>
+      </v-tooltip>
     </span>
     <TicketDetails :cardId="cardId" />
   </div>

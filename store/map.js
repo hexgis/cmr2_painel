@@ -61,20 +61,20 @@ export const getters = {
 
 export const mutations = {
   clearSavedSelectedItems(state) {
-    state.savedSelectedItems = []
+    state.savedSelectedItems = [];
   },
 
   addItem(state, item) {
     if (!Array.isArray(state.savedSelectedItems)) {
       state.savedSelectedItems = [];
     }
-    if (!state.savedSelectedItems.some(existingItem => existingItem.id === item.id)) {
+    if (!state.savedSelectedItems.some((existingItem) => existingItem.id === item.id)) {
       state.savedSelectedItems.push(item);
     }
   },
 
   setSelectedItems(state, items) {
-    state.selectedItems = items
+    state.selectedItems = items;
   },
 
   setActiveMenu(state, payload) {
@@ -252,13 +252,18 @@ export const actions = {
 
   async saveToDatabase({ state, commit }, { index }) {
     try {
-      const { feature } = state.fileList[index];
-      const { name } = state.fileList[index];
+      const {
+        feature, name, color, opacity,
+      } = state.fileList[index];
 
       const response = await this.$api.post('user/upload-file/', {
         name,
         geometry: feature,
-        visible: true
+        properties: {
+          color,
+          opacity,
+        },
+        visible: true,
       });
 
       if (response) {
@@ -327,6 +332,3 @@ export const actions = {
   },
 
 };
-
-
-

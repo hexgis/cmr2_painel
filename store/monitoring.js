@@ -1,6 +1,35 @@
+import { version } from 'jszip';
+
+const { stringify } = require('wkt');
+
 export const state = () => ({
   features: null,
+  urlWmsMonitoring: 'https://cmr.funai.gov.br/geoserver/ows?',
+  geoserverLayerMonitoring: 'CMR-PUBLICO:img_monitoramento_terra_indigena_cr_a',
+  monitoringSubLayers: {
+    CR: true,
+    DG: true,
+    DR: true,
+    FF: true,
+  },
+  intersectsWmsMonitoring: '',
+  MonitoringWmsOptions: {
+    name: 'monitoring',
+    maxZoom: 21,
+    maxNativeZoom: 19,
+    queryable: true,
+  },
+  tableMonitoringTableOptions: {
+    itemsPerPage: 5,
+    page: 1,
+    totalItems: 0,
+  },
+  showTableDialogMonitoring: false,
+  loadingSearchTableMonitoring: false,
+  currentUrlWmsMonitoring: '',
+  wmsMonitoringOpacity: 100,
   showFeaturesMonitoring: false,
+  loadingMonitoring: false,
   visualizationStage: 'stage1',
   tableDialogMonitoring: false,
   analyticsMonitoringDialog: false,
@@ -52,6 +81,26 @@ export const getters = {
 };
 
 export const mutations = {
+  setShowTableDialogMonitoring(state, showTableDialogMonitoring) {
+    state.showTableDialogMonitoring = showTableDialogMonitoring;
+  },
+
+  setLoadingSearchTableMonitoring(state, loadingSearchTableMonitoring) {
+    state.loadingSearchTableMonitoring = loadingSearchTableMonitoring;
+  },
+
+  setTableMonitoringTableOptions(state, tableMonitoringTableOptions) {
+    state.tableMonitoringTableOptions = tableMonitoringTableOptions;
+  },
+
+  setTablePropertiesPage(state, page) {
+    state.tableMonitoringTableOptions.page = page;
+  },
+
+  setTablePropertiesItemsPerPage(state, itemsPerPage) {
+    state.tableMonitoringTableOptions.itemsPerPage = itemsPerPage;
+  },
+  
   setSelectedStages(state, value) {
     state.selectedStages.push(value);
   },
@@ -142,6 +191,22 @@ export const mutations = {
       ...filters,
     };
   },
+
+  setUrlCurrentWmsMonitoring(state, url) {
+    state.currentUrlWmsMonitoring = url;
+  },
+
+  setLoadingMonitoring(state, loadingMonitoring) {
+    state.loadingMonitoring = loadingMonitoring;
+  },
+
+  setMonitoringSubLayers(state, {type, value}) {    
+    state.monitoringSubLayers[type] = value;
+  },
+
+  setIntersectsWmsMonitoring(state, intersectsWmsMonitoring) {
+    state.intersectsWmsMonitoring = intersectsWmsMonitoring;
+  }
 };
 
 export const actions = {
@@ -151,66 +216,156 @@ export const actions = {
     commit('setshowFeaturesMonitoring', true);
   },
 
-  async getFeatures({ state, commit, rootGetters }) {
-    commit('setLoadingGeoJson', true);
-    commit('setLoadingStatistic', true);
-    commit('setLoadingFeatures', true);
-    commit('setLoadingTableMonitoring', true);
-    commit('clearFeatures');
+  async generateUrlWmsMonitoring({ state, commit }, newBbox = false) {    
+    const map = window.mapMain;
 
     const params = {
-      start_date: state.filters.startDate,
-      end_date: state.filters.endDate,
+      env: `fill-opacity:${state.opacity / 100}`,
+      CQL_FILTER: '',
+      opacity: state.opacity,
     };
 
+    let url = state.urlWmsMonitoring;
+
+    // gera os parametros
+    if (state.intersectsWmsMonitoring) {
+      params.CQL_FILTER += state.intersectsWmsMonitoring;
+    }
+    
+
+    const arrayTI = [];
     if (state.filters.ti && state.filters.ti.length) {
-      const arrayTI = [];
       Object.values(state.filters.ti).forEach((item) => {
         arrayTI.push(item.co_funai);
       });
-      params.co_funai = arrayTI.toString();
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';          
+      }
+      params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
     }
 
-    if (state.filters.currentView) params.in_bbox = rootGetters['map/bbox'];
-
+    const arrayCR = [];
     if (state.filters.cr && state.filters.cr.length) {
-      const arrayCR = [];
       Object.values(state.filters.cr).forEach((item) => {
         arrayCR.push(item.co_cr);
       });
-      params.co_cr = arrayCR.toString();
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';
+      }
+      params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
+    }
+    
+    if (state.filters.startDate && state.filters.endDate) {
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';
+      }
+      params.CQL_FILTER += `(dt_t_um >= (${state.filters.startDate}) AND dt_t_um <= (${state.filters.endDate}))`;
+    }
+    
+    const filtersSubLayersTrue = Object.keys(state.monitoringSubLayers).filter(key => state.monitoringSubLayers[key] === true);
+    if (filtersSubLayersTrue && filtersSubLayersTrue.length) {
+      params.CQL_FILTER += ' AND';      
+      let sublayers = '';
+      filtersSubLayersTrue.forEach((value, key) => {
+        if (!state.monitoringSubLayers[value]) {
+          return;          
+        }
+        if (key === 0) {
+          sublayers += ` no_estagio = '${value}'`;
+        } 
+        if (key > 0) {
+          sublayers += ` OR no_estagio = '${value}'`;
+        }
+      });
+      params.CQL_FILTER += `(${sublayers})`;      
     }
 
-    try {
-      const response = await this.$api.$get('monitoring/consolidated/', {
-        params,
-      });
+    const paramsUrl = new URLSearchParams(params);
 
-      if (!response.features || !response.features.length) {
-        commit('setshowFeaturesMonitoring', false);
+    commit('setUrlCurrentWmsMonitoring', `${url}${paramsUrl}`);
+  },
+
+  async getFeatures({ state, commit, dispatch }) {
+    // commit('setLoadingGeoJson', true);
+    // commit('setLoadingStatistic', true);
+    // commit('setLoadingFeatures', true);
+    // commit('setLoadingTableMonitoring', true);
+    // commit('clearFeatures');
+    commit('setUrlCurrentWmsMonitoring', '');
+
+    try {
+      commit('setLoadingMonitoring', true);
+      commit('setshowFeaturesMonitoring', true);
+      commit('setLoadingFeatures', true);
+      
+
+
+      const map = window.mapMain;
+      if (state.filters.currentView) {
+        const bounds = map.getBounds();
+
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        const nw = L.latLng(ne.lat, sw.lng);
+        const se = L.latLng(sw.lat, ne.lng);
+
+        const bboxPolygon = L.polygon([sw, se, ne, nw, sw]);
+
+        const geojson = bboxPolygon.toGeoJSON();
+
+        const wkt = stringify(geojson.geometry);
+
+        commit('setIntersectsWmsMonitoring', `INTERSECTS(geom,${wkt})`);
+      } else {
+        commit('setIntersectsWmsMonitoring', '');
+      }
+
+      const arrayTI = [];
+      if (state.filters.ti && state.filters.ti.length) {
+        Object.values(state.filters.ti).forEach((item) => {
+          arrayTI.push(item.co_funai);
+        });
+      }
+  
+      const arrayCR = [];
+      if (state.filters.cr && state.filters.cr.length) {
+        Object.values(state.filters.cr).forEach((item) => {
+          arrayCR.push(item.co_cr);
+        });
+      }
+
+      try {
+        if (!state.filters.currentView) {
+          let bbox;
+          if ((state.filters.cr && state.filters.cr.length) || (state.filters.ti && state.filters.ti.length)) {
+            bbox = await this.$api.$post('monitoring/consolidated/bbox/', {
+              "co_cr": [...arrayCR],
+              "co_funai":  [...arrayTI],
+            });
+            if (bbox) {
+              const bounds = L.latLngBounds(
+                [bbox[1], bbox[0]],
+                [bbox[3], bbox[2]],
+              );
+              map.fitBounds(bounds);
+            }
+          }
+        }
+      } catch (_) {
         commit(
           'alert/addAlert',
-          { message: this.$i18n.t('no-result') },
+          {
+            message: this.$i18n.t('default-error', {
+              action: this.$i18n.t('retrieve'),
+              resource: this.$i18n.t('monitoring'),
+            }),
+          },
           { root: true },
         );
-      } else {
-        let stageItemActive = []
-        response.features.map((item)=>{
-          state.selectedStages.map((stageActive) => {
-            stageActive === item.properties.no_estagio ? stageItemActive.push(item) : ""
-          })
-        })
-        commit('setFeatures', response);
-        commit('setshowFeaturesMonitoring', true);
-        commit('setStageItemActive', stageItemActive);
-        const total = await this.$api.$get(
-          'monitoring/consolidated/map-stats/',
-          {
-            params,
-          },
-        );
-        if (total) commit('setTotal', total);
       }
+
+      await dispatch('generateUrlWmsMonitoring');
+
     } catch (exception) {
       commit(
         'alert/addAlert',
@@ -226,7 +381,109 @@ export const actions = {
       commit('setLoadingFeatures', false);
       commit('setLoadingGeoJson', false);
       commit('setLoadingStatistic', false);
+      commit('setLoadingFeatures', false);
       commit('setLoadingTableMonitoring', false);
+      commit('setLoadingMonitoring', false);
+    }
+  },
+
+  async getPropertiesTableMonitoring({ state, commit, dispatch }) {
+    commit('setLoadingSearchTableMonitoring', true);
+
+    const params = {
+      service: 'WFS',
+      version: '1.0.0',
+      request: 'GetFeature',
+      typeName: state.geoserverLayerMonitoring,
+      outputFormat: 'application/json',
+      CQL_FILTER: '',
+      maxFeatures: state.tableMonitoringTableOptions.itemsPerPage,
+      startIndex: (state.tableMonitoringTableOptions.page - 1) * state.tableMonitoringTableOptions.itemsPerPage,
+    };
+
+    try {
+      let url;
+      url = state.urlWmsMonitoring;
+
+      // gera os parametros
+      if (state.intersectsWmsMonitoring) {
+        params.CQL_FILTER += state.intersectsWmsMonitoring;
+      }
+      
+
+      const arrayTI = [];
+      if (state.filters.ti && state.filters.ti.length) {
+        Object.values(state.filters.ti).forEach((item) => {
+          arrayTI.push(item.co_funai);
+        });
+        if (params.CQL_FILTER.length) {
+          params.CQL_FILTER += ' AND ';          
+        }
+        params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
+      }
+
+      const arrayCR = [];
+      if (state.filters.cr && state.filters.cr.length) {
+        Object.values(state.filters.cr).forEach((item) => {
+          arrayCR.push(item.co_cr);
+        });
+        if (params.CQL_FILTER.length) {
+          params.CQL_FILTER += ' AND ';
+        }
+        params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
+      }
+      
+      if (state.filters.startDate && state.filters.endDate) {
+        if (params.CQL_FILTER.length) {
+          params.CQL_FILTER += ' AND ';
+        }
+        params.CQL_FILTER += `(dt_t_um >= (${state.filters.startDate}) AND dt_t_um <= (${state.filters.endDate}))`;
+      }
+      
+      const filtersSubLayersTrue = Object.keys(state.monitoringSubLayers).filter(key => state.monitoringSubLayers[key] === true);
+      if (filtersSubLayersTrue && filtersSubLayersTrue.length) {
+        params.CQL_FILTER += ' AND';      
+        let sublayers = '';
+        filtersSubLayersTrue.forEach((value, key) => {
+          if (!state.monitoringSubLayers[value]) {
+            return;          
+          }
+          if (key === 0) {
+            sublayers += ` no_estagio = '${value}'`;
+          } 
+          if (key > 0) {
+            sublayers += ` OR no_estagio = '${value}'`;
+          }
+        });
+        params.CQL_FILTER += `(${sublayers})`;      
+      }
+
+      const paramsUrl = new URLSearchParams(params);
+      url = `${url}${paramsUrl}`;
+
+      const response = await this.$api.$get(url,{ params });
+
+      const res = response.features.map((feature) => feature.properties);   
+      const total = response.totalFeatures;
+      commit('setTableMonitoringTableOptions', {
+        ...state.tableMonitoringTableOptions,
+        totalItems: total,
+      });
+      
+      commit('setTable', res);
+    } catch (error) {
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring'),
+          }),
+        },
+        { root: true },
+      );
+    } finally {
+      commit('setLoadingSearchTableMonitoring', false);
     }
   },
 
@@ -1042,71 +1299,49 @@ export const actions = {
       }
   })},
 
-  async downloadTableMonitoring({ commit, state, rootGetters }) {
-    commit('setLoadingCSV', true);
-
-    const params = {
-      start_date: state.filters.startDate,
-      end_date: state.filters.endDate,
-      format: state.filters.csv,
-    };
-
-    if (state.filters.ti && state.filters.ti.length) {
-      const arrayTI = [];
-      Object.values(state.filters.ti).forEach((item) => {
-        arrayTI.push(item.co_funai);
-      });
-      params.co_funai = arrayTI.toString();
-    }
-
-    if (state.filters.cr && state.filters.cr.length) {
-      const arrayCR = [];
-      Object.values(state.filters.cr).forEach((item) => {
-        arrayCR.push(item.co_cr);
-      });
-      params.co_cr = arrayCR.toString();
-    }
-
-    if (state.filters.priority && state.filters.priority.length) { params.priority = state.filters.priority.toString(); }
-
-    if (state.filters.currentView) params.in_bbox = rootGetters['map/bbox'];
-
-    const tableCSVMonitoring = await this.$api.get(
-      'monitoring/consolidated/table/',
-      {
-        params,
-      },
-    );
-
-    function saveData(data, fileName, type) {
-      let elementBtn; let blob; let
-        url;
-
-      elementBtn = document.createElement('a');
-      elementBtn.style = 'display: none';
-      document.body.appendChild(elementBtn);
-
-      if (type !== 'text/csv') {
-        data = JSON.stringify(data);
-      }
-
-      blob = new Blob([data], { type });
-      url = window.URL.createObjectURL(blob);
-
-      elementBtn.href = url;
-      elementBtn.download = fileName;
-      elementBtn.click();
-      window.URL.revokeObjectURL(url);
-    }
-
+  async downloadTableMonitoring({ commit, state }) {
     try {
-      saveData(
-        tableCSVMonitoring,
-        'poligono_monitoramento.csv',
-        'text/csv',
+      const items = state.tableMonitoring;
+
+      if (!items.length) return;
+    
+      const header = Object.keys(items[0]);
+      const csvRows = [];
+    
+      // Cabeçalho
+      csvRows.push(header.join(','));
+    
+      // Dados
+      for (const row of items) {
+        const values = header.map(key => {
+          const val = row[key];
+          // Escapar vírgulas e aspas
+          if (Array.isArray(val)) return `"${val.join(';')}"`;
+          return `"${String(val).replace(/"/g, '""')}"`;
+        });
+        csvRows.push(values.join(','));
+      }
+    
+      const csvString = csvRows.join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', 'monitoring.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring'),
+          }),
+        },
+        { root: true },
       );
-    } finally {
-      commit('setLoadingCSV', false);
     }
   },
 

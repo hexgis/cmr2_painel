@@ -1,5 +1,5 @@
 <template>
-  <l-layer-group>
+  <l-layer-group :visible="showFeaturesSupportLayers">
     <l-feature-group ref="feats">
       <l-popup
         :options="{
@@ -61,6 +61,8 @@ export default {
 
   computed: {
     ...mapState('map', ['fileList']),
+
+    ...mapState('supportLayers', ['showFeaturesSupportLayers']),
   },
 
   watch: {
@@ -88,8 +90,7 @@ export default {
       if (this.fileList.length) {
         this.fileList.forEach((f) => {
           let newGrid;
-          const { color } = f;
-          const { opacity } = f;
+          const { color, opacity } = f;
 
           if (
             this.hasGeometryOnFeature(f.feature, [
@@ -120,7 +121,7 @@ export default {
                   layer.setStyle({
                     color,
                     fillColor: color,
-                    fillOpacity: 0.1,
+                    fillOpacity: opacity,
                     fill: ![
                       'LineString',
                       'MultiLineString',
@@ -140,7 +141,7 @@ export default {
                   sliced: () => ({
                     color,
                     fillColor: color,
-                    fillOpacity: 0.1,
+                    fillOpacity: opacity,
                     fill: false,
                     radius: 6,
                   }),
