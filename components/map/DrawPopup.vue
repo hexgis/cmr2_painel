@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="pa-2">
     <div v-if="content.position">
       <span class="font-weight-bold">
         {{ $t('position-popup-label') }}
