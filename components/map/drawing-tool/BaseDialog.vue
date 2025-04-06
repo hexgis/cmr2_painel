@@ -1,7 +1,8 @@
 <template>
   <v-dialog
     v-model="showDialog"
-    max-width="400"
+    width="400"
+    content-class="drawing-tool-dialog"
   >
     <v-card>
       <v-card-title>
@@ -80,3 +81,8 @@ export default ({
   }),
 });
 </script>
+
+<style lang="sass">
+.drawing-tool-dialog
+  overflow-y: visible
+</style>
