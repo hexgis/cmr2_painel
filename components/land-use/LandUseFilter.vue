@@ -53,10 +53,8 @@
         item-text="nu_ano"
         item-value="map_year"
         clearable
-        multiple
         :error="errorAno"
         required
-        @change="handleYearChange" 
       />
     </v-row>
     <v-row
@@ -305,7 +303,7 @@ export default {
       searchCr: '',
       filters: {
         currentView: false,
-        year: [],
+        year: null,
         cr: [],
         ti: null,
       },
@@ -396,19 +394,14 @@ export default {
   },
 
   methods: {
-    handleYearChange() {
-      if (this.filters.year.length > 1) {
-        this.filters.year = [this.filters.year[0]];
-      }
-    },
 
     populateCrOptions() {
       const groups = {};
 
       this.filterOptions.regionalFilters.forEach((x) => {
-        groups[x.no_regiao] = groups[x.no_regiao] || { ds_cr: x.ds_cr, list: [] };
+        groups[x.cr_no_regiao] = groups[x.cr_no_regiao] || { ds_cr: x.ds_cr, list: [] };
 
-        groups[x.no_regiao].list.push(x);
+        groups[x.cr_no_regiao].list.push(x);
       });
 
       Object.keys(groups).forEach((categoryId) => {
@@ -453,7 +446,7 @@ export default {
     },
 
     search() {
-      this.errorAno = !this.filters.year.length;
+      this.errorAno = this.filters.year === null || this.filters.year === '';
       this.errorTi = !this.filters.ti.length;
 
       if (

@@ -11,7 +11,7 @@
             <v-col cols="3">
                 <div class="d-flex justify-end align-center mt-1">
                     <v-switch
-                        v-if="features"
+                        v-if="currentUrlWmsMonitoring"
                         v-model="featuresMonitoring"
                         class="mt-3"
                         hide-details
@@ -393,6 +393,7 @@ export default {
         },
 
         ...mapState('monitoring', [
+            'currentUrlWmsMonitoring',
             'isLoadingFeatures',
             'loadingMonitoring',
             'filterOptions',
