@@ -16,6 +16,7 @@
                         v-model="featuresMonitoring"
                         class="mt-3"
                         hide-details
+                        :title="$t('title-switch-disable-features')"
                     />
                 </div>
             </v-col>
@@ -255,42 +256,44 @@
     </v-col>
 </template>
 
-  <i18n>
-    {
+<i18n>
+{
     "en": {
-    "search-label": "Search",
-    "opacity-label": "Opacity",
-    "current-view-label": "Search in current area?",
-    "start-date-label": "Start Date",
-    "end-date-label": "End Date",
-    "total-area-label": "Total Area",
-    "heat-map-label": "Heat Map",
-    "polygon-label": "Polygon Count",
-    "table-name": "Monitoring Table",
-    "regional-coordination-label": "Regional Coordination (All)",
-    "indigenous-lands-label": "Indigenous Lands",
-    "download-label": "Download",
-    "statistics-label": "Statistics",
-    "table-label": "Table"
+        "search-label": "Search",
+        "opacity-label": "Opacity",
+        "current-view-label": "Search in current area?",
+        "start-date-label": "Start Date",
+        "end-date-label": "End Date",
+        "total-area-label": "Total Area",
+        "heat-map-label": "Heat Map",
+        "polygon-label": "Polygon Count",
+        "table-name": "Monitoring Table",
+        "regional-coordination-label": "Regional Coordination (All)",
+        "indigenous-lands-label": "Indigenous Lands",
+        "download-label": "Download",
+        "statistics-label": "Statistics",
+        "table-label": "Table",
+        "title-switch-disable-features": "Disable Monitoring Layer"
     },
     "pt-br": {
-    "search-label": "Buscar",
-    "opacity-label": "Opacidade",
-    "current-view-label": "Pesquisar nesta área?",
-    "start-date-label": "Data Início",
-    "end-date-label": "Data Final",
-    "total-area-label": "Área total",
-    "heat-map-label": "Mapa de Calor",
-    "polygon-label": "Total de polígonos",
-    "table-name": "Tabela de Monitoramento",
-      "regional-coordination-label": "Coordenação Regional (Todas)",
-      "indigenous-lands-label": "Terras Indígenas",
-      "download-label": "Baixar",
-      "statistics-label": "Estatísticas",
-      "table-label": "Tabela"
+        "search-label": "Buscar",
+        "opacity-label": "Opacidade",
+        "current-view-label": "Pesquisar nesta área?",
+        "start-date-label": "Data Início",
+        "end-date-label": "Data Final",
+        "total-area-label": "Área total",
+        "heat-map-label": "Mapa de Calor",
+        "polygon-label": "Total de polígonos",
+        "table-name": "Tabela de Monitoramento",
+        "regional-coordination-label": "Coordenação Regional (Todas)",
+        "indigenous-lands-label": "Terras Indígenas",
+        "download-label": "Baixar",
+        "statistics-label": "Estatísticas",
+        "table-label": "Tabela",
+        "title-switch-disable-features": "Desabilitar Camada de Monitoramento"
     }
-    }
-  </i18n>
+}
+</i18n>
 
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex'
