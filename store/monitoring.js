@@ -187,11 +187,11 @@ export const actions = {
     commit('setshowFeaturesMonitoring', true);
   },
 
-  generateUrlWmsMonitoring({ state, commit }, newBbox = false) {    
+  async generateUrlWmsMonitoring({ state, commit }, newBbox = false) {    
     const map = window.mapMain;
 
     const params = {
-      env: `opacity:${state.opacity}`,
+      env: `fill-opacity:${state.opacity / 100}`,
       CQL_FILTER: '',
       opacity: state.opacity,
     };
@@ -204,8 +204,8 @@ export const actions = {
     }
     
 
+    const arrayTI = [];
     if (state.filters.ti && state.filters.ti.length) {
-      const arrayTI = [];
       Object.values(state.filters.ti).forEach((item) => {
         arrayTI.push(item.co_funai);
       });
@@ -215,8 +215,8 @@ export const actions = {
       params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
     }
 
+    const arrayCR = [];
     if (state.filters.cr && state.filters.cr.length) {
-      const arrayCR = [];
       Object.values(state.filters.cr).forEach((item) => {
         arrayCR.push(item.co_cr);
       });
@@ -227,11 +227,13 @@ export const actions = {
     }
 
     if ((!state.filters.ti || !state.filters.ti.length) && (!state.filters.cr || !state.filters.cr.length)) {
-      // map.fitBounds([
-      //   [-51.4642415547,-15.115479069100001,],
-      //   [-47.448254396500005,-6.1371732812],
-      // ]);
-    }
+      const bbox = [-74.628695, -19.187691, -42.487328, 6.898064];
+      const bounds = L.latLngBounds(
+        [bbox[1], bbox[0]],
+        [bbox[3], bbox[2]],
+      );
+      map.fitBounds(bounds);
+    } 
     
     if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
@@ -276,9 +278,8 @@ export const actions = {
       commit('setshowFeaturesMonitoring', true);
 
 
-      // gera os parametros
+      const map = window.mapMain;
       if (state.filters.currentView) {
-        const map = window.mapMain;
         const bounds = map.getBounds();
 
         const sw = bounds.getSouthWest();
@@ -297,9 +298,51 @@ export const actions = {
         commit('setIntersectsWmsMonitoring', '');
       }
 
+      const arrayTI = [];
+      if (state.filters.ti && state.filters.ti.length) {
+        Object.values(state.filters.ti).forEach((item) => {
+          arrayTI.push(item.co_funai);
+        });
+      }
+  
+      const arrayCR = [];
+      if (state.filters.cr && state.filters.cr.length) {
+        Object.values(state.filters.cr).forEach((item) => {
+          arrayCR.push(item.co_cr);
+        });
+      }
+
+      try {
+        let bbox;
+        if ((state.filters.cr && state.filters.cr.length) || (state.filters.ti && state.filters.ti.length)) {
+          bbox = await this.$api.$post('monitoring/consolidated/bbox/', {
+            "co_cr": [...arrayCR],
+            "co_funai":  [...arrayTI],
+          });
+          if (bbox) {
+            const bounds = L.latLngBounds(
+              [bbox[1], bbox[0]],
+              [bbox[3], bbox[2]],
+            );
+            map.fitBounds(bounds);
+          }
+        }
+      } catch (_) {
+        commit(
+          'alert/addAlert',
+          {
+            message: this.$i18n.t('default-error', {
+              action: this.$i18n.t('retrieve'),
+              resource: this.$i18n.t('monitoring'),
+            }),
+          },
+          { root: true },
+        );
+      }
+
       await dispatch('generateUrlWmsMonitoring');
-      
-    } catch (exception) {      
+
+    } catch (exception) {
       commit(
         'alert/addAlert',
         {
