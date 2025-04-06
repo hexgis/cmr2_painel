@@ -1,8 +1,24 @@
 <template>
   <div class="restricted-area pa-5">
-    <h1 class="pb-5 text-uppercase">
-      {{ $t('restricted-area') }}
-    </h1>
+    <span class="d-flex align-center justify-space-between">
+      <h1 class="pb-5 text-uppercase">
+        {{ $t('restricted-area') }}
+      </h1>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            color="primary"
+            text
+            v-bind="attrs"
+            v-on="on"
+            @click="$router.push('/')"
+          >
+            <v-icon color="primary">mdi-home</v-icon>
+          </v-btn>
+        </template>
+        <span>Ir para o CMR</span>
+      </v-tooltip>
+    </span>
     <StatusFilter
       :requestStatus="requestStatus"
       :selectedStatus="selectedStatus"
@@ -44,7 +60,7 @@ export default {
   layout: 'admin',
 
   components: { RestrictedAreaCard, SearchFilters, StatusFilter },
-  
+
   data: () => ({
     requestStatus: [],
     selectedStatus: null,

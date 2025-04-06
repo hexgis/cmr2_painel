@@ -2,13 +2,20 @@
   <div class="user">
     <span class="d-flex align-center justify-space-between">
       <h1>{{ $t('manageUsers') }}</h1>
-      <v-btn
-        color="primary"
-        text
-        @click="$router.back()"
-      >
-        <v-icon color="primary">mdi-keyboard-backspace</v-icon>
-      </v-btn>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            color="primary"
+            text
+            v-bind="attrs"
+            v-on="on"
+            @click="$router.push('/')"
+          >
+            <v-icon color="primary">mdi-home</v-icon>
+          </v-btn>
+        </template>
+        <span>Ir para o CMR</span>
+      </v-tooltip>
     </span>
     <v-row class="mt-4">
       <v-col>

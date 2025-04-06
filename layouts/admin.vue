@@ -6,31 +6,30 @@
           <nuxt-link :to="localePath('/admin')">
             <img
               class="admin-panel--menu-img"
-              src="\img\logo-cmr.svg"
+              src="/img/logo-cmr.svg"
               alt="Logo CMR"
             >
           </nuxt-link>
-          <div
+
+          <nuxt-link
             v-for="tab in adminLabels"
             :key="tab.label"
+            :to="localePath(tab.route)"
             class="admin-panel--menu-tabs"
             :class="{ 'selected-tab': selectedRoute === tab.route }"
+            @click.native="setSelectedRoute(tab.route)"
           >
-            <nuxt-link
-              :to="localePath(tab.route)"
-              @click="setSelectedRoute(tab.route)"
-            >
-              {{ tab.label }}
-            </nuxt-link>
-          </div>
+            {{ tab.label }}
+          </nuxt-link>
         </v-card>
         <nuxt />
       </div>
     </v-main>
   </v-app>
 </template>
+
 <i18n>
-  {
+{
   "pt-br": {
     "dashboard": "Visualizar Acessos",
     "manage_users": "Gerenciar Usuários",
@@ -51,13 +50,12 @@
   }
 }
 </i18n>
+
 <script>
 export default {
   name: 'App',
   data() {
     return {
-      // TODO: Menu when document functionality is implemented
-      // { route: '/admin/documentos', label: this.$t('manage_documents') },
       adminLabels: [
         { route: '/views-chart', label: this.$t('dashboard') },
         { route: '/admin/usuarios', label: this.$t('manage_users') },
@@ -97,26 +95,21 @@ export default {
     max-width: 300px
     min-height: 100vh
     border-radius: 0 1.5rem 1.5rem 0
+    position: relative
 
     &-img
       width: 100%
       display: flex
       margin: 1rem 0 2rem 1rem
 
-      img
-        max-width: 200px
-
     &-tabs
+      display: block
       list-style: none
       text-decoration: none
       padding: 1rem
       cursor: pointer
       transition: all ease-in-out 0.5s
-
-      a
-        text-decoration: none
-        color: #000000
-        padding: 1rem 0
+      color: #000000
 
       &:last-child
         position: absolute
@@ -126,7 +119,5 @@ export default {
       &:hover,
       &.selected-tab
         background-color: #D92B3F
-
-        a
-          color: #ffffff
+        color: #ffffff
 </style>

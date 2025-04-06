@@ -1,9 +1,25 @@
 <template>
   <div class="admin pa-5">
-    <h1 class="pb-5 text-uppercase">{{ $t('title')}}</h1>
+    <span class="d-flex align-center justify-space-between">
+      <h1 class="pb-5 text-uppercase">{{ $t('title') }}</h1>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            color="primary"
+            text
+            v-bind="attrs"
+            v-on="on"
+            @click="$router.push('/')"
+          >
+            <v-icon color="primary">mdi-home</v-icon>
+          </v-btn>
+        </template>
+        <span>Ir para o CMR</span>
+      </v-tooltip>
+    </span>
     <v-row>
       <v-col>
-        <v-card class="pa-5 d-flex" :to="localePath('/dashboard')">
+        <v-card class="pa-5 d-flex" :to="localePath('/views-chart')">
           <div class="card--wrapper">
             <p class="font-weight-bold text-h6"> {{ $t("acess-total", { acessTotal }) }}</p>
             <p class="text-h6">{{ $t("year", { currentYear }) }}</p>
@@ -102,7 +118,7 @@ export default {
     await this.$store.dispatch('admin/fetchAcessTotal');
     const pendingRequests = this.newUsersRequest.filter(newUsersRequest => newUsersRequest.status_name === "Pendente");
     await this.$store.dispatch('admin/fetchNewAccessRequest', { newAccessRequests: pendingRequests.length });
-    await this.$store.dispatch('admin/fetchActiveUsers');
+    // await this.$store.dispatch('admin/fetchActiveUsers');
   },
 
   computed: {
@@ -139,9 +155,6 @@ export default {
   overflow-y: auto
   width: 100%
   max-width: 1200px
-
-.v-icon
-  font-size: 120px
 
 .v-card
   cursor: pointer
@@ -181,6 +194,7 @@ p
   & .v-icon
     align-items: flex-end
     padding-bottom: 1.5rem
+    font-size: 120px
 
   &--content
     max-width: 300px

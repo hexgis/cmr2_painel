@@ -38,6 +38,9 @@ export const mutations = {
 
   setLayersUserGeojson(state, { layer, response }) {
     state.supportLayerUser[layer.id].geometry = response;
+    state.supportLayerUser[layer.id].opacity = 100 * Number(
+      response.features[0].properties.properties.opacity,
+    );
   },
 
   setLayersDetail(state, { info, response }) {
@@ -62,7 +65,7 @@ export const mutations = {
 export const actions = {
 
   async updateLayerColor({ commit }, color) {
-    commit('SET_COLOR', color)
+    commit('SET_COLOR', color);
   },
 
   setColor({ commit }, color) {

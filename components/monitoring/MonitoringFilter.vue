@@ -102,10 +102,10 @@
 
                 <v-btn
                     small
-                    :loading="isLoadingTableMonitoring"
+                    :loading="loadingSearchTableMonitoring"
                     color="accent"
                     icon
-                    @click="showTableDialog(true)"
+                    @click="showTableDialogMethod(true)"
                 >
                     <v-tooltip left>
                         <template #activator="{ on }">
@@ -239,17 +239,8 @@
                 <v-switch v-model="heatMap" class="mt-0 pt-0" hide-details />
             </v-col>
         </v-row>
-        <div v-if="tableDialogMonitoring" class="d-none">
-            <TableDialog
-                :table="tableDialogMonitoring"
-                :headers="headers"
-                :value="tableMonitoring"
-                :loading-table="isLoadingTableMonitoring"
-                :loading-c-s-v="isLoadingCSVMonitoring"
-                :f-download-c-s-v="downloadTableMonitoring"
-                :table-name="$t('table-name')"
-                :f-close-table="closeTable"
-            />
+        <div v-if="showTableDialog" class="d-none">
+            <TableProperties />
         </div>
         <div v-if="dialog" class="d-none">
             <AnalyticalDialog
@@ -303,6 +294,7 @@ import BaseDateField from '@/components/base/BaseDateField'
 import legend from '@/assets/legend.png'
 import TableDialog from '@/components/table-dialog/TableDialog.vue'
 import AnalyticalDialog from '../analytical-dialog/AnalyticalDialog.vue'
+import TableProperties from './TableProperties.vue'
 
 export default {
     name: 'MonitoringFilter',
@@ -311,6 +303,7 @@ export default {
         BaseDateField,
         TableDialog,
         AnalyticalDialog,
+        TableProperties,
     },
 
     data() {
@@ -365,7 +358,6 @@ export default {
 
             set(value) {
                 this.$store.commit('monitoring/setOpacity', value)
-                this.$store.dispatch('monitoring/generateUrlWmsMonitoring')
             },
         },
 
@@ -392,9 +384,11 @@ export default {
             },
         },
 
+        ...mapState('tableDialog', ['showTableDialog']),
         ...mapState('monitoring', [
             'currentUrlWmsMonitoring',
             'isLoadingFeatures',
+            'loadingSearchTableMonitoring',
             'loadingMonitoring',
             'filterOptions',
             'features',
@@ -459,12 +453,12 @@ export default {
             }
         },
 
-        showTableDialog(value) {
-            if (this.features) {
-                this.settableDialogMonitoring(value)
-                this.setshowTableDialog(value)
-                this.getDataTableMonitoring()
-            }
+        showTableDialogMethod(value) {
+            this.setshowTableDialog(value)
+            // if (this.features) {
+            //     this.settableDialogMonitoring(value)
+            //     this.getDataTableMonitoring()
+            // }
         },
 
         showTableDialogAnalytics(value) {
@@ -487,6 +481,9 @@ export default {
                 }
                 this.error = false
                 this.setFilters(filters)
+                if (this.showTableDialog) {
+                    this.$store.dispatch('monitoring/getPropertiesTableMonitoring')
+                }
                 this.$emit('onSearch')
                 return
             }
@@ -499,6 +496,7 @@ export default {
             'setLoadingTable',
             'setLoadingStatistic',
             'setanalyticsMonitoringDialog',
+            'setShowTableDialogMonitoring',
         ]),
         ...mapActions('monitoring', [
             'getFilterOptions',
