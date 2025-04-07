@@ -78,7 +78,7 @@
                       :href="localePath(helpLinks.requestAcessUrl)"
                       target="_blank"
                     >
-                      {{ $t('access-help-link') }}</a>
+                      {{ $t('access-help-link') }} fasdf</a>
                   </v-col>
                 </v-row>
                 <v-row>
@@ -108,29 +108,6 @@
             <v-card
               v-show="!isSmallScreen"
               width="200"
-              class="info card"
-              flat
-              layout="row"
-              layout-wrap
-              layout-align="space-between"
-            >
-              <v-card-title class="card-title">
-                {{ $t('we-are-help-title') }}
-              </v-card-title>
-              <v-card-subtitle class="card-subtitle">
-                <p class="link-footer-dark text-h7">
-                  <a
-                    :href="localePath(helpLinks.cmrProjectUrl)"
-                    target="_blank"
-                  >{{ $t('we-are-help-link') }}</a>
-                </p>
-              </v-card-subtitle>
-            </v-card>
-          </v-col>
-          <v-col cols="2">
-            <v-card
-              v-show="!isSmallScreen"
-              width="200"
               flat
               class="info card"
               layout="row"
@@ -147,30 +124,6 @@
                     target="_blank"
                   >
                     {{ $t('access-help-link') }}</a>
-                </p>
-              </v-card-subtitle>
-            </v-card>
-          </v-col>
-          <v-col cols="2">
-            <v-card
-              v-show="!isSmallScreen"
-              width="200"
-              flat
-              class="info card"
-              layout="row"
-              layout-wrap
-              layout-align="space-between"
-            >
-              <v-card-title class="card-title">
-                {{ $t('project-help-title') }}
-              </v-card-title>
-              <v-card-subtitle class="card-subtitle">
-                <p class="link-footer-dark text-h7">
-                  <a
-                    :href="localePath(helpLinks.cmrProjectUrl)"
-                    target="_blank"
-                  >
-                    {{ $t('project-help-link') }}</a>
                 </p>
               </v-card-subtitle>
             </v-card>
@@ -231,7 +184,7 @@
     "manual-help-title": "Visualizar manual do Usuário",
     "manual-help-link": "Manual",
     "project-help-title": "Contate o Projeto",
-    "project-help-link": "Fale conosco",
+    "project-help-link": "Fale conosco fasdfas",
     "access-help-title": "Solicite acesso",
     "access-help-link": "Acesse aqui",
     "access-help-text": "Envie para a equipe do CMR o formulário para análise e liberação. ",
