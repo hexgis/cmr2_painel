@@ -65,7 +65,7 @@
               </a>
             </div>
           </div>
-          <a :href="localePath('/map')">{{ $t('tab-interactive-map') }}</a>
+          <a :href="localePath('/cmr')">{{ $t('tab-interactive-map') }}</a>
           <a :href="localePath('/contato')">{{ $t('tab-contact') }}</a>
         </div>
       </v-row>

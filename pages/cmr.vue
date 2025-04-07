@@ -42,7 +42,7 @@
       <nuxt-child keep-alive />
 
       <div
-        v-if="isIndex"
+        v-if="isBaseRoute"
         class="info d-flex flex-column align-content-space-between"
         style="height: 90%;"
       >
@@ -119,8 +119,8 @@ export default {
   },
 
   computed: {
-    isIndex() {
-      return this.getRouteBaseName() === 'map';
+    isBaseRoute() {
+      return this.getRouteBaseName() === 'cmr';
     },
     allTabs() {
       /*
@@ -168,38 +168,38 @@ export default {
         {
           name: this.$t('layers-tab'),
           icon: 'mdi-layers',
-          route: '/map/support',
+          route: '/cmr/support',
           show: process.env.ROUTE_SUPPORT === 'true',
         },
 
         {
           name: this.$t('search-tab'),
           icon: 'mdi-map-search',
-          route: '/map/monitoring',
+          route: '/cmr/monitoring',
           show: process.env.ROUTE_MONITORING === 'true',
         },
         {
           name: this.$t('high-resolution-mosaics-tab'),
           icon: 'mdi-book-open-page-variant',
-          route: '/map/support-raster',
+          route: '/cmr/support-raster',
           show: process.env.ROUTE_SUPPORT_RASTER === 'true',
         },
         {
           name: this.$t('landuse-tab'),
           icon: 'mdi-sprout',
-          route: '/map/land-use',
+          route: '/cmr/land-use',
           show: process.env.ROUTE_LAND_USE === 'true',
         },
         {
           name: this.$t('mapoteca-tab'),
           icon: 'mdi-dresser',
-          route: '/map/mapoteca',
+          route: '/cmr/cmroteca',
           show: process.env.ROUTE_MAPOTECA === 'true',
         },
         {
           name: this.$t('analytics-tab'),
           icon: 'mdi-chart-box-outline',
-          route: '/map/statistics',
+          route: '/cmr/statistics',
           show: process.env.ROUTE_ANALYTICS === 'true',
         },
       ];
