@@ -75,20 +75,9 @@
         </v-row>
         <v-row no-gutters align="center" class="mt-3">
             <v-col v-show="showFeaturesMonitoring">
-                <v-btn
-                    color="accent"
-                    :loading="isLoadingGeoJson"
-                    icon
-                    small
-                    @click="downloadGeoJsonMonitoring()"
-                >
-                    <v-tooltip left>
-                        <template #activator="{ on }">
-                            <v-icon v-on="on"> mdi-download </v-icon>
-                        </template>
-                        <span>{{ $t('download-label') }}</span>
-                    </v-tooltip>
-                </v-btn>
+                <!-- Button Download -->
+                <DialogConfirmDownload />
+
                 <v-btn
                     :loading="isLoadingStatistic"
                     small
@@ -302,6 +291,7 @@ import legend from '@/assets/legend.png'
 import TableDialog from '@/components/table-dialog/TableDialog.vue'
 import AnalyticalDialog from '../analytical-dialog/AnalyticalDialog.vue'
 import TableProperties from './TableProperties.vue'
+import DialogConfirmDownload from '@/components/monitoring/DialogConfirmDownload.vue'
 
 export default {
     name: 'MonitoringFilter',
@@ -311,6 +301,7 @@ export default {
         TableDialog,
         AnalyticalDialog,
         TableProperties,
+        DialogConfirmDownload,
     },
 
     data() {
@@ -489,7 +480,9 @@ export default {
                 this.error = false
                 this.setFilters(filters)
                 if (this.showTableDialog) {
-                    this.$store.dispatch('monitoring/getPropertiesTableMonitoring')
+                    this.$store.dispatch(
+                        'monitoring/getPropertiesTableMonitoring'
+                    )
                 }
                 this.$emit('onSearch')
                 return

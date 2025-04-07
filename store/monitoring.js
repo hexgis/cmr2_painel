@@ -1353,65 +1353,100 @@ export const actions = {
     }
   },
 
-  async downloadGeoJsonMonitoring({ commit, state, rootGetters }) {
+  async downloadGeoJsonMonitoring({ commit, state }) {
     commit('setLoadingGeoJson', true);
 
-    const params = {
-      start_date: state.filters.startDate,
-      end_date: state.filters.endDate,
-      format: state.filters.json,
-    };
+    let url = state.urlWmsMonitoring;
 
+    const params = {
+      service: 'WFS',
+      version: '1.0.0',
+      request: 'GetFeature',
+      typeName: state.geoserverLayerMonitoring,
+      CQL_FILTER: '',
+      outputFormat: 'application/json',
+      maxFeatures: 10000,
+    }
+
+    if (state.intersectsWmsMonitoring) {
+      params.CQL_FILTER += state.intersectsWmsMonitoring;
+    }
+    
+    const arrayTI = [];
     if (state.filters.ti && state.filters.ti.length) {
-      const arrayTI = [];
       Object.values(state.filters.ti).forEach((item) => {
         arrayTI.push(item.co_funai);
       });
-      params.co_funai = arrayTI.toString();
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';          
+      }
+      params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
     }
 
+    const arrayCR = [];
     if (state.filters.cr && state.filters.cr.length) {
-      const arrayCR = [];
       Object.values(state.filters.cr).forEach((item) => {
         arrayCR.push(item.co_cr);
       });
-      params.co_cr = arrayCR.toString();
-    }
-
-    if (state.filters.priority && state.filters.priority.length) { params.priority = state.filters.priority.toString(); }
-
-    if (state.filters.currentView) params.in_bbox = rootGetters['map/bbox'];
-
-    const GeoJson = await this.$api.get('monitoring/consolidated/', {
-      params,
-    });
-
-    function saveData(data, fileName, type) {
-      let elementBtn; let blob; let
-        url;
-
-      elementBtn = document.createElement('a');
-      elementBtn.style = 'display: none';
-      document.body.appendChild(elementBtn);
-
-      if (type !== 'text/csv') {
-        data = JSON.stringify(data);
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';
       }
-
-      blob = new Blob([data], { type });
-      url = window.URL.createObjectURL(blob);
-
-      elementBtn.href = url;
-      elementBtn.download = fileName;
-      elementBtn.click();
-      window.URL.revokeObjectURL(url);
+      params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
+    }
+    
+    if (state.filters.startDate && state.filters.endDate) {
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';
+      }
+      params.CQL_FILTER += `(dt_t_um >= (${state.filters.startDate}) AND dt_t_um <= (${state.filters.endDate}))`;
+    }
+    
+    const filtersSubLayersTrue = Object.keys(state.monitoringSubLayers).filter(key => state.monitoringSubLayers[key] === true);
+    if (filtersSubLayersTrue && filtersSubLayersTrue.length) {
+      params.CQL_FILTER += ' AND';      
+      let sublayers = '';
+      filtersSubLayersTrue.forEach((value, key) => {
+        if (!state.monitoringSubLayers[value]) {
+          return;          
+        }
+        if (key === 0) {
+          sublayers += ` no_estagio = '${value}'`;
+        } 
+        if (key > 0) {
+          sublayers += ` OR no_estagio = '${value}'`;
+        }
+      });
+      params.CQL_FILTER += `(${sublayers})`;      
     }
 
     try {
-      saveData(
-        GeoJson.data,
-        'poligono_monitoramento.json',
-        'application/json',
+      const paramsUrl = new URLSearchParams(params);
+      url = `${url}${paramsUrl}`;
+      const response = await this.$api.$get(url);
+
+      const geojson = {
+        type: response.type,
+        features: response.features,
+      }
+
+      const blob = new Blob([JSON.stringify(geojson)], { type: "application/geo+json" });
+      const urlBlob = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = urlBlob;
+      link.download = "dados.geojson";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring'),
+          }),
+        },
+        { root: true },
       );
     } finally {
       commit('setLoadingGeoJson', false);
