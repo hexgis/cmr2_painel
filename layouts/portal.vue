@@ -37,6 +37,8 @@
                       contain
                       class="logo"
                       src="/img/portal/acesso-informacao.png"
+                      style="cursor: pointer"
+                      @click="handleImageClick('acesso-informacao')"
                     />
                     <v-img
                       contain
@@ -52,6 +54,8 @@
                       contain
                       class="logo"
                       src="/img/funai.svg"
+                      style="cursor: pointer"
+                      @click="handleImageClick('funai')"
                     />
                   </div>
                 </v-card>
@@ -230,6 +234,14 @@ export default {
   },
 
   methods: {
+    handleImageClick(type) {
+        if (type === 'acesso-informacao') {
+            window.open('https://www.gov.br/funai/pt-br/acesso-a-informacao', '_blank', 'noopener,noreferrer');
+        } else if (type === 'funai') {
+            window.open('https://www.gov.br/funai', '_blank', 'noopener,noreferrer');
+        }
+    },
+    
     checkScreenSize() {
       this.isSmallScreen = window.innerWidth <= 768;
     },
