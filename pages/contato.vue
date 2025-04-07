@@ -238,7 +238,7 @@ export default {
     },
     closeDialog() {
       this.showSuccessDialog = false;
-      this.$router.push(this.localePath('/portal'));
+      this.$router.push(this.localePath('/'));
     },
   },
 };
