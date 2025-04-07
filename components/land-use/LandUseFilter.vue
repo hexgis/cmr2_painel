@@ -7,6 +7,7 @@
         :label="$t('regional-coordination-label')"
         :items="flattened"
         item-value="co_cr"
+        outlined
         item-text="ds_cr"
         multiple
         hide-details
@@ -30,8 +31,8 @@
           item-text="no_ti"
           item-value="co_funai"
           hide-details
+          outlined
           clearable
-          chips
           required
           multiple
           :error="errorTi"
@@ -54,6 +55,7 @@
         item-value="map_year"
         clearable
         multiple
+        outlined
         :error="errorAno"
         required
         @change="handleYearChange"
