@@ -404,11 +404,10 @@ export default {
 
     populateCrOptions() {
       const groups = {};
-
       this.filterOptions.regionalFilters.forEach((x) => {
-        groups[x.no_regiao] = groups[x.no_regiao] || { ds_cr: x.ds_cr, list: [] };
+        groups[x.cr_no_regiao] = groups[x.cr_no_regiao] || { ds_cr: x.ds_cr, list: [] };
 
-        groups[x.no_regiao].list.push(x);
+        groups[x.cr_no_regiao].list.push(x);
       });
 
       Object.keys(groups).forEach((categoryId) => {
