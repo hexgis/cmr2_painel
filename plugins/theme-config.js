@@ -1,10 +1,15 @@
 export default async ({ $axios, store, $vuetify }) => {
     if (process.server) return;
-  
+
     try {
-      const token = store.state.auth.token; 
-      if (!token) throw new Error('No auth token found');
-  
+      const token = store.state.auth.token;
+      if (!token) {
+        // throw new Error('No auth token found');
+        store.commit('setTheme', false);
+        $vuetify.theme.dark = false;
+        return;
+      }
+
       $axios.setToken(token, 'Bearer');
       const { settings } = await $axios.$get('/user/logged/');
       const isDarkMode = settings.dark_mode_active;
@@ -13,4 +18,4 @@ export default async ({ $axios, store, $vuetify }) => {
     } catch (error) {
       console.error('Failed to fetch user settings:', error);
     }
-  };  
+  };

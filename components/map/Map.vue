@@ -75,18 +75,20 @@
 
             <div class="div-spacer" />
 
-            <FileLoaderControl
-              :map="map"
-              :files="loadedFiles"
-              @loading="isLoading()"
-              @loads="loaded()"
-            />
+            <template v-if="isLoggedIn">
+              <FileLoaderControl
+                :map="map"
+                :files="loadedFiles"
+                @loading="isLoading()"
+                @loads="loaded()"
+              />
 
-            <DrawingPanel
-              :map="map"
-              :show="activeMenu === 'DrawingPanel'"
-              @toggleTool="setActiveMenu"
-            />
+              <DrawingPanel
+                :map="map"
+                :show="activeMenu === 'DrawingPanel'"
+                @toggleTool="setActiveMenu"
+              />
+            </template>
 
             <MapPrinter
               :map="map"
@@ -251,7 +253,7 @@
 <script>
 import 'leaflet-draw/dist/leaflet.draw.css';
 import Vue from 'vue';
-import { mapState, mapMutations } from 'vuex';
+import { mapState, mapMutations, mapGetters } from 'vuex';
 import interestArea from '@/assets/interest_area.json';
 import MapPrinter from '@/components/map/print-map/MapPrinter';
 
@@ -533,6 +535,7 @@ export default {
       'indigenousLand',
     ]),
     ...mapState('userProfile', ['user']),
+    ...mapGetters('auth', ['isLoggedIn']),
   },
 
   watch: {
