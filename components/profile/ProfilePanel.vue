@@ -186,7 +186,7 @@ export default {
       this.settingsOpened = true;
     },
     goToMain() {
-      this.$router.replace(this.localePath('/portal'));
+      this.$router.replace(this.localePath('/'));
     },
     goToCriticisms() {
       window.location.href = this.localePath('/admin/criticas');

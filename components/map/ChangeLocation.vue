@@ -16,18 +16,18 @@ export default {
     data() {
         return {
             locales: [
-                { code: 'pt', name: 'Português (Brasil)', flag: "/img/brasil-flag.svg", url: "/portal" },
-                { code: 'eng', name: 'English (USA)', flag: "/img/usa-flag.svg", url: "/en/portal" }
+                { code: 'pt', name: 'Português (Brasil)', flag: "/img/brasil-flag.svg", url: "/" },
+                { code: 'eng', name: 'English (USA)', flag: "/img/usa-flag.svg", url: "/en/" }
             ]
         };
     },
     watch: {
         '$root.$i18n.locale'(newLocale) {
             if (newLocale === 'en') {
-                this.$router.push('/en/portal');
+                this.$router.push('/en/');
                 this.$i18n.locale(newLocale);
             }
-            this.$router.push('/portal');
+            this.$router.push('/');
             this.$i18n.locale('pt-br');
         }
     }

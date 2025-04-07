@@ -15,7 +15,7 @@
     </div>
     <div class="hero--wrapper flex-column justify-md-space-between align-sm-center">
       <v-row class="hero--wrapper-row d-flex pa-md-10 justify-md-space-between align-sm-center">
-        <a :href="localePath('/portal')">
+        <a :href="localePath('/')">
           <v-img
             max-width="305"
             :src="logo"
