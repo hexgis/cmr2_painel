@@ -30,13 +30,14 @@
                     multiple
                     :error="error"
                     class="pa-0"
+                    outlined
                 />
             </v-col>
 
             <v-col cols="12">
                 <v-slide-y-transition>
                     <v-combobox
-                        v-if="filters.cr && filterOptions.tiFilters"
+                        v-if="filters.cr && filterOptions.tiFilters" 
                         v-model="filters.ti"
                         :label="$t('indigenous-lands-label')"
                         :items="filterOptions.tiFilters"
@@ -46,6 +47,7 @@
                         multiple
                         clearable
                         class="pa-0"
+                        outlined
                     />
                 </v-slide-y-transition>
             </v-col>
@@ -267,7 +269,7 @@
             "regional-coordination-label": "Coordenação Regional (Todas)",
             "indigenous-lands-label": "Terras Indígenas (Todas)",
             "table-label": "Tabela",
-            "download-label": "Download"
+            "download-label": "Baixar"
         }
     }
 </i18n>
