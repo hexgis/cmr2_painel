@@ -133,9 +133,12 @@ export default {
 
         orderedSupportLayersGroups() {
             if (!this.supportCategoryGroupsBase) return [];
-            return Object.values(this.supportCategoryGroupsBase).sort((a, b) => 
-                a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
-            );
+            const groups = Object.values(this.supportCategoryGroupsBase);
+            return groups.sort((a, b) => {
+                if (a.name.includes("Temas Indígenas")) return -1;
+                if (b.name.includes("Temas Indígenas")) return 1;
+                return a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' });
+            });
         },
 
         orderedSupportLayersGroupsAntropismo() {

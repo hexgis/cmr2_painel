@@ -66,10 +66,10 @@ export default {
     navigateHome() {
       this.isModalOpen = false;
 
-      this.$router.push('/');
+      this.$router.push('/cmr');
     },
     checkModal() {
-      if (this.$route.path === '/statistics') {
+      if (this.$route.path === '/cmr/statistics') {
         this.openModal();
       }
     },

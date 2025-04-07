@@ -638,7 +638,7 @@ export default {
       }
     },
     redirectToPortal() {
-      this.$router.push('/portal');
+      this.$router.push('/');
     },
     closeModal() {
       this.showModal = false;

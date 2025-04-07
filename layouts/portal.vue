@@ -37,6 +37,8 @@
                       contain
                       class="logo"
                       src="/img/portal/acesso-informacao.png"
+                      style="cursor: pointer"
+                      @click="handleImageClick('acesso-informacao')"
                     />
                     <v-img
                       contain
@@ -52,6 +54,8 @@
                       contain
                       class="logo"
                       src="/img/funai.svg"
+                      style="cursor: pointer"
+                      @click="handleImageClick('funai')"
                     />
                   </div>
                 </v-card>
@@ -78,7 +82,7 @@
                       :href="localePath(helpLinks.requestAcessUrl)"
                       target="_blank"
                     >
-                      {{ $t('access-help-link') }}</a>
+                      {{ $t('access-help-link') }} fasdf</a>
                   </v-col>
                 </v-row>
                 <v-row>
@@ -108,29 +112,6 @@
             <v-card
               v-show="!isSmallScreen"
               width="200"
-              class="info card"
-              flat
-              layout="row"
-              layout-wrap
-              layout-align="space-between"
-            >
-              <v-card-title class="card-title">
-                {{ $t('we-are-help-title') }}
-              </v-card-title>
-              <v-card-subtitle class="card-subtitle">
-                <p class="link-footer-dark text-h7">
-                  <a
-                    :href="localePath(helpLinks.cmrProjectUrl)"
-                    target="_blank"
-                  >{{ $t('we-are-help-link') }}</a>
-                </p>
-              </v-card-subtitle>
-            </v-card>
-          </v-col>
-          <v-col cols="2">
-            <v-card
-              v-show="!isSmallScreen"
-              width="200"
               flat
               class="info card"
               layout="row"
@@ -147,30 +128,6 @@
                     target="_blank"
                   >
                     {{ $t('access-help-link') }}</a>
-                </p>
-              </v-card-subtitle>
-            </v-card>
-          </v-col>
-          <v-col cols="2">
-            <v-card
-              v-show="!isSmallScreen"
-              width="200"
-              flat
-              class="info card"
-              layout="row"
-              layout-wrap
-              layout-align="space-between"
-            >
-              <v-card-title class="card-title">
-                {{ $t('project-help-title') }}
-              </v-card-title>
-              <v-card-subtitle class="card-subtitle">
-                <p class="link-footer-dark text-h7">
-                  <a
-                    :href="localePath(helpLinks.cmrProjectUrl)"
-                    target="_blank"
-                  >
-                    {{ $t('project-help-link') }}</a>
                 </p>
               </v-card-subtitle>
             </v-card>
@@ -277,6 +234,14 @@ export default {
   },
 
   methods: {
+    handleImageClick(type) {
+        if (type === 'acesso-informacao') {
+            window.open('https://www.gov.br/funai/pt-br/acesso-a-informacao', '_blank', 'noopener,noreferrer');
+        } else if (type === 'funai') {
+            window.open('https://www.gov.br/funai', '_blank', 'noopener,noreferrer');
+        }
+    },
+    
     checkScreenSize() {
       this.isSmallScreen = window.innerWidth <= 768;
     },
