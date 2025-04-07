@@ -33,7 +33,6 @@
           hide-details
           outlined
           clearable
-          chips
           required
           multiple
           :error="errorTi"
