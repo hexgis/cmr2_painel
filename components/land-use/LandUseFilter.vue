@@ -14,14 +14,12 @@
         required
         :error="errorRegional"
         :search-input.sync="searchCr"
-        outlined
         @change="clearSearchCr"
       />
     </v-row>
 
     <v-slide-y-transition>
       <v-row
-        v-if="filters.cr && filters.cr.length"
         class="px-3 pb-3"
       >
         <v-autocomplete
@@ -33,12 +31,12 @@
           item-value="co_funai"
           hide-details
           clearable
+          chips
           required
           multiple
           :error="errorTi"
           :search-input.sync="searchTi"
           :disabled="isLoadingTi"
-          outlined
           @change="clearSearchTi"
         />
       </v-row>
@@ -55,9 +53,10 @@
         item-text="nu_ano"
         item-value="map_year"
         clearable
+        multiple
         :error="errorAno"
         required
-        outlined
+        @change="handleYearChange"
       />
     </v-row>
     <v-row
@@ -74,14 +73,7 @@
           icon
           @click="downloadGeoJsonLandUse()"
         >
-        <v-tooltip left>
-          <template #activator="{ on }">
-            <v-icon v-on="on">
-              mdi-download
-            </v-icon>
-          </template>
-          <span>{{ $t('download-label') }}</span>
-        </v-tooltip>
+          <v-icon>mdi-download</v-icon>
         </v-btn>
         <v-btn
           :loading="isLoadingTable"
@@ -220,7 +212,7 @@
         />
       </v-col>
     </v-row>
-    <!-- <v-row
+    <v-row
       v-if="showFeaturesLandUse && !isLoadingFeatures"
       align="center"
       justify="space-between"
@@ -240,7 +232,7 @@
           hide-details
         />
       </v-col>
-    </v-row> -->
+    </v-row>
     <div
       v-if="tableDialogLand"
       class="d-none"
@@ -274,8 +266,7 @@
             "polygon-label": "Total polygons count",
             "end-date-label": "End Date",
             "table-label": "Table",
-            "table-name": "Table Land Use",
-            "download-label": "Download"
+            "table-name": "Table Land Use"
         },
         "pt-br": {
             "regional-coordination-label": "Coordenação Regional",
@@ -290,8 +281,7 @@
             "table-label": "Tabela",
             "start-date-label": "Data Início",
             "end-date-label": "Data Fim",
-            "table-name": "Tabela de Uso e Ocupação do Solo",
-            "download-label": "Baixar"
+            "table-name": "Tabela de Uso e Ocupação do Solo"
         }
     }
 </i18n>
@@ -315,7 +305,7 @@ export default {
       searchCr: '',
       filters: {
         currentView: false,
-        year: null,
+        year: [],
         cr: [],
         ti: null,
       },
@@ -406,14 +396,19 @@ export default {
   },
 
   methods: {
+    handleYearChange() {
+      if (this.filters.year.length > 1) {
+        this.filters.year = [this.filters.year[0]];
+      }
+    },
 
     populateCrOptions() {
       const groups = {};
 
       this.filterOptions.regionalFilters.forEach((x) => {
-        groups[x.cr_no_regiao] = groups[x.cr_no_regiao] || { ds_cr: x.ds_cr, list: [] };
+        groups[x.no_regiao] = groups[x.no_regiao] || { ds_cr: x.ds_cr, list: [] };
 
-        groups[x.cr_no_regiao].list.push(x);
+        groups[x.no_regiao].list.push(x);
       });
 
       Object.keys(groups).forEach((categoryId) => {
@@ -458,7 +453,7 @@ export default {
     },
 
     search() {
-      this.errorAno = this.filters.year === null || this.filters.year === '';
+      this.errorAno = !this.filters.year.length;
       this.errorTi = !this.filters.ti.length;
 
       if (
