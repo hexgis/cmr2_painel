@@ -5,22 +5,42 @@
   >
     <div class="hero--logged-area">
       <ChangeLocation />
-      <v-btn rounded class="hero--btn" to="/login"><v-icon> mdi-account-key </v-icon>{{ $t('btn-restricted-area')}}</v-btn>
+      <v-btn
+        rounded
+        class="hero--btn"
+        to="/login"
+      >
+        <v-icon> mdi-account-key </v-icon>{{ $t('btn-restricted-area') }}
+      </v-btn>
     </div>
     <div class="hero--wrapper flex-column justify-md-space-between align-sm-center">
       <v-row class="hero--wrapper-row d-flex pa-md-10 justify-md-space-between align-sm-center">
         <a :href="localePath('/portal')">
-          <v-img max-width="305" :src="logo" />
+          <v-img
+            max-width="305"
+            :src="logo"
+          />
         </a>
-        <div width="100" class="hero--nav-bar">
+        <div
+          width="100"
+          class="hero--nav-bar"
+        >
           <div
             class="menu-with-submenu"
             @mouseover="showProjectSubmenu = true"
             @mouseleave="delayedMouseLeave('showProjectSubmenu')"
           >
             <a :class="{ 'hovered': showProjectSubmenu }">{{ $t('tab-project') }}</a>
-            <div v-if="showProjectSubmenu" class="submenu">
-              <a v-for="(submenu, index) in projectSubmenus" :key="index" :href="localePath(submenu.route)" class="submenu-item">
+            <div
+              v-if="showProjectSubmenu"
+              class="submenu"
+            >
+              <a
+                v-for="(submenu, index) in projectSubmenus"
+                :key="index"
+                :href="localePath(submenu.route)"
+                class="submenu-item"
+              >
                 {{ submenu.title }}
               </a>
             </div>
@@ -31,25 +51,35 @@
             @mouseleave="delayedMouseLeave('showHowItWorksSubmenu')"
           >
             <a :class="{ 'hovered': showHowItWorksSubmenu }">{{ $t('tab-how-it-works') }}</a>
-            <div v-if="showHowItWorksSubmenu" class="submenu">
-              <a v-for="(submenu, index) in howItWorksSubmenus" :key="index" :href="localePath(submenu.route)" class="submenu-item">
+            <div
+              v-if="showHowItWorksSubmenu"
+              class="submenu"
+            >
+              <a
+                v-for="(submenu, index) in howItWorksSubmenus"
+                :key="index"
+                :href="localePath(submenu.route)"
+                class="submenu-item"
+              >
                 {{ submenu.title }}
               </a>
             </div>
           </div>
-          <a :href="localePath('/')">{{ $t('tab-interactive-map') }}</a>
+          <a :href="localePath('/cmr')">{{ $t('tab-interactive-map') }}</a>
           <a :href="localePath('/contato')">{{ $t('tab-contact') }}</a>
         </div>
       </v-row>
       <div class="hero--content">
         <v-row>
-          <h1 :class="!heroSubtitle ? 'hero--centralized-title' : '' ">{{ heroTitle }}</h1>
+          <h1 :class="!heroSubtitle ? 'hero--centralized-title' : '' ">
+            {{ heroTitle }}
+          </h1>
         </v-row>
         <v-row>
           <p>{{ heroSubtitle }}</p>
         </v-row>
         <v-row v-if="hasCTA">
-          <a :href="localePath('/terras-indigenas')">» {{ $t('btn-see-more')}}</a>
+          <a :href="localePath('/terras-indigenas')">» {{ $t('btn-see-more') }}</a>
         </v-row>
       </div>
     </div>
@@ -87,41 +117,32 @@
 
 <script>
 import ChangeLocation from '@/components/map/ChangeLocation.vue';
+
 export default {
   name: 'HeroBanner',
   components: {
-    ChangeLocation
+    ChangeLocation,
   },
   props: {
     heroTitle: {
       type: String,
-      required: true
+      required: true,
     },
     heroSubtitle: {
       type: String,
     },
     backgroundImage: {
       type: String,
-      required: true
+      required: true,
     },
     logo: {
       type: String,
-      default: '/img/logo-inteira-antiga-branca.svg'
+      default: '/img/logo-inteira-antiga-branca.svg',
     },
-    hasCTA:{
+    hasCTA: {
       type: Boolean,
-      default: true
-    }
-  },
-  methods:{
-    delayedMouseLeave(submenu) {
-      if (this.mouseLeaveTimeout) {
-        clearTimeout(this.mouseLeaveTimeout);
-      }
-      this.mouseLeaveTimeout = setTimeout(() => {
-        this[submenu] = false;
-      }, 300);
-    }
+      default: true,
+    },
   },
   data() {
     return {
@@ -129,14 +150,24 @@ export default {
       showHowItWorksSubmenu: false,
       projectSubmenus: [
         { title: this.$t('submenu-project-1'), route: '/projeto' },
-        { title: this.$t('submenu-project-2'), route: '/terras-indigenas' }
+        { title: this.$t('submenu-project-2'), route: '/terras-indigenas' },
       ],
       howItWorksSubmenus: [
         { title: this.$t('submenu-how-it-works-1'), route: '/como-funciona' },
-        { title: this.$t('submenu-how-it-works-2'), route: '/video' }
-      ]
+        { title: this.$t('submenu-how-it-works-2'), route: '/video' },
+      ],
     };
-  }
+  },
+  methods: {
+    delayedMouseLeave(submenu) {
+      if (this.mouseLeaveTimeout) {
+        clearTimeout(this.mouseLeaveTimeout);
+      }
+      this.mouseLeaveTimeout = setTimeout(() => {
+        this[submenu] = false;
+      }, 300);
+    },
+  },
 };
 </script>
 
