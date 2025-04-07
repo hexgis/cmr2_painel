@@ -55,7 +55,7 @@
                   class="text-subtitle-2"
                   style="overflow-wrap: anywhere"
                 >
-                  {{ entry[1] }}
+                  {{ formatValue(entry[1]) }}
                 </v-col>
               </v-row>
 
@@ -111,7 +111,7 @@ export default {
         no_municipio: 'Município',
         no_ti: 'Nome TI',
         nu_area_ha: 'Área (ha)',
-        possui_ig: 'Ig',
+        possui_ig: 'Possui Inst. De Gestão',
         sg_uf: 'Sigla',
         st_amazonia_legal: 'Amazônia Legal',
         st_faixa_fronteira: 'Faixa de fronteira',
@@ -163,6 +163,13 @@ export default {
     openCard() {
       this.isCardVisible = true;
     },
+
+    formatValue(value) {
+    if (typeof value === 'boolean') {
+      return value ? 'Sim' : 'Não';
+    }
+    return value;
+  },
   },
 };
 </script>
