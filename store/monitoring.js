@@ -108,7 +108,7 @@ export const mutations = {
   setTablePropertiesItemsPerPage(state, itemsPerPage) {
     state.tableMonitoringTableOptions.itemsPerPage = itemsPerPage;
   },
-  
+
   setSelectedStages(state, value) {
     state.selectedStages.push(value);
   },
@@ -125,7 +125,7 @@ export const mutations = {
     state.isLoadingFeatures = false;
   },
 
-  setStageItemActive(state, value){
+  setStageItemActive(state, value) {
     state.stageItemActive = value
   },
 
@@ -208,7 +208,7 @@ export const mutations = {
     state.loadingMonitoring = loadingMonitoring;
   },
 
-  setMonitoringSubLayers(state, {type, value}) {    
+  setMonitoringSubLayers(state, { type, value }) {
     state.monitoringSubLayers[type] = value;
   },
 
@@ -218,13 +218,13 @@ export const mutations = {
 };
 
 export const actions = {
-  async updateFeatures({ state, commit }){
-    let updatedFeatures =  { features: state.stageItemActive, ...state.features }
+  async updateFeatures({ state, commit }) {
+    let updatedFeatures = { features: state.stageItemActive, ...state.features }
     commit('setFeatures', updatedFeatures);
     commit('setshowFeaturesMonitoring', true);
   },
 
-  async generateUrlWmsMonitoring({ state, commit }, newBbox = false) {    
+  async generateUrlWmsMonitoring({ state, commit }, newBbox = false) {
     const map = window.mapMain;
 
     const params = {
@@ -239,7 +239,7 @@ export const actions = {
     if (state.intersectsWmsMonitoring) {
       params.CQL_FILTER += state.intersectsWmsMonitoring;
     }
-    
+
 
     const arrayTI = [];
     if (state.filters.ti && state.filters.ti.length) {
@@ -247,7 +247,7 @@ export const actions = {
         arrayTI.push(item.co_funai);
       });
       if (params.CQL_FILTER.length) {
-        params.CQL_FILTER += ' AND ';          
+        params.CQL_FILTER += ' AND ';
       }
       params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
     }
@@ -262,30 +262,30 @@ export const actions = {
       }
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
-    
+
     if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
       }
       params.CQL_FILTER += `(dt_t_um >= (${state.filters.startDate}) AND dt_t_um <= (${state.filters.endDate}))`;
     }
-    
+
     const filtersSubLayersTrue = Object.keys(state.monitoringSubLayers).filter(key => state.monitoringSubLayers[key] === true);
     if (filtersSubLayersTrue && filtersSubLayersTrue.length) {
-      params.CQL_FILTER += ' AND';      
+      params.CQL_FILTER += ' AND';
       let sublayers = '';
       filtersSubLayersTrue.forEach((value, key) => {
         if (!state.monitoringSubLayers[value]) {
-          return;          
+          return;
         }
         if (key === 0) {
           sublayers += ` no_estagio = '${value}'`;
-        } 
+        }
         if (key > 0) {
           sublayers += ` OR no_estagio = '${value}'`;
         }
       });
-      params.CQL_FILTER += `(${sublayers})`;      
+      params.CQL_FILTER += `(${sublayers})`;
     }
 
     const paramsUrl = new URLSearchParams(params);
@@ -305,7 +305,7 @@ export const actions = {
       commit('setLoadingMonitoring', true);
       commit('setshowFeaturesMonitoring', true);
       commit('setLoadingFeatures', true);
-      
+
 
 
       const map = window.mapMain;
@@ -334,7 +334,7 @@ export const actions = {
           arrayTI.push(item.co_funai);
         });
       }
-  
+
       const arrayCR = [];
       if (state.filters.cr && state.filters.cr.length) {
         Object.values(state.filters.cr).forEach((item) => {
@@ -348,7 +348,7 @@ export const actions = {
           if ((state.filters.cr && state.filters.cr.length) || (state.filters.ti && state.filters.ti.length)) {
             bbox = await this.$api.$post('monitoring/consolidated/bbox/', {
               "co_cr": [...arrayCR],
-              "co_funai":  [...arrayTI],
+              "co_funai": [...arrayTI],
             });
             if (bbox) {
               const bounds = L.latLngBounds(
@@ -417,7 +417,7 @@ export const actions = {
       if (state.intersectsWmsMonitoring) {
         params.CQL_FILTER += state.intersectsWmsMonitoring;
       }
-      
+
 
       const arrayTI = [];
       if (state.filters.ti && state.filters.ti.length) {
@@ -425,7 +425,7 @@ export const actions = {
           arrayTI.push(item.co_funai);
         });
         if (params.CQL_FILTER.length) {
-          params.CQL_FILTER += ' AND ';          
+          params.CQL_FILTER += ' AND ';
         }
         params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
       }
@@ -440,44 +440,44 @@ export const actions = {
         }
         params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
       }
-      
+
       if (state.filters.startDate && state.filters.endDate) {
         if (params.CQL_FILTER.length) {
           params.CQL_FILTER += ' AND ';
         }
         params.CQL_FILTER += `(dt_t_um >= (${state.filters.startDate}) AND dt_t_um <= (${state.filters.endDate}))`;
       }
-      
+
       const filtersSubLayersTrue = Object.keys(state.monitoringSubLayers).filter(key => state.monitoringSubLayers[key] === true);
       if (filtersSubLayersTrue && filtersSubLayersTrue.length) {
-        params.CQL_FILTER += ' AND';      
+        params.CQL_FILTER += ' AND';
         let sublayers = '';
         filtersSubLayersTrue.forEach((value, key) => {
           if (!state.monitoringSubLayers[value]) {
-            return;          
+            return;
           }
           if (key === 0) {
             sublayers += ` no_estagio = '${value}'`;
-          } 
+          }
           if (key > 0) {
             sublayers += ` OR no_estagio = '${value}'`;
           }
         });
-        params.CQL_FILTER += `(${sublayers})`;      
+        params.CQL_FILTER += `(${sublayers})`;
       }
 
       const paramsUrl = new URLSearchParams(params);
       url = `${url}${paramsUrl}`;
 
-      const response = await this.$api.$get(url,{ params });
+      const response = await this.$api.$get(url, { params });
 
-      const res = response.features.map((feature) => feature.properties);   
+      const res = response.features.map((feature) => feature.properties);
       const total = response.totalFeatures;
       commit('setTableMonitoringTableOptions', {
         ...state.tableMonitoringTableOptions,
         totalItems: total,
       });
-      
+
       commit('setTable', res);
     } catch (error) {
       commit(
@@ -1282,7 +1282,7 @@ export const actions = {
     }
   },
 
-  selectedStages(){
+  selectedStages() {
     let features = this.features;
     features.forEach((item) => {
       if (item.properties.no_estagio) {
@@ -1305,34 +1305,32 @@ export const actions = {
             break;
         }
       }
-  })},
+    })
+  },
 
   async downloadTableMonitoring({ commit, state }) {
     try {
       const items = state.tableMonitoring;
 
       if (!items.length) return;
-    
+
       const header = Object.keys(items[0]);
       const csvRows = [];
-    
-      // Cabeçalho
+
       csvRows.push(header.join(','));
-    
-      // Dados
+
       for (const row of items) {
         const values = header.map(key => {
           const val = row[key];
-          // Escapar vírgulas e aspas
           if (Array.isArray(val)) return `"${val.join(';')}"`;
           return `"${String(val).replace(/"/g, '""')}"`;
         });
         csvRows.push(values.join(','));
       }
-    
+
       const csvString = csvRows.join('\n');
       const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    
+
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.setAttribute('download', 'monitoring.csv');
@@ -1353,32 +1351,26 @@ export const actions = {
     }
   },
 
-  async downloadGeoJsonMonitoring({ commit, state }) {
-    commit('setLoadingGeoJson', true);
-
+  async checkHitsDownloadGeojsonMonitoring({ commit, state }) {
     let url = state.urlWmsMonitoring;
 
     const params = {
       service: 'WFS',
-      version: '1.0.0',
+      version: '1.1.0',
       request: 'GetFeature',
       typeName: state.geoserverLayerMonitoring,
-      CQL_FILTER: '',
       outputFormat: 'application/json',
-      maxFeatures: 10000,
+      resultType: 'hits',
+      CQL_FILTER: '',
     }
 
-    if (state.intersectsWmsMonitoring) {
-      params.CQL_FILTER += state.intersectsWmsMonitoring;
-    }
-    
     const arrayTI = [];
     if (state.filters.ti && state.filters.ti.length) {
       Object.values(state.filters.ti).forEach((item) => {
         arrayTI.push(item.co_funai);
       });
       if (params.CQL_FILTER.length) {
-        params.CQL_FILTER += ' AND ';          
+        params.CQL_FILTER += ' AND ';
       }
       params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
     }
@@ -1393,30 +1385,119 @@ export const actions = {
       }
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
-    
+
     if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
       }
       params.CQL_FILTER += `(dt_t_um >= (${state.filters.startDate}) AND dt_t_um <= (${state.filters.endDate}))`;
     }
-    
+
     const filtersSubLayersTrue = Object.keys(state.monitoringSubLayers).filter(key => state.monitoringSubLayers[key] === true);
     if (filtersSubLayersTrue && filtersSubLayersTrue.length) {
-      params.CQL_FILTER += ' AND';      
+      params.CQL_FILTER += ' AND';
       let sublayers = '';
       filtersSubLayersTrue.forEach((value, key) => {
         if (!state.monitoringSubLayers[value]) {
-          return;          
+          return;
         }
         if (key === 0) {
           sublayers += ` no_estagio = '${value}'`;
-        } 
+        }
         if (key > 0) {
           sublayers += ` OR no_estagio = '${value}'`;
         }
       });
-      params.CQL_FILTER += `(${sublayers})`;      
+      params.CQL_FILTER += `(${sublayers})`;
+    }
+
+    const paramsUrl = new URLSearchParams(params);
+    url = `${url}${paramsUrl}`;
+
+    try {
+      const response = await this.$api.$get(url);
+
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(response, "text/xml");
+
+      const featureCollection = xmlDoc.querySelector("wfs\\:FeatureCollection, FeatureCollection");
+      const totalFeatures = featureCollection?.getAttribute("numberOfFeatures");
+
+      return totalFeatures;
+    } catch (error) {
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring'),
+          }),
+        },
+        { root: true },
+      );
+      return false;
+    }
+  },
+
+  async downloadGeoJsonMonitoring({ commit, state }) {
+    commit('setLoadingGeoJson', true);
+    let url = state.urlWmsMonitoring;
+
+    const params = {
+      service: 'WFS',
+      version: '1.0.0',
+      request: 'GetFeature',
+      typeName: state.geoserverLayerMonitoring,
+      CQL_FILTER: '',
+      outputFormat: 'application/json',
+      maxFeatures: 10000,
+    }
+
+    const arrayTI = [];
+    if (state.filters.ti && state.filters.ti.length) {
+      Object.values(state.filters.ti).forEach((item) => {
+        arrayTI.push(item.co_funai);
+      });
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';
+      }
+      params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
+    }
+
+    const arrayCR = [];
+    if (state.filters.cr && state.filters.cr.length) {
+      Object.values(state.filters.cr).forEach((item) => {
+        arrayCR.push(item.co_cr);
+      });
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';
+      }
+      params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
+    }
+
+    if (state.filters.startDate && state.filters.endDate) {
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';
+      }
+      params.CQL_FILTER += `(dt_t_um >= (${state.filters.startDate}) AND dt_t_um <= (${state.filters.endDate}))`;
+    }
+
+    const filtersSubLayersTrue = Object.keys(state.monitoringSubLayers).filter(key => state.monitoringSubLayers[key] === true);
+    if (filtersSubLayersTrue && filtersSubLayersTrue.length) {
+      params.CQL_FILTER += ' AND';
+      let sublayers = '';
+      filtersSubLayersTrue.forEach((value, key) => {
+        if (!state.monitoringSubLayers[value]) {
+          return;
+        }
+        if (key === 0) {
+          sublayers += ` no_estagio = '${value}'`;
+        }
+        if (key > 0) {
+          sublayers += ` OR no_estagio = '${value}'`;
+        }
+      });
+      params.CQL_FILTER += `(${sublayers})`;
     }
 
     try {
