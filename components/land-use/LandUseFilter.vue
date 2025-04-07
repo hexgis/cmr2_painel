@@ -21,6 +21,7 @@
 
     <v-slide-y-transition>
       <v-row
+        v-if="filters.cr && filters.cr.length"
         class="px-3 pb-3"
       >
         <v-autocomplete
@@ -32,7 +33,6 @@
           item-value="co_funai"
           hide-details
           clearable
-          chips
           required
           multiple
           :error="errorTi"
@@ -74,7 +74,14 @@
           icon
           @click="downloadGeoJsonLandUse()"
         >
-          <v-icon>mdi-download</v-icon>
+        <v-tooltip left>
+          <template #activator="{ on }">
+            <v-icon v-on="on">
+              mdi-download
+            </v-icon>
+          </template>
+          <span>{{ $t('download-label') }}</span>
+        </v-tooltip>
         </v-btn>
         <v-btn
           :loading="isLoadingTable"
@@ -267,7 +274,8 @@
             "polygon-label": "Total polygons count",
             "end-date-label": "End Date",
             "table-label": "Table",
-            "table-name": "Table Land Use"
+            "table-name": "Table Land Use",
+            "download-label": "Download"
         },
         "pt-br": {
             "regional-coordination-label": "Coordenação Regional",
@@ -282,7 +290,8 @@
             "table-label": "Tabela",
             "start-date-label": "Data Início",
             "end-date-label": "Data Fim",
-            "table-name": "Tabela de Uso e Ocupação do Solo"
+            "table-name": "Tabela de Uso e Ocupação do Solo",
+            "download-label": "Baixar"
         }
     }
 </i18n>
