@@ -132,7 +132,7 @@ export default {
 
         tablePropertiesTotal() {
             return this.$store.state.monitoring.tableMonitoringTableOptions
-                .totalItems
+                .totalItems || 5
         },
 
         tablePropertiesPage: {
