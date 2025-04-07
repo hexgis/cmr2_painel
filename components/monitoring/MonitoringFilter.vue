@@ -460,7 +460,7 @@ export default {
         },
 
         showTableDialogAnalytics(value) {
-            if (this.features) {
+            if (this.currentUrlWmsMonitoring) {
                 this.setanalyticsMonitoringDialog(value)
                 this.getDataAnalyticsMonitoringByFunaiYear()
             }
