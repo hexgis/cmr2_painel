@@ -10,6 +10,7 @@ export default function ({
   const isPublicRoute = [
     'cadastro',
     'index',
+    'cmr',
     'projeto',
     'terras-indigenas',
     'como-funciona',
@@ -28,6 +29,6 @@ export default function ({
       return redirect(localePath('/login'));
     }
   } else if (baseName === 'login') {
-    return redirect(localePath('/map'));
+    return redirect(localePath('/cmr'));
   }
 }
