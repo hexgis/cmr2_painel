@@ -184,7 +184,7 @@
     "manual-help-title": "Visualizar manual do Usuário",
     "manual-help-link": "Manual",
     "project-help-title": "Contate o Projeto",
-    "project-help-link": "Fale conosco fasdfas",
+    "project-help-link": "Fale conosco",
     "access-help-title": "Solicite acesso",
     "access-help-link": "Acesse aqui",
     "access-help-text": "Envie para a equipe do CMR o formulário para análise e liberação. ",
