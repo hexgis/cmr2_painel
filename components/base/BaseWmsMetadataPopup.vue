@@ -33,35 +33,37 @@
                     <v-col />
                   </v-row>
                   <template v-for="(value, field) in feature">
-                    <v-row
-                      :key="field + i"
-                      :align="field.align"
-                      class="mx-0 list-separator"
-                      dense
-                    >
-                      <v-col
-                        cols="5"
-                        class="text-right"
+                    <template v-if="formatField(field) !== false">
+                      <v-row
+                        :key="field + i"
+                        :align="field.align"
+                        class="mx-0 list-separator"
+                        dense
                       >
-                        {{ formatField(field) }}:
-                      </v-col>
-                      <v-col
-                        cols="7"
-                        class="text-subtitle-2"
-                        style="overflow-wrap: anywhere"
-                      >
-                        <a
-                          v-if="isValidUrl(value)"
-                          :href="value"
-                          target="_blank"
+                        <v-col
+                          cols="5"
+                          class="text-right"
                         >
-                          {{ value }}
-                        </a>
-                        <span v-else>
-                          {{ formatValue(value,field) }}
-                        </span>
-                      </v-col>
-                    </v-row>
+                          {{ formatField(field) }}:
+                        </v-col>
+                        <v-col
+                          cols="7"
+                          class="text-subtitle-2"
+                          style="overflow-wrap: anywhere"
+                        >
+                          <a
+                            v-if="isValidUrl(value)"
+                            :href="value"
+                            target="_blank"
+                          >
+                            {{ value }}
+                          </a>
+                          <span v-else>
+                            {{ formatValue(value,field) }}
+                          </span>
+                        </v-col>
+                      </v-row>
+                    </template>
                   </template>
                 </template>
 
@@ -167,6 +169,9 @@ export default {
 
   methods: {
     formatField(value) {
+      if(value.toLowerCase().includes('bbox')){
+        return false;
+      }
       let fieldValue = value;
       if (!fieldValue || typeof fieldValue !== 'string') {
         return ''; // or handle appropriately if field is not a string
