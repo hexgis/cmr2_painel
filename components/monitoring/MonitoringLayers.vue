@@ -10,6 +10,7 @@
             :opacity="opacity / 100"
             :visible="showFeaturesMonitoring && !heatMap"
             :options="MonitoringWmsOptions"
+            :pane="'monitoring-layers-map'"
         />
         <l-lwms-tile-layer
             ref="wmsLayerMonitoringHeatmap"
@@ -21,6 +22,7 @@
             :opacity="opacity / 100"
             :visible="showFeaturesMonitoring && heatMap"
             :options="MonitoringWmsOptionsHeatmap"
+            :pane="'monitoring-layers-map'"
         />
     </div>
 </template>

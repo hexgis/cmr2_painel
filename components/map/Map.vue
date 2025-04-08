@@ -587,10 +587,25 @@ export default {
       this.setMapLoading(false);
     },
 
+    createPanes() {
+      // TMS (base layer custom)
+      this.map.createPane("tms-support-layers-map");
+      this.map.getPane("tms-support-layers-map").style.zIndex = 401;
+
+      // Support WMS
+      this.map.createPane("support-layers-map");
+      this.map.getPane("support-layers-map").style.zIndex = 420;
+
+      // Monitoring WMS
+      this.map.createPane("monitoring-layers-map");
+      this.map.getPane("monitoring-layers-map").style.zIndex = 450;
+    },
+
     createMap() {
       this.map = this.$refs.map.mapObject;
       window.mapMain = this.map;
       Vue.prototype.$mainMap = this.map;
+      this.createPanes();
       this.map.on('zoomend', this.onZoomEnd);
       this.map.addEventListener('mousemove', this.refreshCoordinates);
       this.map.on('baselayerchange', this.changeBaseMap);

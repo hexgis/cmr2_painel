@@ -229,6 +229,12 @@ body,
 .leaflet-bottom
   z-index: 3 !important
 
+.leaflet-popup-pane
+  z-index: 10000 !important
+
+.leaflet-overlay-pane
+  z-index: 900 !important
+
 .leaflet-left,
 .leaflet-right,
 .leaflet-top
