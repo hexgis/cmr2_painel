@@ -11,6 +11,7 @@ export default function ({
     'cadastro',
     'index',
     'cmr',
+    'cmr-support',
     'projeto',
     'terras-indigenas',
     'como-funciona',

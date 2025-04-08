@@ -59,7 +59,10 @@
         </v-list>
       </div>
     </v-tab-item>
-    <ProfilePanel v-model="settings" />
+    <ProfilePanel
+      v-if="isLoggedIn"
+      v-model="settings"
+    />
   </v-tabs>
 </template>
 
@@ -101,7 +104,7 @@
 </i18n>
 
 <script>
-import { mapState, mapMutations } from 'vuex';
+import { mapState, mapGetters, mapMutations } from 'vuex';
 import ProfilePanel from '@/components/profile/ProfilePanel';
 
 export default {
@@ -169,6 +172,7 @@ export default {
           name: this.$t('layers-tab'),
           icon: 'mdi-layers',
           route: '/cmr/support',
+          requiredLogin: false,
           show: process.env.ROUTE_SUPPORT === 'true',
         },
 
@@ -176,39 +180,45 @@ export default {
           name: this.$t('search-tab'),
           icon: 'mdi-map-search',
           route: '/cmr/monitoring',
+          requiredLogin: true,
           show: process.env.ROUTE_MONITORING === 'true',
         },
         {
           name: this.$t('high-resolution-mosaics-tab'),
           icon: 'mdi-book-open-page-variant',
           route: '/cmr/support-raster',
+          requiredLogin: true,
           show: process.env.ROUTE_SUPPORT_RASTER === 'true',
         },
         {
           name: this.$t('landuse-tab'),
           icon: 'mdi-sprout',
           route: '/cmr/land-use',
+          requiredLogin: true,
           show: process.env.ROUTE_LAND_USE === 'true',
         },
         {
           name: this.$t('mapoteca-tab'),
           icon: 'mdi-dresser',
-          route: '/cmr/cmroteca',
+          route: '/cmr/mapoteca',
+          requiredLogin: true,
           show: process.env.ROUTE_MAPOTECA === 'true',
         },
         {
           name: this.$t('analytics-tab'),
           icon: 'mdi-chart-box-outline',
           route: '/cmr/statistics',
+          requiredLogin: true,
           show: process.env.ROUTE_ANALYTICS === 'true',
         },
       ];
     },
     tabs() {
-      return this.allTabs.filter((tab) => tab.show);
+      return this.allTabs.filter((tab) => (tab.show && (!tab.requiredLogin || this.isLoggedIn)));
     },
     ...mapState('catalog', ['isComparing']),
     ...mapState('tableDialog', ['showTableDialog']),
+    ...mapGetters('auth', ['isLoggedIn']),
   },
 
   watch: {

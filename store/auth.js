@@ -14,6 +14,10 @@ export const getters = {
   getRefreshToken(state) {
     return state.refresh;
   },
+
+  isLoggedIn(state) {
+    return !!state.token;
+  },
 };
 
 export const mutations = {

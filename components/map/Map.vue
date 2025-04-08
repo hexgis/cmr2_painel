@@ -18,7 +18,11 @@
             <MapSearch
               :map="map"
             />
-            <div class="pt-2">
+
+            <div
+              v-if="isLoggedIn"
+              class="pt-2"
+            >
               <MapSearchTi
                 :map="map"
                 @item-selected="onItemSelected"
@@ -75,18 +79,20 @@
 
             <div class="div-spacer" />
 
-            <FileLoaderControl
-              :map="map"
-              :files="loadedFiles"
-              @loading="isLoading()"
-              @loads="loaded()"
-            />
+            <template v-if="isLoggedIn">
+              <FileLoaderControl
+                :map="map"
+                :files="loadedFiles"
+                @loading="isLoading()"
+                @loads="loaded()"
+              />
 
-            <DrawingPanel
-              :map="map"
-              :show="activeMenu === 'DrawingPanel'"
-              @toggleTool="setActiveMenu"
-            />
+              <DrawingPanel
+                :map="map"
+                :show="activeMenu === 'DrawingPanel'"
+                @toggleTool="setActiveMenu"
+              />
+            </template>
 
             <MapPrinter
               :map="map"
@@ -171,6 +177,7 @@
           :options-style="interestStyle"
           :visible="showInterestArea"
         />
+
         <SupportUserLayersMap />
 
         <MapIndigenousLand />
@@ -251,7 +258,7 @@
 <script>
 import 'leaflet-draw/dist/leaflet.draw.css';
 import Vue from 'vue';
-import { mapState, mapMutations } from 'vuex';
+import { mapState, mapMutations, mapGetters } from 'vuex';
 import interestArea from '@/assets/interest_area.json';
 import MapPrinter from '@/components/map/print-map/MapPrinter';
 
@@ -514,10 +521,10 @@ export default {
 
   computed: {
     minimapVisibleSettings() {
-      return this.user.settings.minimap_visible;
+      return this.user ? this.user.settings.minimap_visible : false;
     },
     initialExtentCoords() {
-      return this.user.settings.initial_extent.coordinates
+      return this.user && this.user.settings.initial_extent.coordinates
         ? this.$L.GeoJSON.coordsToLatLngs(
           this.user.settings.initial_extent.coordinates[0],
         )
@@ -533,6 +540,7 @@ export default {
       'indigenousLand',
     ]),
     ...mapState('userProfile', ['user']),
+    ...mapGetters('auth', ['isLoggedIn']),
   },
 
   watch: {
