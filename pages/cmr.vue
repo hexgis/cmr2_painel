@@ -59,7 +59,10 @@
         </v-list>
       </div>
     </v-tab-item>
-    <ProfilePanel v-model="settings" />
+    <ProfilePanel
+      v-if="isLoggedIn"
+      v-model="settings"
+    />
   </v-tabs>
 </template>
 

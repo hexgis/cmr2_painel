@@ -77,7 +77,6 @@
     <div v-if="$store.state.priority.visualizationStage == 'map'">
       <v-main class="pa-0">
         <Map
-          v-if="!$fetchState.pending && $store.state.userProfile.user"
           @mapCreated="
             getLeafletControlRef()
             changeControlsStyle()

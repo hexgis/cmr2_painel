@@ -18,7 +18,11 @@
             <MapSearch
               :map="map"
             />
-            <div class="pt-2">
+
+            <div
+              v-if="isLoggedIn"
+              class="pt-2"
+            >
               <MapSearchTi
                 :map="map"
                 @item-selected="onItemSelected"
@@ -173,6 +177,7 @@
           :options-style="interestStyle"
           :visible="showInterestArea"
         />
+
         <SupportUserLayersMap />
 
         <MapIndigenousLand />
@@ -516,10 +521,10 @@ export default {
 
   computed: {
     minimapVisibleSettings() {
-      return this.user.settings.minimap_visible;
+      return this.user ? this.user.settings.minimap_visible : false;
     },
     initialExtentCoords() {
-      return this.user.settings.initial_extent.coordinates
+      return this.user && this.user.settings.initial_extent.coordinates
         ? this.$L.GeoJSON.coordsToLatLngs(
           this.user.settings.initial_extent.coordinates[0],
         )
