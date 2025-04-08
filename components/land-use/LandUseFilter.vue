@@ -214,27 +214,7 @@
         />
       </v-col>
     </v-row>
-    <v-row
-      v-if="showFeaturesLandUse && !isLoadingFeatures"
-      align="center"
-      justify="space-between"
-    >
-      <v-col>
-        <span class="grey--text text--darken-2">
-          {{ $t('heat-map-label') }}
-        </span>
-      </v-col>
-      <v-col
-        cols="3"
-        class="d-flex justify-end"
-      >
-        <v-switch
-          v-model="heatMap"
-          class="mt-0 pt-0"
-          hide-details
-        />
-      </v-col>
-    </v-row>
+
     <div
       v-if="tableDialogLand"
       class="d-none"
