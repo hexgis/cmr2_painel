@@ -8,7 +8,7 @@
         <h4 class="subtitle-2 text-uppercase font-weight-regular">
           {{ $t('title') }}
         </h4>
-        <v-tooltip>
+        <v-tooltip bottom>
           <template #activator="{ on }">
             <v-icon
               class="infoIconMargin"
