@@ -9,6 +9,7 @@
     :z-index="3"
     :visible="layer.visible"
     :options="wmsOptions"
+    :pane="'support-layers-map'"
   />
 
   <l-tile-layer
@@ -21,6 +22,7 @@
         ? layer.tms.max_native_zoom
         : 15,
     }"
+    :pane="'tms-support-layers-map'"
   />
 
   <l-layer-group

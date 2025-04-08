@@ -55,7 +55,7 @@
                   class="text-subtitle-2"
                   style="overflow-wrap: anywhere"
                 >
-                  {{ formatValue(entry[1]) }}
+                  {{ formatValue(entry[1], entry[0]) }}
                 </v-col>
               </v-row>
 
@@ -164,12 +164,48 @@ export default {
       this.isCardVisible = true;
     },
 
-    formatValue(value) {
-    if (typeof value === 'boolean') {
-      return value ? 'Sim' : 'Não';
-    }
-    return value;
-  },
+    formatValue(value, field) {
+      
+      console.log(field,'   ', typeof value)
+      const fieldName = field.toLowerCase();
+ 
+      const isDateField = (
+        typeof value === 'string'
+        && (fieldName.startsWith('dt_') || fieldName.startsWith('data_') || fieldName.startsWith('date'))
+        && this.$moment(value).isValid()
+      );
+      
+      const isBooleanField = typeof value === 'boolean';
+ 
+      const isNumberField = typeof value === 'number';
+ 
+      const isLatLongField = ['lat', 'lng', 'long', 'latitude', 'longitude'].some((key) => fieldName.includes(key));
+ 
+      if (isDateField) {
+        return this.$moment(value).format('DD/MM/YYYY');
+      }
+ 
+      if (isBooleanField) {
+        return value ? 'Sim' : 'Não';
+      }
+ 
+      if (isNumberField || fieldName.startsWith('nu_')) {
+        if (isLatLongField) {
+          return value.toFixed(5);
+        }
+        if (typeof value === 'string'){
+          value = parseFloat(value)
+        }
+        const rounded = value.toFixed(2);
+        const [intPart, decimalPart] = rounded.split('.');
+ 
+        return decimalPart !== '00'
+          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
+          : String(parseInt(value, 10));
+      }
+ 
+      return value;
+    },
   },
 };
 </script>
