@@ -72,7 +72,7 @@
               @click:clear="clearInput"
             />
           </v-col>
-          <div class="list-container">
+          <div>
             <v-list v-if="!$fetchState.pending" expand class="pt-0">
               <template v-for="group in filteredGroups">
                 <SupportLayersGroupRaster
@@ -348,12 +348,6 @@ export default {
 <style scoped lang="scss">
 .infoIconMargin {
     margin-left: 4px;
-}
-
-.list-container {
-    max-height: 64vh;
-    overflow-y: auto;
-    padding-right: 0px;
 }
 
 @media (max-width: 768px) {
