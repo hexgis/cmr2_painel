@@ -13,7 +13,12 @@
                         v-on="on"
                         @click.stop="toggleSearch"
                     >
-                        <v-icon>mdi-image-search-outline</v-icon>
+                      <v-img
+                        src="/img/icons/terras_indigenas_search.svg"
+                        contain
+                        height="12"
+                        width="12"
+                      ></v-img>
                     </v-btn>
                 </template>
                 <span>{{ $t('search-label') }}</span>
@@ -56,14 +61,14 @@
         />
     </div>
 </template>
-  
+
 <i18n>
   {
     "en": { "search-label": "Search for Indigenous Lands" },
     "pt-br": { "search-label": "Pesquisar por Terras Indígenas" }
   }
 </i18n>
-  
+
 <script>
 import { mapState, mapActions } from 'vuex'
 import { convertTextToHtml, convertHtmlToText } from '@/utils/formatText'
@@ -233,8 +238,8 @@ export default {
     },
 }
 </script>
-  
-  
+
+
 <style lang="sass">
 .search-button
     z-index: 5
@@ -251,11 +256,10 @@ export default {
     div[role=listbox] > div:nth-child(n):not(:last-child)
         border-bottom: 1px solid lightgray
         margin-bottom: 10px
-        
+
 .infoDialog
     position: fixed
     top: 45%
     height: 230px
     width: 400px
 </style>
-  
