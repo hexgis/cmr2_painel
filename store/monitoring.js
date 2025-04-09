@@ -46,6 +46,7 @@ export const state = () => ({
   isLoadingGeoJson: false,
   isLoadingFeatures: false,
   isLoadingTableMonitoring: false,
+  isLoadingDownloadTableMonitoring: false,
   filterOptions: {
     regionalFilters: [],
     tiFilters: [],
@@ -91,6 +92,10 @@ export const getters = {
 export const mutations = {
   setShowTableDialogMonitoring(state, showTableDialogMonitoring) {
     state.showTableDialogMonitoring = showTableDialogMonitoring;
+  },
+
+  setIsLoadingDownloadTableMonitoring(state, isLoadingDownloadTableMonitoring) {
+    state.isLoadingDownloadTableMonitoring = isLoadingDownloadTableMonitoring;
   },
 
   setLoadingSearchTableMonitoring(state, loadingSearchTableMonitoring) {
@@ -1310,7 +1315,78 @@ export const actions = {
 
   async downloadTableMonitoring({ commit, state }) {
     try {
-      const items = state.tableMonitoring;
+      commit('setIsLoadingDownloadTableMonitoring', true);
+      const params = {
+        service: 'WFS',
+        version: '1.0.0',
+        request: 'GetFeature',
+        typeName: state.geoserverLayerMonitoring,
+        outputFormat: 'application/json',
+        CQL_FILTER: '',
+        maxFeatures: 10000,
+      };
+
+      let url;
+      url = state.urlWmsMonitoring;
+
+      // gera os parametros
+      if (state.intersectsWmsMonitoring) {
+        params.CQL_FILTER += state.intersectsWmsMonitoring;
+      }
+
+
+      const arrayTI = [];
+      if (state.filters.ti && state.filters.ti.length) {
+        Object.values(state.filters.ti).forEach((item) => {
+          arrayTI.push(item.co_funai);
+        });
+        if (params.CQL_FILTER.length) {
+          params.CQL_FILTER += ' AND ';
+        }
+        params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
+      }
+
+      const arrayCR = [];
+      if (state.filters.cr && state.filters.cr.length) {
+        Object.values(state.filters.cr).forEach((item) => {
+          arrayCR.push(item.co_cr);
+        });
+        if (params.CQL_FILTER.length) {
+          params.CQL_FILTER += ' AND ';
+        }
+        params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
+      }
+
+      if (state.filters.startDate && state.filters.endDate) {
+        if (params.CQL_FILTER.length) {
+          params.CQL_FILTER += ' AND ';
+        }
+        params.CQL_FILTER += `(dt_t_um >= (${state.filters.startDate}) AND dt_t_um <= (${state.filters.endDate}))`;
+      }
+
+      const filtersSubLayersTrue = Object.keys(state.monitoringSubLayers).filter(key => state.monitoringSubLayers[key] === true);
+      if (filtersSubLayersTrue && filtersSubLayersTrue.length) {
+        params.CQL_FILTER += ' AND';
+        let sublayers = '';
+        filtersSubLayersTrue.forEach((value, key) => {
+          if (!state.monitoringSubLayers[value]) {
+            return;
+          }
+          if (key === 0) {
+            sublayers += ` no_estagio = '${value}'`;
+          }
+          if (key > 0) {
+            sublayers += ` OR no_estagio = '${value}'`;
+          }
+        });
+        params.CQL_FILTER += `(${sublayers})`;
+      }
+
+      const paramsUrl = new URLSearchParams(params);
+      url = `${url}${paramsUrl}`;
+
+      const response = await this.$api.$get(url, { params });
+      const items = response.features.map((feature) => feature.properties);
 
       if (!items.length) return;
 
@@ -1348,6 +1424,8 @@ export const actions = {
         },
         { root: true },
       );
+    } finally {
+      commit('setIsLoadingDownloadTableMonitoring', false);
     }
   },
 
