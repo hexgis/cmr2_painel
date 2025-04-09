@@ -5,7 +5,11 @@
         <h4 class="subtitle-2 text-uppercase font-weight-regular">
           {{ $t('title') }}
         </h4>
-        <v-tooltip bottom>
+        <v-tooltip
+          bottom
+          max-width="400"
+          color="grey darken-4"
+        >
           <template #activator="{ on }">
             <v-icon class="ml-2" v-on="on">
               mdi-information

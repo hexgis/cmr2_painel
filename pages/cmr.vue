@@ -13,7 +13,10 @@
       nuxt
       :disabled="showTableDialog"
     >
-      <v-tooltip left>
+      <v-tooltip
+        left
+        color="grey darken-4"
+      >
         <template #activator="{ on }">
           <v-icon
             class="tab-icon"

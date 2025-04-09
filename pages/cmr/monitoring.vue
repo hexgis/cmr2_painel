@@ -11,7 +11,11 @@
           {{ $t('title-monitoring') }}
         </h4>
 
-        <v-tooltip bottom>
+        <v-tooltip
+          bottom
+          max-width="400"
+          color="grey darken-4"
+        >
           <template #activator="{ on }">
             <v-icon
               class="ml-2"
