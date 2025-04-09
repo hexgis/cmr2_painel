@@ -33,7 +33,7 @@
                     <v-col />
                   </v-row>
                   <template v-for="(value, field) in feature">
-                    <template v-if="formatField(field) !== false">
+                    <template v-if="shouldDisplayField(field)">
                       <v-row
                         :key="field + i"
                         :align="field.align"
@@ -44,7 +44,7 @@
                           cols="5"
                           class="text-right"
                         >
-                          {{ formatField(field) }}:
+                          {{ formatFieldName(field) }}:
                         </v-col>
                         <v-col
                           cols="7"
@@ -59,7 +59,7 @@
                             {{ value }}
                           </a>
                           <span v-else>
-                            {{ formatValue(value,field) }}
+                            {{ formatFieldValue(value,field) }}
                           </span>
                         </v-col>
                       </v-row>
@@ -138,6 +138,77 @@ export default {
     popup: null,
     data: null,
     loadingData: false,
+    fieldConfig: {
+      // Campos que devem ser ignorados
+      excludedFields: ['bbox'],
+      // Substituições completas de nomes de campos
+      fieldNames: {
+        nu_buffer_distancia: 'Buffer Distância',
+
+        // COORDENAÇÕES REGIONAIS
+        co_cr: 'Código CR',
+        no_cr: 'Nome CR',
+        no_abreviado: 'Nome Abreviado',
+        sg_cr: 'Sigla CR',
+        st_situacao: 'Situação',
+        ds_email: 'Email',
+        no_regiao: 'Região',
+        no_municipio: 'Município',
+        no_uf: 'Estado',
+        sg_uf: 'UF',
+        ds_telefone: 'Telefone',
+        ds_cadatro: 'Data de Cadastro',
+
+        // LOCALIDADES INDIGENAS
+        id:'ID',
+        cd_munic: 'Código Município',
+        nm_munic: 'Município',
+        situacao: 'Situação',
+        ocorrencia: 'Ocorrência',
+        nm_ti: 'TI',
+        c_cr_funai: 'Código CR Funai',
+        n_cr_funai: 'Nome CR Funai',
+        cd_li: 'Código LI',
+        id_li: 'ID LI',
+        nm_li: 'Nome da LI',
+        
+        // TERRAS INDIGENAS EM ESTUDO
+        no_grupo_etnico: 'Grupo Étinico',
+        ds_fase_ti: 'Fase TI',
+        ds_reestudo_ti: 'Reestudo TI',
+        ds_portaria_em_estudo: 'Portaria em Estudo',
+        ds_matricula_regularizada: 'Matrícula Regularizada',
+        dt_cadastro: 'Data de Cadastro',
+        nu_area_ha: 'Área Ha',
+
+        // TERRAS INDIGENAS
+        ds_cr: 'CR',
+
+
+
+
+
+
+        co_funai: 'Código Funai',
+        no_ti: 'Nome da Terra Indígena',
+        // Adicione mais mapeamentos conforme necessário
+      },
+      // Substituições por prefixos
+      fieldPrefixes: {
+        // dt_: 'Data ',
+        // co_: 'Código ',
+        // cd_: 'Código ',
+        // sg_: 'Sigla ',
+        // ds_: 'Descrição ',
+        // no_: 'Nome ',
+        possui_: 'Possui Inst. de Gestão',
+      },
+      // Formatação especial para valores de campos específicos
+      valueFormatters: {
+        // Exemplo: formatar números com unidades específicas
+        nu_area_ha: (value) => `${Number(value).toLocaleString('pt-BR')} ha`,
+      }
+    }
   }),
 
   computed: {
@@ -168,87 +239,87 @@ export default {
   },
 
   methods: {
-    formatField(value) {
-      if(value.toLowerCase().includes('bbox')){
-        return false;
-      }
-      let fieldValue = value;
-      if (!fieldValue || typeof fieldValue !== 'string') {
-        return ''; // or handle appropriately if field is not a string
-      }
-
-      const replacements = {
-        dt_: ['Data ', 'dt_'],
-        co_: ['Codigo ', 'co_'],
-        cd_: ['Codigo ', 'cd_'],
-        sg_: ['Sigla ', 'sg_'],
-        ds_: ['Descrição ', 'ds_'],
-        no_: ['Nome ', 'no_'],
-        possui_: ['Possui Inst. de Gestão', 'possui_ig'],
-        ranking: ['Ranking Desmate 2022', 'ranking'],
-      };
-
-      const prefix = fieldValue.match(/^\w+_/)
-        ? fieldValue.match(/^\w+_/)
-        : fieldValue.match(/^\w+/);
-      const key = prefix ? prefix[0] : ''; // handle case where prefix is null or undefined
-      const regex = /^[A-Za-z]{2}_\w+$/;
-
-      if (key && key in replacements) {
-        fieldValue = fieldValue.replace(
-          replacements[key][1],
-          replacements[key][0],
-        );
-      } else if (fieldValue.match(regex)) {
-        fieldValue = fieldValue.substring(3);
-      }
-
-      fieldValue = fieldValue
-        .replaceAll('_', ' ')
-        .split(' ')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-      return fieldValue;
+    shouldDisplayField(field) {
+      return !this.fieldConfig.excludedFields.some(excluded => 
+        field.toLowerCase().includes(excluded)
+      );
     },
 
-    formatValue(value, field) {
-      const fieldName = field.toLowerCase();
 
-      const isDateField = (
-        typeof value === 'string'
-        && (fieldName.startsWith('dt_') || fieldName.startsWith('data_') || fieldName.startsWith('date'))
-        && this.$moment(value).isValid()
-      );
-
-      const isBooleanField = typeof value === 'boolean';
-
-      const isNumberField = typeof value === 'number';
-
-      const isLatLongField = ['lat', 'lng', 'long', 'latitude', 'longitude'].some((key) => fieldName.includes(key));
-
-      if (isDateField) {
-        return this.$moment(value).format('DD/MM/YYYY');
+    formatFieldName(field) {
+      const lowerField = field.toLowerCase();
+      
+      // 1. Verifica se há um nome específico para este campo
+      if (this.fieldConfig.fieldNames[lowerField]) {
+        return this.fieldConfig.fieldNames[lowerField];
       }
+      
+      // 2. Verifica se há um prefixo correspondente
+      for (const [prefix, replacement] of Object.entries(this.fieldConfig.fieldPrefixes)) {
+        if (lowerField.startsWith(prefix)) {
+          return replacement + this.formatGenericFieldName(field.slice(prefix.length));
+        }
+      }
+      
+      // 3. Formatação genérica
+      return this.formatGenericFieldName(field);
+    },
+    
+    formatGenericFieldName(field) {
+      // Remove prefixos no formato "XX_"
+      const cleanedField = /^[a-z]{2}_/i.test(field) ? field.substring(3) : field;
+      // Formata snake_case para Title Case
+      return cleanedField
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, char => char.toUpperCase());
+    },
 
-      if (isBooleanField) {
+    formatFieldValue(value, field = '') {
+      const lowerField = field.toLowerCase();
+      
+      // 1. Verifica se há um formatador específico para este campo
+      if (this.fieldConfig.valueFormatters[lowerField]) {
+        return this.fieldConfig.valueFormatters[lowerField](value);
+      }
+      
+      // 2. Verifica se é uma data válida
+      if (typeof value === 'string' && 
+          (lowerField.startsWith('dt_') || lowerField.includes('date'))) {
+        if (this.$moment(value).isValid()) {
+          return this.$moment(value).format('DD/MM/YYYY');
+        }
+      }
+      
+      // 3. Verifica se é booleano
+      if (typeof value === 'boolean') {
         return value ? 'Sim' : 'Não';
       }
-
-      if (isNumberField) {
-        if (isLatLongField) {
+      
+      // 4. Verifica se é número
+      if (typeof value === 'number') {
+        // Campos de coordenadas → 5 casas decimais
+        if (['lat', 'lng', 'long', 'latitude', 'longitude'].some(k => 
+            lowerField.includes(k))) {
           return value.toFixed(5);
         }
-
-        const rounded = value.toFixed(2);
-        const [intPart, decimalPart] = rounded.split('.');
-
-        return decimalPart !== '00'
-          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
-          : String(parseInt(value, 10));
+        
+        // Formatação numérica padrão
+        const formatted = value.toLocaleString('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        return formatted.endsWith(',00') 
+          ? formatted.replace(',00', '') 
+          : formatted;
       }
-
-      return value;
+      
+      // 5. Valor padrão (string ou outros)
+      return value || 'N/A';
     },
+
+
+
+  
 
     isValidUrl(value) {
       let url;
@@ -324,6 +395,8 @@ export default {
     },
 
     getFeatureInfoUrl(latlng, layer) {
+      console.log(layer);
+      
       const point = this.map.latLngToContainerPoint(
         latlng,
         this.map.getZoom(),
