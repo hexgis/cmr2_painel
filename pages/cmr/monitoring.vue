@@ -34,30 +34,28 @@
     </div>
     <div
       v-else-if="tab === 'tab-2'"
-      class="tab-header justify-space-between"
+      class="tab-header align-center"
     >
-      <v-row>
-        <h4
-          class="subtitle-2 text-uppercase font-weight-regular header-title"
-        >
-          {{ $t('title-alerts') }}
-        </h4>
-        <v-tooltip>
-          <template #activator="{ on }">
-            <v-icon
-              class="ml-2"
-              v-on="on"
-            >
-              mdi-information
-            </v-icon>
-          </template>
-          <span>
-            {{ $t('update-info') }}
-            <br>
-            {{ $t('data-source') }}
-          </span>
-        </v-tooltip>
-      </v-row>
+      <h4
+        class="subtitle-2 text-uppercase font-weight-regular"
+      >
+        {{ $t('title-alerts') }}
+      </h4>
+      <v-tooltip bottom>
+        <template #activator="{ on }">
+          <v-icon
+            class="ml-2"
+            v-on="on"
+          >
+            mdi-information
+          </v-icon>
+        </template>
+        <span>
+          {{ $t('update-info') }}
+          <br>
+          {{ $t('data-source') }}
+        </span>
+      </v-tooltip>
     </div>
 
     <v-tabs
@@ -81,7 +79,7 @@
       </v-tab>
     </v-tabs>
 
-    <div class="list-container">
+    <div>
       <v-tabs-items v-model="tab">
         <v-tab-item value="tab-1">
           <Monitoring />
@@ -90,7 +88,6 @@
           <Alerts />
         </v-tab-item>
       </v-tabs-items>
-    </div>
     </div>
   </v-container>
 </template>
@@ -148,10 +145,3 @@ export default {
   },
 };
 </script>
-
-<style scoped lang="sass">
-.list-container
-  max-height: 79.5vh
-  overflow-y: auto
-  padding-right: 0px
-</style>

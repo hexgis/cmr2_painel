@@ -1,5 +1,5 @@
 <template>
-  <v-container class="overflow-auto container-height">
+  <div>
     <div class="tab-header flex justify-space-between">
       <h4 class="subtitle-2 text-uppercase font-weight-regular">
         {{ $t('title') }}
@@ -26,14 +26,17 @@
           :key="index"
           class="mb-2"
         >
-          <v-icon class="mr-2" :color="category.color">
+          <v-icon
+            class="mr-2"
+            :color="category.color"
+          >
             mdi-square
           </v-icon>
           {{ $t(`land-use-categories.${category.key}`) }}
         </v-row>
       </v-col>
     </div>
-  </v-container>
+  </div>
 </template>
 
 <i18n>
@@ -90,7 +93,7 @@ export default {
       tab: null,
       items: ['MapStage', 'AnalytcalStage'],
       text: 'Texto de teste.',
-      timer: '',   
+      timer: '',
       checkNewFilters: false,
       landUseCategories: [
         { key: 'agriculture', color: '#ffff00' },
@@ -187,14 +190,8 @@ export default {
     ...mapMutations('tableDialog', ['setshowTableDialog']),
 
     ...mapMutations('priority', ['setVisualizationStage']),
-    
+
     ...mapMutations('land-use', ['settableDialogLand']),
   },
 };
 </script>
-
-<style scoped>
-.container-height {
-    max-height: 90vh;
-}
-</style>
