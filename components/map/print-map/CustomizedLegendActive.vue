@@ -3,7 +3,7 @@
     <div>
       <v-row class="align-center" v-for="(item, index) in items" :key="index">
         <v-icon class="mr-2" size="x-small" :color="item.color">mdi-square</v-icon>
-        <p>{{ $t(item.label) }}  ({{ item.abbreviation?.toString().toUpperCase() }})</p>      
+        <p>{{ $t(item.label) }} </p>      
       </v-row>
     </div>
     <v-spacer />

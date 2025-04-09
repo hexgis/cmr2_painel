@@ -29,7 +29,7 @@
         :class="prodes ? 'prodes-thumbnail' : 'layer-thumbnail'"
         alt="Layer Image" />
       <v-col>
-        <p class="ml-1">{{ layers.name }} ({{ layers.id?.toString().toUpperCase() }})</p>
+        <p class="ml-1">{{ layers.name }}</p>
       </v-col>
     </v-row>
   </div>
