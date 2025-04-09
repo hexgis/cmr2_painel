@@ -9,7 +9,7 @@
             :z-index="3"
             :opacity="opacity / 100"
             :visible="showFeaturesMonitoring && !heatMap"
-            :options="MonitoringWmsOptions"
+            :options="{...MonitoringWmsOptions, name: $t('name-layer')}"
             :pane="'monitoring-layers-map'"
         />
         <l-lwms-tile-layer
@@ -21,7 +21,7 @@
             :z-index="3"
             :opacity="opacity / 100"
             :visible="showFeaturesMonitoring && heatMap"
-            :options="MonitoringWmsOptionsHeatmap"
+            :options="{...MonitoringWmsOptionsHeatmap, name: $t('name-layer-heatmap')}"
             :pane="'monitoring-layers-map'"
         />
     </div>
@@ -30,10 +30,14 @@
 <i18n>
     {
         "en": {
-            "detail-api-error": "Error while retrieving polygon data, contact a system administrator in case it persists."
+            "detail-api-error": "Error while retrieving polygon data, contact a system administrator in case it persists.",
+            "name-layer": "Daily Monitoring",
+            "name-layer-heatmap": "Daily Monitoring - Heatmap"
         },
         "pt-br": {
-            "detail-api-error": "Não foi possível resgatar os dados do polígono, entre em contato com um administrador caso persista."
+            "detail-api-error": "Não foi possível resgatar os dados do polígono, entre em contato com um administrador caso persista.",
+            "name-layer": "Monitoramento Diário",
+            "name-layer-heatmap": "Monitoramento Diário - Heatmap"
         }
     }
 </i18n>
