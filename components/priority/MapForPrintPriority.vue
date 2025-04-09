@@ -32,7 +32,7 @@
               src="@/assets/north-arrow.png"
               alt="northarrow"
               class="north-arrow"
-            />
+            >
           </l-control>
           <PriorityIndividualLayer :map="map" />
           <SupportLayers />
@@ -69,7 +69,7 @@
             {{ titleMap }}
           </p>
           <p class="mb-2">
-            {{ $t('map-title')}}
+            {{ $t('map-title') }}
           </p>
         </div>
         <div class="d-flex justify-center hight_container_mini_map">
@@ -360,7 +360,7 @@
           <v-divider />
           <div class="ma-1 disclaimer">
             <p>
-              {{ $t('disclaimer-1',  todayDate() ) }}
+              {{ $t('disclaimer-1', todayDate() ) }}
             </p>
             <p>
               {{ $t('disclaimer-2') }}
@@ -421,7 +421,6 @@
     }
   }
   </i18n>
-
 
 <script>
 import { mapState } from 'vuex';
@@ -592,7 +591,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .print-mini-map-text {
     color: dimgray !important;
     background: white;
