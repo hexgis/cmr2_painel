@@ -5,13 +5,13 @@
         {{ $t('restricted-area') }}
       </h1>
       <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
+        <template #activator="{ on, attrs }">
           <v-btn
             color="primary"
             text
             v-bind="attrs"
             v-on="on"
-            @click="$router.push('/')"
+            @click="$router.push('/cmr')"
           >
             <v-icon color="primary">mdi-home</v-icon>
           </v-btn>
@@ -20,20 +20,27 @@
       </v-tooltip>
     </span>
     <StatusFilter
-      :requestStatus="requestStatus"
-      :selectedStatus="selectedStatus"
-      :showFilters="showFilters"
+      :request-status="requestStatus"
+      :selected-status="selectedStatus"
+      :show-filters="showFilters"
       @status-changed="toggleStatus"
       @toggle-filters="toggleFilters"
     />
-    <div v-if="showFilters" class="search mt-4">
-      <SearchFilters :filters="filters" :reviewersList="reviewersList" :isNewAccessRequest="true"/>
+    <div
+      v-if="showFilters"
+      class="search mt-4"
+    >
+      <SearchFilters
+        :filters="filters"
+        :reviewers-list="reviewersList"
+        :is-new-access-request="true"
+      />
     </div>
     <div class="card--wrapper mt-6">
       <RestrictedAreaCard
         v-for="(data, index) in filteredTestCases"
         :key="index"
-        :userRequestData="data"
+        :user-request-data="data"
       />
     </div>
   </div>
@@ -50,16 +57,16 @@
 </i18n>
 <script>
 import { mapGetters } from 'vuex';
-import SearchFilters from '@/components/admin/SearchFilters.vue'
-import RestrictedAreaCard from '@/components/admin/RestrictedAreaCard.vue'
-import StatusFilter from '@/components/admin/StatusFilter.vue'
+import SearchFilters from '@/components/admin/SearchFilters.vue';
+import RestrictedAreaCard from '@/components/admin/RestrictedAreaCard.vue';
+import StatusFilter from '@/components/admin/StatusFilter.vue';
 
 export default {
   name: 'AreaRestrita',
 
-  layout: 'admin',
-
   components: { RestrictedAreaCard, SearchFilters, StatusFilter },
+
+  layout: 'admin',
 
   data: () => ({
     requestStatus: [],

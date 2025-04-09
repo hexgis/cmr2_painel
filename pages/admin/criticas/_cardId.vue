@@ -3,13 +3,13 @@
     <span class="d-flex justify-space-between align-center">
       <h1>{{ $t('criticismsSuggestions') }}</h1>
       <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
+        <template #activator="{ on, attrs }">
           <v-btn
             color="primary"
             text
             v-bind="attrs"
             v-on="on"
-            @click="$router.push('/')"
+            @click="$router.push('/cmr')"
           >
             <v-icon color="primary">mdi-home</v-icon>
           </v-btn>
@@ -17,9 +17,8 @@
         <span>Ir para o CMR</span>
       </v-tooltip>
     </span>
-    <TicketDetails :cardId="cardId" />
+    <TicketDetails :card-id="cardId" />
   </div>
-
 </template>
 <i18n>{
   "en": {
@@ -30,15 +29,15 @@
   }
 }</i18n>
 <script>
-import TicketDetails from '/components/admin/TicketDetails.vue'
+import TicketDetails from '/components/admin/TicketDetails.vue';
 
 export default {
-  layout: 'admin',
-  components:{
-    TicketDetails
+  components: {
+    TicketDetails,
   },
+  layout: 'admin',
   async asyncData({ params }) {
-    const cardId = params.cardId;
+    const { cardId } = params;
     return { cardId };
   },
   data() {
@@ -48,7 +47,7 @@ export default {
   },
   mounted() {
     this.cardDetails = this.$route.params.cardId;
-  }
+  },
 };
 
 </script>

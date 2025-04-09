@@ -9,7 +9,7 @@
             text
             v-bind="attrs"
             v-on="on"
-            @click="$router.push('/')"
+            @click="$router.push('/cmr')"
           >
             <v-icon color="primary">mdi-home</v-icon>
           </v-btn>
