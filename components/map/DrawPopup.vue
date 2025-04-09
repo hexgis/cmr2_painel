@@ -390,7 +390,9 @@ export default {
 
   computed: {
     formattedArea() {
-      return `${Intl.NumberFormat().format(this.content.area.replace('ha', ''))} ha`;
+      console.log(this.content.area);      
+      const area = parseFloat(this.content.area.replace('ha', '').trim());      
+      return `${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(area)} ha`;
     },
   },
 
