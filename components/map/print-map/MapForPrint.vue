@@ -4,6 +4,7 @@
             id="printMap"
             ref="printMap"
             :bounds="tmsToPrint.bounds || bounds"
+            @ready="onMapReady"
         >
             <div id="map-container">
                 <l-tile-layer
@@ -30,7 +31,7 @@
                 />
             </l-control>
 
-            <PriorityLayers :map="map" />
+            <!-- <PriorityLayers :map="map" />
             <MonitoringLayers :map="map" />
             <SupportLayers />
             <SupportUserLayersMap />
@@ -39,7 +40,7 @@
             <SupportLayersRaster />
             <AlertLayers :map="map" />
             <DeterLayers :map="map" />
-            <LandUseLayers :map="map" />
+            <LandUseLayers :map="map" /> -->
         </l-map>
     </client-only>
 </template>
@@ -60,7 +61,7 @@
  * Underscore attributes defined by "Leafleat" plugin
  */
 
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import MiniMapForPrint from '@/components/map/MiniMapForPrint.vue'
 import PriorityLayers from '@/components/priority/PriorityLayers'
@@ -174,26 +175,75 @@ export default {
             }/${yyyy}`
         },
 
+        onMapReady(map) {
+            // this.map = map
+            // TMS (base layer custom)
+            this.map.createPane('tms-support-layers-map')
+            this.map.getPane('tms-support-layers-map').style.zIndex = 401
+
+            // Support WMS
+            this.map.createPane('support-layers-map')
+            this.map.getPane('support-layers-map').style.zIndex = 420
+
+            // Monitoring WMS
+            this.map.createPane('monitoring-layers-map')
+            this.map.getPane('monitoring-layers-map').style.zIndex = 450
+
+            this.$nextTick(() => {
+                setTimeout(() => {
+                    this.cloneLayersFromMainMap()
+                }, 200)
+            })
+        },
+
+        cloneLayersFromMainMap() {
+            if (this.mainMap) {
+                this.mainMap.eachLayer((layer) => {
+                    if (layer && layer._events) {
+                        try {
+                            // const pane = layer.options?.pane
+
+                            // if (pane) {
+                            //     console.log(`🧩 Camada com pane definido:`, {
+                            //         name: layer.options?.name || '[sem nome]',
+                            //         pane,
+                            //         layer,
+                            //     })
+                            // }
+                            const clonedLayer = cloneLayer(layer)
+                            if (clonedLayer) {
+                                this.map.addLayer(clonedLayer)
+                            } else {
+                                console.warn('Falha ao clonar camada:', layer)
+                            }
+                        } catch (cloneError) {
+                            console.error('Erro ao clonar camada:', cloneError)
+                        }
+                    }
+                })
+            }
+        },
+
         async createMap() {
             try {
                 require('@/plugins/L.SimpleGraticule')
                 require('@/plugins/L.Control.MapBounds')
 
-            if (!this.$refs.printMap) {
-              throw new Error('Referência ao mapa não encontrada.')
-            }
+                if (!this.$refs.printMap) {
+                    throw new Error('Referência ao mapa não encontrada.')
+                }
 
                 this.map = this.$refs.printMap.mapObject
 
                 window.L = this.$L // define leaflet global
 
-            if (!this.map) {
-              throw new Error('Mapa não foi corretamente inicializado.')
-            }
+                if (!this.map) {
+                    throw new Error('Mapa não foi corretamente inicializado.')
+                }
 
                 this.currentBouldMap = await this.map.getBounds()
                 this.$nextTick(() => {
-                  this.$emit('updateBounds', this.currentBouldMap)
+                    this.$emit('updateBounds', this.currentBouldMap)
                 })
                 this.map.invalidateSize()
                 this.map.on('move', this.onMainMapMoving)
@@ -220,24 +270,24 @@ export default {
                 ) {
                     const bingLayer = this.createBingLayer()
                     if (bingLayer) {
-                      this.map.addLayer(bingLayer)
+                        this.map.addLayer(bingLayer)
                     }
                 }
 
-                this.mainMap.eachLayer((layer) => {
-                  if (layer && layer._events) {
-                    try {
-                      const clonedLayer = cloneLayer(layer);
-                      if (clonedLayer) {
-                        this.map.addLayer(clonedLayer);
-                      } else {
-                        console.warn('Falha ao clonar camada:', layer);
-                      }
-                    } catch (cloneError) {
-                      console.error('Erro ao clonar camada:', cloneError);
-                    }
-                  }
-                });
+                // this.mainMap.eachLayer((layer) => {
+                //     if (layer && layer._events) {
+                //         try {
+                //             const clonedLayer = cloneLayer(layer)
+                //             if (clonedLayer) {
+                //                 this.map.addLayer(clonedLayer)
+                //             } else {
+                //                 console.warn('Falha ao clonar camada:', layer)
+                //             }
+                //         } catch (cloneError) {
+                //             console.error('Erro ao clonar camada:', cloneError)
+                //         }
+                //     }
+                // })
 
                 this.valueScale = true
                 this.valueNorthArrow = true

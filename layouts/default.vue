@@ -235,6 +235,9 @@ body,
 .leaflet-overlay-pane
   z-index: 900 !important
 
+.leaflet-marker-pane
+  z-index: 901 !important
+
 .leaflet-left,
 .leaflet-right,
 .leaflet-top
