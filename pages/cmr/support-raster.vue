@@ -1,148 +1,152 @@
 <template>
-    <v-container class="pa-0">
-        <div class="tab-header justify-space-between">
-            <v-row>
-                <h6 class="subtitle-2 text-uppercase font-weight-regular header-title">
-                    {{ $t('title') }}
-                </h6>
-                <v-tooltip>
-                    <template #activator="{ on }">
-                        <v-icon class="infoIconMargin" v-on="on">
-                            mdi-information
-                        </v-icon>
-                    </template>
-                    <span>
-                        {{ $t('data-source-label') }}
-                    </span>
-                </v-tooltip>
-                <v-switch
-                    v-show="!loading"
-                    v-model="showFeatures"
-                    class="mt-n1 switch-margin"
-                    hide-details
-                />
-            </v-row>
-        </div>
-        <v-tabs
-            v-model="tab"
-            background-color="#D42A3E"
-            centered
-            dark
-            icons-and-text
+  <v-container class="pa-0">
+    <div class="tab-header justify-space-between pb-2">
+      <div class="d-flex align-center">
+        <h4 class="subtitle-2 text-uppercase font-weight-regular">
+          {{ $t('title') }}
+        </h4>
+        <v-tooltip
+          bottom
+          max-width="400"
+          color="grey darken-4"
         >
-            <v-tabs-slider></v-tabs-slider>
-            <v-tab href="#tab-1">
-                Landsat/Sentinel
-                <v-icon>mdi-satellite-variant</v-icon>
-            </v-tab>
+          <template #activator="{ on }">
+            <v-icon class="ml-2" v-on="on">
+              mdi-information
+            </v-icon>
+          </template>
+          <span>
+            {{ $t('data-source-label') }}
+          </span>
+        </v-tooltip>
+      </div>
+        <v-switch
+          v-show="!loading"
+          v-model="showFeatures"
+          class="mt-n1 justify-self-end"
+          hide-details
+        />
+    </div>
+    <v-tabs
+      v-model="tab"
+      background-color="#D42A3E"
+      centered
+      dark
+      icons-and-text
+    >
+      <v-tabs-slider></v-tabs-slider>
+      <v-tab href="#tab-1">
+        Landsat/Sentinel
+        <v-icon>mdi-satellite-variant</v-icon>
+      </v-tab>
 
-            <v-tab href="#tab-2">
-                Planet
-                <v-icon>mdi-earth</v-icon>
-            </v-tab>
-        </v-tabs>
+      <v-tab href="#tab-2">
+        Planet
+        <v-icon>mdi-earth</v-icon>
+      </v-tab>
+    </v-tabs>
 
-        <v-tabs-items v-model="tab">
-            <v-tab-item value="tab-1">
-                <v-card flat>
-                    <v-col cols="12" class="pb-0 mb-n8">
-                        <v-autocomplete
-                            v-model="selectedLayers"
-                            :label="$t('search-label')"
-                            multiple
-                            clearable
-                            :items="orderedSupportLayersGroupsItens"
-                            :item-text="(layer) => layer.name"
-                            outlined
-                            :search-input.sync="searchInput"
-                            @input="searchInput = null"
-                            @click:clear="clearInput"
-                        />
-                    </v-col>
-                    <v-col cols="12" class="pb-0 mb-n6">
-                        <v-autocomplete
-                            v-model="selectedYears"
-                            :label="$t('search-label-years')"
-                            multiple
-                            clearable
-                            :items="years"
-                            outlined
-                            :search-input.sync="searchInputYears"
-                            @input="searchInputYears = null"
-                            @click:clear="clearInput"
-                        />
-                    </v-col>
-                    <div class="list-container">
-                        <v-list v-if="!$fetchState.pending" expand class="pt-0">
-                            <template v-for="group in filteredGroups">
-                                <SupportLayersGroupRaster
-                                    :key="group.id"
-                                    :group="group"
-                                    :open-group="searchLayer"
-                                    :isPlanet="false"
-                                />
-                            </template>
-                        </v-list>
-                    </div>
-                </v-card>
-            </v-tab-item>
-            <v-tab-item value="tab-2">
-                <v-card flat>
-                    <v-col cols="12" class="pb-0 mb-n8">
-                        <v-autocomplete
-                            v-model="selectedLayers"
-                            :label="$t('search-label-month')"
-                            multiple
-                            clearable
-                            :items="orderedSupportLayersGroupsItensPlanet"
-                            :item-text="(layer) => layer.name"
-                            outlined
-                            :search-input.sync="searchInput"
-                            @input="searchInput = null"
-                            @click:clear="clearInput"
-                        />
-                    </v-col>
-                    <v-col cols="12" class="pb-0 mb-n6">
-                        <v-autocomplete
-                            v-model="selectedYears"
-                            :label="$t('search-label-years')"
-                            multiple
-                            clearable
-                            :items="yearsPlanet"
-                            outlined
-                            :search-input.sync="searchInputYears"
-                            @input="searchInputYears = null"
-                            @click:clear="clearInput"
-                        />
-                    </v-col>
-                    <div class="list-container">
-                        <v-list
-                            v-if="!$fetchState.pending"
-                            class="pt-0 list-scroll"
-                            expand
-                        >
-                            <template v-for="group in filteredGroups">
-                                <SupportLayersGroupRaster
-                                    :key="group.id"
-                                    :group="group"
-                                    :open-group="searchLayer"
-                                    :isPlanet="true"
-                                />
-                            </template>
-                        </v-list>
-                    </div>
-                </v-card>
-            </v-tab-item>
-        </v-tabs-items>
-        <div v-if="$fetchState.pending">
-            <v-skeleton-loader
-                v-for="i in 6"
-                :key="i"
-                type="text"
-                class="mx-4 my-5"
+    <v-tabs-items v-model="tab">
+      <v-tab-item value="tab-1">
+        <v-card flat>
+          <v-col cols="12" class="pb-0 mb-n8">
+            <v-autocomplete
+              v-model="selectedLayers"
+              :label="$t('search-label')"
+              multiple
+              clearable
+              :items="orderedSupportLayersGroupsItens"
+              :item-text="(layer) => layer.name"
+              outlined
+              :search-input.sync="searchInput"
+              @input="searchInput = null"
+              @click:clear="clearInput"
             />
-        </div>
-    </v-container>
+          </v-col>
+          <v-col cols="12" class="pb-0 mb-n6">
+            <v-autocomplete
+              v-model="selectedYears"
+              :label="$t('search-label-years')"
+              multiple
+              clearable
+              :items="years"
+              outlined
+              :search-input.sync="searchInputYears"
+              @input="searchInputYears = null"
+              @click:clear="clearInput"
+            />
+          </v-col>
+          <div>
+            <v-list v-if="!$fetchState.pending" expand class="pt-0">
+              <template v-for="group in filteredGroups">
+                <SupportLayersGroupRaster
+                  :key="group.id"
+                  :group="group"
+                  :open-group="searchLayer"
+                  :isPlanet="false"
+                />
+              </template>
+            </v-list>
+          </div>
+        </v-card>
+      </v-tab-item>
+      <v-tab-item value="tab-2">
+        <v-card flat>
+          <v-col cols="12" class="pb-0 mb-n8">
+            <v-autocomplete
+              v-model="selectedLayers"
+              :label="$t('search-label-month')"
+              multiple
+              clearable
+              :items="orderedSupportLayersGroupsItensPlanet"
+              :item-text="(layer) => layer.name"
+              outlined
+              :search-input.sync="searchInput"
+              @input="searchInput = null"
+              @click:clear="clearInput"
+            />
+          </v-col>
+          <v-col cols="12" class="pb-0 mb-n6">
+            <v-autocomplete
+              v-model="selectedYears"
+              :label="$t('search-label-years')"
+              multiple
+              clearable
+              :items="yearsPlanet"
+              outlined
+              :search-input.sync="searchInputYears"
+              @input="searchInputYears = null"
+              @click:clear="clearInput"
+            />
+          </v-col>
+          <div class="list-container">
+            <v-list
+              v-if="!$fetchState.pending"
+              class="pt-0 list-scroll"
+              expand
+            >
+              <template v-for="group in filteredGroups">
+                <SupportLayersGroupRaster
+                  :key="group.id"
+                  :group="group"
+                  :open-group="searchLayer"
+                  :isPlanet="true"
+                />
+              </template>
+            </v-list>
+          </div>
+        </v-card>
+      </v-tab-item>
+    </v-tabs-items>
+    <div v-if="$fetchState.pending">
+      <v-skeleton-loader
+        v-for="i in 6"
+        :key="i"
+        type="text"
+        class="mx-4 my-5"
+      />
+    </div>
+  </v-container>
 </template>
 
 <i18n>
@@ -346,22 +350,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.header-title {
-    margin-top: 8px;
-}
-
 .infoIconMargin {
     margin-left: 4px;
-}
-
-.switch-margin {
-    margin-left: 60px;
-}
-
-.list-container {
-    max-height: 64vh;
-    overflow-y: auto;
-    padding-right: 0px;
 }
 
 @media (max-width: 768px) {

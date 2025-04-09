@@ -13,7 +13,10 @@
       nuxt
       :disabled="showTableDialog"
     >
-      <v-tooltip left>
+      <v-tooltip
+        left
+        color="grey darken-4"
+      >
         <template #activator="{ on }">
           <v-icon
             class="tab-icon"
@@ -46,7 +49,7 @@
         class="info d-flex flex-column align-content-space-between"
         style="height: 90%;"
       >
-        <v-list>
+        <v-list class="pt-0">
           <v-list-item
             v-for="(tab, i) in tabs"
             :key="i"
@@ -59,9 +62,12 @@
         </v-list>
       </div>
     </v-tab-item>
+
+    <!-- <div class="flex-grow-1 flex-shrink-1" /> -->
     <ProfilePanel
       v-if="isLoggedIn"
       v-model="settings"
+      class="mb-2"
     />
   </v-tabs>
 </template>
@@ -259,9 +265,6 @@ export default {
 </script>
 
 <style lang="sass">
-  .v-list-item__title
-    margin-bottom: 15px !important
-
   .tab-icon
     padding-top: 4px
     color: white !important
@@ -270,10 +273,10 @@ export default {
   .right-tabs
     flex-direction: row-reverse
     position: relative
-    min-height: 550px
+    min-height: 350px
 
     > .v-slide-group > .v-slide-group__wrapper > .v-slide-group__content
-      min-height: 550px
+      min-height: 350px
       > .v-tab
         min-width: 0px
 
@@ -317,7 +320,6 @@ export default {
 
   @media (max-width: 768px)
     .v-list-item__title
-      margin-bottom: 12px !important
       font-size: 0.9rem !important
 
     .tab-icon
@@ -326,13 +328,10 @@ export default {
       font-size: 150% !important
 
   @media (max-height: 620px)
-    .v-list-item__title
-      margin-bottom: 0 !important
-
     .v-list-item
-      min-height: 40px
+      min-height: 42px
 
     .v-tabs--vertical > .v-tabs-bar .v-tab
-      height: 41px
+      height: 42px
 
 </style>

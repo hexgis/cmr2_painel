@@ -1,11 +1,15 @@
 <template>
   <v-container class="pa-0">
     <div class="tab-header justify-space-between">
-      <v-row>
+      <div class="d-flex align-center">
         <h4 class="subtitle-2 text-uppercase font-weight-regular">
           {{ $t('title') }}
         </h4>
-        <v-tooltip>
+        <v-tooltip
+          bottom
+          max-width="400"
+          color="grey darken-4"
+        >
           <template #activator="{ on }">
             <v-icon
               class="mr-2 ml-2"
@@ -16,7 +20,7 @@
           </template>
           <span> {{ $t('data-source') }} </span>
         </v-tooltip>
-      </v-row>
+      </div>
       <v-switch
         v-show="!loading"
         v-model="showFeatures"
@@ -79,16 +83,16 @@
 
 <i18n>
 {
-    "en": {
-        "title": "Layers",
-        "search-label": "Search layer",
-        "data-source": "Data source: Geoserver - FUNAI"
-    },
-    "pt-br": {
-        "title": "Camadas",
-        "search-label": "Buscar camada",
-        "data-source": "Fonte de dados: Geoserver - FUNAI"
-    }
+  "en": {
+    "title": "Layers",
+    "search-label": "Search layer",
+    "data-source": "Data source: Geoserver - FUNAI"
+  },
+  "pt-br": {
+    "title": "Camadas",
+    "search-label": "Buscar camada",
+    "data-source": "Fonte de dados: Geoserver - FUNAI"
+  }
 }
 </i18n>
 

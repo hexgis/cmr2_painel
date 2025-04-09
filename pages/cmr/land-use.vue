@@ -1,9 +1,26 @@
 <template>
-  <v-container class="overflow-auto container-height">
-    <div class="tab-header flex justify-space-between">
-      <h4 class="subtitle-2 text-uppercase font-weight-regular">
-        {{ $t('title') }}
-      </h4>
+  <div>
+    <div class="tab-header justify-space-between">
+      <div class="d-flex align-center">
+        <h4 class="subtitle-2 text-uppercase font-weight-regular">
+          {{ $t('title') }}
+        </h4>
+        <v-tooltip
+          bottom
+          max-width="400"
+          color="grey darken-4"
+        >
+          <template #activator="{ on }">
+            <v-icon
+              class="mr-2 ml-2"
+              v-on="on"
+            >
+              mdi-information
+            </v-icon>
+          </template>
+          <span> {{ $t('info') }} </span>
+        </v-tooltip>
+      </div>
       <v-switch
         v-if="features"
         v-model="showFeaturesLandUse"
@@ -26,14 +43,17 @@
           :key="index"
           class="mb-2"
         >
-          <v-icon class="mr-2" :color="category.color">
+          <v-icon
+            class="mr-2"
+            :color="category.color"
+          >
             mdi-square
           </v-icon>
           {{ $t(`land-use-categories.${category.key}`) }}
         </v-row>
       </v-col>
     </div>
-  </v-container>
+  </div>
 </template>
 
 <i18n>
@@ -44,6 +64,7 @@
       "map-label": "Map",
       "table-name": "Land Use Table",
       "legend": "Legend:",
+      "info": "Mapping of land use and occupation based on high spatial resolution images (1.5 m), available for Indigenous Lands in the medium Xingu and those located outside the Legal Amazon, for the years 2015 and 2019",
       "land-use-categories": {
         "agriculture": "Agriculture",
         "clear-cut": "Clear Cut",
@@ -61,6 +82,7 @@
   "pt-br": {
       "title": "Uso e Ocupação do Solo",
       "legend": "Legenda:",
+      "info": "Mapeamento de uso e ocupaçao do solo com base em imagens de alta resolução espacial (1,5 m), disponível para as Terras Indígenas do médio Xingu e as situadas fora da Amazônia Legal, para os anos de 2015 e 2019",
       "land-use-categories": {
         "agriculture": "Agropecuária",
         "clear-cut": "Corte Raso",
@@ -90,7 +112,7 @@ export default {
       tab: null,
       items: ['MapStage', 'AnalytcalStage'],
       text: 'Texto de teste.',
-      timer: '',   
+      timer: '',
       checkNewFilters: false,
       landUseCategories: [
         { key: 'agriculture', color: '#ffff00' },
@@ -187,14 +209,8 @@ export default {
     ...mapMutations('tableDialog', ['setshowTableDialog']),
 
     ...mapMutations('priority', ['setVisualizationStage']),
-    
+
     ...mapMutations('land-use', ['settableDialogLand']),
   },
 };
 </script>
-
-<style scoped>
-.container-height {
-    max-height: 90vh;
-}
-</style>

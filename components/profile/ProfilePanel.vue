@@ -1,12 +1,53 @@
 <template>
-  <div class="bottom-buttons">
-    <v-col>
-      <v-row>
+  <div class="bottom-buttons d-flex flex-column">
+    <v-btn
+      icon
+      large
+      class="mx-auto"
+      @click="goToCriticisms"
+    >
+      <v-tooltip left>
+        <template #activator="{ on: onTooltip }">
+          <v-icon
+            color="white"
+            v-on="onTooltip"
+          >
+            mdi-comment-text-multiple
+          </v-icon>
+        </template>
+        <span>{{ $t('criticisms-suggestions-tooltip') }}</span>
+      </v-tooltip>
+    </v-btn>
+    <!-- Botão Administrador -->
+    <v-btn
+      icon
+      large
+      class="mx-2"
+      @click="goToAdmin"
+    >
+      <v-tooltip left>
+        <template #activator="{ on: onTooltip }">
+          <v-icon
+            color="white"
+            v-on="onTooltip"
+          >
+            mdi-shield-account
+          </v-icon>
+        </template>
+        <span>{{ $t('admin-panel-tooltip') }}</span>
+      </v-tooltip>
+    </v-btn>
+
+    <v-menu
+      left
+      offset-x
+    >
+      <template #activator="{ on: onMenu }">
         <v-btn
           icon
           large
           class="mx-auto"
-          @click="goToCriticisms"
+          v-on="onMenu"
         >
           <v-tooltip left>
             <template #activator="{ on: onTooltip }">
@@ -14,101 +55,54 @@
                 color="white"
                 v-on="onTooltip"
               >
-                mdi-comment-text-multiple
+                mdi-account-circle
               </v-icon>
             </template>
-            <span>{{ $t('criticisms-suggestions-tooltip') }}</span>
+            <span>{{ $t('profile-tooltip') }}</span>
           </v-tooltip>
         </v-btn>
-        <!-- Botão Administrador -->
-        <v-btn
-          icon
-          large
-          class="mx-2"
-          @click="goToAdmin"
+      </template>
+      <v-card>
+        <v-card-title
+          v-if="hasFirstOrLastName"
+          class="username"
         >
-          <v-tooltip left>
-            <template #activator="{ on: onTooltip }">
-              <v-icon
-                color="white"
-                v-on="onTooltip"
-              >
-                mdi-shield-account
-              </v-icon>
-            </template>
-            <span>{{ $t('admin-panel-tooltip') }}</span>
-          </v-tooltip>
-        </v-btn>
-      </v-row>
-
-      <v-row>
-        <v-menu
-          left
-          offset-x
-        >
-          <template #activator="{ on: onMenu }">
-            <v-btn
-              icon
-              large
-              class="mx-auto"
-              v-on="onMenu"
-            >
-              <v-tooltip left>
-                <template #activator="{ on: onTooltip }">
-                  <v-icon
-                    color="white"
-                    v-on="onTooltip"
-                  >
-                    mdi-account-circle
-                  </v-icon>
-                </template>
-                <span>{{ $t('profile-tooltip') }}</span>
-              </v-tooltip>
-            </v-btn>
-          </template>
-          <v-card>
-            <v-card-title
-              v-if="hasFirstOrLastName"
-              class="username"
-            >
-              <v-icon dark>
-                mdi-account
-              </v-icon>
-              <span
-                v-if="!!user.first_name"
-                class="pl-2"
-              >
-                {{ user.first_name }}
-              </span>
-              <span
-                v-if="!!user.last_name"
-                class="pl-2"
-              >
-                {{ user.last_name }}
-              </span>
-            </v-card-title>
-            <v-list-item @click="openSettings()">
-              <v-icon> mdi-cog </v-icon>
-              <span class="pl-2">
-                {{ $t('preferences-button') }}
-              </span>
-            </v-list-item>
-            <v-list-item @click="goToMain()">
-              <v-icon> mdi-home </v-icon>
-              <span class="pl-2">
-                {{ $t('home-button') }}
-              </span>
-            </v-list-item>
-            <v-list-item @click="logout()">
-              <v-icon> mdi-logout </v-icon>
-              <span class="pl-2">
-                {{ $t('logout-button') }}
-              </span>
-            </v-list-item>
-          </v-card>
-        </v-menu>
-      </v-row>
-    </v-col>
+          <v-icon dark>
+            mdi-account
+          </v-icon>
+          <span
+            v-if="!!user.first_name"
+            class="pl-2"
+          >
+            {{ user.first_name }}
+          </span>
+          <span
+            v-if="!!user.last_name"
+            class="pl-2"
+          >
+            {{ user.last_name }}
+          </span>
+        </v-card-title>
+        <v-list-item @click="openSettings()">
+          <v-icon> mdi-cog </v-icon>
+          <span class="pl-2">
+            {{ $t('preferences-button') }}
+          </span>
+        </v-list-item>
+        <v-list-item @click="goToMain()">
+          <v-icon> mdi-home </v-icon>
+          <span class="pl-2">
+            {{ $t('home-button') }}
+          </span>
+        </v-list-item>
+        <v-list-item @click="logout()">
+          <v-icon> mdi-logout </v-icon>
+          <span class="pl-2">
+            {{ $t('logout-button') }}
+          </span>
+        </v-list-item>
+      </v-card>
+    </v-menu>
     <ProfilePanelSettings
       v-if="settingsOpened"
       @onDialogClose="settingsOpened = false"

@@ -5,7 +5,7 @@
         <h4 class="subtitle-2 text-uppercase font-weight-regular">
           {{ $t('title') }}
         </h4>
-        <v-tooltip>
+        <v-tooltip bottom>
           <template #activator="{ on }">
             <v-icon
               class="ml-2"
@@ -48,7 +48,6 @@
         />
       </template>
     </div>
-
   </v-container>
 </template>
 

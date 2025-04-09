@@ -3,13 +3,13 @@
     <span class="d-flex align-center justify-space-between">
       <h1>{{ $t('manageUsers') }}</h1>
       <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
+        <template #activator="{ on, attrs }">
           <v-btn
             color="primary"
             text
             v-bind="attrs"
             v-on="on"
-            @click="$router.push('/')"
+            @click="$router.push('/cmr')"
           >
             <v-icon color="primary">mdi-home</v-icon>
           </v-btn>
