@@ -165,8 +165,6 @@ export default {
     },
 
     formatValue(value, field) {
-      
-      console.log(field,'   ', typeof value)
       const fieldName = field.toLowerCase();
  
       const isDateField = (

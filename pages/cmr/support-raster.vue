@@ -1,6 +1,6 @@
 <template>
   <v-container class="pa-0">
-    <div class="tab-header justify-space-between">
+    <div class="tab-header justify-space-between pb-2">
       <div class="d-flex align-center">
         <h4 class="subtitle-2 text-uppercase font-weight-regular">
           {{ $t('title') }}
