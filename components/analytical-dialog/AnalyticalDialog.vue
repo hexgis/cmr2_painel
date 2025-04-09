@@ -1,13 +1,12 @@
 <template>
   <v-dialog
     v-model="dialog"
-    width="75vw"
-    hide-overlay
+    width="80vw"
     persistent
     no-click-animation
-    scrollable
     color="primary"
     transition="dialog-transition"
+    :fullscreen="$vuetify.breakpoint.smAndDown"
   >
     <v-card>
       <v-toolbar
@@ -43,6 +42,7 @@
               </div>
               <div class="mb-2">
                 <v-btn
+                  class="mx-1 my-2"
                   :class="btn_ti ? 'button-pressed' : ''"
                   :disabled="isLoadingFeatures"
                   @click="groupByFunai()"
@@ -50,6 +50,7 @@
                   {{ $t('indigenousLand') }}
                 </v-btn>
                 <v-btn
+                  class="mx-1 my-2"
                   :class="btn_ti_month_year ? 'button-pressed' : ''"
                   :disabled="isLoadingFeatures"
                   @click="groupByFunaiMonthYear()"
@@ -57,6 +58,7 @@
                   {{ $t('indigenousLandMonthYear') }}
                 </v-btn>
                 <v-btn
+                  class="mx-1 my-2"
                   :class="btn_month_year ? 'button-pressed' : ''"
                   :disabled="isLoadingFeatures"
                   @click="groupByMonthYear()"
@@ -64,6 +66,7 @@
                   {{ $t('monthYear') }}
                 </v-btn>
                 <v-btn
+                  class="mx-1 my-2"
                   :class="btn_year ? 'button-pressed' : ''"
                   :disabled="isLoadingFeatures"
                   @click="groupByYear()"
@@ -71,6 +74,7 @@
                   {{ $t('year') }}
                 </v-btn>
                 <v-btn
+                  class="mx-1 my-2"
                   :class="btn_day ? 'button-pressed' : ''"
                   :disabled="isLoadingFeatures"
                   @click="groupByDay()"
@@ -78,6 +82,7 @@
                   {{ $t('day') }}
                 </v-btn>
                 <v-btn
+                  class="mx-1 my-2"
                   :class="btn_ti_year ? 'button-pressed' : '' "
                   :disabled="isLoadingFeatures"
                   @click="groupByFunaiYear()"
@@ -121,6 +126,7 @@
             :loading="isLoadingStatistic"
             class="elevation-1"
             multi-sort
+            mobile-breakpoint="0"
           />
         </v-container>
       </v-container>
@@ -359,13 +365,10 @@ export default {
 }
 
 .v-dialog__content {
-    justify-content: flex-start;
-}
-.background__toolbar {
-  background: linear-gradient(to bottom, rgb(28, 65, 113), rgb(28, 65, 113));
+    /* justify-content: flex-start; */
 }
 
-@media (max-width: 900px) {
+/* @media (max-width: 900px) {
     .v-dialog__content {
         justify-content: center;
     }
@@ -405,5 +408,5 @@ export default {
     .v-dialog__content {
         width: 100%;
     }
-}
+} */
 </style>
