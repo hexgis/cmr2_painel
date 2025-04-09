@@ -638,8 +638,9 @@ export default {
   },
 
   async mounted() {
-    if (this.showFeaturesMonitoring && this.filters.ti && this.filters.ti.length) {
+    if (this.showFeaturesMonitoring) {
       this.getDataAnalyticsMonitoringByFunai();
+      this.hasLongMonitoringInfo = true
     }
     if (this.selectedStages) {
       this.selectedStages.forEach((item) => {
@@ -672,7 +673,7 @@ export default {
 
       if (this.showFeaturesLandUse) await this.getDataTableLandUse();  
 
-      if (this.filters.ti && this.filters.ti.length > 7) this.showWarningMessage = true;
+      // if (this.filters.ti && this.filters.ti.length > 7) this.showWarningMessage = true;
 
       if (Object.values(this.supportLayers).filter(l => l.visible).length > 7) this.showWarningMessage = true;
 
