@@ -24,9 +24,8 @@
         </v-list-item-title>
       </v-list-item-content>
 
-      <v-col v-if="group.name === 'Alta Resolução' && !isPlanet">
-        <div>
-          <v-tooltip>
+      <v-col cols="1" v-if="group.name === 'Alta Resolução' && !isPlanet">
+          <v-tooltip bottom>
             <template #activator="{ on }">
               <v-icon
                 class="pb-4"
@@ -46,8 +45,7 @@
               <br>
             </span>
           </v-tooltip>
-        </div>
-      </v-col>
+       </v-col>
     </template>
 
     <template v-if="!searchLayer">
