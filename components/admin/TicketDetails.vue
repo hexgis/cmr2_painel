@@ -504,7 +504,7 @@ export default {
                     [...this.file].forEach((file) => formData.append('attachments', file))
                 }
 
-                this.updateStatusAndSendEmail(formData)
+                await this.updateStatusAndSendEmail(formData)
 
                 await this.$store.dispatch('admin/fetchTicketDetail', {
                     ticketId: this.cardId,
@@ -518,9 +518,6 @@ export default {
                     error.response?.data || error.message
                 )
             } finally {
-              await this.$store.dispatch('admin/fetchTicketDetail', {
-                    ticketId: this.cardId,
-                })
               this.isLoading = false
             }
         },
