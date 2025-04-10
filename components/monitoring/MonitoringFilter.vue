@@ -104,7 +104,7 @@
           :loading="loadingSearchTableMonitoring"
           color="accent"
           icon
-          @click="showTableDialogMethod(true)"
+          @click="setShowTableDialogMonitoring(true)"
         >
           <v-tooltip left>
             <template #activator="{ on }">
@@ -277,7 +277,7 @@
       </v-col>
     </v-row>
     <div
-      v-if="showTableDialog"
+      v-if="showTableDialogMonitoring"
       class="d-none"
     >
       <TableProperties />
@@ -417,7 +417,6 @@ export default {
       },
     },
 
-    ...mapState('tableDialog', ['showTableDialog']),
     ...mapState('monitoring', [
       'currentUrlWmsMonitoring',
       'isLoadingFeatures',
@@ -429,7 +428,7 @@ export default {
       'total',
       'analyticsMonitoring',
       'isLoadingGeoJson',
-      'tableDialogMonitoring',
+      'showTableDialogMonitoring',
       'tableMonitoring',
       'isLoadingTableMonitoring',
       'isLoadingCSVMonitoring',
@@ -489,23 +488,12 @@ export default {
     },
 
     closeTable(value) {
-      if (!this.checkNewFilters) {
-        this.settableDialogMonitoring(value);
-        // this.setshowTableDialog(value);
-      } else {
-        this.settableDialogMonitoring(value);
+      this.setShowTableDialogMonitoring(value);
+      if (this.checkNewFilters) {
         // this.setshowTableDialog(value);
         this.getFeatures();
         this.checkNewFilters = false;
       }
-    },
-
-    showTableDialogMethod(value) {
-      this.setshowTableDialog(value);
-      // if (this.features) {
-      //     this.settableDialogMonitoring(value)
-      //     this.getDataTableMonitoring()
-      // }
     },
 
     showTableDialogAnalytics(value) {
@@ -530,7 +518,7 @@ export default {
         }
         this.error = false;
         this.setFilters(filters);
-        if (this.showTableDialog) {
+        if (this.showTableDialogMonitoring) {
           this.$store.dispatch(
             'monitoring/getPropertiesTableMonitoring',
           );
@@ -540,10 +528,8 @@ export default {
       }
       this.error = true;
     },
-    ...mapMutations('tableDialog', ['setshowTableDialog']),
     ...mapMutations('monitoring', [
       'setFilters',
-      'settableDialogMonitoring',
       'setLoadingTable',
       'setLoadingStatistic',
       'setanalyticsMonitoringDialog',
