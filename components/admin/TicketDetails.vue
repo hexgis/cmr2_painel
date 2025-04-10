@@ -33,7 +33,7 @@
             <div class="d-flex justify-space-between align-center">
                 <v-row>
                     <v-col>
-                        <span class="text-uppercase">
+                        <span>
                             <p class="text-highlighted-red">{{ $t('subject') }}</p>
                             <h2 class="text-highlighted-red">
                                 {{ ticketDetail.subject }}
@@ -47,12 +47,12 @@
                     <v-col class="d-flex justify-space-between align-center">
                         <span>
                             <p><strong>{{ $t('requestedBy') }}</strong></p>
-                            <p class="text-uppercase">
+                            <p >
                                 {{ ticketDetail.requesting }}
                             </p>
-                            <p>
+                            <!-- <p>
                                 <i>{{ ticketDetail.requesting_email }}</i>
-                            </p>
+                            </p> -->
                         </span>
                         <span class="d-flex flex-column align-center">
                             <StatusBadge
@@ -94,7 +94,7 @@
                         v-for="(file, index) in ticketDetail.attachments"
                         :key="index"
                     >
-                        <a :href="`${file.file_path}`" target="_blank"> {{ file.name_file }}</a>
+                        <a :href="`${this.$api}//adm-panel/tickets/download/`" target="_blank"> {{ file.name_file }}</a>
                         <br />
                     </span>
                     <v-text-field
@@ -108,7 +108,7 @@
                     ></v-text-field>
                 </v-col>
             </v-row>
-            <div class="mt-4" v-if="!isCompletedCard && (showAnalysisFieldsAdmin || showAnalysisFieldsDev)">
+            <div class="mt-4" v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev">
                 <h3 class="text-uppercase">{{ $t('analyzeRequest') }}</h3>
                 <v-divider></v-divider>
                 <v-row class="mt-6 mb-0">
@@ -132,7 +132,7 @@
                             outlined
                         ></v-select>
                     </v-col>
-                    <v-col v-if="showAnalysisFieldsAdmin" cols="12" md="6">
+                    <v-col v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev" cols="12" md="6">
                         <v-select
                             v-model="substatus"
                             :items="substatusLabelOptions"
@@ -140,7 +140,7 @@
                             outlined
                         ></v-select>
                     </v-col>
-                    <v-col v-if="!dueOn && showAnalysisFieldsAdmin && (showAnalysisFieldsDev ||
+                    <v-col v-if=" showAnalysisFieldsAdmin || (showAnalysisFieldsDev ||
                                 this.substatus == 'EM_DESENVOLVIMENTO')"
                         cols="12"
                         md="6"
@@ -152,7 +152,7 @@
                             outlined
                         ></v-select>
                     </v-col>
-                    <v-col v-if="!dueOn && showAnalysisFieldsAdmin && (showAnalysisFieldsDev ||
+                    <v-col v-if="showAnalysisFieldsAdmin || (showAnalysisFieldsDev ||
                                 this.substatus == 'EM_DESENVOLVIMENTO')"
                         cols="12"
                         md="6"
@@ -183,7 +183,7 @@
                             ></v-date-picker>
                         </v-menu>
                     </v-col>
-                    <v-col v-if="!dueOn && showAnalysisFieldsAdmin &&
+                    <v-col v-if=" showAnalysisFieldsAdmin ||
                                 showAnalysisFieldsDev"
                         cols="12"
                         md="6"
@@ -457,6 +457,7 @@ export default {
                 return `${day}/${month}/${year}`
             }
         },
+
         async sendEmail() {
             try {
                 if (this.checkbox) {
