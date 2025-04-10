@@ -285,6 +285,22 @@ export default {
         geometriaa: 'Geometria',
         geocodigo: 'Geocódigo',
 
+        // DADOS SIGMINE
+        nu_numero: 'Número',
+        no_ult_evento: 'Último Evento',
+        no_subs: 'Substância',
+
+        // COMITES DE BACIAS HIDROGRAFICAS ESTADUAIS
+        no_cbe: 'Nome CBE',
+        cd_cbe: 'Código CBE',
+        no_rhi: 'Nome RHI',
+        nu_cbe_ano_ref: 'CBE Ano Ref.',
+        dt_cbe_ano_ref: 'Data CBE Ref.',
+       
+
+
+
+
         co_funai: 'Código Funai',
         no_ti: 'Nome da Terra Indígena',
         // Adicione mais mapeamentos conforme necessário
@@ -480,7 +496,6 @@ export default {
     },
 
     getFeatureInfoUrl(latlng, layer) {
-      
       const point = this.map.latLngToContainerPoint(
         latlng,
         this.map.getZoom(),
