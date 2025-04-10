@@ -33,7 +33,7 @@
             <div class="d-flex justify-space-between align-center">
                 <v-row>
                     <v-col>
-                        <span class="text-uppercase">
+                        <span>
                             <p class="text-highlighted-red">{{ $t('subject') }}</p>
                             <h2 class="text-highlighted-red">
                                 {{ ticketDetail.subject }}
@@ -47,12 +47,12 @@
                     <v-col class="d-flex justify-space-between align-center">
                         <span>
                             <p><strong>{{ $t('requestedBy') }}</strong></p>
-                            <p class="text-uppercase">
+                            <p >
                                 {{ ticketDetail.requesting }}
                             </p>
-                            <p>
+                            <!-- <p>
                                 <i>{{ ticketDetail.requesting_email }}</i>
-                            </p>
+                            </p> -->
                         </span>
                         <span class="d-flex flex-column align-center">
                             <StatusBadge
@@ -94,7 +94,7 @@
                         v-for="(file, index) in ticketDetail.attachments"
                         :key="index"
                     >
-                        <a :href="`${file.file_path}`" target="_blank"> {{ file.name_file }}</a>
+                        <a :href="`${this.$api}//adm-panel/tickets/download/`" target="_blank"> {{ file.name_file }}</a>
                         <br />
                     </span>
                     <v-text-field
@@ -108,7 +108,7 @@
                     ></v-text-field>
                 </v-col>
             </v-row>
-            <div class="mt-4" v-if="!isCompletedCard && showAnalysisFieldsUser">
+            <div class="mt-4" v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev">
                 <h3 class="text-uppercase">{{ $t('analyzeRequest') }}</h3>
                 <v-divider></v-divider>
                 <v-row class="mt-6 mb-0">
@@ -120,7 +120,7 @@
                             outlined
                         ></v-select>
                     </v-col>
-                    <v-col v-if="(showAnalysisFieldsAdmin || this.status == 'DEFERIDO') && 
+                    <v-col v-if="(showAnalysisFieldsAdmin || this.status == 'DEFERIDO') &&
                                 showAnalysisFieldsDev"
                         cols="12"
                         md="6"
@@ -132,7 +132,7 @@
                             outlined
                         ></v-select>
                     </v-col>
-                    <v-col v-if="showAnalysisFieldsAdmin" cols="12" md="6">
+                    <v-col v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev" cols="12" md="6">
                         <v-select
                             v-model="substatus"
                             :items="substatusLabelOptions"
@@ -140,7 +140,7 @@
                             outlined
                         ></v-select>
                     </v-col>
-                    <v-col v-if="!dueOn && showAnalysisFieldsAdmin && (showAnalysisFieldsDev ||
+                    <v-col v-if=" showAnalysisFieldsAdmin || (showAnalysisFieldsDev ||
                                 this.substatus == 'EM_DESENVOLVIMENTO')"
                         cols="12"
                         md="6"
@@ -152,7 +152,7 @@
                             outlined
                         ></v-select>
                     </v-col>
-                    <v-col v-if="!dueOn && showAnalysisFieldsAdmin && (showAnalysisFieldsDev ||
+                    <v-col v-if="showAnalysisFieldsAdmin || (showAnalysisFieldsDev ||
                                 this.substatus == 'EM_DESENVOLVIMENTO')"
                         cols="12"
                         md="6"
@@ -166,7 +166,7 @@
                             offset-y
                             min-width="290px"
                         >
-                            <template v-slot:activator="{ on, attrs }">
+                            <template v-if="showAnalysisFieldsDev" v-slot:activator="{ on, attrs }">
                                 <v-text-field
                                     v-model="date"
                                     :label="$t('deliveryDate')"
@@ -183,7 +183,7 @@
                             ></v-date-picker>
                         </v-menu>
                     </v-col>
-                    <v-col v-if="!dueOn && showAnalysisFieldsAdmin &&
+                    <v-col v-if=" showAnalysisFieldsAdmin ||
                                 showAnalysisFieldsDev"
                         cols="12"
                         md="6"
@@ -210,7 +210,7 @@
                     </v-col>
                 </v-row>
                 <v-row>
-                    <v-col v-if="showAnalysisFieldsAdmin && showAnalysisFieldsDev"
+                    <v-col v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev"
                         cols="12"
                     >
                         <v-checkbox
@@ -222,7 +222,7 @@
                     </v-col>
                 </v-row>
                 <v-row>
-                    <v-col v-if="showAnalysisFieldsAdmin && showAnalysisFieldsDev"
+                    <v-col v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev"
                         cols="12"
                     >
                         <v-text-field
@@ -237,6 +237,7 @@
                 <span class="d-flex justify-end">
                     <v-btn
                         color="primary"
+                        :disabled="!isSaveEnabled"
                         @click="handleSave"
                     >
                         Salvar
@@ -368,22 +369,17 @@ export default {
         ...mapState('userProfile', ['user']),
 
         showAnalysisFieldsAdmin() {
-            return this.user?.components?.feedback_admin === false
+            return this.user?.components?.feedback_admin === true
         },
 
         showAnalysisFieldsDev() {
-            return this.user?.components?.feedback_dev === false
+            return this.user?.components?.feedback_dev === true
         },
 
-        showAnalysisFieldsUser() {
-            return !(this.user?.components?.feedback_admin === false && 
-            this.user?.components?.feedback_dev === false)
-        },
 
         isSaveEnabled() {
-            return this.text.trim().length > 0 && (this.date || this.dueOn)
-        },
-
+    return this.text.trim().length > 0;
+},
         isCompletedCard() {
             return (
                 this.ticketDetail.ticket_status?.formated_info
@@ -399,15 +395,7 @@ export default {
             return this.ticketDetail.ticket_status?.due_on
         },
         statusLabelOptions() {
-            const isDev = this.user?.components?.feedback_dev === true;
-            return this.labels?.status_category
-                ?.filter(label => {
-                    if (isDev && label.value === 'DEFERIDO') {
-                        return false;
-                    }
-                    return true;
-                })
-            ?.map((label) => ({
+            return this.labels?.status_category?.map((label) => ({
                 text: label.label,
                 value: label.value,
                 disabled: label.label === 'Não Analisado',
@@ -469,6 +457,7 @@ export default {
                 return `${day}/${month}/${year}`
             }
         },
+
         async sendEmail() {
             try {
                 if (this.checkbox) {
@@ -520,6 +509,7 @@ export default {
                     ticketId: this.cardId,
                 })
                 this.text = ''
+
             } catch (error) {
                 this.errorModal = true
                 console.error(

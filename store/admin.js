@@ -172,7 +172,7 @@ export const actions = {
         });
       }
 
-      const response = await this.$axios.post('/adm-panel/tickets/',
+      const response = await this.$api.post('/adm-panel/tickets/',
         formData, {
           headers: {
             ...this.$axios.defaults.headers.common,
