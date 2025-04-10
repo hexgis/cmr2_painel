@@ -10,9 +10,28 @@
         v-else
         class="fill-height"
       >
+        <v-card-title class="pa-0">
+          <v-row no-gutters class="fundo-primary pa-1">
+              <!-- <span class="text-caption pl-2 text-white font-weight-bold">
+                Lat/Lng ({{ currentLatLng.lat + ', ' + currentLatLng.lng }})
+              </span> -->
+              <v-spacer />
+              <v-btn
+                icon
+                x-small
+                color="white"
+                @click="$refs.popup.mapObject.closePopup()"
+              >
+                <v-icon small>
+                  mdi-close
+                </v-icon>
+              </v-btn>
+          </v-row>
+        </v-card-title>
         <v-tabs
           background-color="primary"
           dark
+          show-arrows
           class="fill-height"
         >
           <template v-for="(layerData, layerName) in data">
@@ -140,6 +159,7 @@ export default {
     popup: null,
     data: null,
     loadingData: false,
+    currentLatLng: '',
     fieldConfig: {
     // Campos que devem ser ignorados
       excludedFields: ['bbox', 'path', 'row', 'no_br'],
@@ -326,6 +346,7 @@ export default {
         maxHeight: this.isSmallScreen ? 280 : 360,
         className: 'card-popup',
         color: 'secondary',
+        closeButton: false,
       };
     },
 
@@ -430,6 +451,7 @@ export default {
     async getFeatureInfo(evt) {
       this.hasPopup = false;
       this.data = {};
+      this.currentLatLng = evt.latlng;
       await this.map.eachLayer(async (layer) => {
         if (Object.prototype.hasOwnProperty.call(layer, 'wmsParams')) {
           this.hasPopup = true;
@@ -544,3 +566,13 @@ export default {
   },
 };
 </script>
+
+<style> 
+.fundo-primary {
+  background-color: var(--v-primary-base) !important;
+}
+
+.text-white {
+  color: white !important;
+}
+</style>

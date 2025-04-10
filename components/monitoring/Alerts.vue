@@ -2,7 +2,6 @@
     <div>
         <div>
             <AlertFilter @onSearch="search()" />
-            <ShowDialog />
         </div>
         <div v-if="showFeaturesUrgentAlerts && !isLoadingFeatures" class="mx-4">
             <v-divider />
@@ -96,14 +95,10 @@
 
 <script>
 import { mapActions, mapState } from 'vuex'
-import ShowDialog from '@/components/show-dialog/ShowDialog'
 import AlertFilter from '@/components/monitoring/AlertFilter';
 
 export default {
-    components: {
-        AlertFilter,
-        ShowDialog,
-    },
+    components: { AlertFilter },
 
     data() {
         return {

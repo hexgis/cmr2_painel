@@ -172,10 +172,12 @@ export const actions = {
         });
       }
 
-      const response = await this.$axios.post('/adm-panel/tickets/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await this.$api.post('/adm-panel/tickets/',
+        formData, {
+          headers: {
+            ...this.$axios.defaults.headers.common,
+            'Content-Type': 'multipart/form-data',
+          },
       });
 
       commit('addTicket', response.data);

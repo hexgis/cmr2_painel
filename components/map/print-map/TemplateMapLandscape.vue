@@ -2,54 +2,30 @@
   <div>
     <style>
       @media print {
-      @page {
-      size: landscape;
-      margin: 0;
-      }
+        @page {
+          size: landscape;
+          margin: 0;
+        }
       }
     </style>
-    <v-dialog
-      v-model="showDialog"
-      width="auto"
-      persistent
-    >
-      <v-card-title
-        class="no-print theme--dark secondary white--text d-flex justify-space-between"
-      >
+    <v-dialog v-model="showDialog" width="auto" persistent>
+      <v-card-title class="no-print theme--dark secondary white--text d-flex justify-space-between">
         <span>{{ $t('print-out') }}</span>
-        <v-btn
-          icon
-          @click="$emit('close')"
-        >
+        <v-btn icon @click="$emit('close')">
           <v-icon class="white--text">
             mdi-close
           </v-icon>
         </v-btn>
       </v-card-title>
       <v-container style="background-color: white; max-width: 100%">
-        <v-row
-          id="map-for-print"
-          no-gutters
-          style="width: 1230px; height: 780px; max-height: 780px; overflow: hidden"
-        >
-          <v-col
-            id="monitoring-data-details"
-            cols="8"
-            class="pr-0 mt-2"
-            style="max-height: 780px;"
-          >
-            <div
-              id="data-table"
-              class="leaflet-bottom leaflet-right"
-            >
+        <v-row id="map-for-print" no-gutters style="width: 1230px; height: 780px; max-height: 780px; overflow: hidden">
+          <v-col id="monitoring-data-details" cols="8" class="pr-0 mt-2" style="max-height: 780px;">
+            <div id="data-table" class="leaflet-bottom leaflet-right">
               <!-- Primeira condição -->
               <template v-if="teste >= 0 && teste <= 7">
                 <template v-if="showFeaturesMonitoring && !hasLongMonitoringInfo">
-                  <div
-                    v-for="item in analyticsMonitoring"
-                    :key="'monitoring-' + item.no_ti"
-                    class="text-center bordered-red"
-                  >
+                  <div v-for="(item, i) in analyticsMonitoring" :key="'monitoring-' + item.no_ti + i"
+                    class="text-center bordered-red">
                     <p>
                       <strong>TI {{ item.no_ti }}</strong>
                     </p>
@@ -70,65 +46,40 @@
                     </p>
                   </div>
                 </template>
-                <template
-                  v-if="showFeaturesLandUse && tableLandUse.length <= 7"
-                >
-                  <div
-                    v-for="(item, index) in tableLandUse"
-                    :key="'landuse-' + index"
-                    class="text-center bordered-blue"
-                  >
+                <template v-if="showFeaturesLandUse && tableLandUse.length <= 7">
+                  <div v-for="(item, index) in tableLandUse" :key="'landuse-' + index"
+                    class="text-center bordered-blue">
                     <p>
                       <strong>TI {{ item.no_ti }}</strong>
                     </p>
-                    <p
-                      v-if="parseFloat(item.nu_area_vn_ha) > 0"
-                    >
+                    <p v-if="parseFloat(item.nu_area_vn_ha) > 0">
                       VN: {{ formatNumber(item.nu_area_vn_ha) }}
                     </p>
-                    <p
-                      v-if="parseFloat(item.nu_area_cr_ha) > 0"
-                    >
+                    <p v-if="parseFloat(item.nu_area_cr_ha) > 0">
                       CR: {{ formatNumber(item.nu_area_cr_ha) }}
                     </p>
-                    <p
-                      v-if=" parseFloat(item.nu_area_dg_ha) > 0"
-                    >
+                    <p v-if="parseFloat(item.nu_area_dg_ha) > 0">
                       DG: {{ formatNumber(item.nu_area_dg_ha) }}
                     </p>
-                    <p
-                      v-if=" parseFloat(item.nu_area_ma_ha) > 0"
-                    >
+                    <p v-if="parseFloat(item.nu_area_ma_ha) > 0">
                       MA: {{ formatNumber(item.nu_area_ma_ha) }}
                     </p>
-                    <p
-                      v-if=" parseFloat(item.nu_area_sv_ha) > 0"
-                    >
+                    <p v-if="parseFloat(item.nu_area_sv_ha) > 0">
                       SV: {{ formatNumber(item.nu_area_sv_ha) }}
                     </p>
-                    <p
-                      v-if=" parseFloat(item.nu_area_vi_ha) > 0"
-                    >
+                    <p v-if="parseFloat(item.nu_area_vi_ha) > 0">
                       VI: {{ formatNumber(item.nu_area_vi_ha) }}
                     </p>
-                    <p
-                      v-if=" parseFloat(item.nu_area_ag_ha) > 0"
-                    >
+                    <p v-if="parseFloat(item.nu_area_ag_ha) > 0">
                       AG: {{ formatNumber(item.nu_area_ag_ha) }}
                     </p>
-                    <p
-                      v-if=" parseFloat(item.nu_area_rv_ha) > 0"
-                    >
+                    <p v-if="parseFloat(item.nu_area_rv_ha) > 0">
                       RV: {{ formatNumber(item.nu_area_rv_ha) }}
                     </p>
-                    <p
-                      v-if=" parseFloat(item.nu_area_mi_ha) > 0 "
-                    >
+                    <p v-if="parseFloat(item.nu_area_mi_ha) > 0">
                       MI: {{ formatNumber(item.nu_area_mi_ha) }}
                     </p>
-                    <p
-                      v-if=" parseFloat(item.nu_area_no_ha) > 0 "
-                    >
+                    <p v-if="parseFloat(item.nu_area_no_ha) > 0">
                       NO: {{ formatNumber(item.nu_area_no_ha) }}
                     </p>
                   </div>
@@ -136,56 +87,29 @@
               </template>
             </div>
 
-            <v-card
-              v-if="showWarningMessage"
-              class="warning-message"
-              elevated
-            >
+            <v-card v-if="showWarningMessage" class="warning-message" elevated>
               <v-card-text>
                 <p class="text-subtitle-1">
                   {{ $t('warning-message') }}
                 </p>
               </v-card-text>
               <v-card-actions>
-                <v-btn
-                  color="primary"
-                  text
-                  @click="showWarningMessage = false"
-                >
+                <v-btn color="primary" text @click="showWarningMessage = false">
                   {{ $t('agree') }}
                 </v-btn>
               </v-card-actions>
             </v-card>
-            <MapForPrint
-              :leaf-size="leafSize"
-              :main-map="mainMap"
-              :selected-base-map="selectedBaseMap"
-              class="map-wrapper"
-              @updateBounds="updateBounds"
-              @getCenter="getCenter"
-            />
+            <MapForPrint :leaf-size="leafSize" :main-map="mainMap" :selected-base-map="selectedBaseMap"
+              class="map-wrapper" @updateBounds="updateBounds" @getCenter="getCenter" />
           </v-col>
-          <v-col
-            cols="4"
-            class="pl-1 mt-2"
-          >
+          <v-col cols="4" class="pl-1 mt-2">
             <div class="border_container">
-              <div
-                class="d-flex justify-space-between pl-8 pr-8 ga-1 align-center ma-4"
-              >
+              <div class="d-flex justify-space-between pl-8 pr-8 ga-1 align-center ma-4">
                 <div style="width: 20%">
-                  <v-img
-                    contain
-                    :src="logo_funai"
-                    class="logo"
-                  />
+                  <v-img contain :src="logo_funai" class="logo" />
                 </div>
                 <div style="width: 60%">
-                  <v-img
-                    contain
-                    :src="logo_cmr"
-                    class="logo"
-                  />
+                  <v-img contain :src="logo_cmr" class="logo" />
                 </div>
               </div>
               <div class="font-title pb-2">
@@ -196,58 +120,34 @@
                   {{ print_title }}
                 </p>
               </div>
-              <div
-                class="d-flex justify-center hight_container_mini_map"
-              >
-                <MiniMap
-                  v-if="currentBouldMap"
-                  :current-bould-map="currentBouldMap"
-                  :map-center="mapCenter"
-                />
+              <div class="d-flex justify-center hight_container_mini_map">
+                <MiniMap v-if="currentBouldMap" :current-bould-map="currentBouldMap" :map-center="mapCenter" />
               </div>
               <div class="legend-info-map">
-                <div
-                  class="legend-info-map legend-info-map-details"
-                >
+                <div class="legend-info-map legend-info-map-details">
                   <div>
-                    <p
-                      v-if="hasLegend"
-                      class="d-block ma-1"
-                    >
+                    <p v-if="hasLegend" class="d-block ma-1">
                       <strong style="font-size: small">{{ $t('legend') }}</strong>
                     </p>
-                    <div
-                      class="ma-1 flex-wrap"
-                      style="
+                    <div class="ma-1 flex-wrap" style="
                         width: 100%;
                         max-height: 100%;
                         overflow: hidden;
-                      "
-                    >
-                      <LayerList
-                        :layers="supportLayerUser"
-                        :is-user-layer="true"
-                      />
-                      <div
-                        style="
+                      ">
+                      <div style="
                           display: flex;
                           justify-content: flex-start;
                           align-items: flex-start;
                           gap: 5px;
-                        "
-                      />
-                      <LayerList
-                        :layers="supportLayersCategoryFire"
-                      />
+                        " />
+                      <LayerList :layers="supportLayersCategoryFire" />
 
-                      <div
-                        style="
+                      <div style="
                           display: flex;
                           justify-content: flex-start;
                           align-items: flex-start;
                           gap: 5px;
-                        "
-                      >
+                        ">
                         <div v-if="showFeaturesMonitoring">
                           <p>
                             <strong> Monitoramento Diário </strong>
@@ -255,17 +155,18 @@
                               {{ totalMonitoring }}
                             </v-chip>
                           </p>
-                          <hr
-                            style="
+                          <hr style="
                               border: 1px solid red;
                               margin: 0;
-                            "
-                          >
-                          <LayerList
-                            v-if="showFeaturesMonitoring "
-                            :layers="activeMonitoringLabel"
-                            :monitoring="true"
-                          />
+                            ">
+                          <LayerList v-if="showFeaturesMonitoring" :layers="activeMonitoringLabel" :monitoring="true" />
+                        </div>
+                        <div v-if="showFeaturesUrgentAlerts && (!showFeaturesLandUse || !showFeaturesSupportLayers)">
+                          <p>
+                            <strong>Alerta Urgente</strong>
+                          </p>
+                          <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
+                          <CustomizedLegend v-if="showFeaturesUrgentAlerts" :items="urgentAlertItems" />
                         </div>
                         <div v-if="showFeaturesLandUse">
                           <p>
@@ -275,84 +176,63 @@
                             </v-chip>
                           </p>
                           <hr style="border: 1px solid blue;margin: 0;">
-                          <CustomizedLegend
-                            v-if="showFeaturesLandUse"
-                            :items="landUseCategories"
-                          />
+                          <CustomizedLegend v-if="showFeaturesLandUse" :items="landUseCategories" />
                         </div>
-                        <div v-if="showFeaturesSupportLayers">
+                        <div v-if="
+                          showFeaturesSupportLayers
+                          && (Object.values(supportLayers).filter(l => l.visible).length <= 7
+                            && Object.values(supportLayerUser).filter(l => l.visible).length <= 7)
+                        ">
                           <p>
-                            <strong>Sobreposição de camadas</strong>
+                            <strong>Sobreposição de camadas {{Object.values(supportLayers).filter(l =>
+                              l.visible).length
+                              }}</strong>
                           </p>
                           <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
-                          <LayerList
-                            v-if="showFeaturesSupportLayers"
-                            :layers="supportLayers"
-                            class="mt-1"
-                          />
+                          <LayerList :layers="supportLayerUser" :is-user-layer="true" />
+                          <LayerList v-if="showFeaturesSupportLayers" :layers="supportLayers" class="mt-1" />
                         </div>
                       </div>
-                      <LayerList
-                        :layers="supportLayersCategoryProdes"
-                        :prodes="true"
-                      />
+                      <LayerList :layers="supportLayersCategoryProdes" :prodes="true" />
 
-                      <CustomizedLegend
-                        v-if="showFeaturesDeter"
-                        :items="deterItems"
-                      />
-                      <CustomizedLegend
-                        v-if="showFeaturesUrgentAlerts && !showFeaturesMonitoring"
-                        :items="urgentAlertItems"
-                      />
+                      <div
+                        v-if="showFeaturesUrgentAlerts && showFeaturesMonitoring && showFeaturesLandUse && showFeaturesSupportLayers">
+                        <p>
+                          <strong>Alerta Urgente</strong>
+                        </p>
+                        <hr style="border: 1px solid blue;margin: 0;">
+                        <CustomizedLegend v-if="showFeaturesUrgentAlerts" :items="urgentAlertItems" />
+                      </div>
+
+                      <CustomizedLegend v-if="showFeaturesDeter" :items="deterItems" />
                     </div>
                   </div>
                   <div>
                     <v-divider />
-                    <p
-                      v-if="hasCartographicDatasets"
-                      class="d-block ma-1"
-                    >
+                    <p v-if="hasCartographicDatasets" class="d-block ma-1">
                       Bases Cartográficas:
                     </p>
-                    <div
-                      v-if="activeRasterLayers.length"
-                      class="ml-1"
-                    >
-                      <span
-                        v-for="item in activeRasterLayers"
-                        :key="item.id"
-                      >
+                    <div v-if="activeRasterLayers.length" class="ml-1">
+                      <span v-for="item in activeRasterLayers" :key="item.id">
                         <p v-if="item.wms">
                           {{ item.name }}, fonte:
-                          {{ item.wms?.geoserver?.name}}.
+                          {{ item.wms?.geoserver?.name }}.
                         </p>
                         <p v-else-if="item.tms">
                           {{ item.name }}, fonte:
                           {{ item.tms?.url_tms
                             ? 'SCCON. Atualizado em: ' +
-                              handleData(
-                                  item.tms?.date
-                              )
+                            handleData(
+                              item.tms?.date
+                            )
                             : ''
                           }}.
                         </p>
                       </span>
                     </div>
-                    <div
-                      v-for="layerCategory in layerCategories"
-                      :key="layerCategory.name"
-                    >
-                      <div
-                        v-for="layer in layerCategory.layers"
-                        :key="layer.id"
-                      >
-                        <v-row
-                          v-if="layer.visible"
-                          no-gutters
-                          align="center"
-                          class="image-container"
-                        >
+                    <div v-for="layerCategory in layerCategories" :key="layerCategory.name">
+                      <div v-for="layer in layerCategory.layers" :key="layer.id">
+                        <v-row v-if="layer.visible" no-gutters align="center" class="image-container">
                           <v-col>
                             <p class="ml-1">
                               <strong>{{ layer.name || '-' }}.</strong>
@@ -372,18 +252,11 @@
                       {{ handleData(filters.endDate) }}
                     </p>
                   </div>
-                  <div
-                    v-if="showFeaturesLandUse && uniqueYears.length > 0"
-                  >
+                  <div v-if="showFeaturesLandUse && uniqueYears.length > 0">
                     <p class="ml-1">
                       {{ $t('land-use-print-label') }}
-                      <span
-                        v-for="(year, index) in uniqueYears"
-                        :key="'year-' + index"
-                      >
-                        {{ year }}<span
-                          v-if="index < uniqueYears.length - 1"
-                        >,
+                      <span v-for="(year, index) in uniqueYears" :key="'year-' + index">
+                        {{ year }}<span v-if="index < uniqueYears.length - 1">,
                         </span>
                       </span>
                     </p>
@@ -422,18 +295,11 @@
         </v-row>
         <div class="no-print">
           <div class="d-flex flex-row align-md-center mr-6 mt-2">
-            <v-btn
-              class="ml-4 mb-2"
-              @click="$emit('back')"
-            >
+            <v-btn class="ml-4 mb-2" @click="$emit('back')">
               {{ $t('input-button-back-second-step') }}
             </v-btn>
             <v-spacer />
-            <v-btn
-              color="primary"
-              :disabled="showWarningMessage"
-              @click="print"
-            >
+            <v-btn color="primary" :disabled="showWarningMessage" @click="print">
               <v-icon dark>
                 mdi-file-export-outline
               </v-icon>
@@ -529,6 +395,7 @@ if (typeof window !== 'undefined') {
 }
 
 export default {
+  name: 'PrintTemplateMapLandscape',
   components: {
     MapForPrint,
     MiniMap,
@@ -656,8 +523,7 @@ export default {
     analyticsMonitoring(newVal) {
       // Verificar se newVal é vazio, nulo ou 0
       if (!newVal || newVal.length === 0) {
-        this.showWarningMessage = false;
-        console.log('Landuse', this.tableLandUse.length);
+        // this.showWarningMessage = false;
         this.teste = 0; // Garantir que o valor de teste seja 0
         return;
       }
@@ -671,20 +537,20 @@ export default {
       }
       // Calcular total, somando apenas quando a soma estiver entre 1 e 7
       const total = newVal.length
-                + (this.tableLandUse.length <= 7 ? this.tableLandUse.length : 0);
+        + (this.tableLandUse.length <= 7 ? this.tableLandUse.length : 0);
       if (total > 7) {
         this.showWarningMessage = true;
         this.teste = total; // Garantir que o total correto seja atribuído a 'teste'
         return;
       }
-      this.showWarningMessage = false;
+      // this.showWarningMessage = false;
       // Atualiza a variável 'teste' com a soma correta
       this.teste = total;
     },
 
-    tableLandUse(newValue) {
+    tableLandUse(newValue) {      
       // Atualiza showWarningMessage quando o tamanho de tableLandUse mudar
-      this.showWarningMessage = newValue.length > 7;
+      // this.showWarningMessage = newValue.length > 7;
     },
   },
   computed: {
@@ -701,18 +567,18 @@ export default {
     hasCartographicDatasets() {
       return !!(
         this.showFeaturesSupportLayers
-                || this.supportLayersCategoryProdes
-                || this.showFeaturesDeter
+        || this.supportLayersCategoryProdes
+        || this.showFeaturesDeter
       );
     },
 
     hasLegend() {
       return !!(
         this.showFeaturesSupportLayers
-                || this.showFeaturesMonitoring
-                || this.showFeaturesDeter
-                || this.showFeaturesLandUse
-                || this.showFeaturesUrgentAlerts
+        || this.showFeaturesMonitoring
+        || this.showFeaturesDeter
+        || this.showFeaturesLandUse
+        || this.showFeaturesUrgentAlerts
       );
     },
 
@@ -759,6 +625,7 @@ export default {
       'showFeaturesMonitoring',
       'analyticsMonitoring',
       'filters',
+      'lastSearchStatisticsByFunai',
     ]),
 
     ...mapState('deter', ['showFeaturesDeter', 'features']),
@@ -773,6 +640,7 @@ export default {
   async mounted() {
     if (this.showFeaturesMonitoring) {
       this.getDataAnalyticsMonitoringByFunai();
+      this.hasLongMonitoringInfo = true
     }
     if (this.selectedStages) {
       this.selectedStages.forEach((item) => {
@@ -802,7 +670,14 @@ export default {
                 })
                 : '';
       });
-      await this.getDataTableLandUse();
+
+      if (this.showFeaturesLandUse) await this.getDataTableLandUse();  
+
+      // if (this.filters.ti && this.filters.ti.length > 7) this.showWarningMessage = true;
+
+      if (Object.values(this.supportLayers).filter(l => l.visible).length > 7) this.showWarningMessage = true;
+
+      if (Object.values(this.supportLayerUser).filter(l => l.visible).length > 7) this.showWarningMessage = true;
     }
   },
 
@@ -833,9 +708,8 @@ export default {
       const dd = date.getDate();
       const mm = date.getMonth() + 1;
       const yyyy = date.getFullYear();
-      return `${dd < 10 ? `0${dd}` : dd}/${
-        mm < 10 ? `0${mm}` : mm
-      }/${yyyy}`;
+      return `${dd < 10 ? `0${dd}` : dd}/${mm < 10 ? `0${mm}` : mm
+        }/${yyyy}`;
     },
 
     updateBounds(bounds) {
@@ -862,7 +736,7 @@ export default {
           return { width: 1105, height: 770 }; // in mm or appropriate units
         case 'A3':
           return { width: 1450, height: 860 };
-          // Add more cases as needed
+        // Add more cases as needed
         default:
           return { width: 210, height: 297 }; // Default to A4
       }
@@ -883,161 +757,160 @@ export default {
 
 <style scoped>
 #monitoring-data-details {
-    position: relative;
+  position: relative;
 }
 
 #data-table {
-    position: absolute;
-    right: 0.5rem;
-    bottom: 1.5rem;
-    display: flex;
-    flex-wrap: wrap-reverse;
-    justify-content: flex-start;
-    flex-direction: column;
-    max-height: 760px;
-    gap: 0.5rem;
+  position: absolute;
+  right: 0.5rem;
+  bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-start;
+  flex-direction: column;
+  max-height: 760px;
+  gap: 0.5rem;
 }
 
 .bordered-red {
-    border: 2px solid red; /* Borda vermelha */
-    padding: 10px;
-    border-radius: 5px; /* Borda arredondada */
+  border: 2px solid red;
+  /* Borda vermelha */
+  padding: 10px;
+  border-radius: 5px;
+  /* Borda arredondada */
 }
 
 .bordered-blue {
-    border: 2px solid blue; /* Borda azul */
-    padding: 10px;
-    border-radius: 5px; /* Borda arredondada */
+  border: 2px solid blue;
+  /* Borda azul */
+  padding: 10px;
+  border-radius: 5px;
+  /* Borda arredondada */
 }
 
-#data-table > div {
-    background: #fffbfb;
-    opacity: 0.9;
-    padding: 5px;
+#data-table>div {
+  background: #fffbfb;
+  opacity: 0.9;
+  padding: 5px;
 }
 
 .map-wrapper {
-    width: 100%;
+  width: 100%;
 }
 
-.vue2leaflet-map
-    map-wrapper
-    leaflet-container
-    leaflet-touch
-    leaflet-fade-anim
-    leaflet-grab
-    leaflet-touch-drag
-    leaflet-touch-zoom {
-    height: 30vh !important;
+.vue2leaflet-map map-wrapper leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom {
+  height: 30vh !important;
 }
 
 .legend-info-map {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 60%;
-    padding-bottom: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 60%;
+  padding-bottom: 5px;
 }
 
 .legend-info-map-details {
-    height: 100%;
+  height: 100%;
 }
 
 @page {
-    size: landscape;
-    margin: 0;
+  size: landscape;
+  margin: 0;
 }
 
 @media print {
-    .logo {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
+  .logo {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 
-    .container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100% !important;
-        overflow: hidden !important;
-        box-shadow: none;
-    }
-    .no-print {
-        display: none;
-    }
+  .container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100% !important;
+    overflow: hidden !important;
+    box-shadow: none;
+  }
+
+  .no-print {
+    display: none;
+  }
 }
 
 p {
-    font-size: xx-small;
-    margin: 0;
+  font-size: xx-small;
+  margin: 0;
 }
 
 .font-title p {
-    font-size: medium;
-    margin: 0px;
-    padding: 0px;
-    text-align: center;
-    line-break: anywhere;
-    max-width: 750px;
-    font-family: 'Roboto', sans-serif;
-    text-transform: uppercase;
-    font-size: 10px;
-    font-weight: 700;
-    color: #6c6c6c;
+  font-size: medium;
+  margin: 0px;
+  padding: 0px;
+  text-align: center;
+  line-break: anywhere;
+  max-width: 750px;
+  font-family: 'Roboto', sans-serif;
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 700;
+  color: #6c6c6c;
 }
 
 .font-title {
-    line-break: anywhere;
-    width: 100%;
+  line-break: anywhere;
+  width: 100%;
 }
 
 .print-mini-map-text {
-    color: dimgray !important;
-    font-size: xx-small;
-    white-space: nowrap;
+  color: dimgray !important;
+  font-size: xx-small;
+  white-space: nowrap;
 }
 
 .border_container_legend {
-    border: 0.5px gray;
-    background: #fff;
-    border-radius: 5px;
-    box-shadow: 0 0 5px #bbb !important;
-    height: 100%;
+  border: 0.5px gray;
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 5px #bbb !important;
+  height: 100%;
 }
 
 .border_container {
-    height: 100%;
+  height: 100%;
 }
 
 .hight_container_mini_map {
-    height: 150px;
-    max-height: 150px;
-    width: 100%;
+  height: 150px;
+  max-height: 150px;
+  width: 100%;
 }
 
 .font-page p {
-    font-size: large;
+  font-size: large;
 }
 
 .image-container {
-    width: 100%; /* Garante que o container tenha largura suficiente */
+  width: 100%;
+  /* Garante que o container tenha largura suficiente */
 }
 
 .row {
-    margin: 0 !important;
+  margin: 0 !important;
 }
 
 img.layer-thumbnail {
-    width: 25px;
+  width: 25px;
 }
 
 .warning-message {
-    position: absolute;
-    max-width: 350px;
-    top: 35%;
-    left: 30%;
-    z-index: 20;
-    background: #ffffff;
+  position: absolute;
+  max-width: 350px;
+  top: 35%;
+  left: 30%;
+  z-index: 20;
+  background: #ffffff;
 }
 </style>

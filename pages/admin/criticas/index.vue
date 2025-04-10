@@ -84,10 +84,12 @@
                   ]"
                   required
                 ></v-textarea>
-                <v-checkbox
-                  :label="$t('approveRequestCreation')"
-                  v-model="checkbox"
-                ></v-checkbox>
+                <div v-if="userData?.components?.feedback_admin === true">
+  <v-checkbox
+    :label="$t('approveRequestCreation')"
+    v-model="checkbox"
+  ></v-checkbox>
+</div>
                 <span class="file-input">
                   <v-file-input
                     :label="$t('attachFile')"
@@ -275,6 +277,13 @@ export default {
     ...mapGetters('admin', ['tickets', 'labels']),
     ...mapGetters('userProfile', ['userData']),
 
+    showAnalysisFieldsAdmin() {
+            return this.userData?.components?.feedback_admin === true
+        },
+
+        showAnalysisFieldsDev() {
+            return this.userData?.components?.feedback_dev === true
+        },
 
     orderedCards() {
     return [...this.filteredCards]
@@ -434,6 +443,7 @@ export default {
   },
   async saveTicket() {
     try {
+
       this.newTicketData.status_category = this.isAlreadyDeferred;
       await this.$store.dispatch('admin/createTicket',  {ticketData: this.newTicketData});
       this.sucessModal = true
