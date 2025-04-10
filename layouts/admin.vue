@@ -1,8 +1,13 @@
 <template>
   <v-app>
     <v-main>
-      <div class="admin-panel">
-        <v-card class="admin-panel--menu">
+      <div class="admin-panel"
+>
+
+        <v-card class="admin-panel--menu"
+  v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev"
+
+        >
           <nuxt-link :to="localePath('/admin')">
             <img
               class="admin-panel--menu-img"
@@ -22,6 +27,7 @@
             {{ tab.label }}
           </nuxt-link>
         </v-card>
+
         <nuxt />
       </div>
     </v-main>
@@ -52,6 +58,7 @@
 </i18n>
 
 <script>
+import { mapState } from 'vuex';
 export default {
   name: 'App',
   data() {
@@ -70,11 +77,27 @@ export default {
   head: () => ({
     title: 'CMR | Administrativo',
   }),
+  computed: {
+        ...mapState('userProfile', ['user']),
+
+        showAnalysisFieldsAdmin() {
+            return this.user?.components?.feedback_admin === true
+        },
+
+        showAnalysisFieldsDev() {
+            return this.user?.components?.feedback_dev === true
+        },
+      },
+
   watch: {
     $route(to) {
       this.selectedRoute = to.path;
     },
   },
+  async mounted() {
+    await this.$store.dispatch('userProfile/getUserData')
+  },
+
   methods: {
     setSelectedRoute(route) {
       this.selectedRoute = route;

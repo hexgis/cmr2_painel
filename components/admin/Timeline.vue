@@ -1,13 +1,17 @@
 <template>
   <v-container>
-    <v-card class="pa-4" flat v-if="ticket?.ticket_analysis_history?.length">
+    <v-card
+      v-if="ticket?.ticket_analysis_history?.length"
+      class="pa-4"
+      flat
+    >
       <v-card-title>
         <h3>{{ $t('analysisHistory') }}</h3>
       </v-card-title>
       <v-card-subtitle>
         {{ $t('requester') }}: <strong>{{ ticket.requesting }}</strong>
       </v-card-subtitle>
-      <v-divider></v-divider>
+      <v-divider />
       <v-timeline align-top>
         <v-timeline-item
           v-for="(history, index) in ticket.ticket_analysis_history"
@@ -19,7 +23,7 @@
             <h4 class="text-uppercase">
               {{ history.sub_status_name || $t('noStatusDefined') }}
             </h4>
-            <v-divider></v-divider>
+            <v-divider />
           </div>
           <div v-if="history.comment">
             {{ history.comment }}
@@ -27,12 +31,15 @@
           <div class="text-lightgray">
             <strong>{{ $t('user') }} {{ history.author }}</strong> {{ $t('on') }} {{ history.analyzed_update_formatted }}
           </div>
-          <div class="text-lightgray" v-if="history.status_history_attachments.length">
+          <div
+            v-if="history.status_history_attachments.length"
+            class="text-lightgray"
+          >
             <strong>{{ $t('attachments') }}:</strong>
             <a
               v-for="attachments in history.status_history_attachments"
               :key="attachments.id"
-              :href="attachments.file_path"
+              :href="`https://cmrhomolog-api.funai.gov.br/adm-panel/tickets/download` + attachments.file_path"
               target="_blank"
             >
               {{ attachments.name_file }}
@@ -41,7 +48,9 @@
         </v-timeline-item>
       </v-timeline>
     </v-card>
-    <p v-else>{{ $t('noRecords') }}</p>
+    <p v-else>
+      {{ $t('noRecords') }}
+    </p>
   </v-container>
 </template>
 <i18n>
@@ -68,7 +77,7 @@
 </i18n>
 <script>
 export default {
-  name: "TicketTimeline",
+  name: 'TicketTimeline',
   props: {
     ticket: {
       type: [Object, Array],
@@ -78,24 +87,24 @@ export default {
   methods: {
     getTimelineItemColor(status) {
       switch (status) {
-        case "Em Desenvolvimento":
-          return "#F58A1F";
-        case "Concluído":
-          return "#12A844";
-        case "Em Teste":
-          return "#FFCE03";
-        case "Aguardando Gestor":
-          return "#FFCE03";
-        case "Inviável":
-          return "#D92B3F";
-        case "Indeferido":
-          return "#D92B3F";
+        case 'Em Desenvolvimento':
+          return '#F58A1F';
+        case 'Concluído':
+          return '#12A844';
+        case 'Em Teste':
+          return '#FFCE03';
+        case 'Aguardando Gestor':
+          return '#FFCE03';
+        case 'Inviável':
+          return '#D92B3F';
+        case 'Indeferido':
+          return '#D92B3F';
         default:
-          return "grey";
+          return 'grey';
       }
     },
   },
-  }
+};
 </script>
 
 <style scoped>
