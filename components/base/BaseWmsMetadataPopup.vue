@@ -159,6 +159,10 @@ export default {
         ds_telefone: 'Telefone',
         ds_cadatro: 'Data de Cadastro',
 
+        // INSTRUMENTO DE GESTÃO
+        no_ig: 'IG',
+        nu_ano_elaboracao: 'Ano de Elaboração',
+
         // LOCALIDADES INDIGENAS
         id:'ID',
         cd_munic: 'Código Município',
@@ -183,6 +187,32 @@ export default {
 
         // TERRAS INDIGENAS
         ds_cr: 'CR',
+        possui_ig: 'Possui Inst. de Gestão',
+
+        // ANTROPISMO CONSOLIDADO - 2015
+        nu_area_km2: 'Área Km²',
+        no_classe: 'Nome da Classe',
+        sg_classe: 'Sigla da Classe',
+
+        // ÁREAS DE PROTEÇÃO
+        co_sr: 'Código SR',
+        dt_publica: 'Data de publicação',
+        dt_public1: 'Data de publicação 1',
+        nu_familia: 'Família',
+        dt_titulo: 'Data do Título',
+        no_responsavel: 'Responsável',
+        st_titulad: '',
+        cd_quilomb: 'Código Quilombola',
+        ds_descricao: 'Descrição',
+        nr_escalao: 'Escala',
+        tp_levanta: 'Tipo de Levantamento',
+
+        // UNIDADES DE CONSERVAÇÃO FEDERAL
+        no_uc: 'Nome UC',
+        sg_uc: 'Sigla UC',
+        no_unidade: 'Nome da Unidade',
+        co_cnuc: 'Código CNUC',
+        ds_link_icmbio: 'Link ICMBIO', 
 
 
 
@@ -201,7 +231,7 @@ export default {
         // sg_: 'Sigla ',
         // ds_: 'Descrição ',
         // no_: 'Nome ',
-        possui_: 'Possui Inst. de Gestão',
+        
       },
       // Formatação especial para valores de campos específicos
       valueFormatters: {
