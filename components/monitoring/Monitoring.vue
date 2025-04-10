@@ -2,7 +2,6 @@
   <div>
     <div>
       <MonitoringFilter @onSearch="search()" />
-      <ShowDialog />
     </div>
     <div
       v-if="showFeaturesMonitoring && !isLoadingFeatures"
@@ -125,13 +124,9 @@
 <script>
 import { mapActions, mapState } from 'vuex';
 import MonitoringFilter from '@/components/monitoring/MonitoringFilter';
-import ShowDialog from '@/components/show-dialog/ShowDialog';
 
 export default {
-  components: {
-    MonitoringFilter,
-    ShowDialog,
-  },
+  components: { MonitoringFilter },
 
   data() {
     return {
