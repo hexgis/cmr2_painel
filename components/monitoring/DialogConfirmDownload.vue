@@ -6,6 +6,18 @@
                     v-slot:activator="{ on: onTooltip, attrs: attrsTooltip }"
                 >
                     <v-btn
+                        v-if="table"
+                        small
+                        fab
+                        class="mx-2 my-2"
+                        color="secondary"
+                        :loading="isLoadingGeoJson || isLoadingDownloadTableMonitoring"
+                        @click="startDownload"
+                    >
+                        <v-icon>mdi-download</v-icon>
+                    </v-btn>
+                    <v-btn
+                        v-else
                         color="primary"
                         icon
                         small
@@ -40,7 +52,6 @@
                     {{ $t('description-label-2') }}
                     <a href="mailto:cmr@funai.gov.br">cmr@funai.gov.br</a>.
                 </p>
-                
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
@@ -88,10 +99,10 @@ export default {
     name: 'DialogConfirmDownload',
 
     props: {
-        // dialog: {
-        //     type: Boolean,
-        //     default: false,
-        // },
+        table: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     data() {
@@ -101,7 +112,7 @@ export default {
     },
 
     computed: {
-        ...mapState('monitoring', ['isLoadingGeoJson']),
+        ...mapState('monitoring', ['isLoadingGeoJson', 'isLoadingDownloadTableMonitoring']),
     },
 
     methods: {
@@ -126,7 +137,9 @@ export default {
         },
 
         download() {
-            this.$store.dispatch('monitoring/downloadGeoJsonMonitoring')
+            if (this.table)
+                this.$store.dispatch('monitoring/downloadTableMonitoring')
+            else this.$store.dispatch('monitoring/downloadGeoJsonMonitoring')
             this.dialog = false
         },
     },

@@ -99,7 +99,12 @@
           class=""
         >
           <v-col>
+            <SubLayers
+              v-if="layer.wms && layer.wms.has_sublayers"
+              :layer="layer"
+            />
             <v-img
+              v-else
               contain
               :src="layerPreview"
               :lazy-src="layerPreview"
@@ -110,7 +115,7 @@
         </v-row>
       </v-container>
     </v-list-group>
-    <v-container class="py-0">
+    <v-container class="py-0 mt-2">
       <SupportLayerMetadata
         v-if="showMetadata"
         :layer-id="layerId"
@@ -133,11 +138,12 @@ import tmsLegend from '@/assets/tmsLegend.png';
 
 import SupportLayerFilters from '@/components/support/SupportLayerFilters';
 import SupportLayerMetadata from '@/components/support/SupportLayerMetadata';
+import SubLayers from './SubLayers.vue';
 
 export default {
   name: 'SupportLayersGroupItem',
 
-  components: { SupportLayerFilters, SupportLayerMetadata },
+  components: { SupportLayerFilters, SupportLayerMetadata, SubLayers },
 
   props: {
     layerId: {

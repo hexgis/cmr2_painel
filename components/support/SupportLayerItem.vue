@@ -168,6 +168,11 @@ export default {
                     })
                     return wmsUrl
                 }
+
+                if (this.layer.cql) {
+                    wmsUrl += `&CQL_FILTER=${this.layer.cql}`
+                }
+
                 this.$nextTick(() => {
                     this.$refs.wmsLayer.mapObject.setUrl(wmsUrl)
                 })

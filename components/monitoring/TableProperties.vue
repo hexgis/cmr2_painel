@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    v-model="tableDialogMonitoring"
+    v-model="showTableDialogMonitoring"
     width="80vw"
     persistent
     no-click-animation
@@ -15,25 +15,17 @@
         <v-spacer />
         <v-btn
           icon
-          @click="tableDialogMonitoring = false"
+          @click="setShowTableDialogMonitoring(false)"
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-toolbar>
 
       <v-card-text class="mt-4">
-        <a class="d-flex justify-end">
-          <v-btn
-            small
-            fab
-            class="mx-2 my-2"
-            color="secondary"
-            :loading="false"
-            @click="downloadTableMonitoring"
-          >
-            <v-icon>mdi-download</v-icon>
-          </v-btn>
-        </a>
+        <v-row no-gutters>
+          <v-spacer />
+          <DialogConfirmDownload table />
+        </v-row>
 
         <v-data-table
           :headers="headers"
@@ -101,11 +93,12 @@
 
 <script>
 import { mapState, mapMutations, mapActions } from 'vuex';
+import DialogConfirmDownload from './DialogConfirmDownload.vue';
 
 export default {
   name: 'TablePropertiesMonitoring',
 
-  components: {},
+  components: { DialogConfirmDownload },
 
   //   props: {
   //     table: {
@@ -130,19 +123,11 @@ export default {
   },
 
   computed: {
-    tableDialogMonitoring: {
-      get() {
-        return this.$store.state.tableDialog.showTableDialog;
-      },
-
-      set(value) {
-        this.$store.commit('tableDialog/setshowTableDialog', value);
-      },
-    },
-
     tablePropertiesTotal() {
-      return this.$store.state.monitoring.tableMonitoringTableOptions
-        .totalItems || 5;
+      return (
+        this.$store.state.monitoring.tableMonitoringTableOptions
+          .totalItems || 5
+      );
     },
 
     tablePropertiesPage: {
@@ -176,7 +161,6 @@ export default {
       'tableMonitoring',
       'tableMonitoringTableOptions',
     ]),
-    ...mapState('tableDialog', ['showTableDialog']),
   },
 
   methods: {
