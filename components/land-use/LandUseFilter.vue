@@ -447,12 +447,8 @@ export default {
     },
 
     closeTable(value) {
-      if (!this.checkNewFilters) {
-        this.settableDialogLand(value);
-        this.setshowTableDialog(value);
-      } else {
-        this.settableDialogLand(value);
-        this.setshowTableDialog(value);
+      this.settableDialogLand(value);
+      if (this.checkNewFilters) {
         this.getFeatures();
         this.checkNewFilters = false;
       }
@@ -461,14 +457,11 @@ export default {
     showTableDialog(value) {
       if (this.features) {
         this.settableDialogLand(value);
-        this.setshowTableDialog(value);
         this.getDataTableLandUse();
       }
     },
 
-    ...mapMutations('tableDialog', ['setshowTableDialog']),
-
-    ...mapMutations('land-use', ['setFilters', 'settableDialogLand', 'setshowTableDialog']),
+    ...mapMutations('land-use', ['setFilters', 'settableDialogLand']),
     ...mapActions('land-use', [
       'getFilterOptions',
       'downloadGeoJsonLandUse',

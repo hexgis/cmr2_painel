@@ -39,7 +39,6 @@ export const state = () => ({
   showFeaturesMonitoring: false,
   loadingMonitoring: false,
   visualizationStage: 'stage1',
-  tableDialogMonitoring: false,
   analyticsMonitoringDialog: false,
   isLoadingCSVMonitoring: false,
   isLoadingStatistic: false,
@@ -156,10 +155,6 @@ export const mutations = {
 
   setAnalytics(state, analyticsMonitoring) {
     state.analyticsMonitoring = analyticsMonitoring;
-  },
-
-  settableDialogMonitoring(state, tableDialogMonitoring) {
-    state.tableDialogMonitoring = tableDialogMonitoring;
   },
 
   setanalyticsMonitoringDialog(state, analyticsMonitoringDialog) {

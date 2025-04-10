@@ -473,7 +473,6 @@ export default {
     showTableAlert(value) {
       if (this.features) {
         this.settableDialogAlert(value);
-        this.setshowTableDialog(value);
         this.getDataTable();
       }
     },
@@ -499,7 +498,6 @@ export default {
       this.error = true;
     },
 
-    ...mapMutations('tableDialog', ['setshowTableDialog']),
     ...mapMutations('urgent-alerts', [
       'setFilters',
       'settableDialogAlert',
