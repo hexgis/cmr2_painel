@@ -23,8 +23,12 @@
               :key="layerName"
               class="fill-height"
             >
-              <v-card-text style="max-height: 312px; overflow-y: auto">
-                <template v-for="(feature, i) in layerData.layers">
+              <v-card-text
+                style="max-height: 312px; overflow-y: auto"
+              >
+                <template
+                  v-for="(feature, i) in layerData.layers"
+                >
                   <v-row
                     v-show="i != 0"
                     :key="i"
@@ -49,7 +53,7 @@
                         <v-col
                           cols="7"
                           class="text-subtitle-2"
-                          style="overflow-wrap: anywhere"
+                          style="overflow-wrap: anywhere;"
                         >
                           <a
                             v-if="isValidUrl(value)"
@@ -59,14 +63,13 @@
                             {{ value }}
                           </a>
                           <span v-else>
-                            {{ formatFieldValue(value,field) }}
+                            {{ formatFieldValue( value, field ) }}
                           </span>
                         </v-col>
                       </v-row>
                     </template>
                   </template>
                 </template>
-
                 <template v-if="layerData.loading">
                   <v-row
                     v-for="i in 3"
@@ -90,7 +93,6 @@
                     </v-col>
                   </v-row>
                 </template>
-
                 <div v-else-if="!layerData.layers.length">
                   {{ $t('no-data') }}
                 </div>
@@ -139,12 +141,11 @@ export default {
     data: null,
     loadingData: false,
     fieldConfig: {
-      // Campos que devem ser ignorados
-      excludedFields: ['bbox'],
+    // Campos que devem ser ignorados
+      excludedFields: ['bbox', 'path', 'row', 'no_br'],
       // Substituições completas de nomes de campos
       fieldNames: {
         nu_buffer_distancia: 'Buffer Distância',
-
         // COORDENAÇÕES REGIONAIS
         co_cr: 'Código CR',
         no_cr: 'Nome CR',
@@ -164,7 +165,7 @@ export default {
         nu_ano_elaboracao: 'Ano de Elaboração',
 
         // LOCALIDADES INDIGENAS
-        id:'ID',
+        id: 'ID',
         cd_munic: 'Código Município',
         nm_munic: 'Município',
         situacao: 'Situação',
@@ -175,7 +176,7 @@ export default {
         cd_li: 'Código LI',
         id_li: 'ID LI',
         nm_li: 'Nome da LI',
-        
+
         // TERRAS INDIGENAS EM ESTUDO
         no_grupo_etnico: 'Grupo Étinico',
         ds_fase_ti: 'Fase TI',
@@ -194,14 +195,14 @@ export default {
         no_classe: 'Nome da Classe',
         sg_classe: 'Sigla da Classe',
 
-        // ÁREAS DE PROTEÇÃO
+        // ÁREAS QUILOMBOLAS
         co_sr: 'Código SR',
         dt_publica: 'Data de publicação',
         dt_public1: 'Data de publicação 1',
         nu_familia: 'Família',
         dt_titulo: 'Data do Título',
         no_responsavel: 'Responsável',
-        st_titulad: '',
+        st_titulad: 'Titulado',
         cd_quilomb: 'Código Quilombola',
         ds_descricao: 'Descrição',
         nr_escalao: 'Escala',
@@ -212,33 +213,88 @@ export default {
         sg_uc: 'Sigla UC',
         no_unidade: 'Nome da Unidade',
         co_cnuc: 'Código CNUC',
-        ds_link_icmbio: 'Link ICMBIO', 
+        ds_link_icmbio: 'Link ICMBIO',
 
+        // GRADE LANDSAT
+        path: 'Órbita',
+        row: 'Ponto',
+        path_row: 'Órbita Ponto',
+        orb_ponto: 'Órbita Ponto',
 
+        // ASSENTAMENTOS RURAIS
+        cd_sipra: 'Código SIPRA',
+        nu_beneficio: 'Benefício',
+        dt_criacao: 'Data de Criação',
+        nu_ano_criacao: 'Ano de Criação',
+        ds_forma_obtencao: 'Forma de Obtenção',
+        dt_obtencao: 'Data de Obtenção',
+        no_sr: 'SR',
+        nu_area_ref_incra: 'Área Ref. INCRA',
 
+        // CAR
+        co_terra_indigena: 'Código Terra Indígena',
+        no_terra_indigena: 'Nome Terra Indígena',
+        nu_superficie_perimetro_ha: 'Superfície Perimetro Ha',
+        dt_atualizacao: 'Data de Atualização',
+        co_imovel: 'Imóvel',
+        no_municipio_car: 'Município CAR',
+        nu_modulo: 'Módulo',
+        tp_imovel: 'Tipo de Imóvel',
+        ds_condicao_imovel: 'Condição do Imóvel',
+        tp_situacao: 'Situação',
 
+        // IMOVEIS CERTIFICADOS PRIVADO (SIGEF)
+        no_rt: 'RT',
+        co_art: 'Código ART',
+        ds_situacao: 'Situação',
+        dt_submissao: 'Data de Submissão',
+        dt_aprovacao: 'Data de Aprovação',
+        no_area: 'Área',
+        ds_registro_m: 'Registro M',
+        ds_registro_d: 'Registro D',
+        cd_municipio: 'Código Município',
+        cd_uf: 'Código UF',
 
+        // IMOVEIS CERTIFICADOS PRIVADO (SNCI)
+        nu_certificado: 'Número do Certificado',
+        dt_certificado: 'Data do Certificado',
+        no_imovel: 'Imóvel',
+
+        // TRECHOS RODOVIARIOS
+        nu_br: 'BR',
+        no_inicio_rodovia: 'Início da Rodovia',
+        nu_km_extensao: 'Km Extensão',
+        ds_concessao: 'Concessão',
+        ds_superficie_federal: 'Superfície Federal',
+        no_superficie_estadual_coincidente: 'Superfície Estadual Coincidente',
+        ds_jurisdicao: 'Jurisdição',
+        sg_superficie_federal: 'Sigla Superfície Federal',
+        nm_tipo_trecho: 'Tipo do Trecho',
+        sg_tipo_trecho: 'Sigla do Trecho',
+        sg_legenda: 'Sigla Legenda',
+
+        // ÁREAS MUNICIPAIS
+        nu_uf_geocodigo: 'Número UF Geocódigo',
+        nu_geocodigo: 'Número Geocódigo',
+        nu_ano_referencia: 'Ano Referência',
+
+        // FAIXA DE FRONTEIRA
+        no_faixa_de_fronteira: 'Faixa de Fronteira',
+
+        // SEDE DE MUNICÍPIOS
+        geometriaa: 'Geometria',
+        geocodigo: 'Geocódigo',
 
         co_funai: 'Código Funai',
         no_ti: 'Nome da Terra Indígena',
         // Adicione mais mapeamentos conforme necessário
       },
-      // Substituições por prefixos
-      fieldPrefixes: {
-        // dt_: 'Data ',
-        // co_: 'Código ',
-        // cd_: 'Código ',
-        // sg_: 'Sigla ',
-        // ds_: 'Descrição ',
-        // no_: 'Nome ',
-        
-      },
       // Formatação especial para valores de campos específicos
       valueFormatters: {
         // Exemplo: formatar números com unidades específicas
         nu_area_ha: (value) => `${Number(value).toLocaleString('pt-BR')} ha`,
-      }
-    }
+      },
+    },
   }),
 
   computed: {
@@ -270,86 +326,80 @@ export default {
 
   methods: {
     shouldDisplayField(field) {
-      return !this.fieldConfig.excludedFields.some(excluded => 
-        field.toLowerCase().includes(excluded)
+      return !this.fieldConfig.excludedFields.some(
+        (excluded) => field.toLowerCase().includes(excluded),
       );
     },
 
-
     formatFieldName(field) {
       const lowerField = field.toLowerCase();
-      
+
       // 1. Verifica se há um nome específico para este campo
       if (this.fieldConfig.fieldNames[lowerField]) {
         return this.fieldConfig.fieldNames[lowerField];
       }
-      
-      // 2. Verifica se há um prefixo correspondente
-      for (const [prefix, replacement] of Object.entries(this.fieldConfig.fieldPrefixes)) {
-        if (lowerField.startsWith(prefix)) {
-          return replacement + this.formatGenericFieldName(field.slice(prefix.length));
-        }
-      }
-      
+
       // 3. Formatação genérica
       return this.formatGenericFieldName(field);
     },
-    
+
     formatGenericFieldName(field) {
       // Remove prefixos no formato "XX_"
-      const cleanedField = /^[a-z]{2}_/i.test(field) ? field.substring(3) : field;
+      const cleanedField = /^[a-z]{2}_/i.test(field)
+        ? field.substring(3)
+        : field;
       // Formata snake_case para Title Case
       return cleanedField
         .replace(/_/g, ' ')
-        .replace(/\b\w/g, char => char.toUpperCase());
+        .replace(/\b\w/g, (char) => char.toUpperCase());
     },
 
     formatFieldValue(value, field = '') {
-      const lowerField = field.toLowerCase();
-      
-      // 1. Verifica se há um formatador específico para este campo
-      if (this.fieldConfig.valueFormatters[lowerField]) {
-        return this.fieldConfig.valueFormatters[lowerField](value);
+      if (value === null || value === undefined) {
+        return 'N/A';
       }
-      
-      // 2. Verifica se é uma data válida
-      if (typeof value === 'string' && 
-          (lowerField.startsWith('dt_') || lowerField.includes('date'))) {
-        if (this.$moment(value).isValid()) {
-          return this.$moment(value).format('DD/MM/YYYY');
-        }
+
+      const fieldName = field.toLowerCase();
+
+      const isDateField = (
+        typeof value === 'string'
+        && (fieldName.startsWith('dt_') || fieldName.startsWith('data_') || fieldName.startsWith('date'))
+        && this.$moment(value).isValid()
+      );
+
+      const isBooleanField = typeof value === 'boolean';
+
+      const isNumberField = typeof value === 'number';
+
+      const isLatLongField = ['lat', 'lng', 'long', 'latitude', 'longitude'].some((key) => fieldName.includes(key));
+
+      if (isDateField) {
+        return this.$moment(value).format('DD/MM/YYYY');
       }
-      
-      // 3. Verifica se é booleano
-      if (typeof value === 'boolean') {
+
+      if (isBooleanField) {
         return value ? 'Sim' : 'Não';
       }
-      
-      // 4. Verifica se é número
-      if (typeof value === 'number') {
-        // Campos de coordenadas → 5 casas decimais
-        if (['lat', 'lng', 'long', 'latitude', 'longitude'].some(k => 
-            lowerField.includes(k))) {
+
+      if (isNumberField || fieldName.startsWith('nu_')) {
+        if (isLatLongField) {
           return value.toFixed(5);
         }
-        
-        // Formatação numérica padrão
-        const formatted = value.toLocaleString('pt-BR', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        });
-        return formatted.endsWith(',00') 
-          ? formatted.replace(',00', '') 
-          : formatted;
+        if (typeof value === 'string') {
+          // eslint-disable-next-line no-param-reassign
+          value = parseFloat(value);
+        }
+        const rounded = value.toFixed(2);
+        const [intPart, decimalPart] = rounded.split('.');
+
+        return decimalPart !== '00' || (fieldName.startsWith('nu_') && fieldName.includes('area'))
+          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
+          : parseInt(value, 10);
       }
-      
+
       // 5. Valor padrão (string ou outros)
       return value || 'N/A';
     },
-
-
-
-  
 
     isValidUrl(value) {
       let url;
@@ -368,31 +418,31 @@ export default {
         if (Object.prototype.hasOwnProperty.call(layer, 'wmsParams')) {
           this.hasPopup = true;
           const layerName = layer.wmsParams.name;
-
           this.data[layerName] = {
             layers: [],
             loading: true,
           };
-
           const url = this.getFeatureInfoUrl(evt.latlng, layer);
           this.loadingData = true;
-          this.$axios
-            .get(url)
-            .then(async ({ data }) => {
-              if (data && data.features && data.features.length) {
-                // eslint-disable-next-line no-restricted-syntax
-                for (const feature of data.features) {
-                  // TODO: Remover essa logica de Camada Instrumento de Gestão
-                  if (layerName.toLowerCase().includes('instrumento') || layerName.toLowerCase().includes('gestão')) {
-                    // eslint-disable-next-line no-await-in-loop
-                    const res = await this.fetchInstrumentoGestao(feature.properties.co_funai);
-                    this.data[layerName].layers = res || [];
-                    return;
-                  }
-                  this.data[layerName].layers.push(feature.properties);
+          this.$axios.get(url).then(async ({ data }) => {
+            if (data && data.features && data.features.length) {
+            // eslint-disable-next-line no-restricted-syntax
+              for (const feature of data.features) {
+              // TODO: Remover essa logica de Camada Instrumento de Gestão
+                if (layerName.toLowerCase().includes('instrumento') || layerName.toLowerCase().includes('gestão')) {
+                  // eslint-disable-next-line no-await-in-loop
+                  const res = await this.fetchInstrumentoGestao(
+                    feature.properties.co_funai,
+                  );
+                  this.data[layerName].layers = res || [];
+                  return;
                 }
+                this.data[layerName].layers.push(
+                  feature.properties,
+                );
               }
-            })
+            }
+          })
             .catch(() => {
               this.$store.commit('alert/addAlert', {
                 message: this.$t('layer-api-error'),
@@ -404,9 +454,14 @@ export default {
               this.$forceUpdate();
             });
         } else if (layer.feature) {
-          if (layer.feature.geometry.type === 'MultiPolygon' || layer.feature.geometry.type === 'Polygon') {
+          if (
+            layer.feature.geometry.type === 'MultiPolygon' || layer.feature.geometry.type === 'Polygon'
+          ) {
             // Verifique se o ponto está dentro de um MultiPolygon.
-            if (booleanPointInPolygon([evt.latlng.lng, evt.latlng.lat], layer.feature)) {
+            if (booleanPointInPolygon(
+              [evt.latlng.lng, evt.latlng.lat],
+              layer.feature,
+            )) {
               const name = layer.feature.properties.no_ti;
               const layerName = name;
               this.hasPopup = true;
@@ -425,14 +480,13 @@ export default {
     },
 
     getFeatureInfoUrl(latlng, layer) {
-      console.log(layer);
       
       const point = this.map.latLngToContainerPoint(
         latlng,
         this.map.getZoom(),
       );
 
-      const size = this.map.getSize();
+      const size = this.map.getSize()
       const params = {
         request: 'GetFeatureInfo',
         service: 'WMS',
@@ -454,8 +508,10 @@ export default {
       params[params.version === '1.3.0' ? 'i' : 'x'] = Math.trunc(point.x);
       params[params.version === '1.3.0' ? 'j' : 'y'] = Math.trunc(point.y);
 
-      // eslint-disable-next-line no-underscore-dangle
-      return (layer._url + this.$L.Util.getParamString(params, layer._url, true));
+      return (
+        // eslint-disable-next-line no-underscore-dangle
+        layer._url + this.$L.Util.getParamString(params, layer._url, true)
+      );
     },
 
     async fetchInstrumentoGestao(CoFunai) {
