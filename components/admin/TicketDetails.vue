@@ -518,7 +518,9 @@ export default {
                     error.response?.data || error.message
                 )
             } finally {
-              window.location.reload();
+              await this.$store.dispatch('admin/fetchTicketDetail', {
+                    ticketId: this.cardId,
+                })
               this.isLoading = false
             }
         },
