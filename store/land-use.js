@@ -255,50 +255,61 @@ export const actions = {
   },
 
   async downloadTableLandUse({ commit, state, rootGetters }) {
-    commit('setLoadingCSV', true);
+    try {
+      commit('setLoadingCSV', true);
 
-    const params = {
-      format: state.filters.csv,
-    };
-
-    if (state.filters.ti && state.filters.ti.length) { params.co_funai = state.filters.ti.toString(); }
-
-    if (state.filters.year && state.filters.year.length) { params.map_year = state.filters.year.toString(); }
-
-    if (state.filters.cr && state.filters.cr.length) { params.co_cr = state.filters.cr.toString(); }
-
-    if (state.filters.currentView) params.in_bbox = rootGetters['map/bbox'];
-
-    const tableCSVLandUse = await this.$api.get('land-use/table/', {
-      params,
-    });
-
-    function saveData(data, fileName, type) {
-      let elementBtn; let blob; let
-        url;
-
-      elementBtn = document.createElement('a');
-      elementBtn.style = 'display: none';
-      document.body.appendChild(elementBtn);
-
-      if (type !== 'text/csv') {
-        data = JSON.stringify(data);
+      const params = {
+        format: state.filters.csv,
+      };
+  
+      if (state.filters.ti && state.filters.ti.length) { params.co_funai = state.filters.ti.toString(); }
+  
+      if (state.filters.year && state.filters.year.length) { params.map_year = state.filters.year.toString(); }
+  
+      if (state.filters.cr && state.filters.cr.length) { params.co_cr = state.filters.cr.toString(); }
+  
+      if (state.filters.currentView) params.in_bbox = rootGetters['map/bbox'];
+  
+      const tableCSVLandUse = await this.$api.get('land-use/table/', {
+        params,
+      });
+  
+      function saveData(data, fileName, type) {
+        let elementBtn; let blob; let
+          url;
+  
+        elementBtn = document.createElement('a');
+        elementBtn.style = 'display: none';
+        document.body.appendChild(elementBtn);
+  
+        if (type !== 'text/csv') {
+          data = JSON.stringify(data);
+        }
+  
+        blob = new Blob([data], { type });
+        url = window.URL.createObjectURL(blob);
+  
+        elementBtn.href = url;
+        elementBtn.download = fileName;
+        elementBtn.click();
+        window.URL.revokeObjectURL(url);
       }
 
-      blob = new Blob([data], { type });
-      url = window.URL.createObjectURL(blob);
-
-      elementBtn.href = url;
-      elementBtn.download = fileName;
-      elementBtn.click();
-      window.URL.revokeObjectURL(url);
-    }
-
-    try {
       saveData(
         tableCSVLandUse.data,
         'land_use_and_ocupation.csv',
         'text/csv',
+      );
+    } catch(error) {      
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring'),
+          }),
+        },
+        { root: true },
       );
     } finally {
       commit('setLoadingCSV', false);

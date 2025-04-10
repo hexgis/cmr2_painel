@@ -131,32 +131,36 @@ export const mutations = {
   },
 
   setSupportLayersGroups(state, layersGroups) {
-    state.supportLayersGroups = {};
-    state.supportLayers = {};
+    Vue.set(state, 'supportLayersGroups', {});
+    Vue.set(state, 'supportLayers', {});
 
-    for (const group of layersGroups) {
-      const { layers } = group;
-      group.layers = [];
+    layersGroups.forEach((group) => {
+        if (group.layers) {
+            const currentGroup = {...group};
+            const layers = [...currentGroup.layers];
+            currentGroup.layers = [];
 
-      for (const layer of layers) {
-        layer.visible = false;
+            layers.forEach((layer) => {
+                const currentLayer = {
+                    ...layer,
+                    layer_filters: layer.filters,
+                    visible: false,
+                    sublayers: false,
+                    opacity: (layer.wms && layer.wms.default_opacity) || 
+                            (layer.vector && layer.vector.default_opacity) || 100,
+                    loading: false,
+                    filters: [],
+                    data: [],
+                    cql: null
+                };
 
-        if (layer.layer_type === 'wms' && layer.wms.default_opacity) {
-          layer.opacity = layer.wms.default_opacity;
-        } else {
-          layer.opacity = 100;
+                currentGroup.layers.push(layer.id);
+                Vue.set(state.supportLayers, layer.id, currentLayer);
+            });
+
+            Vue.set(state.supportLayersGroups, group.id, currentGroup);
         }
-
-        layer.loading = false;
-        layer.filters = [];
-        layer.data = [];
-
-        group.layers.push(layer.id);
-        Vue.set(state.supportLayers, layer.id, layer);
-      }
-
-      Vue.set(state.supportLayersGroups, group.id, group);
-    }
+    });
   },
 
   setSupportCategoryGroupsFire(state, categoryGroups) {
@@ -428,9 +432,32 @@ export const mutations = {
   setSearchLayer(state, search) {
     state.searchLayer = search;
   },
+
   setOrderedLayers(state, layers) {
     state.orderedLayers = layers;
-  }
+  },
+
+  setSublayers(state, { id, sublayers }) {
+    state.supportLayers[id].sublayers = sublayers;
+  },
+
+  setCqlLayer(state, { id, category }) {
+    let cql = '';
+    const layer = state.supportLayers[id];
+    const { sublayers } = layer;
+    
+    Object.keys(sublayers).forEach((key) => {
+        if (sublayers[key].name === category) {
+            Vue.set(sublayers[key], 'visible', !sublayers[key].visible);
+        }
+        if (sublayers[key].visible) {
+            Vue.set(layer, 'visible', true);
+            cql += `${sublayers[key].cql} OR `;
+        }
+    });
+    
+    Vue.set(layer, 'cql', cql ? cql.slice(0, -4) : '1=2');
+  },
 };
 
 export const actions = {
