@@ -466,15 +466,6 @@ export default {
             if (data && data.features && data.features.length) {
             // eslint-disable-next-line no-restricted-syntax
               for (const feature of data.features) {
-              // TODO: Remover essa logica de Camada Instrumento de Gestão
-                if (layerName.toLowerCase().includes('instrumento') || layerName.toLowerCase().includes('gestão')) {
-                  // eslint-disable-next-line no-await-in-loop
-                  const res = await this.fetchInstrumentoGestao(
-                    feature.properties.co_funai,
-                  );
-                  this.data[layerName].layers = res || [];
-                  return;
-                }
                 this.data[layerName].layers.push(
                   feature.properties,
                 );
