@@ -473,6 +473,7 @@ export default {
             }
         },
         async handleSave() {
+
             this.isLoading = true
             try {
                 const updatedData = {
@@ -517,6 +518,7 @@ export default {
                     error.response?.data || error.message
                 )
             } finally {
+              window.location.reload();
               this.isLoading = false
             }
         },
