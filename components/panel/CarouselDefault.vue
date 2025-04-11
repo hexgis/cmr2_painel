@@ -1,14 +1,29 @@
 <template>
-  <v-carousel height="400" show-arrows="hover" cycle hide-delimiter-background>
-    <v-carousel-item v-for="(slide, i) in slides" :key="i">
-        <div class="carousel d-flex fill-height justify-flex-start align-center relative">
-          <v-col class="absolute">
-            <h2 class="carousel-text-h2">{{ slide.title }}</h2>
-            <p class="carousel-text-p">{{ slide.subtitle }}</p>
-          </v-col>
-          <v-img :src="`/img/portal/sliderb_0${i + 1}.jpg`" alt=""/>
-        </div>
+  <v-carousel
+    height="400"
+    show-arrows="hover"
+    hide-delimiter-background
+  >
+    <!-- cycle -->
+    <v-carousel-item
+      v-for="(slide, i) in slides"
+      :key="i"
+      :src="`/img/portal/sliderb_0${i + 1}.jpg`"
+    >
+      <div class="carousel d-flex fill-height justify-flex-start align-center relative">
+        <v-col class="absolute">
+          <h2 class="carousel-text-h2">
+            {{ slide.title }}
+          </h2>
+          <p class="carousel-text-p">
+            {{ slide.subtitle }}
+          </p>
+        </v-col>
+        <!-- <v-img
 
+          alt=""
+        /> -->
+      </div>
     </v-carousel-item>
   </v-carousel>
 </template>
@@ -49,61 +64,61 @@
 }
 </i18n>
 <script>
- export default {
-    name: 'CarouselDefault',
-    data() {
-      return {
-        img_01: '/img/portal/sliderb_01.jpg',
-        img_02: '/img/portal/sliderb_02.jpg',
-        img_03: '/img/portal/sliderb_03.jpg',
-        img_04: '/img/portal/sliderb_04.jpg',
-        img_05: '/img/portal/sliderb_05.jpg',
-        img_06: '/img/portal/sliderb_06.jpg',
-        img_07: '/img/portal/sliderb_07.jpg',
-      }
+export default {
+  name: 'CarouselDefault',
+  data() {
+    return {
+      img_01: '/img/portal/sliderb_01.jpg',
+      img_02: '/img/portal/sliderb_02.jpg',
+      img_03: '/img/portal/sliderb_03.jpg',
+      img_04: '/img/portal/sliderb_04.jpg',
+      img_05: '/img/portal/sliderb_05.jpg',
+      img_06: '/img/portal/sliderb_06.jpg',
+      img_07: '/img/portal/sliderb_07.jpg',
+    };
+  },
+  computed: {
+    slides() {
+      return [
+        {
+          id: '1',
+          title: this.$t('banner01-title'),
+          subtitle: this.$t('banner01-subtitle'),
+        },
+        {
+          id: '2',
+          title: this.$t('banner02-title'),
+          subtitle: this.$t('banner02-subtitle'),
+        },
+        {
+          id: '3',
+          title: this.$t('banner03-title'),
+          subtitle: this.$t('banner03-subtitle'),
+        },
+        {
+          id: '4',
+          title: this.$t('banner04-title'),
+          subtitle: this.$t('banner04-subtitle'),
+        },
+        {
+          id: '5',
+          title: this.$t('banner05-title'),
+          subtitle: this.$t('banner05-subtitle'),
+        },
+        {
+          id: '6',
+          title: this.$t('banner06-title'),
+          subtitle: this.$t('banner06-subtitle'),
+        },
+        {
+          id: '7',
+          title: this.$t('banner07-title'),
+          subtitle: this.$t('banner07-subtitle'),
+        },
+      ];
     },
-      computed: {
-        slides(){
-          return [
-            {
-              id:'1',
-              title: this.$t('banner01-title'),
-              subtitle: this.$t('banner01-subtitle'),
-            },
-            {
-              id:'2',
-              title: this.$t('banner02-title'),
-              subtitle: this.$t('banner02-subtitle'),
-            },
-            {
-              id:'3',
-              title: this.$t('banner03-title'),
-              subtitle: this.$t('banner03-subtitle'),
-            },
-            {
-              id:'4',
-              title: this.$t('banner04-title'),
-              subtitle: this.$t('banner04-subtitle'),
-            },
-            {
-              id:'5',
-              title: this.$t('banner05-title'),
-              subtitle: this.$t('banner05-subtitle'),
-            },
-            {
-              id:'6',
-              title: this.$t('banner06-title'),
-              subtitle: this.$t('banner06-subtitle'),
-            },
-            {
-              id:'7',
-              title: this.$t('banner07-title'),
-              subtitle: this.$t('banner07-subtitle'),
-            },
-          ]
-        }
-    },
-  }
+  },
+};
 
 </script>
 
@@ -112,8 +127,13 @@
   position: absolute
   top: 0
   z-index: 2
-  max-width: 475px
   margin: 2% 16%
+
+  @media screen and (min-width: 600px)
+    max-width: 475px
+
+  @media screen and (max-width: 600px)
+    width: 80%
 
 .relative
   position: relative
