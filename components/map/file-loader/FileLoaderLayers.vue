@@ -1,5 +1,5 @@
 <template>
-  <l-layer-group :visible="showFeaturesSupportLayers">
+  <l-layer-group>
     <l-feature-group ref="feats">
       <l-popup
         :options="{
