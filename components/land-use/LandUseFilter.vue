@@ -289,7 +289,7 @@ export default {
         currentView: false,
         year: [],
         cr: [],
-        ti: null,
+        ti: [],
       },
       headers: [
         { text: 'Código Funai', value: 'co_funai' },
