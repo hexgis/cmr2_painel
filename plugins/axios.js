@@ -4,11 +4,11 @@ export default function ({ $axios, store }, inject) {
         : null
 
     const api = $axios.create({
-        headers: {
+        headers: token ? {
             common: {
                 Authorization: 'Bearer ' + token,
             },
-        },
+        } : {},
         baseURL: process.env.API_URL,
     })
     const apiSkynet = $axios.create({
@@ -51,7 +51,7 @@ export default function ({ $axios, store }, inject) {
                 originalRequest._retry = true
                 const promise = await store.dispatch('auth/refreshToken')
 
-                if (promise.access) {
+                if (promise && promise.access) {
                     originalRequest.headers.Authorization =
                         'Bearer ' + promise.access
                     return api.request(originalRequest)

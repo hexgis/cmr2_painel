@@ -1,6 +1,7 @@
 <template>
   <div class="bottom-buttons d-flex flex-column">
     <v-btn
+      v-if="isLoggedIn"
       icon
       large
       class="mx-auto"
@@ -18,8 +19,10 @@
         <span>{{ $t('criticisms-suggestions-tooltip') }}</span>
       </v-tooltip>
     </v-btn>
+
     <!-- Botão Administrador -->
     <v-btn
+      v-if="isLoggedIn"
       icon
       large
       class="mx-2"
@@ -39,6 +42,7 @@
     </v-btn>
 
     <v-menu
+      v-if="isLoggedIn"
       left
       offset-x
     >
@@ -103,6 +107,28 @@
         </v-list-item>
       </v-card>
     </v-menu>
+
+    <!-- Botão Login -->
+    <v-btn
+      v-if="!isLoggedIn"
+      icon
+      large
+      class="mx-2"
+      @click="$router.push(localePath('/login'))"
+    >
+      <v-tooltip left>
+        <template #activator="{ on: onTooltip }">
+          <v-icon
+            color="white"
+            v-on="onTooltip"
+          >
+            mdi-account-circle
+          </v-icon>
+        </template>
+        <span>{{ $t('login-button') }}</span>
+      </v-tooltip>
+    </v-btn>
+
     <ProfilePanelSettings
       v-if="settingsOpened"
       @onDialogClose="settingsOpened = false"
@@ -113,27 +139,29 @@
 <i18n>
 
 {
-    "en": {
-        "criticisms-suggestions-tooltip": "Criticisms and suggestions",
-        "profile-tooltip": "Profile",
-        "preferences-button": "Preferences",
-        "logout-button": "Log out",
-        "home-button": "Home",
-        "admin-panel-tooltip": "Admin Panel"
-    },
-    "pt-br": {
-        "criticisms-suggestions-tooltip":"Criticas e sugestões",
-        "profile-tooltip": "Perfil",
-        "preferences-button": "Preferências",
-        "logout-button": "Sair",
-        "home-button": "Início",
-        "admin-panel-tooltip": "Painel do Administrador"
-    }
+  "en": {
+    "criticisms-suggestions-tooltip": "Criticisms and suggestions",
+    "profile-tooltip": "Profile",
+    "preferences-button": "Preferences",
+    "logout-button": "Log out",
+    "home-button": "Home",
+    "admin-panel-tooltip": "Admin Panel",
+    "login-button": "Log In"
+  },
+  "pt-br": {
+    "criticisms-suggestions-tooltip":"Criticas e sugestões",
+    "profile-tooltip": "Perfil",
+    "preferences-button": "Preferências",
+    "logout-button": "Sair",
+    "home-button": "Início",
+    "admin-panel-tooltip": "Painel do Administrador",
+    "login-button": "Login"
+  }
 }
 </i18n>
 
 <script>
-import { mapActions, mapState } from 'vuex';
+import { mapActions, mapState, mapGetters } from 'vuex';
 
 import ProfilePanelSettings from '@/components/profile/ProfilePanelSettings';
 
@@ -194,6 +222,7 @@ export default {
       return this.user && (this.user.first_name || this.user.last_name);
     },
     ...mapState('userProfile', ['user']),
+    ...mapGetters('auth', ['isLoggedIn']),
   },
 };
 </script>
