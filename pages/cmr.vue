@@ -65,7 +65,6 @@
 
     <!-- <div class="flex-grow-1 flex-shrink-1" /> -->
     <ProfilePanel
-      v-if="isLoggedIn"
       v-model="settings"
       class="mb-2"
     />
