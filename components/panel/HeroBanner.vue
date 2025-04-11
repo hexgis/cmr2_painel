@@ -1,86 +1,152 @@
 <template>
   <div
-    class="hero--banner d-flex justify-md-center align-sm-flex-start"
+    class="hero--banner"
     :style="{ backgroundImage: `url(${backgroundImage})`, 'background-size': 'cover'}"
   >
-    <div class="hero--logged-area">
-      <ChangeLocation />
+    <div
+      v-if="$vuetify.breakpoint.smAndDown"
+      class="d-flex justify-space-between pa-6"
+    >
+      <a :href="localePath('/')">
+        <v-img
+          max-width="180"
+          :src="logo"
+        />
+      </a>
       <v-btn
-        rounded
-        class="hero--btn"
-        to="/login"
+        icon
+        dark
+        @click="drawer = !drawer"
       >
-        <v-icon> mdi-account-key </v-icon>{{ $t('btn-restricted-area') }}
+        <v-icon>mdi-menu</v-icon>
       </v-btn>
-    </div>
-    <div class="hero--wrapper flex-column justify-md-space-between align-sm-center">
-      <v-row class="hero--wrapper-row d-flex pa-md-10 justify-md-space-between align-sm-center">
-        <a :href="localePath('/')">
-          <v-img
-            max-width="305"
-            :src="logo"
-          />
-        </a>
+      <v-navigation-drawer
+        v-model="drawer"
+        absolute
+      >
         <div
-          width="100"
-          class="hero--nav-bar"
+          class="d-flex flex-column justify-space-between pb-4"
+          style="height: 100vh"
         >
-          <div
-            class="menu-with-submenu"
-            @mouseover="showProjectSubmenu = true"
-            @mouseleave="delayedMouseLeave('showProjectSubmenu')"
-          >
-            <a :class="{ 'hovered': showProjectSubmenu }">{{ $t('tab-project') }}</a>
-            <div
-              v-if="showProjectSubmenu"
-              class="submenu"
-            >
-              <a
-                v-for="(submenu, index) in projectSubmenus"
-                :key="index"
-                :href="localePath(submenu.route)"
-                class="submenu-item"
+          <v-list>
+            <template v-for="route in routes">
+              <v-list-group
+                v-if="route.submenu"
+                :key="route.title"
               >
-                {{ submenu.title }}
-              </a>
-            </div>
-          </div>
-          <div
-            class="menu-with-submenu"
-            @mouseover="showHowItWorksSubmenu = true"
-            @mouseleave="delayedMouseLeave('showHowItWorksSubmenu')"
-          >
-            <a :class="{ 'hovered': showHowItWorksSubmenu }">{{ $t('tab-how-it-works') }}</a>
-            <div
-              v-if="showHowItWorksSubmenu"
-              class="submenu"
-            >
-              <a
-                v-for="(submenu, index) in howItWorksSubmenus"
-                :key="index"
-                :href="localePath(submenu.route)"
-                class="submenu-item"
+                <template #activator>
+                  <v-list-group-title style="color: #d92b3f;">
+                    {{ route.title }}
+                  </v-list-group-title>
+                </template>
+                <v-list-item
+                  v-for="subroute in route.submenu"
+                  :key="subroute.title"
+                >
+                  <v-list-item-content>
+                    <v-list-item-title>
+                      <a :href="localePath(subroute.route)">{{ subroute.title }}</a>
+                    </v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list-group>
+
+              <v-list-item
+                v-else
+                :key="route.title"
               >
-                {{ submenu.title }}
-              </a>
-            </div>
+                <a :href="localePath(route.route)">{{ route.title }}</a>
+              </v-list-item>
+            </template>
+          </v-list>
+
+          <div class="pa-4 d-flex flex-column justify-end">
+            <ChangeLocation dark />
+
+            <v-btn
+              rounded
+              class="hero--btn mt-4"
+              to="/login"
+            >
+              <v-icon> mdi-account-key </v-icon>{{ $t('btn-restricted-area') }}
+            </v-btn>
           </div>
-          <a :href="localePath('/cmr')">{{ $t('tab-interactive-map') }}</a>
-          <a :href="localePath('/contato')">{{ $t('tab-contact') }}</a>
         </div>
-      </v-row>
-      <div class="hero--content">
-        <v-row>
-          <h1 :class="!heroSubtitle ? 'hero--centralized-title' : '' ">
-            {{ heroTitle }}
-          </h1>
+      </v-navigation-drawer>
+    </div>
+    <div class="d-flex justify-md-center align-sm-flex-start">
+      <div
+        v-if="$vuetify.breakpoint.mdAndUp"
+        class="hero--logged-area"
+      >
+        <ChangeLocation />
+        <v-btn
+          rounded
+          class="hero--btn"
+          to="/login"
+        >
+          <v-icon> mdi-account-key </v-icon>{{ $t('btn-restricted-area') }}
+        </v-btn>
+      </div>
+      <div class="hero--wrapper flex-column justify-md-space-between align-sm-center">
+        <v-row
+          v-if="$vuetify.breakpoint.mdAndUp"
+          class="hero--wrapper-row d-flex pa-md-10 justify-md-space-between align-sm-center"
+        >
+          <a :href="localePath('/')">
+            <v-img
+              max-width="305"
+              :src="logo"
+            />
+          </a>
+          <div
+            width="100"
+            class="hero--nav-bar"
+          >
+            <template v-for="route in routes">
+              <div
+                v-if="route.submenu"
+                :key="route.title"
+                class="menu-with-submenu"
+                @mouseover="route.showSubmenu = true"
+                @mouseleave="delayedMouseLeave(route)"
+              >
+                <a :class="{ 'hovered': route.showSubmenu }">{{ route.title }}</a>
+                <div
+                  v-if="route.showSubmenu"
+                  class="submenu"
+                >
+                  <a
+                    v-for="(submenu, index) in route.submenu"
+                    :key="index"
+                    :href="localePath(submenu.route)"
+                    class="submenu-item"
+                  >
+                    {{ submenu.title }}
+                  </a>
+                </div>
+              </div>
+              <a
+                v-else
+                :key="route.title"
+                :href="localePath(route.route)"
+              >{{ route.title }}</a>
+            </template>
+          </div>
         </v-row>
-        <v-row>
-          <p>{{ heroSubtitle }}</p>
-        </v-row>
-        <v-row v-if="hasCTA">
-          <a :href="localePath('/terras-indigenas')">» {{ $t('btn-see-more') }}</a>
-        </v-row>
+        <div class="hero--content">
+          <v-row>
+            <h1 :class="!heroSubtitle ? 'hero--centralized-title' : '' ">
+              {{ heroTitle }}
+            </h1>
+          </v-row>
+          <v-row>
+            <p>{{ heroSubtitle }}</p>
+          </v-row>
+          <v-row v-if="hasCTA">
+            <a :href="localePath('/terras-indigenas')">» {{ $t('btn-see-more') }}</a>
+          </v-row>
+        </div>
       </div>
     </div>
   </div>
@@ -146,25 +212,42 @@ export default {
   },
   data() {
     return {
-      showProjectSubmenu: false,
-      showHowItWorksSubmenu: false,
-      projectSubmenus: [
-        { title: this.$t('submenu-project-1'), route: '/projeto' },
-        { title: this.$t('submenu-project-2'), route: '/terras-indigenas' },
-      ],
-      howItWorksSubmenus: [
-        { title: this.$t('submenu-how-it-works-1'), route: '/como-funciona' },
-        { title: this.$t('submenu-how-it-works-2'), route: '/video' },
+      drawer: false,
+      routes: [
+        {
+          title: this.$t('tab-project'),
+          submenu: [
+            { title: this.$t('submenu-project-1'), route: '/projeto' },
+            { title: this.$t('submenu-project-2'), route: '/terras-indigenas' },
+          ],
+          showSubmenu: false,
+        },
+        {
+          title: this.$t('tab-how-it-works'),
+          submenu: [
+            { title: this.$t('submenu-how-it-works-1'), route: '/como-funciona' },
+            { title: this.$t('submenu-how-it-works-2'), route: '/video' },
+          ],
+          showSubmenu: false,
+        },
+        {
+          title: this.$t('tab-interactive-map'),
+          route: '/cmr',
+        },
+        {
+          title: this.$t('tab-contact'),
+          route: '/contato',
+        },
       ],
     };
   },
   methods: {
-    delayedMouseLeave(submenu) {
+    delayedMouseLeave(route) {
       if (this.mouseLeaveTimeout) {
         clearTimeout(this.mouseLeaveTimeout);
       }
       this.mouseLeaveTimeout = setTimeout(() => {
-        this[submenu] = false;
+        route.showSubmenu = false;
       }, 300);
     },
   },
