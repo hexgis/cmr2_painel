@@ -39,8 +39,15 @@
             <SupportLayersProdes />
             <SupportLayersRaster />
             <AlertLayers :map="map" />
-            <DeterLayers :map="map" />
-            <LandUseLayers :map="map" /> -->
+            <DeterLayers :map="map" />-->
+            <LandUseLayers
+                v-if="
+                    showFeaturesLandUse &&
+                    features.features &&
+                    features.features.length
+                "
+                :map="map"
+            />
         </l-map>
     </client-only>
 </template>
@@ -152,6 +159,7 @@ export default {
         },
         ...mapState('map', ['bounds', 'tmsToPrint']),
         ...mapState('supportLayers', ['supportLayers']),
+        ...mapState('land-use', ['showFeaturesLandUse', 'features']),
     },
 
     mounted() {
@@ -175,8 +183,7 @@ export default {
             }/${yyyy}`
         },
 
-        onMapReady(map) {
-            // this.map = map
+        onMapReady() {
             // TMS (base layer custom)
             this.map.createPane('tms-support-layers-map')
             this.map.getPane('tms-support-layers-map').style.zIndex = 401
@@ -201,15 +208,6 @@ export default {
                 this.mainMap.eachLayer((layer) => {
                     if (layer && layer._events) {
                         try {
-                            // const pane = layer.options?.pane
-
-                            // if (pane) {
-                            //     console.log(`🧩 Camada com pane definido:`, {
-                            //         name: layer.options?.name || '[sem nome]',
-                            //         pane,
-                            //         layer,
-                            //     })
-                            // }
                             const clonedLayer = cloneLayer(layer)
                             if (clonedLayer) {
                                 this.map.addLayer(clonedLayer)
@@ -273,22 +271,6 @@ export default {
                         this.map.addLayer(bingLayer)
                     }
                 }
-
-                // this.mainMap.eachLayer((layer) => {
-                //     if (layer && layer._events) {
-                //         try {
-                //             const clonedLayer = cloneLayer(layer)
-                //             if (clonedLayer) {
-                //                 this.map.addLayer(clonedLayer)
-                //             } else {
-                //                 console.warn('Falha ao clonar camada:', layer)
-                //             }
-                //         } catch (cloneError) {
-                //             console.error('Erro ao clonar camada:', cloneError)
-                //         }
-                //     }
-                // })
-
                 this.valueScale = true
                 this.valueNorthArrow = true
             } catch (error) {

@@ -52,35 +52,38 @@
                     <p>
                       <strong>TI {{ item.no_ti }}</strong>
                     </p>
+                    <p v-if="parseFloat(item.nu_area_ha) > 0">
+                      Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                    </p>
                     <p v-if="parseFloat(item.nu_area_vn_ha) > 0">
-                      VN: {{ formatNumber(item.nu_area_vn_ha) }}
+                      VN: {{ formatNumber(item.nu_area_vn_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_cr_ha) > 0">
-                      CR: {{ formatNumber(item.nu_area_cr_ha) }}
+                      CR: {{ formatNumber(item.nu_area_cr_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_dg_ha) > 0">
-                      DG: {{ formatNumber(item.nu_area_dg_ha) }}
+                      DG: {{ formatNumber(item.nu_area_dg_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_ma_ha) > 0">
-                      MA: {{ formatNumber(item.nu_area_ma_ha) }}
+                      MA: {{ formatNumber(item.nu_area_ma_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_sv_ha) > 0">
-                      SV: {{ formatNumber(item.nu_area_sv_ha) }}
+                      SV: {{ formatNumber(item.nu_area_sv_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_vi_ha) > 0">
-                      VI: {{ formatNumber(item.nu_area_vi_ha) }}
+                      VI: {{ formatNumber(item.nu_area_vi_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_ag_ha) > 0">
-                      AG: {{ formatNumber(item.nu_area_ag_ha) }}
+                      AG: {{ formatNumber(item.nu_area_ag_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_rv_ha) > 0">
-                      RV: {{ formatNumber(item.nu_area_rv_ha) }}
+                      RV: {{ formatNumber(item.nu_area_rv_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_mi_ha) > 0">
-                      MI: {{ formatNumber(item.nu_area_mi_ha) }}
+                      MI: {{ formatNumber(item.nu_area_mi_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_no_ha) > 0">
-                      NO: {{ formatNumber(item.nu_area_no_ha) }}
+                      NO: {{ formatNumber(item.nu_area_no_ha) }} ha
                     </p>
                   </div>
                 </template>
@@ -180,13 +183,12 @@
                         </div>
                         <div v-if="
                           showFeaturesSupportLayers
+                          && (Object.values(supportLayers).filter(l => l.visible).length)
                           && (Object.values(supportLayers).filter(l => l.visible).length <= 7
                             && Object.values(supportLayerUser).filter(l => l.visible).length <= 7)
                         ">
                           <p>
-                            <strong>Sobreposição de camadas {{Object.values(supportLayers).filter(l =>
-                              l.visible).length
-                              }}</strong>
+                            <strong>Sobreposição de camadas</strong>
                           </p>
                           <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
                           <LayerList :layers="supportLayerUser" :is-user-layer="true" />

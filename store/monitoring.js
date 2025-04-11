@@ -154,7 +154,21 @@ export const mutations = {
   },
 
   setAnalytics(state, analyticsMonitoring) {
-    state.analyticsMonitoring = analyticsMonitoring;
+    const formattedAnalytics = analyticsMonitoring.map(item => {
+      const newItem = {...item};
+      for (const key in newItem) {
+        if (typeof newItem[key] === 'string' && newItem[key].endsWith('%')) {
+          const percentValue = newItem[key].replace('%', '').replace(',', '.');
+          const numberValue = parseFloat(percentValue);
+          if (!isNaN(numberValue)) {
+            const roundedValue = Math.ceil(numberValue * 1000) / 1000;
+            newItem[key] = roundedValue.toFixed(3).replace('.', ',') + '%';
+          }
+        }
+      }
+      return newItem;
+    });
+    state.analyticsMonitoring = formattedAnalytics;
   },
 
   setanalyticsMonitoringDialog(state, analyticsMonitoringDialog) {
@@ -661,7 +675,7 @@ export const actions = {
           params,
         },
       );
-
+    
       if (analyticsMonitoring) commit('setAnalytics', analyticsMonitoring);
     } catch (error) {
       commit(

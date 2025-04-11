@@ -85,24 +85,8 @@ export default {
 
   methods: {
     formatDate(value) {
-      const layer = this.supportLayers[this.layerId];
-      if (!layer) return '';
-
-      // Se for atualização diária, retorna a data de hoje formatada
-      console.log(layer.is_update_daily);
-      if (layer.is_update_daily) {
-        const today = new Date();
-        console.log('today', today);
-        const day = String(today.getDate()).padStart(2, '0');
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const year = today.getFullYear();
-        return `${day}/${month}/${year}`; // Exemplo: 04/04/2025
-      }
-
-      // Caso contrário, formata a data original (vinda como yyyy-mm-dd)
       if (!value) return '';
       const [year, month, day] = value.split('-');
-
       return `${day}/${month}/${year}`;
     },
   },

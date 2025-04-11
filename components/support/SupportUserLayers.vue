@@ -273,7 +273,9 @@
 </i18n>
 
 <script>
-import { mapMutations, mapActions, mapState } from 'vuex';
+import {
+  mapMutations, mapActions, mapState, mapGetters,
+} from 'vuex';
 
 export default {
   name: 'SupportUserLayers',
@@ -295,16 +297,19 @@ export default {
     isPointType: false,
   }),
 
-  created() {
-    this.getLayersUser();
-    this.hasAddLayer ? (
-      this.toggleLayer()
-    ) : '';
+  mounted() {
+    if (this.isLoggedIn) {
+      this.getLayersUser();
+      if (this.hasAddLayer) {
+        this.toggleLayer();
+      }
+    }
   },
 
   computed: {
     ...mapState('supportLayersUser', ['supportLayerUser']),
     ...mapState('map', ['hasAddLayer']),
+    ...mapGetters('auth', ['isLoggedIn']),
   },
 
   methods: {

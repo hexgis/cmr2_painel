@@ -1,6 +1,6 @@
 <template>
   <v-list-group v-if="concatenatedLayers.length || concatenatedUserLayers.length">
-    <template #activator >
+    <template #activator>
       <v-list-item-content>
         <v-list-item-title class="text-wrap">
           <span class="text-cursor">
@@ -11,16 +11,47 @@
     </template>
     <v-container class="py-0 my-0">
       <template v-if="Object.keys(supportLayerUser).length">
-        <div v-if="concatenatedUserLayers.length" class="text-layer mt-2">
+        <div
+          v-if="concatenatedUserLayers.length"
+          class="text-layer mt-2"
+        >
           {{ $t('user-active-layers') }}
         </div>
         <v-list expand>
-          <draggable v-bind="dragOptions" v-model="concatenatedUserLayers" @change="onUserDragChange">
+          <draggable
+            v-bind="dragOptions"
+            v-model="concatenatedUserLayers"
+            @change="onUserDragChange"
+          >
             <template v-for="layer in concatenatedUserLayers">
-              <v-row :key="layer.id" v-if="layer.visible" style="flex-wrap: nowrap;" no-gutters align="center" class="image-container">
-                <v-icon style="font-size: 1rem;">mdi-arrow-split-horizontal</v-icon>
-                <img v-if="layer.wms" :src="layer.wms.geoserver.preview_url + layer.wms.geoserver_layer_name" class="layer-thumbnail" alt="UserLayer">
-                <v-icon v-else style="font-size: 40px;" class="mr-2" :color="layer.properties?.color || layer.color">
+              <v-row
+                v-if="layer.visible"
+                :key="layer.id"
+                style="flex-wrap: nowrap;"
+                no-gutters
+                align="center"
+                class="image-container"
+              >
+                <v-icon style="font-size: 1rem;">
+                  mdi-arrow-split-horizontal
+                </v-icon>
+                <v-avatar
+                  v-if="layer.wms"
+                  tile
+                  size="40"
+                >
+                  <img
+                    :src="layer.wms.geoserver.preview_url + layer.wms.geoserver_layer_name"
+                    class="layer-thumbnail"
+                    alt="UserLayer"
+                  >
+                </v-avatar>
+                <v-icon
+                  v-else
+                  style="font-size: 40px;"
+                  class="mr-2"
+                  :color="layer.properties?.color || layer.color"
+                >
                   mdi-square
                 </v-icon>
                 <span class="ml-1">
@@ -33,27 +64,56 @@
       </template>
     </v-container>
     <v-container class="py-0 my-0">
-      <template v-if="Object.keys(supportLayerUser).length">
-        <div v-if="concatenatedLayers.length" class="text-layer">
-          {{ $t('support-active-layers') }}
-        </div>
-        <v-list expand>
-          <draggable v-bind="dragOptions" v-model="concatenatedLayers" @change="onDragChange">
+      <div
+        v-if="concatenatedLayers.length"
+        class="text-layer"
+      >
+        {{ $t('support-active-layers') }}
+      </div>
+      <v-list expand>
+        <draggable
+          v-bind="dragOptions"
+          v-model="concatenatedLayers"
+          @change="onDragChange"
+        >
           <template v-for="layer in concatenatedLayers">
-              <v-row :key="layer.id" v-if="layer.visible" style="flex-wrap: nowrap;" no-gutters align="center" class="image-container">
-                <v-icon style="font-size: 1rem;">mdi-arrow-split-horizontal</v-icon>
-                <img v-if="layer.wms" :src="layer.wms.geoserver.preview_url + layer.wms.geoserver_layer_name" class="layer-thumbnail" alt="CorLayer">
-                <v-icon v-else style="font-size: 40px;" class="mr-2" :color="layer.properties?.color || layer.color">
-                  mdi-square
-                </v-icon>
-                <span class="ml-1">
-                  <p>{{ layer.name }}</p>
-                </span>
-              </v-row>
-            </template>
-          </draggable>
-        </v-list>
-      </template>
+            <v-row
+              v-if="layer.visible"
+              :key="layer.id"
+              style="flex-wrap: nowrap;"
+              no-gutters
+              align="center"
+              class="image-container"
+            >
+              <v-icon style="font-size: 1rem;">
+                mdi-arrow-split-horizontal
+              </v-icon>
+              <v-avatar
+                v-if="layer.wms"
+                tile
+                size="40"
+              >
+                <img
+                  :src="layer.wms.geoserver.preview_url + layer.wms.geoserver_layer_name"
+                  class="layer-thumbnail"
+                  alt="CorLayer"
+                >
+              </v-avatar>
+              <v-icon
+                v-else
+                style="font-size: 40px;"
+                class="mr-2"
+                :color="layer.properties?.color || layer.color"
+              >
+                mdi-square
+              </v-icon>
+              <span class="ml-1">
+                <p>{{ layer.name }}</p>
+              </span>
+            </v-row>
+          </template>
+        </draggable>
+      </v-list>
     </v-container>
 
     <v-divider />
@@ -81,19 +141,19 @@ export default {
   name: 'SupportUser',
 
   components: { draggable },
-
-  async fetch() {
-    if (!Object.keys(this.supportLayerUser).length && this.user) {
-      await this.$store.dispatch('supportLayersUser/getLayersUser');
-    }
-  },
   data() {
     return {
       concatenatedLayers: [],
       concatenatedUserLayers: [],
       reordenatedLayers: [],
-      reordenatedUserLayers: []
+      reordenatedUserLayers: [],
     };
+  },
+
+  async fetch() {
+    if (!Object.keys(this.supportLayerUser).length && this.user) {
+      await this.$store.dispatch('supportLayersUser/getLayersUser');
+    }
   },
   computed: {
     ...mapState('supportLayersUser', ['supportLayerUser']),
@@ -102,11 +162,11 @@ export default {
     dragOptions() {
       return {
         animation: 200,
-        group: "description",
+        group: 'description',
         disabled: false,
-        ghostClass: "ghost",
+        ghostClass: 'ghost',
       };
-    }
+    },
   },
   watch: {
     hasAddLayer: {
@@ -130,20 +190,22 @@ export default {
       deep: true,
     },
     reordenatedLayers: {
-      handler(activeLayers){
-        this.handleListSupportLayers(activeLayers)
-      } ,
+      handler(activeLayers) {
+        this.handleListSupportLayers(activeLayers);
+      },
       deep: true,
     },
     reordenatedUserLayers: {
-      handler(activeLayers){
-        this.handleListSupportLayers(activeLayers)
-      } ,
+      handler(activeLayers) {
+        this.handleListSupportLayers(activeLayers);
+      },
       deep: true,
-    }
+    },
   },
   created() {
-    this.getInfo();
+    if (this.user) {
+      this.getInfo();
+    }
     this.updateConcatenatedLayers();
     this.updateConcatenatedUserLayers();
   },
@@ -155,21 +217,22 @@ export default {
     ...mapMutations('map', ['setHasLayer']),
 
     updateConcatenatedLayers() {
-      const visibleSupportLayers = this.supportLayers ? Object.values(this.supportLayers).filter(layer => layer.visible) : [];
-      const visibleActiveMonitoring = this.activeMonitoringLabel ? Object.values(this.activeMonitoringLabel).filter(layer => layer.visible) : [];
+      const visibleSupportLayers = this.supportLayers ? Object.values(this.supportLayers).filter((layer) => layer.visible) : [];
+      const visibleActiveMonitoring = this.activeMonitoringLabel ? Object.values(this.activeMonitoringLabel).filter((layer) => layer.visible) : [];
 
       this.$nextTick(() => {
-      this.concatenatedLayers = [
-        ...visibleSupportLayers,
-        ...visibleActiveMonitoring
-      ]})
+        this.concatenatedLayers = [
+          ...visibleSupportLayers,
+          ...visibleActiveMonitoring,
+        ];
+      });
     },
 
     updateConcatenatedUserLayers() {
-      const visibleUserLayers = this.supportLayerUser ? Object.values(this.supportLayerUser).filter(layer => layer.visible) : [];
+      const visibleUserLayers = this.supportLayerUser ? Object.values(this.supportLayerUser).filter((layer) => layer.visible) : [];
       this.$nextTick(() => {
         this.concatenatedUserLayers = [...visibleUserLayers];
-      })
+      });
     },
 
     onDragChange() {
@@ -188,31 +251,31 @@ export default {
 
     handleRemoveSupportLayers(orderedLayers) {
       this.$store.dispatch('supportLayers/removeSupportLayers', {
-        concatenatedLayers: orderedLayers
+        concatenatedLayers: orderedLayers,
       });
     },
 
     handleAddSupportLayers(orderedLayers) {
       this.$nextTick(() => {
-        this.concatenatedLayers = [...this.reordenatedLayers]
-        this.concatenatedUserLayers = [...this.reordenatedUserLayers]
-      })
+        this.concatenatedLayers = [...this.reordenatedLayers];
+        this.concatenatedUserLayers = [...this.reordenatedUserLayers];
+      });
       this.$store.dispatch('supportLayers/addSupportLayers', {
-        layers: orderedLayers
+        layers: orderedLayers,
       });
     },
 
-    handleListSupportLayers(activeLayers){
-      if (activeLayers === this.concatenatedLayers){
-        this.handleAddSupportLayers(this.reordenatedLayers)
-        this.handleAddSupportLayers(this.reordenatedUserLayers)
+    handleListSupportLayers(activeLayers) {
+      if (activeLayers === this.concatenatedLayers) {
+        this.handleAddSupportLayers(this.reordenatedLayers);
+        this.handleAddSupportLayers(this.reordenatedUserLayers);
       }
       this.$nextTick(() => {
-        this.concatenatedLayers = [...this.reordenatedLayers]
-        this.concatenatedUserLayers = [...this.reordenatedUserLayers]
-      })
-    }
-  }
+        this.concatenatedLayers = [...this.reordenatedLayers];
+        this.concatenatedUserLayers = [...this.reordenatedUserLayers];
+      });
+    },
+  },
 };
 </script>
 
