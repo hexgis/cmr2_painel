@@ -6,29 +6,41 @@
       background-image="/img/portal/banner-hero.png"
       logo="/img/logo-inteira-antiga-branca.svg"
     />
-    <div class="body">
+    <div class="body px-8 px-sm-0">
       <v-row class="body--wrapper">
         <v-col>
           <h2>{{ $t('section1-title') }}</h2>
           <p>
             {{ $t('section1-paragraph') }} <span style="color:#F58A1F; font-weight: bold;">{{ $t('highlighted-text') }}</span>
-            {{ $t('section1-continuation') }} <br />
+            {{ $t('section1-continuation') }} <br>
             {{ $t('section1-additional-info') }}
           </p>
-          <a class="link-primary" :href="localePath('/projeto')">{{ $t('learn-more') }}</a>
+          <a
+            class="link-primary"
+            :href="localePath('/projeto')"
+          >{{ $t('learn-more') }}</a>
         </v-col>
         <a href="/">
-          <v-img max-width="300" :src="hero_content01" />
+          <v-img
+            max-width="300"
+            :src="hero_content01"
+          />
         </a>
       </v-row>
       <v-row class="body--wrapper">
-        <v-img max-width="300" :src="hero_content02" />
+        <v-img
+          max-width="300"
+          :src="hero_content02"
+        />
         <v-col>
           <h2>{{ $t('section2-title') }}</h2>
           <p>
             {{ $t('section2-paragraph') }}
           </p>
-          <a class="link-primary" :href="localePath('/como-funciona')">{{ $t('learn-more') }}</a>
+          <a
+            class="link-primary"
+            :href="localePath('/como-funciona')"
+          >{{ $t('learn-more') }}</a>
         </v-col>
       </v-row>
     </div>
@@ -64,14 +76,14 @@
 }
 </i18n>
 <script>
-import HeroBanner from '@/components/panel/HeroBanner'
+import HeroBanner from '@/components/panel/HeroBanner';
 
 export default {
   name: 'Portal',
-  layout: 'portal',
   components: {
-    HeroBanner
+    HeroBanner,
   },
+  layout: 'portal',
   data() {
     return {
       logo_cmr: '/img/logo-inteira-antiga-branca.svg',
@@ -86,7 +98,7 @@ export default {
       howItWorksSubmenus: [
         { title: 'Mais informações', route: '/como-funciona' },
         { title: 'Connheça o CMR', route: '/video' },
-      ]
+      ],
     };
   },
 };
@@ -173,11 +185,12 @@ a
     flex-direction: column
 
     &--wrapper
-      max-width: 55%
       align-items: center
       justify-content: center
       padding: 3rem 0
       gap: 2rem
 
+      @media screen and (min-width: 600px)
+        max-width: 55%
 
 </style>

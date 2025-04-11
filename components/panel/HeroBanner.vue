@@ -134,7 +134,7 @@
             </template>
           </div>
         </v-row>
-        <div class="hero--content">
+        <div class="hero--content pa-6 pa-md-0">
           <v-row>
             <h1 :class="!heroSubtitle ? 'hero--centralized-title' : '' ">
               {{ heroTitle }}
@@ -326,7 +326,8 @@ a
   background-position: bottom
 
 .hero--wrapper
-  width: 80%
+  @media screen and (min-width: 600px)
+    width: 80%
 
   &-row
     width: 100%

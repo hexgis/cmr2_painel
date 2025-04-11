@@ -7,7 +7,7 @@
         </div>
         <CarouselDefault class="mt-16" />
         <v-row class="primary--row">
-          <v-row class="primary--row-content">
+          <v-row class="primary--row-content align-center">
             <v-col>
               <p>{{ $t('doubts-suggestions') }}</p>
               <a href="mailto:cmr@funai.gov.br">cmr@funai.gov.br</a>
@@ -18,148 +18,97 @@
             </v-col>
           </v-row>
         </v-row>
-        <v-row class="info">
-          <div class="help-cards-container">
-            <v-row>
-              <v-col
-                cols="10"
-                class="mt-5"
-              >
-                <v-card
-                  class="info card"
-                  flat
-                  layout="row"
-                  layout-wrap
-                  layout-align="space-around"
-                >
-                  <div class="logo--wrapper">
-                    <v-img
-                      contain
-                      class="logo"
-                      src="/img/portal/acesso-informacao.png"
-                      style="cursor: pointer"
-                      @click="handleImageClick('acesso-informacao')"
-                    />
-                    <v-img
-                      contain
-                      class="logo"
-                      src="/img/logo-cmr.svg"
-                    />
-                    <v-img
-                      contain
-                      class="logo"
-                      src="/img/portal/ne-logo.png"
-                    />
-                    <v-img
-                      contain
-                      class="logo"
-                      src="/img/funai.svg"
-                      style="cursor: pointer"
-                      @click="handleImageClick('funai')"
-                    />
-                  </div>
-                </v-card>
-              </v-col>
-              <v-col
-                v-show="isSmallScreen"
-                cols="6"
-                class="mobile-help-column"
-              >
-                <v-row>
-                  <v-col class="card-mobile">
-                    {{ $t('we-are-help-title') }}
-                    <a
-                      :href="localePath(helpLinks.cmrProjectUrl)"
-                      target="_blank"
-                    >
-                      {{ $t('we-are-help-link') }}</a>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col class="card-mobile">
-                    {{ $t('access-help-title') }}
-                    <a
-                      :href="localePath(helpLinks.requestAcessUrl)"
-                      target="_blank"
-                    >
-                      {{ $t('access-help-link') }} fasdf</a>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col class="card-mobile">
-                    {{ $t('project-help-title') }}
-                    <a
-                      :href="localePath(helpLinks.cmrTalkToUs)"
-                      target="_blank"
-                    >
-                      {{ $t('project-help-link') }}</a>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col class="card-mobile">
-                    {{ $t('manual-help-title') }}
-                    <a
-                      :href="helpLinks.cmrManualUrl"
-                      target="_blank"
-                    >
-                      {{ $t('manual-help-link') }}</a>
-                  </v-col>
-                </v-row>
-              </v-col>
-            </v-row>
-          </div>
-          <v-col cols="2">
-            <v-card
-              v-show="!isSmallScreen"
-              width="200"
-              flat
-              class="info card"
-              layout="row"
-              layout-wrap
-              layout-align="space-between"
+        <div class="info pa-6 d-flex justify-center">
+          <!-- <div class="help-cards-container"> -->
+          <v-row
+            class="justify-center align-center"
+            style="height: 150px; width: 80%"
+          >
+            <v-col
+              cols="12"
+              md="4"
             >
-              <v-card-title class="card-title">
-                {{ $t('access-help-title') }}
-              </v-card-title>
-              <v-card-subtitle class="card-subtitle">
-                <p class="link-footer-dark text-h7">
+              <div class="d-flex justify-space-around flex-wrap">
+                <v-img
+                  contain
+                  class="logo"
+                  src="/img/portal/acesso-informacao.png"
+                  style="cursor: pointer"
+                  max-width="150px"
+                  @click="handleImageClick('acesso-informacao')"
+                />
+                <v-img
+                  contain
+                  class="logo"
+                  src="/img/logo-cmr.svg"
+                  max-width="150px"
+                />
+                <v-img
+                  contain
+                  class="logo"
+                  src="/img/portal/ne-logo.png"
+                  max-width="150px"
+                />
+                <v-img
+                  contain
+                  class="logo"
+                  src="/img/funai.svg"
+                  style="cursor: pointer"
+                  max-width="150px"
+                  @click="handleImageClick('funai')"
+                />
+              </div>
+            </v-col>
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <v-row class="justify-space-around">
+                <v-col
+                  v-if="!userLogged"
+                  cols="6"
+                  md="3"
+                >
+                  <p class="mb-2">
+                    {{ $t('access-help-title') }}
+                  </p>
                   <a
                     :href="localePath(helpLinks.requestAcessUrl)"
                     target="_blank"
                   >
-                    {{ $t('access-help-link') }}</a>
-                </p>
-              </v-card-subtitle>
-            </v-card>
-          </v-col>
-          <v-col
-            v-if="userLogged"
-            cols="2"
-          >
-            <v-card
-              v-show="!isSmallScreen"
-              flat
-              width="275"
-              class="info card"
-              layout="row"
-              layout-wrap
-              layout-align="space-between"
-            >
-              <v-card-title class="card-title">
-                {{ $t('manual-help-title') }}
-              </v-card-title>
-              <v-card-subtitle class="card-subtitle">
-                <p class="link-footer-dark text-h7">
+                    {{ $t('access-help-link') }} fasdf</a>
+                </v-col>
+                <v-col
+                  cols="6"
+                  md="3"
+                >
+                  <p class="mb-2">
+                    {{ $t('project-help-title') }}
+                  </p>
+                  <a
+                    :href="localePath(helpLinks.cmrTalkToUs)"
+                    target="_blank"
+                  >
+                    {{ $t('project-help-link') }}</a>
+                </v-col>
+                <v-col
+                  v-if="userLogged"
+                  cols="6"
+                  md="3"
+                >
+                  <p class="mb-2">
+                    {{ $t('manual-help-title') }}
+                  </p>
                   <a
                     :href="helpLinks.cmrManualUrl"
                     target="_blank"
                   >
                     {{ $t('manual-help-link') }}</a>
-                </p>
-              </v-card-subtitle>
-            </v-card>
-          </v-col>
-        </v-row>
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
+        </div>
       </div>
     </v-main>
   </v-app>
@@ -215,7 +164,7 @@ export default {
           'https://cmr.funai.gov.br/api/media/Manual/Mapa Interativo/CMR_Manual_2021_V1.7.1.pdf',
         cmrProjectUrl: '/o-projeto/',
         cmrTalkToUs: '/contato/',
-        requestAcessUrl: '/cadastro/'
+        requestAcessUrl: '/cadastro/',
       },
     };
   },
@@ -235,13 +184,13 @@ export default {
 
   methods: {
     handleImageClick(type) {
-        if (type === 'acesso-informacao') {
-            window.open('https://www.gov.br/funai/pt-br/acesso-a-informacao', '_blank', 'noopener,noreferrer');
-        } else if (type === 'funai') {
-            window.open('https://www.gov.br/funai', '_blank', 'noopener,noreferrer');
-        }
+      if (type === 'acesso-informacao') {
+        window.open('https://www.gov.br/funai/pt-br/acesso-a-informacao', '_blank', 'noopener,noreferrer');
+      } else if (type === 'funai') {
+        window.open('https://www.gov.br/funai', '_blank', 'noopener,noreferrer');
+      }
     },
-    
+
     checkScreenSize() {
       this.isSmallScreen = window.innerWidth <= 768;
     },
@@ -282,7 +231,9 @@ export default {
   justify-content: center
 
   &-content
-    max-width: 50%
+    max-width: 80%
+    @media (min-width: 960px)
+      max-width: 50%
 
     a
       color: #FFCC00
