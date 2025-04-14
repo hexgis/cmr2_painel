@@ -65,7 +65,7 @@
             >
               <v-row class="justify-space-around">
                 <v-col
-                  v-if="!userLogged"
+                  v-if="!isLoggedIn"
                   cols="6"
                   md="3"
                 >
@@ -76,7 +76,7 @@
                     :href="localePath(helpLinks.requestAcessUrl)"
                     target="_blank"
                   >
-                    {{ $t('access-help-link') }} fasdf</a>
+                    {{ $t('access-help-link') }}</a>
                 </v-col>
                 <v-col
                   cols="6"
@@ -92,7 +92,7 @@
                     {{ $t('project-help-link') }}</a>
                 </v-col>
                 <v-col
-                  v-if="userLogged"
+                  v-if="isLoggedIn"
                   cols="6"
                   md="3"
                 >
@@ -148,6 +148,7 @@
 </i18n>
 
 <script>
+import { mapGetters } from 'vuex';
 import CarouselDefault from '../components/panel/CarouselDefault';
 
 export default {
@@ -157,7 +158,6 @@ export default {
   },
   data() {
     return {
-      userLogged: true,
       isSmallScreen: false,
       helpLinks: {
         cmrManualUrl:
@@ -172,6 +172,10 @@ export default {
   head: () => ({
     title: 'CMR',
   }),
+
+  computed: {
+    ...mapGetters('auth', ['isLoggedIn']),
+  },
 
   mounted() {
     this.checkScreenSize();

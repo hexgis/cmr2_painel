@@ -3,16 +3,22 @@
     <HeroBanner
       :hero-title="$t('hero-title')"
       background-image="/img/portal/banner-terras.jpg"
-      :hasCTA="false"
+      :has-c-t-a="false"
     />
-    <div class="d-flex justify-sm-center">
-      <v-row class="content">
-        <v-col>
+    <div class="content mx-auto px-8 px-lg-0">
+      <v-row>
+        <v-col
+          cols="12"
+          md="6"
+        >
           <h2>{{ $t('indigenous-land-title') }}</h2>
           <p>{{ $t('indigenous-land-paragraph-1') }}</p>
           <p>{{ $t('indigenous-land-paragraph-2') }}</p>
         </v-col>
-        <v-col>
+        <v-col
+          cols="12"
+          md="6"
+        >
           <p>
             {{ $t('indigenous-land-paragraph-3') }}
             <span class="highlighted">{{ $t('indigenous-land-highlight-1') }}</span>
@@ -62,15 +68,15 @@
 </i18n>
 
 <script>
-import HeroBanner from '@/components/panel/HeroBanner'
+import HeroBanner from '@/components/panel/HeroBanner';
 
 export default {
   name: 'IndigenousLand',
-  layout: 'portal',
   components: {
-    HeroBanner
-  }
-}
+    HeroBanner,
+  },
+  layout: 'portal',
+};
 </script>
 
 <style lang="sass">

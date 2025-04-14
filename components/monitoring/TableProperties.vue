@@ -110,6 +110,7 @@ export default {
   data() {
     return {
       headers: [
+        { text: 'ID', value: 'origin_id' },
         { text: 'Código Funai', value: 'co_funai' },
         { text: 'Terra Indígena', value: 'no_ti' },
         { text: 'Coordenação Regional', value: 'ds_cr' },

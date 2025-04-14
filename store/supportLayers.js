@@ -146,10 +146,9 @@ export const mutations = {
                     layer_filters: layer.filters,
                     visible: false,
                     sublayers: false,
-                    opacity: (layer.wms && layer.wms.default_opacity) || 
+                    opacity: (layer.wms && layer.wms.default_opacity) ||
                             (layer.vector && layer.vector.default_opacity) || 100,
                     loading: false,
-                    filters: [],
                     data: [],
                     cql: null
                 };
@@ -297,7 +296,6 @@ export const mutations = {
         }
 
         layer.loading = false;
-        layer.filters = [];
         layer.data = [];
 
         group.layers.push({ layer: layer.id, name: layer.name });
@@ -309,10 +307,16 @@ export const mutations = {
   },
 
   setLayerFilters(state, { id, filters }) {
-    state.supportLayers[id].filters = {
-      ...state.supportLayers[id].filters,
-      ...filters,
-    };
+    state.supportLayers[id].filters = state.supportLayers[id].filters.map((item) => {
+      const filterKey = item.type;
+      if (filters.hasOwnProperty(filterKey)) {
+        return {
+          ...item,
+          [filterKey]: filters[filterKey],
+        };
+      }
+      return item;
+    });
   },
 
   setLayerFiltersRaster(state, { id, filters }) {
@@ -445,7 +449,7 @@ export const mutations = {
     let cql = '';
     const layer = state.supportLayers[id];
     const { sublayers } = layer;
-    
+
     Object.keys(sublayers).forEach((key) => {
         if (sublayers[key].name === category) {
             Vue.set(sublayers[key], 'visible', !sublayers[key].visible);
@@ -455,7 +459,7 @@ export const mutations = {
             cql += `${sublayers[key].cql} OR `;
         }
     });
-    
+
     Vue.set(layer, 'cql', cql ? cql.slice(0, -4) : '1=2');
   },
 };

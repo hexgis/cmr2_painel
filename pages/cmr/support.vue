@@ -5,21 +5,6 @@
         <h4 class="subtitle-2 text-uppercase font-weight-regular">
           {{ $t('title') }}
         </h4>
-        <v-tooltip
-          bottom
-          max-width="400"
-          color="grey darken-4"
-        >
-          <template #activator="{ on }">
-            <v-icon
-              class="mr-2 ml-2"
-              v-on="on"
-            >
-              mdi-information
-            </v-icon>
-          </template>
-          <span> {{ $t('data-source') }} </span>
-        </v-tooltip>
       </div>
       <v-switch
         v-show="!loading"
