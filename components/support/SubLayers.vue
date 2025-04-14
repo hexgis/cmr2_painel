@@ -7,7 +7,7 @@
             :key="i"
         />
     </div>
-    <div v-else class="pb-6" style="max-height: 300px; overflow-y: auto;">
+    <div v-else class="pb-6">
         <div
             v-for="category of layer.sublayers"
             :key="category.name"
@@ -53,7 +53,7 @@
     }
 }
 </i18n>
-  
+
 <script>
 import { mapMutations } from 'vuex'
 
@@ -110,6 +110,21 @@ export default {
                                 )
                                 sublayers[`field${index}`] = {
                                     name: fill.name,
+                                    label,
+                                    visible: true,
+                                    image,
+                                    cql,
+                                }
+                            }
+                            if (fill.filter && fill.title) {
+                                const cql = fill.filter.slice(1, -1)
+                                const geomType = Object.keys(fill.symbolizers[0])[0]
+                                const image = this.layer.wms.wms_layer_type === 'Point-Icon' && geomType !== 'Polygon'
+                                  ? this.getImg(fill.symbolizers)
+                                  : this.createImg(fill.symbolizers)
+                                const label = this.capitalizeFirstLetter(fill.title.toLowerCase())
+                                sublayers[`field${index}`] = {
+                                    name: fill.title,
                                     label,
                                     visible: true,
                                     image,
@@ -186,4 +201,3 @@ export default {
     line-height: 1;
 }
 </style>
-  

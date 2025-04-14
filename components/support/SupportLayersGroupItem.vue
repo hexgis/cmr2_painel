@@ -64,6 +64,12 @@
           />
         </v-list-item-action>
       </template>
+      <v-container class="py-0 mt-2">
+        <SupportLayerMetadata
+          v-if="showMetadata"
+          :layer-id="layerId"
+        />
+      </v-container>
       <v-container class="py-0">
         <SupportLayerFilters
           v-if="layer.filters && showFilters"
@@ -115,12 +121,6 @@
         </v-row>
       </v-container>
     </v-list-group>
-    <v-container class="py-0 mt-2">
-      <SupportLayerMetadata
-        v-if="showMetadata"
-        :layer-id="layerId"
-      />
-    </v-container>
     <v-divider
       v-if="
         (layer.layer_type === 'wms' &&
