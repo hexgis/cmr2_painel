@@ -35,13 +35,6 @@
             step="3"
             @click="handleStepClick(3)"
           >
-            {{ $t('form') }}
-          </v-stepper-step>
-          <v-stepper-step
-            :complete="step > 4"
-            step="4"
-            @click="handleStepClick(4)"
-          >
             {{ $t('review') }}
           </v-stepper-step>
         </v-stepper-header>
@@ -89,9 +82,12 @@
                   cols="12"
                   md="6"
                 >
-                  <v-text-field
+                  <v-select
                     v-model="formData.department"
                     :label="$t('department')"
+                    :items="institutionList"
+                    item-text="name"
+                    item-value="name"
                     :rules="[v => !!v || $t('department-required')]"
                     required
                     @input="validateStep1"
@@ -173,9 +169,12 @@
                   cols="12"
                   md="6"
                 >
-                  <v-text-field
+                  <v-select
                     v-model="formData.coordinator_department"
                     :label="$t('coordinator-department')"
+                    :items="institutionList"
+                    item-text="name"
+                    item-value="name"
                     :rules="[v => !!v || $t('coordinator-department-required')]"
                     required
                     @input="validateStep2"
@@ -209,64 +208,6 @@
 
           <!-- STEP 3 -->
           <v-stepper-content step="3">
-            <v-container>
-              <v-row class="align-center">
-                <p class="text-h6 pt-4">
-                  {{ $t('form') }}
-                </p>
-                <v-spacer />
-                <v-btn
-                  color="primary"
-                  text
-                  @click="prevStep"
-                >
-                  <v-icon>mdi-arrow-left</v-icon>{{ $t('back') }}
-                </v-btn>
-              </v-row>
-              <v-card
-                class="mt-4"
-                outlined
-              >
-                <v-card-subtitle>
-                  <a
-                    :href="pdfLink"
-                    target="_blank"
-                    rel="noopener"
-                    class="font-weight-bold"
-                  >{{ $t('click-here') }}</a>
-                  {{ $t('download-form') }}<br>
-                  {{ $t('attach-form') }}
-                </v-card-subtitle>
-              </v-card>
-              <v-row>
-                <v-col cols="12">
-                  <v-file-input
-                    v-model="formData.attachment"
-                    class="mt-8"
-                    :label="$t('attach-file')"
-                    :rules="[v => !!v || $t('attachment-required')]"
-                    accept=".pdf,.doc,.docx"
-                    required
-                    @change="validateStep3"
-                  />
-                </v-col>
-
-                <v-col cols="12">
-                  <v-btn
-                    color="primary"
-                    class="mt-1"
-                    :disabled="!isStep3Valid"
-                    @click="nextStep"
-                  >
-                    {{ $t('next') }}
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-stepper-content>
-
-          <!-- STEP 4 -->
-          <v-stepper-content step="4">
             <v-container>
               <p style="font-size: 18px;">
                 {{ $t('review-data') }}
@@ -523,6 +464,8 @@
 </i18n>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
   name: 'Cadastro',
   layout: 'login',
@@ -553,12 +496,14 @@ export default {
       welcomeModal: true,
     };
   },
+  computed: {
+    ...mapGetters('admin', ['institutionList']),
+  },
   watch: {
     formData: {
       handler() {
         this.validateStep1();
         this.validateStep2();
-        this.validateStep3();
       },
       deep: true,
     },
@@ -566,7 +511,7 @@ export default {
   mounted() {
     this.validateStep1();
     this.validateStep2();
-    this.validateStep3();
+    this.$store.dispatch('admin/fetchInstitutionList');
   },
   methods: {
     validateStep1() {
@@ -581,11 +526,11 @@ export default {
         && this.formData.coordinator_department
         && this.formData.coordinator_siape_registration;
     },
-    validateStep3() {
-      this.isStep3Valid = this.formData.attachment;
-    },
+    // validateStep3() {
+    //   this.isStep3Valid = this.formData.attachment;
+    // },
     nextStep() {
-      if (this.step < 4) {
+      if (this.step < 3) {
         this.step++;
       }
     },
@@ -615,10 +560,8 @@ export default {
         'coordinator_siape_registration',
         this.formData.coordinator_siape_registration,
       );
-      data.append('attachment', this.formData.attachment);
 
       if (this.$refs.form.validate()) {
-        console.log("AQUI", data)
         try {
           await this.$api.post('/user/access-requests/', data, {
             headers: {
