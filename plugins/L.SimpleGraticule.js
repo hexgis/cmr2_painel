@@ -172,13 +172,24 @@ L.SimpleGraticule = L.LayerGroup.extend({
             icon: L.divIcon({
                 iconSize: [0, 0],
                 className: 'leaflet-grid-label',
-                html:
-                    '<div class="' +
-                    axis +
-                    '">' +
-                    parseFloat(val.toFixed(fixed)) +
-                    'º' +
-                    '</div>',
+                html: `
+                <div 
+                    class="${axis}" 
+                    style="
+                        color: #000 !important;
+                        text-shadow: 
+                            -2px -2px 0 #fff,
+                            2px -2px 0 #fff,
+                            -2px 2px 0 #fff,
+                            2px 2px 0 #fff !important;
+                        font-weight: bold;
+                        background: transparent;
+                        border: none;
+                    "
+                >
+                    ${parseFloat(val.toFixed(fixed))}º
+                </div>
+            `,
             }),
         })
     },
