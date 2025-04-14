@@ -5,27 +5,26 @@
   >
     <l-popup :options="popupOptions">
       <LoadingIconVue v-if="isLoadingData" />
-
       <v-card
         v-else
         class="fill-height"
       >
         <v-card-title class="pa-0">
-          <v-row no-gutters class="fundo-primary pa-1">
-              <!-- <span class="text-caption pl-2 text-white font-weight-bold">
-                Lat/Lng ({{ currentLatLng.lat + ', ' + currentLatLng.lng }})
-              </span> -->
-              <v-spacer />
-              <v-btn
-                icon
-                x-small
-                color="white"
-                @click="$refs.popup.mapObject.closePopup()"
-              >
-                <v-icon small>
-                  mdi-close
-                </v-icon>
-              </v-btn>
+          <v-row
+            no-gutters
+            class="fundo-primary pa-1"
+          >
+            <v-spacer />
+            <v-btn
+              icon
+              x-small
+              color="white"
+              @click="$refs.popup.mapObject.closePopup()"
+            >
+              <v-icon small>
+                mdi-close
+              </v-icon>
+            </v-btn>
           </v-row>
         </v-card-title>
         <v-tabs
@@ -88,6 +87,20 @@
                       </v-row>
                     </template>
                   </template>
+                  <v-card
+                    v-if="feature.hasOwnProperty('dt_t_zero') || feature.hasOwnProperty('dt_t_um')"
+                    :key="'extra-field-' + i"
+                    class="pa-3"
+                  >
+                    <div
+                      v-for="(part, index) in customTextParts"
+                      :key="index"
+                      class="custom-text"
+                    >
+                      <strong>{{ part.bold }}</strong> {{ part.text }}
+                      <br v-if="index < customTextParts.length - 1">
+                    </div>
+                  </v-card>
                 </template>
                 <template v-if="layerData.loading">
                   <v-row
@@ -127,13 +140,11 @@
   {
       "en": {
           "no-data": "There's no data at this point for the selected layer.",
-          "layer-api-error": "Unable to acquire support layer information.",
-          "instrument-management": "Management Instrument"
+          "layer-api-error": "Unable to acquire support layer information."
       },
       "pt-br": {
           "no-data": "Não há dados nesse ponto para a camada selecionada.",
-          "layer-api-error": "Não foi possível resgatar as informações das camadas de apoio.",
-          "instrument-management": "Instrumento de Gestão"
+          "layer-api-error": "Não foi possível resgatar as informações das camadas de apoio."
       }
   }
   </i18n>
@@ -147,6 +158,7 @@ export default {
   components: {
     LoadingIconVue,
   },
+
   props: {
     map: {
       type: Object,
@@ -160,12 +172,19 @@ export default {
     data: null,
     loadingData: false,
     currentLatLng: '',
+    customTextParts: [
+      { bold: 'Data T0*: ', text: 'última imagem Landsat-8 em que a alteração da cobertura vegetal ainda não havia sido iniciada.' },
+      { bold: 'Data T1*:', text: 'data da imagem do satélite em que é possível ver a primeira aparição da alteração da cobertura vegetal.' },
+    ],
     fieldConfig: {
     // Campos que devem ser ignorados
       excludedFields: ['bbox', 'path', 'row', 'no_br'],
       // Substituições completas de nomes de campos
       fieldNames: {
         nu_buffer_distancia: 'Buffer Distância',
+        co_funai: 'Código Funai',
+        no_ti: 'Nome da Terra Indígena',
+
         // COORDENAÇÕES REGIONAIS
         co_cr: 'Código CR',
         no_cr: 'Nome CR',
@@ -311,24 +330,24 @@ export default {
         no_subs: 'Substância',
 
         // COMITES DE BACIAS HIDROGRAFICAS ESTADUAIS
-        no_cbe: 'Nome CBE',
+        no_cbe: 'Comitê Estadual',
         cd_cbe: 'Código CBE',
         no_rhi: 'Nome RHI',
-        nu_cbe_ano_ref: 'CBE Ano Ref.',
+        nu_cbe_ano_ref: 'Ano de referência',
         dt_cbe_ano_ref: 'Data CBE Ref.',
-       
+        nu_popuf: 'População Estado',
+        nu_piburb: 'PIB Urbano',
+        nu_pibuf: 'PIB Estado',
+        nu_popurb2019: 'População Urbana (2019)',
+        nu_poprur2019: 'População Rural (2019)',
 
-
-
-
-        co_funai: 'Código Funai',
-        no_ti: 'Nome da Terra Indígena',
-        // Adicione mais mapeamentos conforme necessário
-      },
-      // Formatação especial para valores de campos específicos
-      valueFormatters: {
-        // Exemplo: formatar números com unidades específicas
-        nu_area_ha: (value) => `${Number(value).toLocaleString('pt-BR')} ha`,
+        // MONITORAMENTO DIÁRIO
+        ti_nu_area_ha: 'Área Ha',
+        no_estagio: 'Estágio',
+        dt_imagem: 'Data da Imagem',
+        nu_orbita: 'Órbita',
+        dt_t_zero: 'Data T0',
+        dt_t_um: 'Data T1',
       },
     },
   }),
@@ -371,12 +390,10 @@ export default {
     formatFieldName(field) {
       const lowerField = field.toLowerCase();
 
-      // 1. Verifica se há um nome específico para este campo
       if (this.fieldConfig.fieldNames[lowerField]) {
         return this.fieldConfig.fieldNames[lowerField];
       }
 
-      // 3. Formatação genérica
       return this.formatGenericFieldName(field);
     },
 
@@ -466,6 +483,14 @@ export default {
             if (data && data.features && data.features.length) {
             // eslint-disable-next-line no-restricted-syntax
               for (const feature of data.features) {
+                if (layerName.toLowerCase().includes('instrumento') || layerName.toLowerCase().includes('gestão')) {
+                  // eslint-disable-next-line no-await-in-loop
+                  const res = await this.fetchInstrumentoGestao(
+                    feature.properties.co_funai,
+                  );
+                  this.data[layerName].layers = res || [];
+                  return;
+                }
                 this.data[layerName].layers.push(
                   feature.properties,
                 );
@@ -486,7 +511,6 @@ export default {
           if (
             layer.feature.geometry.type === 'MultiPolygon' || layer.feature.geometry.type === 'Polygon'
           ) {
-            // Verifique se o ponto está dentro de um MultiPolygon.
             if (booleanPointInPolygon(
               [evt.latlng.lng, evt.latlng.lat],
               layer.feature,
@@ -514,7 +538,7 @@ export default {
         this.map.getZoom(),
       );
 
-      const size = this.map.getSize()
+      const size = this.map.getSize();
       const params = {
         request: 'GetFeatureInfo',
         service: 'WMS',
@@ -558,7 +582,7 @@ export default {
 };
 </script>
 
-<style> 
+<style>
 .fundo-primary {
   background-color: var(--v-primary-base) !important;
 }
