@@ -1163,71 +1163,110 @@ export const actions = {
     }
   },
 
-  async downloadTableMonitoringAnalyticsByFunaiYear({ commit, state, rootGetters }) {
-    commit('setLoadingCSV', true);
-    const params = {
-      start_date: state.filters.startDate,
-      end_date: state.filters.endDate,
-      grouping: state.filters.grouping_by_co_funai_year,
-      format: state.filters.csv,
-    };
+  convertToCSV(data) {
+    if (!data || !Array.isArray(data) || data.length === 0) return '';
 
-    if (state.filters.ti && state.filters.ti.length) {
-      const arrayTI = [];
-      Object.values(state.filters.ti).forEach((item) => {
-        arrayTI.push(item.co_funai);
-      });
-      params.co_funai = arrayTI.toString();
-    }
+    // Cabeçalhos (extrai as chaves do primeiro objeto)
+    const headers = Object.keys(data[0]).join(',');
 
-    if (state.filters.cr && state.filters.cr.length) {
-      const arrayCR = [];
-      Object.values(state.filters.cr).forEach((item) => {
-        arrayCR.push(item.co_cr);
-      });
-      params.co_cr = arrayCR.toString();
-    }
-
-    if (state.filters.currentView) params.in_bbox = rootGetters['map/bbox'];
-
-    const analyticsMonitoringcsv = await this.$api.$get(
-      'monitoring/consolidated/table-stats/',
-      {
-        params,
-      },
+    // Linhas de dados
+    const rows = data.map(obj => 
+        Object.values(obj)
+            .map(value => {
+                // Converte valores para string e escapa aspas
+                const escapedValue = String(value).replace(/"/g, '""');
+                return `"${escapedValue}"`;
+            })
+            .join(',')
     );
 
-    function saveData(data, fileName, type) {
-      let elementBtn; let blob; let
-        url;
+    return [headers, ...rows].join('\n');
+},
 
-      elementBtn = document.createElement('a');
-      elementBtn.style = 'display: none';
-      document.body.appendChild(elementBtn);
+async downloadTableMonitoringAnalyticsByFunaiYear({ commit, state, rootGetters }) {
+  commit('setLoadingCSV', true);
+  const params = {
+    start_date: state.filters.startDate,
+    end_date: state.filters.endDate,
+    grouping: state.filters.grouping_by_co_funai_year,
+  };
+  if (state.filters.ti && state.filters.ti.length) {
+    const arrayTI = [];
+    Object.values(state.filters.ti).forEach((item) => {
+      arrayTI.push(item.co_funai);
+    });
+    params.co_funai = arrayTI.toString();
+  }
 
-      if (type !== 'text/csv') {
-        data = JSON.stringify(data);
+  
+  if (state.filters.currentView) params.in_bbox = rootGetters['map/bbox'];
+
+  try {
+      const analyticsMonitoringcsv = await this.$api.$get(
+        'monitoring/consolidated/table-stats/',  
+        { params },
+      );
+
+      // Função para converter array de objetos para CSV
+      const convertToCSV = (data) => {
+          if (!data || !data.length) return '';
+          
+          // Extrai os cabeçalhos
+          const headers = Object.keys(data[0]).join(';');
+          
+          // Processa cada linha
+          const rows = data.map(obj => 
+              Object.values(obj)
+                  .map(value => {
+                      // Converte para string e escapa aspas
+                      const strValue = value === null || value === undefined ? '' : String(value);
+                      return `"${strValue.replace(/"/g, '""')}"`;
+                  })
+                  .join(';')
+          );
+          
+          return [headers, ...rows].join('\n');
+      };
+
+      // Função para salvar o arquivo
+      const saveData = (data, fileName) => {
+          const blob = new Blob(["\uFEFF" + data], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          
+          link.href = url;
+          link.download = fileName;
+          link.style.display = 'none';
+          
+          document.body.appendChild(link);
+          link.click();
+          
+          // Limpeza
+          setTimeout(() => {
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+          }, 100);
+      };
+
+      // Verifica se há dados
+      if (!analyticsMonitoringcsv || !analyticsMonitoringcsv.length) {
+          throw new Error('Nenhum dado disponível para exportação');
       }
 
-      blob = new Blob([data], { type });
-      url = window.URL.createObjectURL(blob);
-
-      elementBtn.href = url;
-      elementBtn.download = fileName;
-      elementBtn.click();
-      window.URL.revokeObjectURL(url);
-    }
-
-    try {
+      // Converte e faz download
+      const csvString = convertToCSV(analyticsMonitoringcsv);
       saveData(
-        analyticsMonitoringcsv,
-        'poligono_monitoramento_estatisticas_by_co_funai_year.csv',
-        'text/csv',
+          csvString,
+          'poligono_monitoramento_estatisticas_by_co_funai_year.csv'
       );
-    } finally {
+
+  } catch (error) {
+      console.error('Erro ao gerar CSV:', error);
+      // Você pode adicionar aqui uma notificação para o usuário
+  } finally {
       commit('setLoadingCSV', false);
-    }
-  },
+  }
+},
 
   async downloadTableMonitoringAnalyticsByYear({ commit, state, rootGetters }) {
     commit('setLoadingCSV', true);
