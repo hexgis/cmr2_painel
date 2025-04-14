@@ -318,4 +318,14 @@ export default {
     color: red
     font-weight: bold
     padding: 5px
+
+.leaflet-control-mapbounds.leaflet-control
+    background: rgba(255, 255, 255, 0.7) !important
+    padding: 5px 5px
+    margin-left: 5px
+    border-radius: px
+    font-size: 12px
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4)
+    color: #333
+  
 </style>
