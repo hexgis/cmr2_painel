@@ -125,18 +125,23 @@ export default {
                     }
                 }
 
-                if (filters.co_cr || filters.co_funai) {
-                    const [firstInput, secondInput] = this.layer.filters // Destructuring filter alias
-                    const valueCo_cr = filters.co_cr.join(',')
-                    const valueCo_funai = filters.co_funai.join(',')
+                const coCrObj = filters.find((filter) => filter.co_cr)
+                const coFunaiObj = filters.find((filter) => filter.co_funai)
+                if (coCrObj || coFunaiObj) {
+                    const co_cr = coCrObj.co_cr
+                    const co_funai = coFunaiObj.co_funai
+                    const [firstInput, secondInput] = this.layer.filters
 
-                    if (filters.co_cr.length && filters.co_funai.length) {
-                        wmsUrl += `&CQL_FILTER=${firstInput.filter_alias} IN (${
-                            firstInput.filter_type == 'co_cr'
+                    const valueCo_cr = co_cr.join(',')
+                    const valueCo_funai = co_funai.join(',')
+
+                    if (co_cr.length && co_funai.length) {
+                        wmsUrl += `&CQL_FILTER=${firstInput.alias} IN (${
+                            firstInput.type == 'co_cr'
                                 ? valueCo_cr
                                 : valueCo_funai
-                        }) AND ${secondInput.filter_alias} IN (${
-                            secondInput.filter_type == 'co_funai'
+                        }) AND ${secondInput.alias} IN (${
+                            secondInput.type == 'co_funai'
                                 ? valueCo_funai
                                 : valueCo_cr
                         })`
@@ -147,20 +152,20 @@ export default {
                         return wmsUrl
                     }
 
-                    if (filters.co_cr.length) {
-                        if (firstInput.filter_type == 'co_cr') {
-                            wmsUrl += `&CQL_FILTER=${firstInput.filter_alias} IN (${valueCo_cr} )`
+                    if (co_cr.length) {
+                        if (firstInput.type == 'co_cr') {
+                            wmsUrl += `&CQL_FILTER=${firstInput.alias} IN (${valueCo_cr} )`
                         } else {
-                            wmsUrl += `&CQL_FILTER=${secondInput.filter_alias} IN (${valueCo_cr} )`
+                            wmsUrl += `&CQL_FILTER=${secondInput.alias} IN (${valueCo_cr} )`
                         }
                     }
 
-                    if (filters.co_funai.length) {
+                    if (co_funai.length) {
                         // let list_funaiTi = filters.co_funai.join(',')
-                        if (firstInput.filter_type == 'co_funai') {
-                            wmsUrl += `&CQL_FILTER=${firstInput.filter_alias} IN (${valueCo_funai} )`
+                        if (firstInput.type == 'co_funai') {
+                            wmsUrl += `&CQL_FILTER=${firstInput.alias} IN (${valueCo_funai} )`
                         } else {
-                            wmsUrl += `&CQL_FILTER=${secondInput.filter_alias} IN (${valueCo_funai} )`
+                            wmsUrl += `&CQL_FILTER=${secondInput.alias} IN (${valueCo_funai} )`
                         }
                     }
                     this.$nextTick(() => {

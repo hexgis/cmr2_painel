@@ -232,12 +232,11 @@ export default {
     },
 
     verifyFilterType(type) {
-      const keys = Object.keys(this.layer.filters);
-      for (const key in keys) {
-        if (this.layer.filters[key].filter_type.includes(type)) {
-          return true;
-        }
+      const { filters } = this.layer;
+      if (filters) {
+        return filters.filter((filter) => filter.type === type).length;
       }
+      return false;
     },
 
     filterLayer() {

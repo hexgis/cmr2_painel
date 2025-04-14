@@ -66,7 +66,7 @@
       </template>
       <v-container class="py-0">
         <SupportLayerFilters
-          v-if="showFilters"
+          v-if="layer.filters && showFilters"
           :layer="layer"
         />
         <v-row
