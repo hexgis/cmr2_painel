@@ -8,20 +8,8 @@
             :transparent="true"
             :z-index="3"
             :opacity="opacity / 100"
-            :visible="showFeaturesMonitoring && !heatMap"
+            :visible="showFeaturesMonitoring"
             :options="{...MonitoringWmsOptions, name: $t('name-layer')}"
-            :pane="'monitoring-layers-map'"
-        />
-        <l-lwms-tile-layer
-            ref="wmsLayerMonitoringHeatmap"
-            :base-url="currentUrlWmsMonitoring"
-            :layers="geoserverLayerMonitoringHeatmap"
-            format="image/png"
-            :transparent="true"
-            :z-index="3"
-            :opacity="opacity / 100"
-            :visible="showFeaturesMonitoring && heatMap"
-            :options="{...MonitoringWmsOptionsHeatmap, name: $t('name-layer-heatmap')}"
             :pane="'monitoring-layers-map'"
         />
     </div>
@@ -74,6 +62,7 @@ export default {
             'geoserverLayerMonitoringHeatmap',
             'MonitoringWmsOptions',
             'MonitoringWmsOptionsHeatmap',
+            'resultsHeatmap',
             // provavel delete
             'features',
             'opacity',
@@ -111,6 +100,16 @@ export default {
                     this.currentUrlWmsMonitoring
                 )
             }
+        },
+
+        showFeaturesMonitoring(value) {
+            if (value && this.heatMap) this.createMonitoramentoHeatLayer()
+            else if (!value && this.heatmapLayer) this.map.removeLayer(this.heatmapLayer)
+        },
+
+        heatMap(value) {
+            if (value) this.createMonitoramentoHeatLayer()
+            else this.map.removeLayer(this.heatmapLayer)
         },
     },
 
@@ -216,31 +215,14 @@ export default {
         },
 
         createMonitoramentoHeatLayer() {
-            const areas = this.features.features.map(
-                (feature) => feature.properties.nu_area_km2
-            )
-            const maxArea = Math.max.apply(null, areas)
-            const heatData = []
-            this.features.features.forEach((feature) => {
-                heatData.push([
-                    feature.properties.nu_latitude,
-                    feature.properties.nu_longitude,
-                    feature.properties.nu_area_km2 / maxArea,
-                ])
-            })
-            if (this.heatmapLayer) {
-                this.heatmapLayer.removeFrom(
-                    this.$refs.monitoringHeat.mapObject
-                )
-            }
-            this.heatmapLayer = this.$L.heatLayer(heatData, {
+            this.heatmapLayer = this.$L.heatLayer(this.resultsHeatmap, {
                 minOpacity: 0.5,
                 maxZoom: 18,
                 radius: 20,
                 blur: 15,
                 zIndex: 4,
             })
-            this.heatmapLayer.addTo(this.$refs.monitoringHeat.mapObject)
+            this.map.addLayer(this.heatmapLayer)
         },
     },
 }

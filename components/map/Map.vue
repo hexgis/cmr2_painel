@@ -297,6 +297,7 @@ if (typeof window !== 'undefined') {
   require('leaflet-minimap');
   require('leaflet-draw');
   require('@/plugins/text-box');
+  require('leaflet.heat');
 }
 
 export default {
