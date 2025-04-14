@@ -42,10 +42,11 @@
                 <v-list-item
                   v-for="subroute in route.submenu"
                   :key="subroute.title"
+                  :href="localePath(subroute.route)"
                 >
                   <v-list-item-content>
                     <v-list-item-title>
-                      <a :href="localePath(subroute.route)">{{ subroute.title }}</a>
+                      <a>{{ subroute.title }}</a>
                     </v-list-item-title>
                   </v-list-item-content>
                 </v-list-item>
@@ -54,8 +55,9 @@
               <v-list-item
                 v-else
                 :key="route.title"
+                :href="localePath(route.route)"
               >
-                <a :href="localePath(route.route)">{{ route.title }}</a>
+                <a>{{ route.title }}</a>
               </v-list-item>
             </template>
           </v-list>
