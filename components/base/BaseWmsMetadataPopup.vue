@@ -50,7 +50,7 @@
                   <v-row
                     v-show="i != 0"
                     :key="i"
-                    class="mx-0 grey lighten-2"
+                    class="mx-0 grey list-separator"
                   >
                     <v-col />
                   </v-row>
@@ -90,12 +90,11 @@
                   <v-card
                     v-if="feature.hasOwnProperty('dt_t_zero') || feature.hasOwnProperty('dt_t_um')"
                     :key="'extra-field-' + i"
-                    class="pa-3"
+                    class="pa-3 mt-3 explanation-card"
                   >
                     <div
                       v-for="(part, index) in customTextParts"
                       :key="index"
-                      class="custom-text"
                     >
                       <strong>{{ part.bold }}</strong> {{ part.text }}
                       <br v-if="index < customTextParts.length - 1">
@@ -348,6 +347,8 @@ export default {
         nu_orbita: 'Órbita',
         dt_t_zero: 'Data T0',
         dt_t_um: 'Data T1',
+        origin_id: 'ID de Origem',
+        id_key: 'Chave ID',
       },
     },
   }),
@@ -582,12 +583,28 @@ export default {
 };
 </script>
 
-<style>
-.fundo-primary {
-  background-color: var(--v-primary-base) !important;
-}
+<style scoped lang="sass">
+.fundo-primary
+  background-color: var(--v-primary-base) !important
 
-.text-white {
-  color: white !important;
-}
+.text-white
+    color: white !important
+
+.list-separator
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12)
+  &:last-child
+    border-bottom: none
+
+.explanation-card
+  background-color: rgba(255, 220, 0, 0.1)
+  border-left: 4px solid #FFC107
+
+.text-truncate
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.v-card-text
+  .v-row:not(:last-child)
+    margin-bottom: 4px
 </style>
