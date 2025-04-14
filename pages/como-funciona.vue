@@ -3,17 +3,23 @@
     <HeroBanner
       :hero-title="$t('hero-title')"
       background-image="/img/portal/banner-como-funciona.jpg"
-      :hasCTA="false"
+      :has-c-t-a="false"
     />
-    <div class="d-flex justify-sm-center">
-      <v-row class="content">
-        <v-col>
+    <div class="content mx-auto px-8 px-lg-0">
+      <v-row>
+        <v-col
+          cols="12"
+          md="6"
+        >
           <h2>{{ $t('cmr-title-1') }}</h2>
           <p>{{ $t('cmr-paragraph-1') }}</p>
           <p>{{ $t('cmr-paragraph-2') }}</p>
           <p>{{ $t('cmr-paragraph-3') }}</p>
         </v-col>
-        <v-col style="max-width: 45%;">
+        <v-col
+          cols="12"
+          md="6"
+        >
           <v-img src="/img/portal/foto-satelite.png" />
           <h3>{{ $t('cmr-title-2') }}</h3>
           <p>{{ $t('cmr-paragraph-4') }}</p>
@@ -46,16 +52,16 @@
 }
 </i18n>
 <script>
-import HeroBanner from '@/components/panel/HeroBanner'
+import HeroBanner from '@/components/panel/HeroBanner';
 
 export default {
   name: 'HowItWorks',
-  layout: 'portal',
   components: {
-    HeroBanner
+    HeroBanner,
   },
+  layout: 'portal',
 
-}
+};
 </script>
 
 <style lang="sass">

@@ -5,7 +5,7 @@
       background-image="/img/portal/banner-projeto.jpg"
       :has-c-t-a="false"
     />
-    <div class="d-flex justify-sm-center">
+    <div class="d-flex justify-sm-center px-8 px-lg-0">
       <v-row class="content">
         <v-col>
           <h2>{{ $t('hero-title') }}</h2>
