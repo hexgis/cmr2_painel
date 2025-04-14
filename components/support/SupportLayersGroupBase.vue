@@ -1,7 +1,7 @@
 <template>
   <v-list-group
-     v-if="group && filteredSupportLayers.length > 0"
-     v-model="isGroupOpen"
+    v-if="group && filteredSupportLayers.length > 0"
+    v-model="isGroupOpen"
   >
     <template #activator>
       <v-list-item-content>
@@ -29,9 +29,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import _ from 'lodash';
-
-import SupportLayersGroupItem from '@/components/support/SupportLayersGroupItem';
+import SupportLayersGroupItem from './SupportLayersGroupItem.vue';
 
 export default {
   name: 'SupportLayersGroupBase',
@@ -43,7 +41,7 @@ export default {
       type: Object,
       default: null,
     },
-  
+
     selectedLayers: {
       type: Array,
       default: () => [],
@@ -54,38 +52,36 @@ export default {
     isGroupOpen: false,
   }),
 
-  watch: {
-    selectedLayers() {
-      this.isGroupOpen = this.selectedLayers.length > 0
-    },
-  },
-
   computed: {
     supportLayers() {
-      const group = this.supportCategoryGroupsBase[this.group.id]
-        if (group && group.layers) {
-          return group.layers
-        }
-        return []
+      const group = this.supportCategoryGroupsBase[this.group.id];
+      if (group && group.layers) {
+        return group.layers;
+      }
+      return [];
     },
 
     orderedSupportLayers() {
       if (!this.supportLayers) return [];
-      return [...this.supportLayers].sort((a, b) =>
-        a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
-      );
+      return [...this.supportLayers].sort((a, b) => {
+        if (a.name.includes('Terras Indígenas')) return -1;
+        if (b.name.includes('Terras Indígenas')) return 1;
+        return a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' });
+      });
     },
 
     filteredSupportLayers() {
-      if (this.selectedLayers.length === 0) {
-        return this.orderedSupportLayers
-      }
-      return this.orderedSupportLayers.filter((layer) =>
-        this.selectedLayers.includes(layer.layer)
-      )
+      if (this.selectedLayers.length === 0) return this.orderedSupportLayers;
+      return this.orderedSupportLayers.filter((layer) => this.selectedLayers.includes(layer.layer));
     },
 
     ...mapState('supportLayers', ['supportCategoryGroupsBase']),
+  },
+
+  watch: {
+    selectedLayers() {
+      this.isGroupOpen = this.selectedLayers.length > 0;
+    },
   },
 };
 </script>
