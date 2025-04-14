@@ -4,9 +4,9 @@ const { stringify } = require('wkt');
 
 export const state = () => ({
   features: null,
-  urlWmsMonitoring: 'https://cmr.funai.gov.br/geoserver/ows?',
+  urlWmsMonitoring: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
   geoserverLayerMonitoring: 'CMR-PUBLICO:img_monitoramento_terra_indigena_cr_a',
-  urlWmsMonitoringHeatmap: 'https://cmr.funai.gov.br/geoserver/ows?',
+  urlWmsMonitoringHeatmap: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
   geoserverLayerMonitoringHeatmap: 'CMR-PUBLICO:img_monitoramento_terra_indigena_cr_a_heatmap',
   monitoringSubLayers: {
     CR: true,
@@ -154,7 +154,21 @@ export const mutations = {
   },
 
   setAnalytics(state, analyticsMonitoring) {
-    state.analyticsMonitoring = analyticsMonitoring;
+    const formattedAnalytics = analyticsMonitoring.map(item => {
+      const newItem = { ...item };
+      for (const key in newItem) {
+        if (typeof newItem[key] === 'string' && newItem[key].endsWith('%')) {
+          const percentValue = newItem[key].replace('%', '').replace(',', '.');
+          const numberValue = parseFloat(percentValue);
+          if (!isNaN(numberValue)) {
+            const roundedValue = Math.ceil(numberValue * 1000) / 1000;
+            newItem[key] = roundedValue.toFixed(3).replace('.', ',') + '%';
+          }
+        }
+      }
+      return newItem;
+    });
+    state.analyticsMonitoring = formattedAnalytics;
   },
 
   setanalyticsMonitoringDialog(state, analyticsMonitoringDialog) {

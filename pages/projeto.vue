@@ -1,16 +1,26 @@
 <template>
   <div>
-    <HeroBanner :hero-title="$t('hero-title')" background-image="/img/portal/banner-projeto.jpg" :hasCTA=false />
-    <div class="d-flex justify-sm-center">
-      <v-row class="content">
-        <v-col>
+    <HeroBanner
+      :hero-title="$t('hero-title')"
+      background-image="/img/portal/banner-projeto.jpg"
+      :has-c-t-a="false"
+    />
+    <div class="content mx-auto px-8 px-lg-0">
+      <v-row class="align-center">
+        <v-col
+          cols="12"
+          md="8"
+        >
           <h2>{{ $t('about-title') }}</h2>
           <p>{{ $t('about-paragraph-1') }} <span class="highlighted">{{ $t('highlighted-text') }}</span> {{ $t('about-paragraph-2') }}</p>
           <p>{{ $t('about-paragraph-3') }}</p>
           <p>{{ $t('about-paragraph-4') }}</p>
           <p>{{ $t('about-paragraph-5') }}</p>
         </v-col>
-        <v-col style="max-width: 30%;">
+        <v-col
+          cols="12"
+          md="4"
+        >
           <v-img src="/img/portal/mapa-interativo.jpg" />
         </v-col>
       </v-row>
@@ -44,15 +54,15 @@
 </i18n>
 
 <script>
-import HeroBanner from '@/components/panel/HeroBanner'
+import HeroBanner from '@/components/panel/HeroBanner';
 
 export default {
   name: 'Project',
-  layout: 'portal',
   components: {
-    HeroBanner
+    HeroBanner,
   },
-}
+  layout: 'portal',
+};
 </script>
 
 <style lang="sass">

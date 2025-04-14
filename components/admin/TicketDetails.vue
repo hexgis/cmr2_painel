@@ -40,8 +40,9 @@
                             </h2>
                             <p class="text-highlighted-lightgray">
                               {{ $t('functionality') }} {{ ticketDetail.functionality?.func_name }} -
-                                <strong>{{ticketDetail.ticket_status?.formated_info?.sub_status_display }}</strong>
+                              <strong>{{ticketDetail.ticket_status?.formated_info?.sub_status_display }}</strong>
                             </p>
+                            {{ $t('delivery') }}  <strong>{{ dueDate }}</strong>
                         </span>
                     </v-col>
                     <v-col class="d-flex justify-space-between align-center">
@@ -132,6 +133,7 @@
                             outlined
                         ></v-select>
                     </v-col>
+
                     <v-col v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev" cols="12" md="6">
                         <v-select
                             v-model="substatus"
@@ -139,6 +141,21 @@
                             label="Substatus"
                             outlined
                         ></v-select>
+                    </v-col>
+
+                    <v-col v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev"
+                        cols="12"
+                        md="6"
+                        class="relative-input"
+                    >
+                        <v-file-input
+                            v-model="file"
+                            :label="$t('chooseFile')"
+                            multiple
+                            outlined
+                            prepend-icon="mdi-paperclip"
+                        ></v-file-input>
+                        <p class="absolute-input">{{ $t('selectYourFile') }}</p>
                     </v-col>
                     <v-col v-if=" showAnalysisFieldsAdmin || (showAnalysisFieldsDev ||
                                 this.substatus == 'EM_DESENVOLVIMENTO')"
@@ -152,6 +169,7 @@
                             outlined
                         ></v-select>
                     </v-col>
+
                     <v-col v-if="showAnalysisFieldsAdmin || (showAnalysisFieldsDev ||
                                 this.substatus == 'EM_DESENVOLVIMENTO')"
                         cols="12"
@@ -172,6 +190,7 @@
                                     :label="$t('deliveryDate')"
                                     prepend-icon="mdi-calendar"
                                     readonly
+                                    outlined
                                     v-bind="attrs"
                                     v-on="on"
                                 ></v-text-field>
@@ -183,8 +202,8 @@
                             ></v-date-picker>
                         </v-menu>
                     </v-col>
-                    <v-col v-if=" showAnalysisFieldsAdmin ||
-                                showAnalysisFieldsDev"
+
+                    <v-col v-if=" showAnalysisFieldsAdmin"
                         cols="12"
                         md="6"
                     >
@@ -195,20 +214,9 @@
                             outlined
                         ></v-select>
                     </v-col>
-                    <v-col v-if="showAnalysisFieldsAdmin"
-                        cols="12"
-                        md="6"
-                        class="relative-input"
-                    >
-                        <v-file-input
-                            v-model="file"
-                            :label="$t('chooseFile')"
-                            multiple
-                            prepend-icon="mdi-paperclip"
-                        ></v-file-input>
-                        <p class="absolute-input">{{ $t('selectYourFile') }}</p>
-                    </v-col>
+
                 </v-row>
+
                 <v-row>
                     <v-col v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev"
                         cols="12"
@@ -271,6 +279,7 @@
           "request": "Request",
           "requestType": "Request Type:",
           "subject": "Subject:",
+          "delivery": "Delivery Forecast:",
           "functionality": "Functionality:",
           "requestedBy": "Requested By",
           "complexity": "Complexity:",
@@ -300,6 +309,7 @@
           "request": "Solicitação",
           "requestType": "Tipo da Solicitação:",
           "subject": "Assunto:",
+          "delivery": "Previsão de entrega:",
           "functionality": "Funcionalidade:",
           "requestedBy": "Solicitado por",
           "complexity": "Complexidade:",
@@ -378,8 +388,9 @@ export default {
 
 
         isSaveEnabled() {
-    return this.text.trim().length > 0;
+  return this.text.trim().length > 0 && this.status && this.substatus;
 },
+
         isCompletedCard() {
             return (
                 this.ticketDetail.ticket_status?.formated_info
@@ -504,7 +515,7 @@ export default {
                     [...this.file].forEach((file) => formData.append('attachments', file))
                 }
 
-                this.updateStatusAndSendEmail(formData)
+                await this.updateStatusAndSendEmail(formData)
 
                 await this.$store.dispatch('admin/fetchTicketDetail', {
                     ticketId: this.cardId,
@@ -518,7 +529,6 @@ export default {
                     error.response?.data || error.message
                 )
             } finally {
-              window.location.reload();
               this.isLoading = false
             }
         },

@@ -489,6 +489,9 @@ export default {
     },
 
     loadFile(f) {
+      if (!f) {
+        return;
+      }
       if (f.size > 10000000){
         this.fileError(null, this.$i18n.t('file-error-sizing'))
         return

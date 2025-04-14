@@ -39,7 +39,7 @@
             <a
               v-for="attachments in history.status_history_attachments"
               :key="attachments.id"
-              :href="`http://localhost:8080/adm-panel/tickets/download` + attachments.file_path"
+              :href="`https://cmrhomolog-api.funai.gov.br/adm-panel/tickets/download` + attachments.file_path"
               target="_blank"
             >
               {{ attachments.name_file }}
