@@ -54,8 +54,29 @@
                   >
                     <v-col />
                   </v-row>
+                  <template v-if="shouldDisplayField('origin_id') && feature.origin_id">
+                    <v-row
+                      :key="`separator-${i}`"
+                      class="mx-0 list-separator"
+                      dense
+                    >
+                      <v-col
+                        cols="5"
+                        class="text-right"
+                      >
+                        {{ fieldConfig.fieldNames.origin_id || 'origin_id' }}:
+                      </v-col>
+                      <v-col
+                        cols="7"
+                        class="text-left font-weight-bold"
+                      >
+                        {{ feature.origin_id }}
+                      </v-col>
+                    </v-row>
+                  </template>
+
                   <template v-for="(value, field) in feature">
-                    <template v-if="shouldDisplayField(field)">
+                    <template v-if="shouldDisplayField(field) && field !== 'origin_id'">
                       <v-row
                         :key="field + i"
                         :align="field.align"
@@ -177,7 +198,7 @@ export default {
     ],
     fieldConfig: {
     // Campos que devem ser ignorados
-      excludedFields: ['bbox', 'path', 'row', 'no_br'],
+      excludedFields: ['bbox', 'path', 'row', 'no_br', 'id_key'],
       // Substituições completas de nomes de campos
       fieldNames: {
         nu_buffer_distancia: 'Buffer Distância',
