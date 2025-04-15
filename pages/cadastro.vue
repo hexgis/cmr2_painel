@@ -265,19 +265,6 @@
                   </p>
                 </v-col>
               </v-row>
-              <v-divider />
-              <p>{{ $t('form') }}</p>
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <p>
-                    <strong>{{ $t('attached-file') }}:</strong>
-                    {{ formData.attachment?.name }}
-                  </p>
-                </v-col>
-              </v-row>
               <v-btn
                 color="primary"
                 class="mt-4"
