@@ -169,7 +169,7 @@
                         small
                         @click="toggleActivate()"
                       >
-                        <b>S</b>
+                        <b>{{ $t('dms-south') }}</b>
                       </v-btn>
                       <v-btn
                         v-if="north"
@@ -177,7 +177,7 @@
                         small
                         @click="toggleActivate()"
                       >
-                        <b>N</b>
+                        <b>{{ $t('dms-north') }}</b>
                       </v-btn>
                     </v-col>
                   </v-row>
@@ -240,7 +240,7 @@
                         small
                         @click="toggleActivateEast()"
                       >
-                        <b>W</b>
+                        <b>{{ $t('dms-west') }}</b>
                       </v-btn>
                       <v-btn
                         v-if="east"
@@ -248,7 +248,7 @@
                         small
                         @click="toggleActivateEast()"
                       >
-                        <b>E</b>
+                        <b>{{ $t('dms-est') }}</b>
                       </v-btn>
                     </v-col>
                   </v-row>
@@ -415,7 +415,7 @@
     "dms-north": "N",
     "dms-west": "O",
     "dms-south": "S",
-    "dms-est": "E",
+    "dms-est": "L",
     "tooltips.mdi-palette-outline": "Paleta de cores",
     "remove-all": "Remover todos"
   }
@@ -450,7 +450,6 @@ export default {
 
   data: () => ({
     coordType: 'Decimal',
-    options: ['Decimal', 'D.M.S.'],
     buttonsEdit: [
       { icon: 'mdi-pencil-box', type: 'Edit' },
       { icon: 'mdi-delete-outline', type: 'Delete' },
@@ -493,6 +492,22 @@ export default {
     layerStyle: '#FF0000FF',
   }),
 
+  computed: {
+    options() {
+      return [
+        { text: this.$t('decimal-label'), value: 'Decimal' },
+        { text: this.$t('dms-label'), value: this.$i18n.locale === 'en' ? 'D.M.S.' : 'G.M.S.' },
+      ];
+    },
+
+    placeholderLat() {
+      return this.$i18n.locale === 'pt-br' ? '-8,62065' : '-8.62065';
+    },
+    placeholderLon() {
+      return this.$i18n.locale === 'pt-br' ? '-53,32244' : '-53.32244';
+    },
+  },
+
   watch: {
     show() {
       if (!this.show) {
@@ -506,14 +521,6 @@ export default {
     },
   },
 
-  computed: {
-    placeholderLat() {
-      return this.$i18n.locale === 'pt-br' ? '-8,62065' : '-8.62065'
-    },
-    placeholderLon() {
-      return this.$i18n.locale === 'pt-br' ? '-53,32244' : '-53.32244'
-    },
-  },
 
 
   methods: {
@@ -552,10 +559,6 @@ export default {
       });
     },
 
-    selectDraw() {
-      this.show = !this.show;
-    },
-
     calculateDecimal(deg, min, sec) {
       return (
         parseFloat(deg) + parseFloat(min / 60) + parseFloat(sec / 3600)
@@ -576,9 +579,9 @@ export default {
       let hasError = false;
 
       const normalizeCoordinate = (value) => {
-          return this.$i18n.locale === 'pt-br'
-              ? value.replace(',', '.')
-              : value
+        return this.$i18n.locale === 'pt-br'
+        ? value.replace(',', '.')
+        : value
       }
 
       const validateDMSInput = () => {
@@ -592,14 +595,14 @@ export default {
       };
 
       const validateDecimalInput = () => {
-          if (!this.lat || isNaN(normalizeCoordinate(this.lat))) {
-              this.latError = true;
-              hasError = true;
-          }
-          if (!this.lng || isNaN(normalizeCoordinate(this.lng))) {
-              this.lngError = true;
-              hasError = true;
-          }
+        if (!this.lat || isNaN(normalizeCoordinate(this.lat))) {
+          this.latError = true;
+          hasError = true;
+        }
+        if (!this.lng || isNaN(normalizeCoordinate(this.lng))) {
+          this.lngError = true;
+          hasError = true;
+        }
       };
 
       const calculateDecimal = (deg, min, sec) => parseFloat(deg) + parseFloat(min / 60) + parseFloat(sec / 3600);
@@ -612,13 +615,13 @@ export default {
 
       const calculateLatitudeLongitude = () => {
         if (this.coordType === this.$i18n.t('decimal-label')) {
-          validateDecimalInput()
+          validateDecimalInput();
           if (!hasError) {
             latitude = parseFloat(normalizeCoordinate(this.lat))
             longitude = parseFloat(normalizeCoordinate(this.lng))
           }
         } else {
-          validateDMSInput()
+          validateDMSInput();
           if (!hasError) {
             latitude = this.north
               ? calculateDecimal(this.degN, this.minN, this.secN)
@@ -626,16 +629,16 @@ export default {
             longitude = this.east
               ? calculateDecimal(this.degW, this.minW, this.secW)
               : calculateNegativeDecimal(this.degW, this.minW, this.secW)
-              }
           }
         }
+      };
 
-      calculateLatitudeLongitude()
+      calculateLatitudeLongitude();
 
-      if (hasError) return
+      if (hasError) return;
 
-      this.showEdit = true
-      this.map.flyTo([latitude, longitude], 12)
+      this.showEdit = true;
+      this.map.flyTo([latitude, longitude], 12);
       const svgIcon = L.divIcon({
         className: 'custom-icon',
         html: `<svg id="Layer_1" style="enable-background:new 0 0 91 91;" version="1.1" viewBox="0 0 91 91" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
