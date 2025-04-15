@@ -163,7 +163,7 @@
     "search-label-years": "Buscar camada por ano",
     "search-label-month": "Buscar camada por mês",
     "title": "Alta Resolução e Mosaicos",
-    "data-source-label": "Fonte de dados: Geoserver - FUNAI"
+    "data-source-label": "Mosaicos de imagens de média resolução - satélites da série Landsat e Sentinel. Mosaicos de alta resolução - satélites Spot e Planet"
   }
 }
 </i18n>

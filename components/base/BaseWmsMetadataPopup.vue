@@ -368,7 +368,7 @@ export default {
         nu_orbita: 'Órbita',
         dt_t_zero: 'Data T0',
         dt_t_um: 'Data T1',
-        origin_id: 'ID de Origem',
+        origin_id: 'ID',
         id_key: 'Chave ID',
       },
     },
