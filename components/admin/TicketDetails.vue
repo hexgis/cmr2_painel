@@ -18,6 +18,8 @@
                         <strong>{{ dueDate }}</strong>
                     </p>
                 </span>
+
+
             </div>
             <div class="text-right text-uppercase mr-4">
                 <p class="text-h6">
@@ -39,11 +41,13 @@
                                 {{ ticketDetail.subject }}
                             </h2>
                             <p class="text-highlighted-lightgray">
-                              {{ $t('functionality') }} {{ ticketDetail.functionality?.func_name }} -
-                              <strong>{{ticketDetail.ticket_status?.formated_info?.sub_status_display }}</strong>
+                              <strong> {{ $t('functionality') }} </strong>{{ ticketDetail.functionality?.func_name }} -
+                              <strong>{{ticketDetail.ticket_status?.formated_info?.sub_status_display }}</strong> </br>
                             </p>
-                            {{ $t('delivery') }}  <strong>{{ dueDate }}</strong>
                         </span>
+                        <p class="text-highlighted-red">
+                      {{ $t('requestCreatedOn') }} {{ ticketDetail.opened_in_formatted }}
+                    </p>
                     </v-col>
                     <v-col class="d-flex justify-space-between align-center">
                         <span>
@@ -73,9 +77,7 @@
             </div>
             <v-row class="mt-4">
                 <v-col>
-                    <p class="text-highlighted-red">
-                      {{ $t('requestCreatedOn') }} {{ ticketDetail.opened_in_formatted }}
-                    </p>
+
                     <p
                         v-if="ticketDetail.ticket_status?.user_info.analyzer"
                         class="text-highlighted-lightgray"
@@ -121,8 +123,7 @@
                             outlined
                         ></v-select>
                     </v-col>
-                    <v-col v-if="(showAnalysisFieldsAdmin || this.status == 'DEFERIDO') &&
-                                showAnalysisFieldsDev"
+                    <v-col v-if="showAnalysisFieldsAdmin && this.status == 'DEFERIDO'"
                         cols="12"
                         md="6"
                     >
@@ -157,8 +158,7 @@
                         ></v-file-input>
                         <p class="absolute-input">{{ $t('selectYourFile') }}</p>
                     </v-col>
-                    <v-col v-if=" showAnalysisFieldsAdmin || (showAnalysisFieldsDev ||
-                                this.substatus == 'EM_DESENVOLVIMENTO')"
+                    <v-col v-if="showAnalysisFieldsDev"
                         cols="12"
                         md="6"
                     >
@@ -203,7 +203,7 @@
                         </v-menu>
                     </v-col>
 
-                    <v-col v-if=" showAnalysisFieldsAdmin"
+                    <!-- <v-col v-if=" showAnalysisFieldsAdmin"
                         cols="12"
                         md="6"
                     >
@@ -212,7 +212,7 @@
                             :items="solicitationTypeLabelOptions"
                             :label="$t('functionalityLabel')"
                             outlined
-                        ></v-select>
+                        ></v-select> -->
                     </v-col>
 
                 </v-row>
@@ -274,27 +274,27 @@
   {
       "en": {
           "reopenRequest": "REOPEN REQUEST",
-          "deliveryForecast": "Delivery Forecast",
+          "deliveryForecast": "Delivery forecast",
           "requestedOn": "Requested on",
           "request": "Request",
-          "requestType": "Request Type:",
+          "requestType": "Request type:",
           "subject": "Subject:",
-          "delivery": "Delivery Forecast:",
+          "delivery": "Delivery forecast:",
           "functionality": "Functionality:",
-          "requestedBy": "Requested By",
+          "requestedBy": "Requested by",
           "complexity": "Complexity:",
-          "requestCreatedOn": "Request Created on",
-          "analyzedBy": "Analyzed By",
-          "notAnalyzed": "Not Analyzed",
-          "attachedFiles": "Attached Files:",
-          "analysisComment": "Analysis Comment",
-          "analyzeRequest": "Analyze Request",
+          "requestCreatedOn": "Request created on",
+          "analyzedBy": "Analyzed by",
+          "notAnalyzed": "Not analyzed",
+          "attachedFiles": "Attached files:",
+          "analysisComment": "Analysis comment",
+          "analyzeRequest": "Analyze request",
           "priority": "Priority",
-          "deliveryDate": "Delivery Date",
+          "deliveryDate": "Delivery date",
           "complexityLabel": "Complexity",
           "functionalityLabel": "Functionality",
-          "chooseFile": "Choose File",
-          "sendEmailToUser": "Send Email to user",
+          "chooseFile": "Choose file",
+          "sendEmailToUser": "Send email to user",
           "comment": "Comment",
           "selectYourFile": "Select your file (PDF, JPG, JPEG, PNG, XLS, XLSX, CSV)",
           "back": "Back",
@@ -307,7 +307,7 @@
           "deliveryForecast": "Previsão de entrega",
           "requestedOn": "Solicitado em",
           "request": "Solicitação",
-          "requestType": "Tipo da Solicitação:",
+          "requestType": "Tipo da solicitação:",
           "subject": "Assunto:",
           "delivery": "Previsão de entrega:",
           "functionality": "Funcionalidade:",
@@ -316,8 +316,8 @@
           "requestCreatedOn": "Solicitação criada em",
           "analyzedBy": "Analisado por",
           "notAnalyzed": "Não analisado",
-          "attachedFiles": "Arquivos Anexados:",
-          "analysisComment": "Comentário da Análise",
+          "attachedFiles": "Arquivos anexados:",
+          "analysisComment": "Comentário da análise",
           "analyzeRequest": "Analisar solicitação",
           "priority": "Prioridade",
           "deliveryDate": "Data de entrega",

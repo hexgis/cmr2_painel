@@ -272,6 +272,8 @@
         <v-switch
           v-model="heatMap"
           class="mt-0 pt-0"
+          :loading="loadingHeatmap"
+          :disabled="loadingHeatmap"
           hide-details
         />
       </v-col>
@@ -400,7 +402,7 @@ export default {
       },
 
       set(value) {
-        this.$store.commit('monitoring/setHeatMap', value);
+        this.$store.dispatch('monitoring/generateHeatmapMonitoring', value);
       },
     },
 
@@ -434,6 +436,7 @@ export default {
       'isLoadingCSVMonitoring',
       'isLoadingStatistic',
       'analyticsMonitoringDialog',
+      'loadingHeatmap',
     ]),
   },
 

@@ -1,5 +1,6 @@
 import { version } from 'jszip';
 import { convertToCSV, saveData } from '@/utils/csv';
+import centroid from '@turf/centroid';
 
 const { stringify } = require('wkt');
 
@@ -8,7 +9,9 @@ export const state = () => ({
   urlWmsMonitoring: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
   geoserverLayerMonitoring: 'CMR-PUBLICO:img_monitoramento_terra_indigena_cr_a',
   urlWmsMonitoringHeatmap: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
-  geoserverLayerMonitoringHeatmap: 'CMR-PUBLICO:img_monitoramento_terra_indigena_cr_a_heatmap',
+  geoserverLayerMonitoringHeatmap: 'CMR-PUBLICO:vwm_heatmap_ti_cr_p',
+  resultsHeatmap: [],
+  loadingHeatmap: false,
   monitoringSubLayers: {
     CR: true,
     DG: true,
@@ -116,6 +119,10 @@ export const mutations = {
 
   setSelectedStages(state, value) {
     state.selectedStages.push(value);
+  },
+
+  setLoadingHeatmap(state, loadingHeatmap) {
+    state.loadingHeatmap = loadingHeatmap;
   },
 
   removeSelectedStages(state, value) {
@@ -229,7 +236,69 @@ export const mutations = {
 
   setIntersectsWmsMonitoring(state, intersectsWmsMonitoring) {
     state.intersectsWmsMonitoring = intersectsWmsMonitoring;
-  }
+  },
+
+  setResultsHeatmap(state, resultsHeatMap) {
+    // Create an array to store heatmap points
+    const pointsHeatMap = [];
+
+    // Check if a response is provided
+    if (resultsHeatMap) {
+      // Iterate through the features in the response
+      resultsHeatMap.features.forEach((feature) => {
+        // Check if the feature has a valid geometry and coordinates
+        if (
+          feature.geometry && (feature.geometry.type === 'Point' || feature.geometry.type === 'MultiPoint')
+          && feature.geometry.coordinates && feature.geometry.coordinates.length
+        ) {
+          // Handle Point or MultiPoint geometries
+          if (feature.geometry.type === 'Point') {
+            pointsHeatMap.push(
+              [
+                feature.geometry.coordinates[1],
+                feature.geometry.coordinates[0],
+                1,
+              ],
+            );
+          }
+          if (feature.geometry.type === 'MultiPoint') {
+            // Iterate through the coordinates in MultiPoint geometry
+            feature.geometry.coordinates.forEach(((coord) => {
+              pointsHeatMap.push(
+                [
+                  coord[1],
+                  coord[0],
+                  1,
+                ],
+              );
+            }));
+          }
+        }
+
+        // Check if the feature has a valid geometry and coordinates
+        if (
+          feature.geometry && (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon')
+          && feature.geometry.coordinates && feature.geometry.coordinates.length
+        ) {
+          // Calculate the centroid of Polygon or MultiPolygon geometries
+          const polygonPoints = centroid(feature);
+          pointsHeatMap.push(
+            [
+              polygonPoints.geometry.coordinates[1],
+              polygonPoints.geometry.coordinates[0],
+              1,
+            ],
+          );
+        }
+      });
+
+      // Set the state's result layer to the array of heatmap points
+      state.resultsHeatmap = pointsHeatMap;
+    } else {
+      // If no response is provided, set the result layer to an empty array
+      state.resultsHeatmap = [];
+    }
+  },
 };
 
 export const actions = {
@@ -320,6 +389,7 @@ export const actions = {
       commit('setLoadingMonitoring', true);
       commit('setshowFeaturesMonitoring', true);
       commit('setLoadingFeatures', true);
+      commit('setHeatMap', false);
 
 
 
@@ -1309,6 +1379,97 @@ export const actions = {
       );
     } finally {
       commit('setLoadingGeoJson', false);
+    }
+  },
+
+  async generateHeatmapMonitoring({ commit, state }, value) {
+    try {
+      if (value) {
+        commit('setLoadingHeatmap', true);
+        let url = state.urlWmsMonitoringHeatmap;
+
+        const params = {
+          service: 'WFS',
+          version: '1.0.0',
+          request: 'GetFeature',
+          typeName: state.geoserverLayerMonitoringHeatmap,
+          // propertyName: 'geom',
+          outputFormat: 'application/json',
+          CQL_FILTER: '',
+        }
+
+        if (state.intersectsWmsMonitoring) {
+          params.CQL_FILTER += state.intersectsWmsMonitoring;
+        }
+
+        const arrayTI = [];
+        if (state.filters.ti && state.filters.ti.length) {
+          Object.values(state.filters.ti).forEach((item) => {
+            arrayTI.push(item.co_funai);
+          });
+          if (params.CQL_FILTER.length) {
+            params.CQL_FILTER += ' AND ';
+          }
+          params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
+        }
+
+        const arrayCR = [];
+        if (state.filters.cr && state.filters.cr.length) {
+          Object.values(state.filters.cr).forEach((item) => {
+            arrayCR.push(item.co_cr);
+          });
+          if (params.CQL_FILTER.length) {
+            params.CQL_FILTER += ' AND ';
+          }
+          params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
+        }
+
+        if (state.filters.startDate && state.filters.endDate) {
+          if (params.CQL_FILTER.length) {
+            params.CQL_FILTER += ' AND ';
+          }
+          params.CQL_FILTER += `(dt_t_um >= (${state.filters.startDate}) AND dt_t_um <= (${state.filters.endDate}))`;
+        }
+
+        const filtersSubLayersTrue = Object.keys(state.monitoringSubLayers).filter(key => state.monitoringSubLayers[key] === true);
+        if (filtersSubLayersTrue && filtersSubLayersTrue.length) {
+          params.CQL_FILTER += ' AND';
+          let sublayers = '';
+          filtersSubLayersTrue.forEach((value, key) => {
+            if (!state.monitoringSubLayers[value]) {
+              return;
+            }
+            if (key === 0) {
+              sublayers += ` no_estagio = '${value}'`;
+            }
+            if (key > 0) {
+              sublayers += ` OR no_estagio = '${value}'`;
+            }
+          });
+          params.CQL_FILTER += `(${sublayers})`;
+        }
+
+        const paramsUrl = new URLSearchParams(params);
+        url = `${url}${paramsUrl}`;
+
+        const response = await this.$api.$get(url);
+
+        commit('setResultsHeatmap', response);
+      }
+    } catch (error) {
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring'),
+          }),
+        },
+        { root: true },
+      );
+    } finally {
+      commit('setHeatMap', value);
+      commit('setLoadingHeatmap', false);
     }
   },
 };
