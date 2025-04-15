@@ -52,7 +52,8 @@
         "vue2-leaflet": "2.5.2",
         "vue2-leaflet-markercluster": "^3.1.0",
         "vuedraggable": "^2.24.3",
-        "wkt": "^0.1.1"
+        "wkt": "^0.1.1",
+        "@turf/centroid": "^6.5.0"
     },
     "devDependencies": {
         "@mdi/font": "^5.9.55",

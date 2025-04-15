@@ -178,6 +178,7 @@ export default {
           value,
         });
         this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
+        this.$store.commit('monitoring/setHeatMap', false);
       },
     },
 
@@ -192,6 +193,7 @@ export default {
           value,
         });
         this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
+        this.$store.commit('monitoring/setHeatMap', false);
       },
     },
 
@@ -207,6 +209,7 @@ export default {
         });
         // fire method to update the URL (action in vuex)
         this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
+        this.$store.commit('monitoring/setHeatMap', false);
       },
     },
 
@@ -221,6 +224,7 @@ export default {
           value,
         });
         this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
+        this.$store.commit('monitoring/setHeatMap', false);
       },
     },
 
