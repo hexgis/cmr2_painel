@@ -29,22 +29,15 @@
               <div>
                 <span class="text-uppercase">{{ $t('groupBy') }}:</span>
                 <a class="d-flex justify-end">
-                  <v-tooltip bottom>
-                    <template #activator="{ on, attrs }">
-                      <v-btn
-                        small
-                        :loading="isLoadingCSVMonitoring"
-                        fab
-                        color="secondary"
-                        v-bind="attrs"
-                        @click="downloadCSV()"
-                        v-on="on"
-                      >
-                        <v-icon>mdi-download</v-icon>
-                      </v-btn>
-                    </template>
-                    <span>Baixar</span>
-                  </v-tooltip>
+                  <v-btn
+                    small
+                    :loading="isLoadingCSVMonitoring"
+                    fab
+                    color="secondary"
+                    @click="downloadCSV()"
+                  >
+                    <v-icon> mdi-download</v-icon>
+                  </v-btn>
                 </a>
               </div>
               <div class="mb-2">
