@@ -198,7 +198,7 @@ export default {
     ],
     fieldConfig: {
     // Campos que devem ser ignorados
-      excludedFields: ['bbox', 'path', 'row', 'no_br', 'id_key'],
+      excludedFields: ['bbox', 'path', 'row', 'no_br', 'id_key', 'id_tb', 'ranking'],
       // Substituições completas de nomes de campos
       fieldNames: {
         nu_buffer_distancia: 'Buffer Distância',
@@ -220,8 +220,12 @@ export default {
         ds_cadatro: 'Data de Cadastro',
 
         // INSTRUMENTO DE GESTÃO
-        no_ig: 'IG',
+        no_ig: 'Instrumento de Gestão',
         nu_ano_elaboracao: 'Ano de Elaboração',
+        ds_obs: 'Observação',
+        ds_ttl_publi: 'Título da Publicação',
+        ds_disp_meio_local: 'Disponível em (Meio/Local)',
+        co_funai_tb: 'Código Funai',
 
         // LOCALIDADES INDIGENAS
         id: 'ID',
