@@ -20,7 +20,7 @@ export const state = () => ({
   total: null,
   tableLandUse: [],
   tableCSVLandUse: [],
- });
+});
 
 export const getters = {
   featuresLoaded(state) {
@@ -33,8 +33,8 @@ export const getters = {
 };
 
 export const mutations = {
-  setClearTis(state, tis){
-    state.filterOptions.tiFilters = []
+  setClearTis(state, tis) {
+    state.filterOptions.tiFilters = [];
   },
 
   setFeatures(state, features) {
@@ -119,7 +119,7 @@ export const actions = {
 
     if (state.filters.ti && state.filters.ti.length) { params.co_funai = state.filters.ti.toString(); }
 
-    if (state.filters.year && state.filters.year.length) { params.map_year = state.filters.year.toString(); }
+    if (state.filters.year && state.filters.year.length) { params.nu_ano = state.filters.year.toString(); }
 
     if (state.filters.cr && state.filters.cr.length) { params.co_cr = state.filters.cr.toString(); }
 
@@ -176,7 +176,7 @@ export const actions = {
 
   async getTiOptions({ commit, state }, cr) {
     let tis = await this.$api.$get('/land-use/search/');
-    if (cr){
+    if (cr) {
       const params = {
         co_cr: cr.toString(),
       };
@@ -185,7 +185,7 @@ export const actions = {
       });
     }
     if (tis) {
-      commit('setClearTis')
+      commit('setClearTis');
       commit('setFilterOptions', {
         ...state.filterOptions,
         tiFilters: tis.sort((a, b) => a.no_ti > b.no_ti),
@@ -234,7 +234,7 @@ export const actions = {
       const total = await this.$api.$get('land-use/stats/', {
         params,
       });
-      
+
       if (total) commit('setTotal', total);
     } catch (error) {
       commit(
@@ -259,36 +259,43 @@ export const actions = {
       commit('setLoadingCSV', true);
 
       const params = {
-        format: state.filters.csv,
       };
-  
+
       if (state.filters.ti && state.filters.ti.length) { params.co_funai = state.filters.ti.toString(); }
-  
-      if (state.filters.year && state.filters.year.length) { params.map_year = state.filters.year.toString(); }
-  
+
+      if (state.filters.year && state.filters.year.length) { params.nu_ano = state.filters.year.toString(); }
+
       if (state.filters.cr && state.filters.cr.length) { params.co_cr = state.filters.cr.toString(); }
-  
+
       if (state.filters.currentView) params.in_bbox = rootGetters['map/bbox'];
-  
+
       const tableCSVLandUse = await this.$api.get('land-use/table/', {
         params,
       });
-  
+
+      function convertToCSV(objArray) {
+        const array = Array.isArray(objArray) ? objArray : [objArray];
+        const header = `${Object.keys(array[0]).join(',')}\n`;
+        const rows = array.map((row) => Object.values(row).map((value) => `"${value}"`).join(',')).join('\n');
+        return header + rows;
+      }
+      const csvContent = convertToCSV(tableCSVLandUse.data);
+
       function saveData(data, fileName, type) {
         let elementBtn; let blob; let
           url;
-  
+
         elementBtn = document.createElement('a');
         elementBtn.style = 'display: none';
         document.body.appendChild(elementBtn);
-  
+
         if (type !== 'text/csv') {
           data = JSON.stringify(data);
         }
-  
+
         blob = new Blob([data], { type });
         url = window.URL.createObjectURL(blob);
-  
+
         elementBtn.href = url;
         elementBtn.download = fileName;
         elementBtn.click();
@@ -296,11 +303,11 @@ export const actions = {
       }
 
       saveData(
-        tableCSVLandUse.data,
+        csvContent,
         'land_use_and_ocupation.csv',
-        'text/csv',
+        'text/csv;charset=utf-8',
       );
-    } catch(error) {      
+    } catch (error) {
       commit(
         'alert/addAlert',
         {
