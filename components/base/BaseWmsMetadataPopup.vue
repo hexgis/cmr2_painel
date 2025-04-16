@@ -368,7 +368,7 @@ export default {
         nu_orbita: 'Órbita',
         dt_t_zero: 'Data T0',
         dt_t_um: 'Data T1',
-        origin_id: 'ID de Origem',
+        origin_id: 'ID',
         id_key: 'Chave ID',
       },
     },
@@ -505,14 +505,6 @@ export default {
             if (data && data.features && data.features.length) {
             // eslint-disable-next-line no-restricted-syntax
               for (const feature of data.features) {
-                if (layerName.toLowerCase().includes('instrumento') || layerName.toLowerCase().includes('gestão')) {
-                  // eslint-disable-next-line no-await-in-loop
-                  const res = await this.fetchInstrumentoGestao(
-                    feature.properties.co_funai,
-                  );
-                  this.data[layerName].layers = res || [];
-                  return;
-                }
                 this.data[layerName].layers.push(
                   feature.properties,
                 );
