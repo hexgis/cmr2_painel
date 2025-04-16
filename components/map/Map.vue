@@ -521,9 +521,6 @@ export default {
   }),
 
   computed: {
-    minimapVisibleSettings() {
-      return this.user ? this.user.settings.minimap_visible : false;
-    },
     initialExtentCoords() {
       return this.user && this.user.settings.initial_extent.coordinates
         ? this.$L.GeoJSON.coordsToLatLngs(
@@ -547,10 +544,6 @@ export default {
   watch: {
     boundsZoomed() {
       this.map.flyToBounds(this.bounds);
-    },
-
-    minimapVisibleSettings(visible) {
-      visible ? this.miniMap.addTo(this.map) : this.miniMap.remove();
     },
   },
 
