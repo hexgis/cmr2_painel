@@ -94,7 +94,7 @@
                 size="40"
               >
                 <img
-                  :src="layer.wms.geoserver.preview_url + layer.wms.geoserver_layer_name"
+                  :src="layerPreview(layer)"
                   class="layer-thumbnail"
                   alt="CorLayer"
                 >
@@ -136,6 +136,7 @@
 <script>
 import draggable from 'vuedraggable';
 import { mapState, mapMutations } from 'vuex';
+import ti from '@/assets/ti.png';
 
 export default {
   name: 'SupportUser',
@@ -210,6 +211,17 @@ export default {
     this.updateConcatenatedUserLayers();
   },
   methods: {
+    layerPreview(layer) {
+      if (layer.name === 'Terras Indígenas') {
+        return ti;
+      }
+      if (layer.wms && layer.wms.geoserver && layer.wms.geoserver.preview_url
+          && layer.wms.geoserver_layer_name) {
+        return layer.wms.geoserver.preview_url + layer.wms.geoserver_layer_name;
+      }
+      return '';
+    },
+
     async getInfo() {
       await this.$store.dispatch('supportLayersUser/getLayersUser');
       this.setHasLayer(false);

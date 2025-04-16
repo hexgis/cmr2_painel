@@ -197,7 +197,6 @@ export default {
         },
         'layer.visible': {
             handler(visible) {
-                console.log(this.layer)
             },
             deep: true,
         },
