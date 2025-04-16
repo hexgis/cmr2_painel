@@ -64,12 +64,12 @@ export default {
   data() {
     return {
       adminLabels: [
-        { route: '/views-chart', label: this.$t('dashboard') },
-        { route: '/admin/usuarios', label: this.$t('manage_users') },
-        { route: '/admin/area-restrita', label: this.$t('restricted_access') },
-        { route: '/admin/permissoes', label: this.$t('manage_permissions') },
-        { route: '/admin/camadas', label: this.$t('manage_layers') },
         { route: '/admin/criticas', label: this.$t('feedback') },
+        { route: '/admin/area-restrita', label: this.$t('restricted_access') },
+        { route: '/admin/camadas', label: this.$t('manage_layers') },
+        { route: '/admin/permissoes', label: this.$t('manage_permissions') },
+        { route: '/admin/usuarios', label: this.$t('manage_users') },
+        { route: '/views-chart', label: this.$t('dashboard') },
       ],
       selectedRoute: this.$route.path,
     };
@@ -117,7 +117,6 @@ export default {
     width: 30%
     max-width: 300px
     min-height: 100vh
-    border-radius: 0 1.5rem 1.5rem 0
     position: relative
 
     &-img
@@ -136,7 +135,7 @@ export default {
 
       &:last-child
         position: absolute
-        bottom: 0
+  
         width: 100%
 
       &:hover,
