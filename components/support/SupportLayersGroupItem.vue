@@ -135,6 +135,7 @@
 <script>
 import { mapState, mapMutations } from 'vuex';
 import tmsLegend from '@/assets/tmsLegend.png';
+import ti from '@/assets/ti.png';
 
 import SupportLayerFilters from '@/components/support/SupportLayerFilters';
 import SupportLayerMetadata from '@/components/support/SupportLayerMetadata';
@@ -185,6 +186,10 @@ export default {
 
     layerPreview() {
       if (this.layer.layer_type === 'tms') return tmsLegend;
+
+      if (this.layer.wms.geoserver_layer_name === 'lim_terra_indigena_a') {
+        return ti;
+      }
 
       return (
         this.layer.wms.geoserver.preview_url
