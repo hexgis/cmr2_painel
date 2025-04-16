@@ -13,7 +13,7 @@
 
   <l-tile-layer
     v-else-if="layer.layer_type == 'tms'"
-    :url="layer.tms?.url_tms"
+    :url="layer.tms?.url"
     :visible="layer.visible"
     :z-index="3"
     :options="{
