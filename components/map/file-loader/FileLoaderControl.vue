@@ -194,7 +194,7 @@
         "file-error-parsing-gpx": "Found problems while parsing GPX file. Please, validate your file.",
         "file-error-parsing-kmlz": "Found problems while parsing KMZ/KML file. Please, validate your file",
         "file-error-general": "File type not acceptable on system.",
-        "file-error-sizing": "File exceeds size maximum accepted by the system. Insert a file up to 10 MB.",
+        "file-error-sizing": "File exceeds size maximum accepted by the system. Insert a file up to 2.5 MB",
         "file-error-internal": "Internal Error: ",
         "opacity": "Opacity"
     },
@@ -209,7 +209,7 @@
         "file-error-parsing-gpx": "Problemas encontrados durante a análise do arquivo GPX. Por favor, valide o arquivo.",
         "file-error-parsing-kmlz": "Problemas encontrados durante a análise do arquivo KMZ/KML. Por favor, valide o arquivo",
         "file-error-general": "Arquivo não aceito pelo sistema.",
-        "file-error-sizing": "O arquivo excede o tamanho máximo aceito pelo sistema. Insira um arquivo de até 10 MB.",
+        "file-error-sizing": "O arquivo excede o tamanho máximo aceito pelo sistema. Insira um arquivo de até 2.5 MB",
         "file-error-internal": "Erro interno: ",
         "opacity": "Opacidade"
     }
@@ -492,7 +492,7 @@ export default {
       if (!f) {
         return;
       }
-      if (f.size > 10000000){
+      if (f.size > 2621440) { // 2.621.440 bytes (2.5MB)
         this.fileError(null, this.$i18n.t('file-error-sizing'))
         return
       }
