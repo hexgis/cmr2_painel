@@ -87,16 +87,22 @@
             {{ user.last_name }}
           </span>
         </v-card-title>
+        <v-list-item @click="goToMain()">
+          <v-icon> mdi-home </v-icon>
+          <span class="pl-2">
+            {{ $t('home-button') }}
+          </span>
+        </v-list-item>
         <v-list-item @click="openSettings()">
           <v-icon> mdi-cog </v-icon>
           <span class="pl-2">
             {{ $t('preferences-button') }}
           </span>
         </v-list-item>
-        <v-list-item @click="goToMain()">
-          <v-icon> mdi-home </v-icon>
+        <v-list-item @click="goToManual()">
+          <v-icon> mdi-book-open-outline </v-icon>
           <span class="pl-2">
-            {{ $t('home-button') }}
+            {{ $t('manual-button') }}
           </span>
         </v-list-item>
         <v-list-item @click="logout()">
@@ -146,7 +152,8 @@
     "logout-button": "Log out",
     "home-button": "Home",
     "admin-panel-tooltip": "Admin Panel",
-    "login-button": "Log In"
+    "login-button": "Log In",
+    "manual-button": "Manual"
   },
   "pt-br": {
     "criticisms-suggestions-tooltip":"Criticas e sugestões",
@@ -155,7 +162,8 @@
     "logout-button": "Sair",
     "home-button": "Início",
     "admin-panel-tooltip": "Painel do Administrador",
-    "login-button": "Login"
+    "login-button": "Login",
+    "manual-button": "Manual"
   }
 }
 </i18n>
@@ -217,9 +225,15 @@ export default {
     openSettings() {
       this.settingsOpened = true;
     },
+
     goToMain() {
       this.$router.replace(this.localePath('/'));
     },
+
+    async goToManual() {
+      window.location.href = 'https://cmrhomolog-api.funai.gov.br/adm-panel/manual/';
+    },
+
     goToCriticisms() {
       window.location.href = this.localePath('/admin/criticas');
     },
