@@ -187,6 +187,7 @@ export default {
           route: '/cmr/monitoring',
           requiredLogin: true,
           show: process.env.ROUTE_MONITORING === 'true',
+          componentKey: 'monitoring',
         },
         {
           name: this.$t('high-resolution-mosaics-tab'),
@@ -194,6 +195,7 @@ export default {
           route: '/cmr/support-raster',
           requiredLogin: true,
           show: process.env.ROUTE_SUPPORT_RASTER === 'true',
+          componentKey: 'layers_mosaics',
         },
         {
           name: this.$t('landuse-tab'),
@@ -201,6 +203,7 @@ export default {
           route: '/cmr/land-use',
           requiredLogin: true,
           show: process.env.ROUTE_LAND_USE === 'true',
+          componentKey: 'land_use',
         },
         {
           name: this.$t('mapoteca-tab'),
@@ -208,6 +211,7 @@ export default {
           route: '/cmr/mapoteca',
           requiredLogin: true,
           show: process.env.ROUTE_MAPOTECA === 'true',
+          componentKey: null,
         },
         {
           name: this.$t('analytics-tab'),
@@ -215,14 +219,19 @@ export default {
           route: '/cmr/statistics',
           requiredLogin: true,
           show: process.env.ROUTE_ANALYTICS === 'true',
+          componentKey: 'analytics',
         },
       ];
     },
     tabs() {
-      return this.allTabs.filter((tab) => (tab.show && (!tab.requiredLogin || this.isLoggedIn)));
+      return this.allTabs.filter((tab) => (tab.show
+      && (!tab.requiredLogin || this.isLoggedIn)
+      && this.userCanAccess(tab.componentKey)
+      ));
     },
     ...mapState('catalog', ['isComparing']),
     ...mapState('tableDialog', ['showTableDialog']),
+    ...mapState('userProfile', ['user']),
     ...mapGetters('auth', ['isLoggedIn']),
   },
 
@@ -241,7 +250,17 @@ export default {
   },
 
   methods: {
+    userCanAccess(componentKey) {
+      if (this.user?.is_superuser || this.user?.is_staff) {
+        return true;
+      }
+      if (!componentKey) {
+        return true;
+      }
+      return this.user?.components?.[componentKey] === true;
+    },
     handleCompareTab() {
+
       if (this.isComparing) {
         this.tabs.push({
           name: this.$t('compare-tab'),
