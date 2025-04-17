@@ -46,33 +46,35 @@
           mobile-breakpoint="0"
           @update:options="onOptionsUpdate"
         >
-          <!-- :height="$vuetify.breakpoint.smAndDown ? '' : '65vh'" -->
+          <!-- Template dinâmico para todas as colunas -->
           <template
-            v-if="[item.prioridade]"
-            #[`item.prioridade`]="{ item }"
-          >
-            <v-row>
-              <v-col>
-                <v-chip
-                  class="mt-2"
-                  :color="getColor(item.prioridade)"
-                  :dark="
-                    getColor(item.prioridade) !== 'yellow'
-                  "
-                >
-                  {{ item.prioridade }}
-                </v-chip>
-              </v-col>
-            </v-row>
-          </template>
-          <template
-            v-if="[item.action]"
-            #[`item.actions`]="{ item }"
-          >
-            <MapPrinterPriority
-              class="mx-2 mb-2"
-              :value="dialogPrint"
-            />
+            v-for="header in headers"
+            #[`item.${header.value}`]="{ item }">
+            <!-- Caso especial para prioridade -->
+            <template v-if="header.value === 'prioridade'">
+              <v-chip
+                class="mt-2"
+                :color="getColor(item[header.value])"
+                :dark="getColor(item[header.value]) !== 'yellow'"
+                :key="`chip-${item.origin_id}-${header.value}`"
+              >
+                {{ item[header.value] }}
+              </v-chip>
+            </template>
+
+            <!-- Caso especial para ações -->
+            <template v-else-if="header.value === 'actions'">
+              <MapPrinterPriority
+                class="mx-2 mb-2"
+                :value="dialogPrint"
+                :key="`map-printer-${item.origin_id}-${header.value}`"
+              />
+            </template>
+
+            <!-- Formatação padrão para outras colunas -->
+            <template v-else>
+              {{ formatFieldValue(item[header.value], header.value) }}
+            </template>
           </template>
         </v-data-table>
       </v-card-text>
@@ -165,6 +167,53 @@ export default {
   },
 
   methods: {
+    formatFieldValue(value, field = '') {
+      if (value === null || value === undefined) {
+        return 'N/A';
+      }
+
+      const fieldName = field.toLowerCase();
+
+      const isDateField = (
+        typeof value === 'string'
+        && (fieldName.startsWith('dt_') || fieldName.startsWith('data_') || fieldName.startsWith('date'))
+        && this.$moment(value).isValid()
+      );
+
+      const isBooleanField = typeof value === 'boolean';
+
+      const isNumberField = typeof value === 'number';
+
+      const isLatLongField = ['lat', 'lng', 'long', 'latitude', 'longitude'].some((key) => fieldName.includes(key));
+
+      if (isDateField) {
+        return this.$moment(value).format('DD/MM/YYYY');
+      }
+
+      if (isBooleanField) {
+        return value ? 'Sim' : 'Não';
+      }
+
+      if (isNumberField || fieldName.startsWith('nu_')) {
+        if (isLatLongField) {
+          return value.toFixed(5);
+        }
+        if (typeof value === 'string') {
+          // eslint-disable-next-line no-param-reassign
+          value = parseFloat(value);
+        }
+        const rounded = value.toFixed(2);
+        const [intPart, decimalPart] = rounded.split('.');
+
+        return decimalPart !== '00' || (fieldName.startsWith('nu_') && fieldName.includes('area'))
+          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
+          : parseInt(value, 10);
+      }
+
+      // 5. Valor padrão (string ou outros)
+      return value || 'N/A';
+    },
+
     getColor(prioridade) {
       switch (prioridade) {
         case 'Muito Alta':
