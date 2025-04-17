@@ -22,7 +22,7 @@
 
     <!-- Botão Administrador -->
     <v-btn
-      v-if="isLoggedIn"
+      v-if="userCanAccess('admin_panel')"
       icon
       large
       class="mx-2"
@@ -200,6 +200,16 @@ export default {
   },
 
   methods: {
+    userCanAccess(componentKey) {
+      if (this.user?.is_superuser || this.user?.is_staff) {
+        return true;
+      }
+      if (!componentKey) {
+        return true;
+      }
+      return this.user?.components?.[componentKey] === true;
+    },
+
     goToAdmin() {
       this.$router.push(this.localePath('/admin'));
     },
