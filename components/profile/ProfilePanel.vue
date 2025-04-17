@@ -231,7 +231,7 @@ export default {
     },
 
     async goToManual() {
-      window.location.href = 'https://cmrhomolog-api.funai.gov.br/adm-panel/manual/';
+      window.location.href = `${process.env.API_URL}adm-panel/manual/`;
     },
 
     goToCriticisms() {
