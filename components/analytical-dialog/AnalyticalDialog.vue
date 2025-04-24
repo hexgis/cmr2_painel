@@ -122,7 +122,7 @@
           <v-data-table
             :headers="showHeaders"
             :items="analyticsMonitoring"
-            :items-per-page="5"
+            :items-per-page="-1"
             :loading="isLoadingStatistic"
             class="elevation-1"
             multi-sort
