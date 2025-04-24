@@ -292,7 +292,6 @@ import Highlighter from '@/components/map/Highlighter.vue';
 import MapIndigenousLand from '@/components/map/MapIndigenousLand';
 
 if (typeof window !== 'undefined') {
-  require('leaflet-bing-layer');
   require('leaflet-basemaps');
   require('leaflet-minimap');
   require('leaflet-draw');
@@ -410,7 +409,7 @@ export default {
       //     label: 'Google Roadmap',
       //     tag: 'Google Roadmap',
       //     attribution:
-      //                   'Map data &copy; <a href="//maps.google.com/">Google</a> Altered roadmap',
+      //                  'Map data &copy; <a href="//maps.google.com/">Google</a> Altered roadmap',
       //     maxZoom: 21,
       //     maxNativeZoom: 19,
       //     subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
@@ -432,13 +431,17 @@ export default {
       },
       // {
       //     url:
-      //         '//securewatch.digitalglobe.com/earthservice/wmtsaccess?connectId={connectid}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=EPSG:3857&LAYER=DigitalGlobe:ImageryTileService&FORMAT=image/jpeg&STYLE=&featureProfile=Vivid_2019&TileMatrix=EPSG:3857:{z}&TILEROW={y}&TILECOL={x}',
+      //         '//securewatch.digitalglobe.com/earthservice/wmtsaccess?connectId=
+      //         {connectid}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&TileMatrixSet=
+      //         EPSG:3857&LAYER=DigitalGlobe:ImageryTileService&FORMAT=image/jpeg&STYLE=
+      //         &featureProfile=Vivid_2019&TileMatrix=EPSG:3857:{z}&TILEROW={y}&TILECOL={x}',
       //     options: {
       //         connectid: '750ba857-7952-41af-b189-316d907cc12a',
       //         label: 'MAXAR',
       //         tag: 'MAXAR',
       //         attribution:
-      //             'Map data &copy; <a href="//securewatch.digitalglobe.com">Secure Watch</a> Digital Globe',
+      //             'Map data &copy; <a href="//securewatch.digitalglobe.com">Secure Watch
+      //         </a> Digital Globe',
       //         maxZoom: 21,
       //         maxNativeZoom: 19,
       //         zIndex: 1,
@@ -457,24 +460,28 @@ export default {
         },
       },
       // {
-      //     url: '//view.geoapi-airbusds.com/maps/wmts/52a994d7-f215-4c66-aa10-439221c29ee0/tile/1.0.0/8659bd97-ea52-474d-a3e9-072c335cd6bb/default/3857/{z}/{y}/{x}',
+      //     url: '//view.geoapi-airbusds.com/maps/wmts/52a994d7-f215-4c66-aa10-439221c29ee0/tile/
+      //     1.0.0/8659bd97-ea52-474d-a3e9-072c335cd6bb/default/3857/{z}/{y}/{x}',
       //     options: {
       //         label: 'AirBus OneAtlas',
       //         tag: 'AirBus OneAtlas',
       //         attribution:
-      //             'GeoAPI Airbus Service; Powered by: <a href="//oneatlas.airbus.com/">OneAtlas - AIRBUS</a>',
+      //             'GeoAPI Airbus Service; Powered by: <a href=
+      //        "//oneatlas.airbus.com/">OneAtlas - AIRBUS</a>',
       //         maxZoom: 21,
       //         maxNativeZoom: 14,
       //         zIndex: 1,
       //     },
       // },
       // {
-      //     url: '//view.geoapi-airbusds.com/maps/wmts/eebb802c-9605-475f-8830-b7c00107cdc8/tile/1.0.0/61476829-d968-4588-821c-b0f9fae6ff8c/default/3857/{z}/{y}/{x}.png',
+      //     url: '//view.geoapi-airbusds.com/maps/wmts/eebb802c-9605-475f-8830-b7c00107cdc8/tile/
+      //     1.0.0/61476829-d968-4588-821c-b0f9fae6ff8c/default/3857/{z}/{y}/{x}.png',
       //     options: {
       //         label: 'AirBus WorldDEM',
       //         tag: 'AirBus WorldDEM',
       //         attribution:
-      //             'GeoAPI Airbus Service; Powered by: <a href="//oneatlas.airbus.com/">OneAtlas - AIRBUS</a>',
+      //             'GeoAPI Airbus Service; Powered by:
+      //         <a href="//oneatlas.airbus.com/">OneAtlas - AIRBUS</a>',
       //         maxZoom: 21,
       //         maxNativeZoom: 14,
       //         zIndex: 1,
@@ -583,16 +590,16 @@ export default {
 
     createPanes() {
       // TMS (base layer custom)
-      this.map.createPane("tms-support-layers-map");
-      this.map.getPane("tms-support-layers-map").style.zIndex = 401;
+      this.map.createPane('tms-support-layers-map');
+      this.map.getPane('tms-support-layers-map').style.zIndex = 401;
 
       // Support WMS
-      this.map.createPane("support-layers-map");
-      this.map.getPane("support-layers-map").style.zIndex = 420;
+      this.map.createPane('support-layers-map');
+      this.map.getPane('support-layers-map').style.zIndex = 420;
 
       // Monitoring WMS
-      this.map.createPane("monitoring-layers-map");
-      this.map.getPane("monitoring-layers-map").style.zIndex = 450;
+      this.map.createPane('monitoring-layers-map');
+      this.map.getPane('monitoring-layers-map').style.zIndex = 450;
     },
 
     createMap() {
@@ -632,12 +639,10 @@ export default {
 
     createMapLayers() {
       const tileLayers = [];
-      for (const layer of this.baseLayers) {
+      this.baseLayers.forEach((layer) => {
         const tileLayer = this.$L.tileLayer(layer.url, layer.options);
         tileLayers.push(tileLayer);
-      }
-      const bingLayer = this.createBingLayer();
-      tileLayers.push(bingLayer);
+      });
       this.map.addControl(
         this.$L.control.basemaps({
           basemaps: tileLayers,
@@ -646,22 +651,6 @@ export default {
           tileZ: 1,
         }),
       );
-    },
-
-    createBingLayer() {
-      // Bing layer has need to be generated before being inserted
-      // on tileLayers array, and is generated by the Plugin
-      // leaflet-bing-layer
-      const bingLayer = this.$L.tileLayer.bing(this.bingKey, {
-        imagerySet: 'AerialWithLabelsOnDemand',
-        maxZoom: 21,
-        maxNativeZoom: 16,
-      });
-      bingLayer.options.attribution = 'Map data &copy; Bing contributors';
-      bingLayer.options.iconURL = '/img/bing.png';
-      bingLayer.options.label = 'Bing';
-      bingLayer.options.tag = 'Bing';
-      return bingLayer;
     },
 
     createMiniMap() {
