@@ -17,10 +17,16 @@
         <span>Ir para o CMR</span>
       </v-tooltip>
     </span>
+
     <v-row class="mt-4">
       <v-col>
         <v-card class="pa-5 pb-2" style="max-width: 750px;">
-          <GraphicBar v-for="(category, index) in storeCategories" :key="index" :category="category" :maxValue="totalValue"/>
+          <GraphicBar
+            v-for="(category, index) in storeCategories"
+            :key="index"
+            :category="category"
+            :maxValue="totalValue"
+          />
         </v-card>
       </v-col>
       <v-col class="d-flex flex-column justify-space-between">
@@ -29,119 +35,121 @@
           <v-spacer></v-spacer>
           <v-icon>mdi-plus</v-icon>
         </v-btn>
+
         <CustomDialog
-  @save="saveTicket"
-  title="Nova Solicitação"
-  v-model="showModal"
-  max-width="600px"
-  :hasCta="true"
-  :saveBtn="saveTicket"
-  :saveActive="formValid"
->
-  <v-card-text>
-    <v-form ref="form" v-model="formValid">
-      <v-row dense>
-        <v-col cols="6">
-          <v-text-field
-            label="Solicitante"
-            v-model="user.username"
-            disabled
-          />
-        </v-col>
-        <v-col cols="6">
-          <v-text-field
-            label="E-mail"
-            v-model="user.email"
-            disabled
-          />
-        </v-col>
-      </v-row>
+          @save="saveTicket"
+          title="Nova Solicitação"
+          v-model="showModal"
+          max-width="600px"
+          :hasCta="true"
+          :saveBtn="saveTicket"
+          :saveActive="formValid"
+        >
+          <v-card-text>
+            <v-form ref="form" v-model="formValid">
+              <v-row dense>
+                <v-col cols="6">
+                  <v-text-field
+                    label="Solicitante"
+                    v-model="user.username"
+                    disabled
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    label="E-mail"
+                    v-model="user.email"
+                    disabled
+                  />
+                </v-col>
+              </v-row>
 
-      <v-row dense>
-        <v-col cols="6">
-          <v-select
-            :label="$t('requestType')"
-            v-model="newTicketData.solicitation_type"
-            :items="solicitationInputTypeList"
-            item-text="solicitation_name"
-            item-value="solicitation_type"
-            :rules="[v => !!v || $t('field-required')]"
-            outlined
-            required
-          />
-        </v-col>
-        <v-col cols="6">
-          <v-select
-            :label="$t('functionality')"
-            v-model="newTicketData.functionality"
-            :items="functionalityInputList"
-            item-text="functionality_name"
-            item-value="functionality_id"
-            :rules="[v => !!v || $t('field-required')]"
-            outlined
-            required
-          />
-        </v-col>
-      </v-row>
+              <v-row dense>
+                <v-col cols="6">
+                  <v-select
+                    :label="$t('requestType')"
+                    v-model="newTicketData.solicitation_type"
+                    :items="solicitationInputTypeList"
+                    item-text="solicitation_name"
+                    item-value="solicitation_type"
+                    :rules="[v => !!v || $t('field-required')]"
+                    outlined
+                    required
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-select
+                    :label="$t('functionality')"
+                    v-model="newTicketData.functionality"
+                    :items="functionalityInputList"
+                    item-text="functionality_name"
+                    item-value="functionality_id"
+                    :rules="[v => !!v || $t('field-required')]"
+                    outlined
+                    required
+                  />
+                </v-col>
+              </v-row>
 
-      <v-row dense>
-        <v-col cols="12">
-          <v-text-field
-            :label="$t('subject')"
-            v-model="newTicketData.subject"
-            :rules="[
-              v => !!v || $t('field-required'),
-              v => (v && v.length <= 100) || $t('max-characters', { max: 100 })
-            ]"
-            outlined
-            required
-          />
-        </v-col>
-      </v-row>
+              <v-row dense>
+                <v-col cols="12">
+                  <v-text-field
+                    :label="$t('subject')"
+                    v-model="newTicketData.subject"
+                    :rules="[
+                      v => !!v || $t('field-required'),
+                      v => (v && v.length <= 100) || $t('max-characters', { max: 100 })
+                    ]"
+                    outlined
+                    required
+                  />
+                </v-col>
+              </v-row>
 
-      <v-row dense>
-        <v-col cols="12">
-          <v-textarea
-            :label="$t('description')"
-            v-model="newTicketData.description"
-            :rules="[
-              v => !!v || $t('field-required'),
-              v => (v && v.length <= 500) || $t('max-characters', { max: 500 })
-            ]"
-            outlined
-            required
-          />
-        </v-col>
-      </v-row>
+              <v-row dense>
+                <v-col cols="12">
+                  <v-textarea
+                    :label="$t('description')"
+                    v-model="newTicketData.description"
+                    :rules="[
+                      v => !!v || $t('field-required'),
+                      v => (v && v.length <= 500) || $t('max-characters', { max: 500 })
+                    ]"
+                    outlined
+                    required
+                  />
+                </v-col>
+              </v-row>
 
-      <v-row dense v-if="userData?.components?.feedback_admin === true">
-        <v-col cols="12">
-          <v-checkbox
-            :label="$t('approveRequestCreation')"
-            v-model="checkbox"
-          />
-        </v-col>
-      </v-row>
+              <v-row dense v-if="userData?.components?.feedback_admin === true">
+                <v-col cols="12">
+                  <v-checkbox
+                    :label="$t('approveRequestCreation')"
+                    v-model="checkbox"
+                  />
+                </v-col>
+              </v-row>
 
-      <v-row dense>
-        <v-col cols="12">
-          <v-file-input
-            :label="$t('attachFile')"
-            v-model="newTicketData.attachments"
-            accept=".pdf,.png,.jpg,.jpeg"
-            :placeholder="$t('noFileSelected')"
-            prepend-icon="mdi-paperclip"
-            multiple
-            outlined
-          />
-          <p class="ml-4 caption grey--text">
-            Selecione seu arquivo (PDF, JPG, JPEG, PNG)
-          </p>
-        </v-col>
-      </v-row>
-    </v-form>
-  </v-card-text>
-</CustomDialog>
+              <v-row dense>
+                <v-col cols="12">
+                  <v-file-input
+                    :label="$t('attachFile')"
+                    v-model="newTicketData.attachments"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    :placeholder="$t('noFileSelected')"
+                    prepend-icon="mdi-paperclip"
+                    multiple
+                    outlined
+                  />
+                  <p class="ml-4 caption grey--text">
+                    Selecione seu arquivo (PDF, JPG, JPEG, PNG)
+                  </p>
+                </v-col>
+              </v-row>
+            </v-form>
+          </v-card-text>
+        </CustomDialog>
+
         <div class="d-flex justify-space-between align-center">
           <p class="text-uppercase"><strong>{{ $t('export') }}</strong> {{ $t('as') }}</p>
           <div class="d-flex">
@@ -170,6 +178,7 @@
         </span>
       </CustomDialog>
     </v-row>
+
     <div class="filter mt-4 mb-4">
       <StatusFilter
         :requestStatus="cardStatusList"
@@ -179,6 +188,7 @@
         @toggle-filters="toggleFilters"
       />
     </div>
+
     <div v-if="showFilters" class="search mt-4">
       <SearchFilters
         :filters="filters"
@@ -189,6 +199,7 @@
         :priorityList="priorityList"
       />
     </div>
+
     <div class="card--wrapper mt-6">
       <SuggestionsCard
         v-for="card in orderedCards"
