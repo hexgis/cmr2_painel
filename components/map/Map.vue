@@ -133,6 +133,8 @@
 
         <l-control-scale
           position="bottomleft"
+          :imperial="false"
+          :metric="true"
         />
 
         <l-control
