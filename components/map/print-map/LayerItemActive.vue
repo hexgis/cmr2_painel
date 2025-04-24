@@ -24,10 +24,10 @@
         :src="`data:image/png;base64,${vectorImage(layers)}`"
         class="layer-thumbnail"
         alt="CorLayer">
-      <img v-else
-        :src="layers.wms.geoserver.preview_url + layers.wms.geoserver_layer_name"
-        :class="prodes ? 'prodes-thumbnail' : 'layer-thumbnail'"
-        alt="Layer Image" />
+        <img v-else
+          :src="layerImageSrc"
+          :class="prodes ? 'prodes-thumbnail' : 'layer-thumbnail'"
+          alt="Layer Image" />
       <v-col>
         <p class="ml-1">{{ layers.name }}</p>
       </v-col>
@@ -36,6 +36,8 @@
 </template>
 
 <script>
+import ti from '@/assets/ti.png'; 
+
 export default {
   props: {
     layers: {
@@ -54,12 +56,18 @@ export default {
   },
  
   computed: {
+    layerImageSrc() {
+      if (this.layers.wms.geoserver_layer_name === 'lim_terra_indigena_a') {
+        return ti;
+      }
+      return this.layers.wms.geoserver.preview_url + this.layers.wms.geoserver_layer_name;
+    },
+
     isActiveLayer() {
       if (this.monitoring) {
         return true
       }
       return this.layers.visible || this.layers.active;
-      
     },
    
   },
