@@ -21,7 +21,7 @@
                     :options="optionsMap"
                 />
             </div>
-            
+
             <l-control v-if="valueNorthArrow" position="bottomleft">
                 <img
                     src="@/assets/north-arrow.png"
@@ -157,6 +157,7 @@ export default {
             return options
         },
         ...mapState('map', ['bounds', 'tmsToPrint']),
+        ...mapState('monitoring', ['heatMap', 'resultsHeatmap', 'resultsHeatmapOptions']),
         ...mapState('supportLayers', ['supportLayers']),
         ...mapState('land-use', ['showFeaturesLandUse', 'features']),
     },
@@ -218,6 +219,9 @@ export default {
                         }
                     }
                 })
+                if (this.heatMap && this.resultsHeatmap && this.resultsHeatmap.length) {
+                  this.map.addLayer(this.$L.heatLayer(this.resultsHeatmap, this.resultsHeatmapOptions))
+                }
             }
         },
 
@@ -326,5 +330,5 @@ export default {
     font-size: 12px
     box-shadow: 0 1px 5px rgba(0,0,0,0.4)
     color: #333
-  
+
 </style>
