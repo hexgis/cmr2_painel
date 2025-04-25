@@ -21,8 +21,7 @@
                     :options="optionsMap"
                 />
             </div>
-
-            <l-control-scale v-if="valueScale" position="bottomleft" />
+            
             <l-control v-if="valueNorthArrow" position="bottomleft">
                 <img
                     src="@/assets/north-arrow.png"
