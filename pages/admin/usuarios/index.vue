@@ -216,6 +216,15 @@
         </v-data-table>
       </v-card>
     </div>
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      :timeout="3000"
+      class="text-center"
+      content-class="justify-center"
+    >
+      {{ snackbar.message }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -274,6 +283,11 @@ export default {
   layout: 'admin',
   data() {
     return {
+      snackbar: {
+        show: false,
+        message: '',
+        color: 'success',
+      },
       search: '',
       showModalEdit: false,
       selectedInstitution: null,
@@ -318,11 +332,6 @@ export default {
     };
   },
 
-  async mounted() {
-    await this.fetchInstitutionList();
-    this.fetchUsers();
-  },
-
   computed: {
     totalValue() {
       return this.storeCategories.reduce(
@@ -334,7 +343,19 @@ export default {
     ...mapState('admin', ['institutionList']),
   },
 
+  async mounted() {
+    await this.fetchInstitutionList();
+    this.fetchUsers();
+  },
+
   methods: {
+
+    showSnackbar(message, color = 'success') {
+      this.snackbar.message = message;
+      this.snackbar.color = color;
+      this.snackbar.show = true;
+    },
+
     applyFilters(filters) {
       this.filters = filters;
       this.filterUsers();
@@ -404,9 +425,13 @@ export default {
           this.showModal = false;
           this.fetchUsers();
           this.resetForm();
+          this.showSnackbar('Usuário adicionado com sucesso!');
+        } else {
+          throw new Error('Resposta inesperada da API.');
         }
       } catch (error) {
         console.error('Erro ao criar usuário:', error);
+        this.showSnackbar('Erro ao criar usuário', 'error');
       }
     },
 
@@ -442,11 +467,13 @@ export default {
           this.showModalEdit = false;
           this.fetchUsers();
           this.resetForm();
+          this.showSnackbar('Usuário atualizado com sucesso!');
         } else {
           throw new Error('Resposta inesperada da API.');
         }
       } catch (error) {
         console.error('Erro ao editar usuário:', error);
+        this.showSnackbar('Erro ao atualizar usuário', 'error');
       }
     },
 
@@ -499,6 +526,11 @@ export default {
 </script>
 
 <style lang="sass" scoped>
+::v-deep .v-snack__content
+  justify-content: center
+  text-align: center
+  width: 100%
+
 .line-separator
     border: 1px solid #9A9997
     margin: 1rem 0
