@@ -2,28 +2,52 @@
   <div>
     <style>
       @media print {
-        @page {
-          size: landscape;
-          margin: 0;
-        }
+      @page {
+      size: landscape;
+      margin: 0;
+      }
       }
     </style>
-    <v-dialog v-model="showDialog" width="auto" @click:outside="$emit('close')">
+    <v-dialog
+      v-model="showDialog"
+      width="auto"
+      @click:outside="$emit('close')"
+    >
       <v-container style="background-color: white; max-width: 100%;">
         <div style="position: relative;">
-          <v-btn icon x-small class="no-print" @click="$emit('close')"
-            style="position: absolute; top: 10px; right: 10px; z-index: 1000">
+          <v-btn
+            icon
+            x-small
+            class="no-print"
+            style="position: absolute; top: 10px; right: 10px; z-index: 1000"
+            @click="$emit('close')"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </div>
-        <v-row id="map-for-print" no-gutters style="width: 1230px; height: 780px; max-height: 780px; overflow: hidden">
-          <v-col id="monitoring-data-details" cols="8" class="pr-0 mt-2" style="max-height: 780px;">
-            <div id="data-table" class="leaflet-bottom leaflet-right">
+        <v-row
+          id="map-for-print"
+          no-gutters
+          style="width: 1230px; height: 780px; max-height: 780px; overflow: hidden"
+        >
+          <v-col
+            id="monitoring-data-details"
+            cols="8"
+            class="pr-0 mt-2"
+            style="max-height: 780px;"
+          >
+            <div
+              id="data-table"
+              class="leaflet-bottom leaflet-right"
+            >
               <!-- Primeira condição -->
               <template v-if="teste >= 0 && teste <= 7">
                 <template v-if="showFeaturesMonitoring && !hasLongMonitoringInfo">
-                  <div v-for="(item, i) in analyticsMonitoring" :key="'monitoring-' + item.no_ti + i"
-                    class="text-center bordered-red">
+                  <div
+                    v-for="(item, i) in analyticsMonitoring"
+                    :key="'monitoring-' + item.no_ti + i"
+                    class="text-center bordered-red"
+                  >
                     <p>
                       <strong>TI {{ item.no_ti }}</strong>
                     </p>
@@ -45,8 +69,11 @@
                   </div>
                 </template>
                 <template v-if="showFeaturesLandUse && tableLandUse.length <= 7">
-                  <div v-for="(item, index) in tableLandUse" :key="'landuse-' + index"
-                    class="text-center bordered-blue">
+                  <div
+                    v-for="(item, index) in tableLandUse"
+                    :key="'landuse-' + index"
+                    class="text-center bordered-blue"
+                  >
                     <p>
                       <strong>TI {{ item.no_ti }}</strong>
                     </p>
@@ -87,30 +114,54 @@
                 </template>
               </template>
             </div>
-
-            <v-card v-if="showWarningMessage" class="warning-message" elevated>
+            <v-card
+              v-if="showWarningMessage"
+              class="warning-message"
+              elevated
+            >
               <v-card-text>
                 <p class="text-subtitle-1">
                   {{ $t('warning-message') }}
                 </p>
               </v-card-text>
               <v-card-actions>
-                <v-btn color="primary" text @click="showWarningMessage = false">
+                <v-btn
+                  color="primary"
+                  text
+                  @click="showWarningMessage = false"
+                >
                   {{ $t('agree') }}
                 </v-btn>
               </v-card-actions>
             </v-card>
-            <MapForPrint :leaf-size="leafSize" :main-map="mainMap" :selected-base-map="selectedBaseMap"
-              class="map-wrapper" @updateBounds="updateBounds" @getCenter="getCenter" />
+            <MapForPrint
+              :leaf-size="leafSize"
+              :main-map="mainMap"
+              :selected-base-map="selectedBaseMap"
+              class="map-wrapper"
+              @updateBounds="updateBounds"
+              @getCenter="getCenter"
+            />
           </v-col>
-          <v-col cols="4" class="pl-1 mt-2">
+          <v-col
+            cols="4"
+            class="pl-1 mt-2"
+          >
             <div class="border_container">
               <div class="d-flex justify-space-between pl-8 pr-8 ga-1 align-center ma-4">
                 <div style="width: 20%">
-                  <v-img contain :src="logo_funai" class="logo" />
+                  <v-img
+                    contain
+                    :src="logo_funai"
+                    class="logo"
+                  />
                 </div>
                 <div style="width: 60%">
-                  <v-img contain :src="logo_cmr" class="logo" />
+                  <v-img
+                    contain
+                    :src="logo_cmr"
+                    class="logo"
+                  />
                 </div>
               </div>
               <div class="font-title pb-2">
@@ -122,33 +173,46 @@
                 </p>
               </div>
               <div class="d-flex justify-center hight_container_mini_map">
-                <MiniMap v-if="currentBouldMap" :current-bould-map="currentBouldMap" :map-center="mapCenter" />
+                <MiniMap
+                  v-if="currentBouldMap"
+                  :current-bould-map="currentBouldMap"
+                  :map-center="mapCenter"
+                />
               </div>
               <div class="legend-info-map">
                 <div class="legend-info-map legend-info-map-details">
                   <div>
-                    <p v-if="hasLegend" class="d-block ma-1">
+                    <p
+                      v-if="hasLegend"
+                      class="d-block ma-1"
+                    >
                       <strong style="font-size: small">{{ $t('legend') }}</strong>
                     </p>
-                    <div class="ma-1 flex-wrap" style="
+                    <div
+                      class="ma-1 flex-wrap"
+                      style="
                         width: 100%;
                         max-height: 100%;
                         overflow: hidden;
-                      ">
-                      <div style="
+                      "
+                    >
+                      <div
+                        style="
                           display: flex;
                           justify-content: flex-start;
                           align-items: flex-start;
                           gap: 5px;
-                        " />
+                        "
+                      />
                       <LayerList :layers="supportLayersCategoryFire" />
 
-                      <div style="
+                      <div
+                        style="
                           display: flex;
                           justify-content: flex-start;
                           align-items: flex-start;
-                          gap: 5px;
-                        ">
+                          gap: 5px;"
+                      >
                         <div v-if="showFeaturesMonitoring">
                           <p>
                             <strong> Monitoramento Diário </strong>
@@ -156,18 +220,27 @@
                               {{ totalMonitoring }}
                             </v-chip>
                           </p>
-                          <hr style="
-                              border: 1px solid red;
-                              margin: 0;
-                            ">
-                          <LayerList v-if="showFeaturesMonitoring" :layers="activeMonitoringLabel" :monitoring="true" />
+                          <hr
+                            style="border: 1px solid red; margin: 0;"
+                          >
+                          <LayerList
+                            v-if="showFeaturesMonitoring"
+                            :layers="activeMonitoringLabel"
+                            :monitoring="true"
+                          />
                         </div>
-                        <div v-if="showFeaturesUrgentAlerts && (!showFeaturesLandUse || !showFeaturesSupportLayers)">
+                        <div
+                          v-if="showFeaturesUrgentAlerts &&
+                            (!showFeaturesLandUse || !showFeaturesSupportLayers)"
+                        >
                           <p>
                             <strong>Alerta Urgente</strong>
                           </p>
                           <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
-                          <CustomizedLegend v-if="showFeaturesUrgentAlerts" :items="urgentAlertItems" />
+                          <CustomizedLegend
+                            v-if="showFeaturesUrgentAlerts"
+                            :items="urgentAlertItems"
+                          />
                         </div>
                         <div v-if="showFeaturesLandUse">
                           <p>
@@ -177,43 +250,72 @@
                             </v-chip>
                           </p>
                           <hr style="border: 1px solid blue;margin: 0;">
-                          <CustomizedLegend v-if="showFeaturesLandUse" :items="landUseCategories" />
+                          <CustomizedLegend
+                            v-if="showFeaturesLandUse"
+                            :items="landUseCategories"
+                          />
                         </div>
-                        <div v-if="
-                          showFeaturesSupportLayers
-                          && (Object.values(supportLayers).filter(l => l.visible).length)
-                          && (Object.values(supportLayers).filter(l => l.visible).length <= 7
-                            && Object.values(supportLayerUser).filter(l => l.visible).length <= 7)
-                        ">
+                        <div
+                          v-if="showFeaturesSupportLayers
+                            && (Object.values(supportLayers).filter(l => l.visible).length)
+                            && (Object.values(supportLayers).filter(l => l.visible).length <= 7)
+                            && (Object.values(supportLayerUser).filter(l => l.visible).length <= 7)"
+                        >
                           <p>
                             <strong>Sobreposição de camadas</strong>
                           </p>
                           <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
-                          <LayerList :layers="supportLayerUser" :is-user-layer="true" />
-                          <LayerList v-if="showFeaturesSupportLayers" :layers="supportLayers" class="mt-1" />
+                          <LayerList
+                            :layers="supportLayerUser"
+                            :is-user-layer="true"
+                          />
+                          <LayerList
+                            v-if="showFeaturesSupportLayers"
+                            :layers="supportLayers"
+                            class="mt-1"
+                          />
                         </div>
                       </div>
-                      <LayerList :layers="supportLayersCategoryProdes" :prodes="true" />
-
+                      <LayerList
+                        :layers="supportLayersCategoryProdes"
+                        :prodes="true"
+                      />
                       <div
-                        v-if="showFeaturesUrgentAlerts && showFeaturesMonitoring && showFeaturesLandUse && showFeaturesSupportLayers">
+                        v-if="showFeaturesUrgentAlerts && showFeaturesMonitoring &&
+                          showFeaturesLandUse && showFeaturesSupportLayers"
+                      >
                         <p>
                           <strong>Alerta Urgente</strong>
                         </p>
                         <hr style="border: 1px solid blue;margin: 0;">
-                        <CustomizedLegend v-if="showFeaturesUrgentAlerts" :items="urgentAlertItems" />
+                        <CustomizedLegend
+                          v-if="showFeaturesUrgentAlerts"
+                          :items="urgentAlertItems"
+                        />
                       </div>
 
-                      <CustomizedLegend v-if="showFeaturesDeter" :items="deterItems" />
+                      <CustomizedLegend
+                        v-if="showFeaturesDeter"
+                        :items="deterItems"
+                      />
                     </div>
                   </div>
                   <div>
                     <v-divider />
-                    <p v-if="hasCartographicDatasets" class="d-block ma-1">
+                    <p
+                      v-if="hasCartographicDatasets"
+                      class="d-block ma-1"
+                    >
                       Bases Cartográficas:
                     </p>
-                    <div v-if="activeRasterLayers.length" class="ml-1">
-                      <span v-for="item in activeRasterLayers" :key="item.id">
+                    <div
+                      v-if="activeRasterLayers.length"
+                      class="ml-1"
+                    >
+                      <span
+                        v-for="item in activeRasterLayers"
+                        :key="item.id"
+                      >
                         <p v-if="item.wms">
                           {{ item.name }}, fonte:
                           {{ item.wms?.geoserver?.name }}.
@@ -230,9 +332,20 @@
                         </p>
                       </span>
                     </div>
-                    <div v-for="layerCategory in layerCategories" :key="layerCategory.name">
-                      <div v-for="layer in layerCategory.layers" :key="layer.id">
-                        <v-row v-if="layer.visible" no-gutters align="center" class="image-container">
+                    <div
+                      v-for="layerCategory in layerCategories"
+                      :key="layerCategory.name"
+                    >
+                      <div
+                        v-for="layer in layerCategory.layers"
+                        :key="layer.id"
+                      >
+                        <v-row
+                          v-if="layer.visible"
+                          no-gutters
+                          align="center"
+                          class="image-container"
+                        >
                           <v-col>
                             <p class="ml-1">
                               <strong>{{ layer.name || '-' }}.</strong>
@@ -255,7 +368,10 @@
                   <div v-if="showFeaturesLandUse && uniqueYears.length > 0">
                     <p class="ml-1">
                       {{ $t('land-use-print-label') }}
-                      <span v-for="(year, index) in uniqueYears" :key="'year-' + index">
+                      <span
+                        v-for="(year, index) in uniqueYears"
+                        :key="'year-' + index"
+                      >
                         {{ year }}<span v-if="index < uniqueYears.length - 1">,
                         </span>
                       </span>
@@ -295,18 +411,30 @@
         </v-row>
         <div class="no-print">
           <div class="d-flex flex-row align-md-center mr-6 mt-2">
-            <v-btn class="ml-4 mb-2" @click="$emit('back')">
+            <v-btn
+              class="ml-4 mb-2"
+              @click="$emit('back')"
+            >
               {{ $t('input-button-back-second-step') }}
             </v-btn>
             <v-spacer />
-            <v-btn color="primary" class="mr-2" :loading="loadingPrintImage"
-              :disabled="showWarningMessage || loadingPrintImage" @click="saveImage">
+            <v-btn
+              color="primary"
+              class="mr-2"
+              :loading="loadingPrintImage"
+              :disabled="showWarningMessage || loadingPrintImage"
+              @click="saveImage"
+            >
               <v-icon dark>
                 mdi-image-outline
               </v-icon>
               {{ $t('download-image') }}
             </v-btn>
-            <v-btn color="primary" :disabled="showWarningMessage || loadingPrintImage" @click="print">
+            <v-btn
+              color="primary"
+              :disabled="showWarningMessage || loadingPrintImage"
+              @click="print"
+            >
               <v-icon dark>
                 mdi-file-export-outline
               </v-icon>
@@ -396,13 +524,9 @@
 import { mapState, mapActions } from 'vuex';
 import domtoimage from 'dom-to-image';
 import MapForPrint from './MapForPrint.vue';
-import MiniMap from '@/components/map/print-map/MiniMap.vue';
+import MiniMap from './MiniMap.vue';
 import LayerList from './LayerListActive.vue';
 import CustomizedLegend from './CustomizedLegendActive.vue';
-
-if (typeof window !== 'undefined') {
-  require('leaflet-bing-layer');
-}
 
 export default {
   name: 'PrintTemplateMapLandscape',
@@ -531,41 +655,6 @@ export default {
     ],
   }),
 
-  watch: {
-    analyticsMonitoring(newVal) {
-      // Verificar se newVal é vazio, nulo ou 0
-      if (!newVal || newVal.length === 0) {
-        // this.showWarningMessage = false;
-        this.teste = 0; // Garantir que o valor de teste seja 0
-        return;
-      }
-      this.totalMonitoring = newVal.length;
-      this.totalLandUse = this.tableLandUse.length;
-      // Verificar se a informação de monitoramento é longa
-      this.hasLongMonitoringInfo = newVal.length > 7;
-      if (this.hasLongMonitoringInfo) {
-        this.showWarningMessage = true;
-        return;
-      }
-      // Calcular total, somando apenas quando a soma estiver entre 1 e 7
-      const total = newVal.length
-        + (this.tableLandUse.length <= 7 ? this.tableLandUse.length : 0);
-      if (total > 7) {
-        this.showWarningMessage = true;
-        this.teste = total; // Garantir que o total correto seja atribuído a 'teste'
-        return;
-      }
-      // this.showWarningMessage = false;
-      // Atualiza a variável 'teste' com a soma correta
-      this.teste = total;
-    },
-
-    tableLandUse(newValue) {
-      // Atualiza showWarningMessage quando o tamanho de tableLandUse mudar
-      // this.showWarningMessage = newValue.length > 7;
-    },
-  },
-
   computed: {
     uniqueYears() {
       // Cria um Set para garantir que os anos sejam únicos
@@ -650,6 +739,41 @@ export default {
     ]),
   },
 
+  watch: {
+    analyticsMonitoring(newVal) {
+      // Verificar se newVal é vazio, nulo ou 0
+      if (!newVal || newVal.length === 0) {
+        // this.showWarningMessage = false;
+        this.teste = 0; // Garantir que o valor de teste seja 0
+        return;
+      }
+      this.totalMonitoring = newVal.length;
+      this.totalLandUse = this.tableLandUse.length;
+      // Verificar se a informação de monitoramento é longa
+      this.hasLongMonitoringInfo = newVal.length > 7;
+      if (this.hasLongMonitoringInfo) {
+        this.showWarningMessage = true;
+        return;
+      }
+      // Calcular total, somando apenas quando a soma estiver entre 1 e 7
+      const total = newVal.length
+        + (this.tableLandUse.length <= 7 ? this.tableLandUse.length : 0);
+      if (total > 7) {
+        this.showWarningMessage = true;
+        this.teste = total; // Garantir que o total correto seja atribuído a 'teste'
+        return;
+      }
+      // this.showWarningMessage = false;
+      // Atualiza a variável 'teste' com a soma correta
+      this.teste = total;
+    },
+
+    tableLandUse() {
+      // Atualiza showWarningMessage quando o tamanho de tableLandUse mudar
+      // this.showWarningMessage = this.tableLandUse.length > 7;
+    },
+  },
+
   async mounted() {
     if (this.showFeaturesMonitoring) {
       this.getDataAnalyticsMonitoringByFunai();
@@ -657,51 +781,70 @@ export default {
     }
     if (this.selectedStages) {
       this.selectedStages.forEach((item) => {
-        item === 'CR'
-          ? this.activeMonitoringLabel.push({
+        if (item === 'CR') {
+          this.activeMonitoringLabel.push({
             id: 'cr',
             color: '#ff3333',
             name: this.$t('clear-cut'),
-          })
-          : item === 'DG'
-            ? this.activeMonitoringLabel.push({
-              id: 'dg',
-              color: '#ff8000',
-              name: this.$t('degradation'),
-            })
-            : item === 'FF'
-              ? this.activeMonitoringLabel.push({
-                id: 'ff',
-                color: '#b35900',
-                name: this.$t('forest-fire'),
-              })
-              : item === 'DR'
-                ? this.activeMonitoringLabel.push({
-                  id: 'dr',
-                  color: '#990099',
-                  name: this.$t('regeneration-deforestation'),
-                })
-                : '';
+          });
+        } else if (item === 'DG') {
+          this.activeMonitoringLabel.push({
+            id: 'dg',
+            color: '#ff8000',
+            name: this.$t('degradation'),
+          });
+        } else if (item === 'FF') {
+          this.activeMonitoringLabel.push({
+            id: 'ff',
+            color: '#b35900',
+            name: this.$t('forest-fire'),
+          });
+        } else if (item === 'DR') {
+          this.activeMonitoringLabel.push({
+            id: 'dr',
+            color: '#990099',
+            name: this.$t('regeneration-deforestation'),
+          });
+        }
       });
 
       if (this.showFeaturesLandUse) await this.getDataTableLandUse();
 
       // if (this.filters.ti && this.filters.ti.length > 7) this.showWarningMessage = true;
 
-      if (Object.values(this.supportLayers).filter((l) => l.visible).length > 7) this.showWarningMessage = true;
+      const visibleLayersCount = Object.values(this.supportLayers)
+        .filter((l) => l.visible).length;
+      if (visibleLayersCount > 7) {
+        this.showWarningMessage = true;
+      }
 
-      if (Object.values(this.supportLayerUser).filter((l) => l.visible).length > 7) this.showWarningMessage = true;
+      const visibleUserLayers = Object.values(this.supportLayerUser)
+        .filter((l) => l.visible).length;
+      if (visibleUserLayers > 7) {
+        this.showWarningMessage = true;
+      }
     }
   },
 
   methods: {
     formatNumber(value) {
-      const number = parseFloat(value);
-      if (!isNaN(number)) {
-        return number.toLocaleString('pt-BR', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        });
+      let number;
+      if (typeof value === 'string') {
+        // Remove os pontos de milhar e substitui vírgula decimal por ponto
+        const cleanedValue = value.replace(/\./g, '').replace(',', '.');
+        number = parseFloat(cleanedValue);
+      } else {
+        number = parseFloat(value);
+      }
+
+      if (!Number.isNaN(number)) {
+        const rounded = number.toFixed(3);
+        const [intPart, decimalPart] = rounded.split('.');
+
+        // Formata com ponto para milhar e vírgula para decimal
+        return decimalPart !== '00'
+          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
+          : String(parseInt(number, 10));
       }
       return '-';
     },
@@ -722,7 +865,7 @@ export default {
       const mm = date.getMonth() + 1;
       const yyyy = date.getFullYear();
       return `${dd < 10 ? `0${dd}` : dd}/${mm < 10 ? `0${mm}` : mm
-        }/${yyyy}`;
+      }/${yyyy}`;
     },
 
     updateBounds(bounds) {
@@ -766,9 +909,9 @@ export default {
       this.loadingPrintImage = true;
       const node = document.getElementById('printMap');
       const mapBounds = document.getElementsByClassName('leaflet-control-mapbounds')[0];
-      const mapControlZoom = document.getElementsByClassName('leaflet-control-zoom')[0];      
+      const mapControlZoom = document.getElementsByClassName('leaflet-control-zoom')[0];
       const infoControlRight = document.getElementsByClassName('leaflet-control-attribution')[1];
-      
+
       try {
         const nameImageDownload = this.titleMap;
 
@@ -788,8 +931,8 @@ export default {
           height: 762,
           style: {
             transform: 'scale(1)',
-            transformOrigin: 'top left'
-          }
+            transformOrigin: 'top left',
+          },
         };
 
         infoControlRight.setAttribute('style', 'width: 304px');
@@ -840,8 +983,6 @@ export default {
   max-height: 760px;
   gap: 0.5rem;
 }
-
-
 
 .bordered-red {
   border: 2px solid red;
