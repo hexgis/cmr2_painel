@@ -31,6 +31,7 @@
         <nuxt />
       </div>
     </v-main>
+    <BaseAlert />
   </v-app>
 </template>
 
@@ -59,8 +60,13 @@
 
 <script>
 import { mapState } from 'vuex';
+import BaseAlert from '@/components/base/BaseAlert';
 export default {
   name: 'App',
+  components: {
+    BaseAlert,
+  },
+  
   data() {
     return {
       adminLabels: [
