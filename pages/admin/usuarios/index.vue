@@ -216,15 +216,6 @@
         </v-data-table>
       </v-card>
     </div>
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-      class="text-center"
-      content-class="justify-center"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
   </div>
 </template>
 
@@ -243,7 +234,12 @@
         "institution": "institution",
         "requestType": "Request Type",
         "field-required": "Field Required",
-        "max-characters": "Maximum of {max} characters allowed."
+        "max-characters": "Maximum of {max} characters allowed.",
+        "add-user": "User added successfully!",
+        "erro-add-user": "Error adding user",
+        "changed-user": "User changed successfully!",
+        "erro-create-user": "Error creating user"
+
         },
         "pt-br": {
         "manageUsers": "Gerenciar Usuários",
@@ -258,7 +254,11 @@
         "institution": "Instituição",
         "requestType": "Tipo de Solicitação",
         "field-required": "Campo obrigatório",
-        "max-characters": "Máximo de {max} caracteres permitido."
+        "max-characters": "Máximo de {max} caracteres permitido.",
+        "add-user": "Usuário adicionado com sucesso!",
+        "erro-add-user": "Erro ao adicionar usuário",
+        "changed-user": "Usuário alterado com sucesso!",
+        "erro-create-user": "Erro ao criar usuário"
         }
     }
 </i18n>
@@ -283,11 +283,6 @@ export default {
   layout: 'admin',
   data() {
     return {
-      snackbar: {
-        show: false,
-        message: '',
-        color: 'success',
-      },
       search: '',
       showModalEdit: false,
       selectedInstitution: null,
@@ -349,12 +344,6 @@ export default {
   },
 
   methods: {
-
-    showSnackbar(message, color = 'success') {
-      this.snackbar.message = message;
-      this.snackbar.color = color;
-      this.snackbar.show = true;
-    },
 
     applyFilters(filters) {
       this.filters = filters;
@@ -425,13 +414,19 @@ export default {
           this.showModal = false;
           this.fetchUsers();
           this.resetForm();
-          this.showSnackbar('Usuário adicionado com sucesso!');
+          this.$store.commit('alert/addAlert', {
+            timeout: 3000,
+            message: this.$t('add-user'),
+          });
         } else {
           throw new Error('Resposta inesperada da API.');
         }
       } catch (error) {
         console.error('Erro ao criar usuário:', error);
-        this.showSnackbar('Erro ao criar usuário', 'error');
+        this.$store.commit('alert/addAlert', {
+          timeout: 3000,
+          message: this.$t('erro-add-user'),
+        });
       }
     },
 
@@ -467,13 +462,19 @@ export default {
           this.showModalEdit = false;
           this.fetchUsers();
           this.resetForm();
-          this.showSnackbar('Usuário atualizado com sucesso!');
+          this.$store.commit('alert/addAlert', {
+            timeout: 3000,
+            message: this.$t('changed-user'),
+          });
         } else {
           throw new Error('Resposta inesperada da API.');
         }
       } catch (error) {
-        console.error('Erro ao editar usuário:', error);
-        this.showSnackbar('Erro ao atualizar usuário', 'error');
+        console.error('Erro ao criar usuário:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 3000,
+          message: this.$t('erro-create-user'),
+        });
       }
     },
 
@@ -526,10 +527,6 @@ export default {
 </script>
 
 <style lang="sass" scoped>
-::v-deep .v-snack__content
-  justify-content: center
-  text-align: center
-  width: 100%
 
 .line-separator
     border: 1px solid #9A9997
