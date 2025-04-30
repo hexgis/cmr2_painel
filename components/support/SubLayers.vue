@@ -1,46 +1,46 @@
 <template>
-    <div v-if="loading">
-        <v-skeleton-loader
-            class="pa-2 mt-0 pt-0"
-            type="text"
-            v-for="i in 3"
-            :key="i"
-        />
-    </div>
-    <div v-else class="pb-6">
-        <div
-            v-for="category of layer.sublayers"
-            :key="category.name"
-            class="mt-n5"
-        >
-            <v-row class="mb-n12 mr-2 ml-1">
-                <v-col class="d-flex align-center justify-end" cols="3">
-                    <v-card outlined color="transparent" class="my-card d-flex">
-                        <v-img
-                            :src="category.image"
-                            style="max-width: 100%; max-height: 100%"
-                            contain
-                        />
-                    </v-card>
-                </v-col>
+  <div v-if="loading">
+    <v-skeleton-loader
+      v-for="i in 3"
+      :key="i"
+      class="pa-2 mt-0 pt-0"
+      type="text"
+    />
+  </div>
+  <div v-else class="pb-6">
+    <div
+      v-for="category of layer.sublayers"
+      :key="category.name"
+      class="mt-n5"
+    >
+      <v-row class="mb-n12 mr-2 ml-1">
+        <v-col class="d-flex align-center justify-end" cols="3">
+          <v-card outlined color="transparent" class="my-card d-flex">
+            <v-img
+              :src="category.image"
+              style="max-width: 100%; max-height: 100%"
+              contain
+            />
+          </v-card>
+        </v-col>
 
-                <v-col
-                    class="d-flex align-center justify-start sub-layer-title"
-                    cols="6"
-                >
-                    <v-card outlined color="transparent">
-                        {{ category.label }}
-                    </v-card>
-                </v-col>
-                <v-col cols="3" class="d-flex justify-start">
-                    <v-switch
-                        :input-value="category.visible"
-                        @change="setCql(category.name)"
-                    />
-                </v-col>
-            </v-row>
-        </div>
+        <v-col
+          class="d-flex align-center justify-start sub-layer-title"
+          cols="6"
+        >
+          <v-card outlined color="transparent">
+            {{ category.label }}
+          </v-card>
+        </v-col>
+        <v-col cols="3" class="d-flex justify-start">
+          <v-switch
+            :input-value="category.visible"
+            @change="setCql(category.name)"
+          />
+        </v-col>
+      </v-row>
     </div>
+  </div>
 </template>
 
 <i18n>
@@ -58,30 +58,30 @@
 import { mapMutations } from 'vuex'
 
 export default {
-    props: {
-        layer: {
-            type: Object,
-            default: null,
-        },
+  props: {
+    layer: {
+      type: Object,
+      default: null,
     },
+  },
 
-    data: () => ({
-        value: true,
-        img: null,
-        loading: false,
-    }),
+  data: () => ({
+    value: true,
+    img: null,
+    loading: false,
+  }),
 
-    mounted() {
-        this.getCategory()
+  mounted() {
+    this.getCategory()
+  },
+
+  methods: {
+    setCql(category) {
+      this.setCqlLayer({
+        id: this.layer.id,
+        category,
+      });
     },
-
-    methods: {
-        setCql(category) {
-            this.setCqlLayer({
-                id: this.layer.id,
-                category,
-            })
-        },
 
         async getCategory() {
             try {
@@ -181,11 +181,14 @@ export default {
             return image ? image[1] : null
         },
 
-        capitalizeFirstLetter(str) {
-            return str.charAt(0).toUpperCase() + str.substring(1)
-        },
-        ...mapMutations('supportLayers', ['setCqlLayer', 'setSublayers']),
+    capitalizeFirstLetter(str) {
+      if (str.toLowerCase() === 'encaminhada ri') {
+        return 'Encaminhada RI';
+      }
+      return str.charAt(0).toUpperCase() + str.substring(1);
     },
+    ...mapMutations('supportLayers', ['setCqlLayer', 'setSublayers']),
+  },
 }
 </script>
 
