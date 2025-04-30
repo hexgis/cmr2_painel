@@ -25,7 +25,7 @@
             {{ tab.icon }}
           </v-icon>
         </template>
-        <span>{{ tab.name }} fasdfa</span>
+        <span>{{ tab.name }}</span>
       </v-tooltip>
     </v-tab>
 

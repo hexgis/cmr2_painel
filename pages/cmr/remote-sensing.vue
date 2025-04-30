@@ -137,34 +137,25 @@
     <div class="list-container">
       <v-tabs-items v-model="tab">
         <v-tab-item value="tab-1">
+          <ProdesFilters />
           <v-list
-            v-if="!$fetchState.pending"
-            expand
+            v-if="orderedSupportLayersGroups.length"
+            class="pt-0"
           >
             <template v-for="group in orderedSupportLayersGroups">
-              <SupportLayersGroupProdes
+              <SupportLayersGroupBase
                 :key="group.id"
                 :group="group"
+                :selected-layers="showFeatures"
               />
             </template>
           </v-list>
-          <div v-if="$fetchState.pending">
-            <template v-for="i in 6">
-              <v-skeleton-loader
-                :key="i"
-                type="text"
-                class="mx-4 my-5"
-              />
-            </template>
-          </div>
         </v-tab-item>
         <v-tab-item value="tab-2">
-          <DeterFilter />
+          <DeterFilters />
         </v-tab-item>
-        <v-tab-item
-          value="tab-3"
-        >
-          TESTE 3
+        <v-tab-item value="tab-3">
+          <RiscoFocoFilters />
         </v-tab-item>
       </v-tabs-items>
     </div>
@@ -224,13 +215,14 @@
 import { mapState } from 'vuex';
 import _ from 'lodash';
 
-import SupportLayersGroupProdes from '../../components/support/SupportLayersGroupProdes.vue';
-import DeterFilter from '../../components/deter/DeterFilter.vue';
+import DeterFilters from '../../components/remote-sensing/deter/DeterFilters.vue';
+import ProdesFilters from '../../components/remote-sensing/prodes/ProdesFilters.vue';
+import RiscoFocoFilters from '../../components/remote-sensing/risco-foco/RiscoFocoFilters.vue';
 
 export default {
   name: 'SupportProdes',
 
-  components: { SupportLayersGroupProdes, DeterFilter },
+  components: { DeterFilters, ProdesFilters, RiscoFocoFilters},
 
   transition: 'scroll-y-transition',
 
