@@ -93,6 +93,8 @@ export default {
           return '#12A844';
         case 'Em Teste':
           return '#FFCE03';
+        case 'Desenvolvido':
+          return '#12A844';
         case 'Aguardando Gestor':
           return '#FFCE03';
         case 'Inviável':
