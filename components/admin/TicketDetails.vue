@@ -415,7 +415,7 @@ export default {
         substatusLabelOptions() {
             const substatusMapping = {
                 EM_ANDAMENTO: ['Aguardando Gestor', 'Em Desenvolvimento'],
-                CONCLUIDO: ['Concluído', 'Em Teste'],
+                CONCLUIDO: ['Concluído', 'Em Teste', 'Desenvolvido'],
                 RECUSADO: ['Inviável', 'Indeferido'],
                 DEFERIDO: ['Deferido'],
             }
