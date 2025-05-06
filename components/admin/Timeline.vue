@@ -91,10 +91,10 @@ export default {
           return '#F58A1F';
         case 'Concluído':
           return '#12A844';
-        case 'Em Teste':
-          return '#FFCE03';
         case 'Desenvolvido':
           return '#12A844';
+        case 'Em Teste':
+          return '#FFCE03';
         case 'Aguardando Gestor':
           return '#FFCE03';
         case 'Inviável':
