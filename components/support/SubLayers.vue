@@ -28,9 +28,23 @@
           class="d-flex align-center justify-start sub-layer-title"
           cols="6"
         >
-          <v-card outlined color="transparent">
-            {{ category.label }}
-          </v-card>
+         <v-col cols="12">
+          <v-row class="d-flex align-center justify-space-between">
+            <v-col class="pa-0" cols="10">
+              <span>{{ category.label }}</span>
+            </v-col>
+            <v-col class="d-flex justify-end pa-0" cols="2">
+              <v-tooltip top>
+                <template #activator="{ on, attrs }">
+                  <v-icon v-bind="attrs" v-on="on">
+                    mdi-information
+                  </v-icon>
+                </template>
+                <span>{{ category.tooltip }}</span>
+              </v-tooltip>
+            </v-col>
+          </v-row>
+        </v-col>
         </v-col>
         <v-col cols="3" class="d-flex justify-start">
           <v-switch
@@ -69,6 +83,15 @@ export default {
     value: true,
     img: null,
     loading: false,
+    descriptions: {
+      'declarada': 'Área já declarada como protegida oficialmente.',
+      'restricao_uso': 'Área com restrição de uso por proteção ambiental.',
+      'regularizada': 'Área regularizada',
+      'encaminhada_ri': 'Processo em análise no Registro de Imóveis.',
+      'homologada': 'Área homologada',
+      'delimitada': 'Área delimitada',
+    }    
+    
   }),
 
   mounted() {
@@ -116,21 +139,26 @@ export default {
                                     cql,
                                 }
                             }
-                            if (fill.filter && fill.title) {
-                                const cql = fill.filter.slice(1, -1)
-                                const geomType = Object.keys(fill.symbolizers[0])[0]
-                                const image = this.layer.wms.wms_layer_type === 'Point-Icon' && geomType !== 'Polygon'
-                                  ? this.getImg(fill.symbolizers)
-                                  : this.createImg(fill.symbolizers)
-                                const label = this.capitalizeFirstLetter(fill.title.toLowerCase())
-                                sublayers[`field${index}`] = {
-                                    name: fill.title,
-                                    label,
-                                    visible: true,
-                                    image,
-                                    cql,
-                                }
-                            }
+                           if (fill.filter && (fill.name || fill.title)) {
+                            const cql = fill.filter.slice(1, -1);
+                            const geomType = Object.keys(fill.symbolizers[0])[0];
+                            const image = this.layer.wms.wms_layer_type === 'Point-Icon' && geomType !== 'Polygon'
+                              ? this.getImg(fill.symbolizers)
+                              : this.createImg(fill.symbolizers);
+                            const rawName = fill.name || fill.title || '';
+                            const label = this.capitalizeFirstLetter(rawName.toLowerCase());
+                            const key = rawName.toLowerCase().replace(/\s/g, '_');
+                            const tooltipText = this.descriptions[key] || 'Sem descrição disponível.';
+
+                            sublayers[`field${index}`] = {
+                              name: rawName,
+                              label,
+                              visible: true,
+                              image,
+                              cql,
+                              tooltip: tooltipText,
+                            };
+                          }
                         })
                         this.setSublayers({
                             id: this.layer.id,
