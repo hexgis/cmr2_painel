@@ -206,6 +206,8 @@
 
         <MonitoringLayers :map="map" />
 
+        <ProdesLayers :map="map" />
+
         <DeterLayers :map="map" />
 
         <!-- <AlgorithmLayers /> -->
@@ -292,6 +294,7 @@ import DrawingPanel from '@/components/map/drawing-tool/DrawingPanel.vue';
 import BaseTiMetadata from '../base/BaseTiMetadata.vue';
 import Highlighter from '@/components/map/Highlighter.vue';
 import MapIndigenousLand from '@/components/map/MapIndigenousLand';
+import ProdesLayers from '@/components/remote-sensing/prodes/ProdesLayers.vue'
 
 if (typeof window !== 'undefined') {
   require('leaflet-basemaps');
@@ -331,6 +334,7 @@ export default {
     MapIndigenousLand,
     Highlighter,
     BaseTiMetadata,
+    ProdesLayers,
   },
 
   props: {
@@ -339,6 +343,12 @@ export default {
       default: null,
     },
   },
+
+  mounted() {
+  window.mapMain.on('click', (e) => {
+    this.$store.dispatch('getWmsFeatureInfo', e.latlng);
+  });
+},
 
   data: () => ({
     selectedItems: [],

@@ -53,69 +53,33 @@
         </v-slide-y-transition>
       </v-col>
     </v-row>
+   
     <v-row class="pt-3">
       <v-col class="py-0 full-width">
-        <BaseDateField
-          v-model="filters.startDate"
-          :label="$t('start-date-label')"
+        <v-select
+          v-model="filters.startYear"
+          :label="$t('start-year-label')"
+          :items="yearOptions"
           :required="true"
           outlined
-          :min-date="'2015-01-01'"
         />
       </v-col>
       <v-col class="py-0 full-width">
-        <BaseDateField
-          v-model="filters.endDate"
-          :label="$t('end-date-label')"
+        <v-select
+          v-model="filters.endYear"
+          :label="$t('end-year-label')"
+          :items="yearOptions"
           :required="true"
           outlined
-          :min-date="'2015-01-01'"
         />
       </v-col>
     </v-row>
+    
     <v-row
       no-gutters
       align="center"
       class="mt-3"
     >
-      <v-col v-show="showFeaturesMonitoring">
-        <!-- Button Download -->
-        <!-- <DialogConfirmDownload /> -->
-
-        <v-btn
-          :loading="isLoadingStatistic"
-          small
-          color="accent"
-          icon
-          @click="showTableDialogAnalytics(true), (dialog = true)"
-        >
-          <v-tooltip left>
-            <template #activator="{ on }">
-              <v-icon v-on="on">
-                mdi-chart-box
-              </v-icon>
-            </template>
-            <span>{{ $t('statistics-label') }}</span>
-          </v-tooltip>
-        </v-btn>
-
-        <v-btn
-          small
-          :loading="loadingSearchTableMonitoring"
-          color="accent"
-          icon
-          @click="setShowTableDialogMonitoring(true)"
-        >
-          <v-tooltip left>
-            <template #activator="{ on }">
-              <v-icon v-on="on">
-                mdi-table
-              </v-icon>
-            </template>
-            <span>{{ $t('table-label') }}</span>
-          </v-tooltip>
-        </v-btn>
-      </v-col>
       <v-col
         v-if="showFeaturesMonitoring"
         class="ml-5"
@@ -149,93 +113,6 @@
       class="mt-4"
     />
 
-    <div
-      v-if="isLoadingFeatures"
-      class="mt-1"
-    >
-      <v-row
-        no-gutters
-        justify="center"
-      >
-        <v-col cols="6">
-          <v-skeleton-loader type="table-cell@4" />
-        </v-col>
-        <v-col cols="6">
-          <div class="d-flex justify-end">
-            <v-skeleton-loader type="table-cell@4" />
-          </div>
-        </v-col>
-      </v-row>
-      <v-divider class="mt-1" />
-      <div>
-        <v-skeleton-loader type="table-cell" />
-        <v-row
-          v-for="n in 4"
-          :key="n"
-          no-gutters
-          align="center"
-          class="mb-4"
-        >
-          <v-col cols="1">
-            <v-skeleton-loader
-              width="20"
-              height="20"
-              tile
-              type="avatar"
-            />
-          </v-col>
-
-          <v-col cols="10">
-            <v-skeleton-loader type="text" />
-          </v-col>
-        </v-row>
-      </div>
-    </div>
-
-    <v-row
-      v-if="showFeaturesMonitoring && total && !isLoadingFeatures"
-      class="mt-3"
-    >
-      <v-col
-        cols="7"
-        class="grey--text text--darken-2 text-label"
-      >
-        {{ $t('polygon-label') }}:
-      </v-col>
-      <v-col
-        cols="5"
-        class="text-right grey--text text--darken-2"
-      >
-        {{ total.total }}
-      </v-col>
-    </v-row>
-
-    <v-row
-      v-if="
-        showFeaturesMonitoring &&
-          total &&
-          total.area_ha &&
-          !isLoadingFeatures
-      "
-    >
-      <v-col
-        cols="7"
-        class="grey--text text--darken-2"
-      >
-        {{ $t('total-area-label') }}:
-      </v-col>
-      <v-col
-        cols="5"
-        class="text-right grey--text text--darken-2"
-      >
-        {{
-          total.area_ha.toLocaleString($i18n.locale, {
-            maximumFractionDigits: 2,
-          })
-        }}
-        ha
-      </v-col>
-    </v-row>
     <v-row
       v-if="showFeaturesMonitoring && !isLoadingFeatures"
       align="center"
@@ -255,44 +132,6 @@
         />
       </v-col>
     </v-row>
-    <v-row
-      v-if="showFeaturesMonitoring && !isLoadingFeatures"
-      align="center"
-      justify="space-between"
-    >
-      <v-col>
-        <span class="grey--text text--darken-2">
-          {{ $t('heat-map-label') }}
-        </span>
-      </v-col>
-      <v-col
-        cols="3"
-        class="d-flex justify-end"
-      >
-        <v-switch
-          v-model="heatMap"
-          class="mt-0 pt-0"
-          :loading="loadingHeatmap"
-          :disabled="loadingHeatmap"
-          hide-details
-        />
-      </v-col>
-    </v-row>
-    <div
-      v-if="showTableDialogMonitoring"
-      class="d-none"
-    >
-      <TableProperties />
-    </div>
-    <div
-      v-if="dialog"
-      class="d-none"
-    >
-      <AnalyticalDialog
-        :value="analyticsMonitoringDialog"
-        :close-dialog="closeAnalyticalDialog"
-      />
-    </div>
   </v-col>
 </template>
 
@@ -302,34 +141,22 @@
         "search-label": "Search",
         "opacity-label": "Opacity",
         "current-view-label": "Search in current area?",
-        "start-date-label": "Start Date",
-        "end-date-label": "End Date",
+        "start-year-label": "Start Year",
+        "end-year-label": "End Year",
         "total-area-label": "Total Area",
-        "heat-map-label": "Heat Map",
-        "polygon-label": "Polygon Count",
-        "table-name": "Monitoring Table",
         "regional-coordination-label": "Regional Coordination (All)",
         "indigenous-lands-label": "Indigenous Lands",
-        "download-label": "Download",
-        "statistics-label": "Statistics",
-        "table-label": "Table",
         "title-switch-disable-features": "Disable Monitoring Layer"
     },
     "pt-br": {
         "search-label": "Buscar",
         "opacity-label": "Opacidade",
         "current-view-label": "Pesquisar nesta área?",
-        "start-date-label": "Data Início",
-        "end-date-label": "Data Final",
+        "start-year-label": "Ano Início",
+        "end-year-label": "Ano Final",
         "total-area-label": "Área total",
-        "heat-map-label": "Mapa de Calor",
-        "polygon-label": "Total de polígonos",
-        "table-name": "Tabela de Monitoramento",
         "regional-coordination-label": "Coordenação Regional (Todas)",
         "indigenous-lands-label": "Terras Indígenas",
-        "download-label": "Baixar",
-        "statistics-label": "Estatísticas",
-        "table-label": "Tabela",
         "title-switch-disable-features": "Desabilitar Camada de Monitoramento"
     }
 }
@@ -337,30 +164,24 @@
 
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';
-import BaseDateField from '@/components/base/BaseDateField';
 import legend from '@/assets/legend.png';
-//import TableDialog from '@/components/table-dialog/TableDialog.vue';
-//import AnalyticalDialog from '@/components/analytical-dialog/AnalyticalDialog.vue';
-//import TableProperties from './TableProperties.vue';
-//import DialogConfirmDownload from '@/components/monitoring/DialogConfirmDownload.vue';
 
 export default {
   name: 'ProdesFilters',
 
-  components: {
-    BaseDateField,
-    //TableDialog,
-    //AnalyticalDialog,
-    //TableProperties,
-    //DialogConfirmDownload,
-  },
-
   data() {
+    const currentYear = new Date().getFullYear();
+    const yearOptions = [];
+    for (let year = 2015; year <= currentYear; year++) {
+      yearOptions.push(year);
+    }
+
     return {
       isGeoserver: process.env.MONITORING_GEOSERVER === 'true',
+      yearOptions,
       filters: {
-        startDate: this.$moment().format('YYYY-MM-DD'),
-        endDate: this.$moment().format('YYYY-MM-DD'),
+        startYear: currentYear,
+        endYear: currentYear,
         currentView: false,
         priority: null,
         cr: [],
@@ -388,55 +209,32 @@ export default {
   computed: {
     opacity: {
       get() {
-        return this.$store.state.monitoring.opacity;
+        return this.$store.state.prodes.opacity;
       },
-
       set(value) {
-        this.$store.commit('monitoring/setOpacity', value);
-      },
-    },
-
-    heatMap: {
-      get() {
-        return this.$store.state.monitoring.heatMap;
-      },
-
-      set(value) {
-        this.$store.dispatch('monitoring/generateHeatmapMonitoring', value);
+        this.$store.commit('prodes/setOpacity', value);
       },
     },
 
     featuresMonitoring: {
       get() {
-        return this.$store.state.monitoring.showFeaturesMonitoring;
+        return this.$store.state.prodes.showFeaturesMonitoring;
       },
-
       set(value) {
         this.$store.commit(
-          'monitoring/setshowFeaturesMonitoring',
+          'prodes/setshowFeaturesMonitoring',
           value,
         );
       },
     },
 
-    ...mapState('monitoring', [
+    ...mapState('prodes', [
       'currentUrlWmsMonitoring',
       'isLoadingFeatures',
-      'loadingSearchTableMonitoring',
       'loadingMonitoring',
       'filterOptions',
       'features',
-      'showFeaturesMonitoring',
-      'total',
-      'analyticsMonitoring',
-      'isLoadingGeoJson',
-      'showTableDialogMonitoring',
-      'tableMonitoring',
-      'isLoadingTableMonitoring',
-      'isLoadingCSVMonitoring',
-      'isLoadingStatistic',
-      'analyticsMonitoringDialog',
-      'loadingHeatmap',
+      'showFeaturesMonitoring',   
     ]),
   },
 
@@ -451,6 +249,12 @@ export default {
 
     'filterOptions.regionalFilters': function () {
       this.populateCrOptions();
+    },
+
+    'filters.startYear'(newVal) {
+      if (newVal > this.filters.endYear) {
+        this.filters.endYear = newVal;
+      }
     },
   },
 
@@ -482,70 +286,39 @@ export default {
     },
 
     populateTiOptions(cr) {
-      if (cr) this.$store.dispatch('monitoring/getTiOptions', cr);
+      if (cr) this.$store.dispatch('prodes/getTiOptions', cr);
       else this.filters.ti = null;
-    },
-
-    closeAnalyticalDialog(value) {
-      this.dialog = value;
-    },
-
-    closeTable(value) {
-      this.setShowTableDialogMonitoring(value);
-      if (this.checkNewFilters) {
-        // this.setshowTableDialog(value);
-        this.getFeatures();
-        this.checkNewFilters = false;
-      }
-    },
-
-    showTableDialogAnalytics(value) {
-      if (this.currentUrlWmsMonitoring) {
-        this.setanalyticsMonitoringDialog(value);
-        this.getDataAnalyticsMonitoringByFunaiYear();
-      }
     },
 
     searchMonitoring() {
       const { filters } = this;
       const {
-        currentView, cr, startDate, endDate,
+        currentView, cr, startYear, endYear,
       } = filters;
 
-      if ((currentView || cr.length) && startDate && endDate) {
-        const minDate = new Date('2015-01-01');
-        const start = new Date(startDate);
-        if (start < minDate) {
-          this.error = true;
-          return;
-        }
+      if ((currentView || cr.length) && startYear && endYear) {
         this.error = false;
-        this.setFilters(filters);
-        if (this.showTableDialogMonitoring) {
-          this.$store.dispatch(
-            'monitoring/getPropertiesTableMonitoring',
-          );
-        }
-        this.$emit('onSearch');
+        
+        // Convert years to dates for the store if needed
+        const filtersForStore = {
+          ...filters,
+          startDate: `${startYear}-01-01`,
+          endDate: `${endYear}-12-31`
+        };
+        
+        this.setFilters(filtersForStore);
+        this.getFeatures();
         return;
       }
       this.error = true;
     },
-    ...mapMutations('monitoring', [
-      'setFilters',
-      'setLoadingTable',
-      'setLoadingStatistic',
-      'setanalyticsMonitoringDialog',
-      'setShowTableDialogMonitoring',
+    
+    ...mapMutations('prodes', [
+      'setFilters',  
     ]),
-    ...mapActions('monitoring', [
+    ...mapActions('prodes', [
       'getFilterOptions',
-      'getFeatures',
-      'getDataAnalyticsMonitoringByDay',
-      'downloadGeoJsonMonitoring',
-      'downloadTableMonitoring',
-      'getDataTableMonitoring',
-      'getDataAnalyticsMonitoringByFunaiYear',
+      'getFeatures',    
     ]),
   },
 };
