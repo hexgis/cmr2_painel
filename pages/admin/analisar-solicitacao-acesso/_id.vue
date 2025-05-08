@@ -2,18 +2,17 @@
   <v-card style="max-width: 1100px; margin: auto; top: 5%;">
     <v-card-title
       class="text-h5"
-      style="
-        background: #D92B3F;
-        color: white;
-      "
+      style="background: #D92B3F; color: white;"
     >
       {{ $t('access-request-analysis') }}
     </v-card-title>
+
     <v-container>
       <p style="font-size: 18px;">
         {{ $t('review-data') }}
       </p>
       <v-divider />
+
       <p>{{ $t('server') }}</p>
       <v-row>
         <v-col
@@ -27,55 +26,52 @@
           cols="12"
           md="6"
         >
-          <p>
-            <strong>{{ $t('department') }}:</strong> {{ accessRequest.department }}
-          </p>
-          <p>
-            <strong>{{ $t('registration') }}:</strong>
-            {{ accessRequest.user_siape_registration }}
-          </p>
+          <p><strong>{{ $t('department') }}:</strong> {{ accessRequest.department }}</p>
+          <p><strong>{{ $t('registration') }}:</strong> {{ accessRequest.user_siape_registration }}</p>
         </v-col>
       </v-row>
+
       <v-divider />
+
       <p>{{ $t('coordinator') }}</p>
       <v-row>
         <v-col
           cols="12"
           md="6"
         >
-          <p>
-            <strong>{{ $t('coordinator-name') }}:</strong>
-            {{ accessRequest.coordinator_name }}
-          </p>
-          <p>
-            <strong>{{ $t('coordinator-email') }}:</strong>
-            {{ accessRequest.coordinator_email }}
-          </p>
+          <p><strong>{{ $t('coordinator-name') }}:</strong> {{ accessRequest.coordinator_name }}</p>
+          <p><strong>{{ $t('coordinator-email') }}:</strong> {{ accessRequest.coordinator_email }}</p>
         </v-col>
         <v-col
           cols="12"
           md="6"
         >
-          <p>
-            <strong>{{ $t('coordinator-department') }}:</strong>
-            {{ accessRequest.coordinator_department }}
-          </p>
-          <p>
-            <strong>{{ $t('siape-registration') }}:</strong>
-            {{ accessRequest.coordinator_siape_registration }}
-          </p>
+          <p><strong>{{ $t('coordinator-department') }}:</strong> {{ accessRequest.coordinator_department }}</p>
+          <p><strong>{{ $t('siape-registration') }}:</strong> {{ accessRequest.coordinator_siape_registration }}</p>
         </v-col>
       </v-row>
+
       <v-btn
-        color="primary"
+        color="success"
         class="mt-4"
+        :loading="loadingSubmit"
+        :disabled="loadingSubmit"
         @click="submitForm"
       >
         {{ $t('submit-request') }}
       </v-btn>
+      <v-btn
+        color="error"
+        class="mt-4 ml-4"
+        :loading="loadingReject"
+        :disabled="loadingReject"
+        @click="rejectRequest"
+      >
+        {{ $t('reject-request') }}
+      </v-btn>
     </v-container>
 
-    <!-- DIALOGS -->
+    <!-- DIALOG -->
     <v-dialog
       v-model="showModal"
       max-width="400"
@@ -119,54 +115,60 @@
 </template>
 
 <i18n>
-  {
-    "en": {
-      "access-request-analysis": "Analyze Access Request",
-      "server": "Server",
-      "coordinator": "Coordinator",
-      "name": "Name",
-      "email": "Email",
-      "department": "Department",
-      "registration": "Registration",
-      "email-valid": "Email must be valid",
-      "coordinator-name": "Coordinator's Name",
-      "coordinator-email": "Coordinator's Email",
-      "coordinator-department": "Coordinator's Department",
-      "siape-registration": "Siape Registration",
-      "submit-request": "Approve Request",
-      "review-data": "Review the data entered before approving the request:",
-      "success": "Success",
-      "error": "Error",
-      "request-submitted-successfully": "Your request has been submitted successfully!",
-      "request-failed": "There was an error submitting your request. Please try again.",
-      "ok": "OK",
-      "close": "Close",
-      "sucess-message": "The access request can now be viewed and approved in the Admin Panel."
-    },
-    "pt-br": {
-      "access-request-analysis": "Análise de Solicitação de Acesso",
-      "server": "Servidor",
-      "coordinator": "Coordenador",
-      "name": "Nome do servidor",
-      "email": "Email do servidor",
-      "department": "Lotação",
-      "registration": "Matrícula Siape",
-      "email-valid": "Email deve ser válido",
-      "coordinator-name": "Nome do Coordenador responsável",
-      "coordinator-email": "Email do Coordenador responsável",
-      "coordinator-department": "Lotação do Coordenador",
-      "siape-registration": "Matrícula Siape",
-      "submit-request": "Aprovar Solicitação",
-      "review-data": "Revise os dados inseridos antes de aprovar a solicitação:",
-      "success": "Sucesso",
-      "error": "Erro",
-      "request-submitted-successfully": "Sua solicitação foi enviada com sucesso!",
-      "request-failed": "Ocorreu um erro ao enviar sua solicitação. Por favor, tente novamente.",
-      "ok": "OK",
-      "close": "Fechar",
-      "sucess-message": "A solicitação de acesso agora pode ser visualizada e aprovada no Painel Administrativo."
-    }
+{
+  "en": {
+    "access-request-analysis": "Analyze Access Request",
+    "server": "Server",
+    "coordinator": "Coordinator",
+    "name": "Name",
+    "email": "Email",
+    "department": "Department",
+    "registration": "Registration",
+    "email-valid": "Email must be valid",
+    "coordinator-name": "Coordinator's Name",
+    "coordinator-email": "Coordinator's Email",
+    "coordinator-department": "Coordinator's Department",
+    "siape-registration": "Siape Registration",
+    "submit-request": "Approve Request",
+    "reject-request": "Reject Request",
+    "review-data": "Review the data entered before approving the request:",
+    "success": "Success",
+    "error": "Error",
+    "rejected": "Rejected",
+    "request-submitted-successfully": "Your request has been submitted successfully!",
+    "rejection-message": "The request has been rejected.",
+    "request-failed": "There was an error submitting your request. Please try again.",
+    "ok": "OK",
+    "close": "Close",
+    "sucess-message": "The access request can now be viewed and approved in the Admin Panel."
+  },
+  "pt-br": {
+    "access-request-analysis": "Análise de Solicitação de Acesso",
+    "server": "Servidor",
+    "coordinator": "Coordenador",
+    "name": "Nome do servidor",
+    "email": "Email do servidor",
+    "department": "Lotação",
+    "registration": "Matrícula Siape",
+    "email-valid": "Email deve ser válido",
+    "coordinator-name": "Nome do Coordenador responsável",
+    "coordinator-email": "Email do Coordenador responsável",
+    "coordinator-department": "Lotação do Coordenador",
+    "siape-registration": "Matrícula Siape",
+    "submit-request": "Aprovar Solicitação",
+    "reject-request": "Reprovar Solicitação",
+    "review-data": "Revise os dados inseridos antes de aprovar a solicitação:",
+    "success": "Sucesso",
+    "error": "Erro",
+    "rejected": "Reprovada",
+    "request-submitted-successfully": "Sua solicitação foi enviada com sucesso!",
+    "rejection-message": "A solicitação foi reprovada.",
+    "request-failed": "Ocorreu um erro ao enviar sua solicitação. Por favor, tente novamente.",
+    "ok": "OK",
+    "close": "Fechar",
+    "sucess-message": "A solicitação de acesso agora pode ser visualizada e aprovada no Painel Administrativo."
   }
+}
 </i18n>
 
 <script>
@@ -176,6 +178,8 @@ export default {
   data() {
     return {
       valid: false,
+      loadingSubmit: false,
+      loadingReject: false,
       accessRequest: {
         name: '',
         email: '',
@@ -202,6 +206,7 @@ export default {
   },
   methods: {
     async submitForm() {
+      this.loadingSubmit = true;
       try {
         await this.$api.post(`/user/access-requests/${this.accessRequest.id}/pending/`);
         this.isSuccess = true;
@@ -213,6 +218,23 @@ export default {
         this.modalMessage = this.$t('request-failed');
       } finally {
         this.showModal = true;
+        this.loadingSubmit = false;
+      }
+    },
+    async rejectRequest() {
+      this.loadingReject = true;
+      try {
+        await this.$api.patch(`/user/access-requests/${this.accessRequest.id}/reject/`);
+        this.isSuccess = true;
+        this.modalTitle = this.$t('rejected');
+        this.modalMessage = this.$t('rejection-message');
+      } catch (error) {
+        this.isSuccess = false;
+        this.modalTitle = this.$t('error');
+        this.modalMessage = this.$t('request-failed');
+      } finally {
+        this.showModal = true;
+        this.loadingReject = false;
       }
     },
     redirectToPortal() {

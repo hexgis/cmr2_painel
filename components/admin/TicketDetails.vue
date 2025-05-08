@@ -418,6 +418,7 @@ export default {
                 CONCLUIDO: ['Concluído', 'Em Teste'],
                 RECUSADO: ['Inviável', 'Indeferido'],
                 DEFERIDO: ['Deferido'],
+                DESENVOLVIDO: ['Desenvolvido'],
             }
             const allowedSubstatus = substatusMapping[this.status] || []
             return this.labels?.sub_status

@@ -234,7 +234,12 @@
         "institution": "institution",
         "requestType": "Request Type",
         "field-required": "Field Required",
-        "max-characters": "Maximum of {max} characters allowed."
+        "max-characters": "Maximum of {max} characters allowed.",
+        "add-user": "User added successfully!",
+        "erro-add-user": "Error adding user",
+        "changed-user": "User changed successfully!",
+        "erro-create-user": "Error creating user"
+
         },
         "pt-br": {
         "manageUsers": "Gerenciar Usuários",
@@ -249,7 +254,11 @@
         "institution": "Instituição",
         "requestType": "Tipo de Solicitação",
         "field-required": "Campo obrigatório",
-        "max-characters": "Máximo de {max} caracteres permitido."
+        "max-characters": "Máximo de {max} caracteres permitido.",
+        "add-user": "Usuário adicionado com sucesso!",
+        "erro-add-user": "Erro ao adicionar usuário",
+        "changed-user": "Usuário alterado com sucesso!",
+        "erro-create-user": "Erro ao criar usuário"
         }
     }
 </i18n>
@@ -318,11 +327,6 @@ export default {
     };
   },
 
-  async mounted() {
-    await this.fetchInstitutionList();
-    this.fetchUsers();
-  },
-
   computed: {
     totalValue() {
       return this.storeCategories.reduce(
@@ -334,7 +338,13 @@ export default {
     ...mapState('admin', ['institutionList']),
   },
 
+  async mounted() {
+    await this.fetchInstitutionList();
+    this.fetchUsers();
+  },
+
   methods: {
+
     applyFilters(filters) {
       this.filters = filters;
       this.filterUsers();
@@ -404,9 +414,19 @@ export default {
           this.showModal = false;
           this.fetchUsers();
           this.resetForm();
+          this.$store.commit('alert/addAlert', {
+            timeout: 3000,
+            message: this.$t('add-user'),
+          });
+        } else {
+          throw new Error('Resposta inesperada da API.');
         }
       } catch (error) {
         console.error('Erro ao criar usuário:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 3000,
+          message: this.$t('erro-add-user'),
+        });
       }
     },
 
@@ -442,11 +462,19 @@ export default {
           this.showModalEdit = false;
           this.fetchUsers();
           this.resetForm();
+          this.$store.commit('alert/addAlert', {
+            timeout: 3000,
+            message: this.$t('changed-user'),
+          });
         } else {
           throw new Error('Resposta inesperada da API.');
         }
       } catch (error) {
-        console.error('Erro ao editar usuário:', error);
+        console.error('Erro ao criar usuário:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 3000,
+          message: this.$t('erro-create-user'),
+        });
       }
     },
 
@@ -499,6 +527,7 @@ export default {
 </script>
 
 <style lang="sass" scoped>
+
 .line-separator
     border: 1px solid #9A9997
     margin: 1rem 0

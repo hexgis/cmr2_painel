@@ -131,6 +131,7 @@ export default {
         dt_t_zero: 'Data T0',
         dt_t_um: 'Data T1',
         locator: 'Localizador',
+        id: 'Id',
       },
       customTextParts: [
         { bold: 'Data T0*: ', text: 'última imagem Landsat-8 em que a alteração da cobertura vegetal ainda não havia sido iniciada.' },
