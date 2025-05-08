@@ -3,9 +3,7 @@ const { stringify } = require('wkt');
 export const state = () => ({
   features: null,
   urlWmsMonitoring: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
-  geoserverLayerMonitoring: 'CMR-PUBLICO:vw_prodes_com_terra_indigena_a', // Alterado para PRODES
-  
-
+  geoserverLayerMonitoring: 'CMR-PUBLICO:vw_prodes_com_terra_indigena_a',
   intersectsWmsMonitoring: '',
   MonitoringWmsOptions: {
     name: 'monitoring',
@@ -22,7 +20,22 @@ export const state = () => ({
   filterOptions: {
     regionalFilters: [],
     tiFilters: [],
-  }, 
+  },
+  filters: {
+    startYear: 2025,
+    endYear: 2025,
+    currentView: true,
+    priority: null,
+    cr: [],
+    ti: [
+      {
+        co_funai: 1201,
+        no_ti: "Alto Rio Purus"
+      }
+    ],
+    startDate: "2025-01-01",
+    endDate: "2025-12-31"
+  },
   opacity: 100,
 });
 
@@ -112,82 +125,91 @@ export const actions = {
   },
 
   async generateUrlWmsMonitoring({ state, commit }, newBbox = false) {
-  const params = {
-    layers: state.geoserverLayerMonitoring, // Agora usando a camada PRODES
-    env: `fill-opacity:${state.opacity / 100}`,
-    CQL_FILTER: '',
-    opacity: state.opacity,
-  };
+    const params = {
+      layers: state.geoserverLayerMonitoring,
+      env: `fill-opacity:${state.opacity / 100}`,
+      CQL_FILTER: '',
+      opacity: state.opacity,
+    };
 
-  let url = state.urlWmsMonitoring;
+    let url = state.urlWmsMonitoring;
 
-  // Filtros básicos (mantenha apenas os que são compatíveis com PRODES)
-  if (state.intersectsWmsMonitoring) {
-    params.CQL_FILTER += state.intersectsWmsMonitoring;
-  }
 
-  const arrayTI = [];
-  if (state.filters.ti && state.filters.ti.length) {
-    Object.values(state.filters.ti).forEach((item) => {
-      arrayTI.push(item.co_funai);
-    });
-    if (params.CQL_FILTER.length) {
-      params.CQL_FILTER += ' AND ';
+    if (state.intersectsWmsMonitoring) {
+      params.CQL_FILTER += state.intersectsWmsMonitoring;
     }
-    params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
-  }
 
-  const arrayCR = [];
-  if (state.filters.cr && state.filters.cr.length) {
-    Object.values(state.filters.cr).forEach((item) => {
-      arrayCR.push(item.co_cr);
-    });
-    if (params.CQL_FILTER.length) {
-      params.CQL_FILTER += ' AND ';
+    const arrayTI = [];
+    if (state.filters.ti && state.filters.ti.length) {
+      Object.values(state.filters.ti).forEach((item) => {
+        arrayTI.push(item.co_funai);
+      });
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';
+      }
+      params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
     }
-    params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
-  }
 
-  // Remova os filtros específicos de estágios (CR, DG, DR, FF) que não se aplicam ao PRODES
+    const arrayCR = [];
+    if (state.filters.cr && state.filters.cr.length) {
+      Object.values(state.filters.cr).forEach((item) => {
+        arrayCR.push(item.co_cr);
+      });
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';
+      }
+      params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
+    }
 
-  const paramsUrl = new URLSearchParams(params);
-  commit('setUrlCurrentWmsMonitoring', `${url}${paramsUrl}`);
-},
+    //params.CQL_FILTER += `AND nu_ano = (${state.filters.endDate.substring(0, 4)})`;
+
+    if (state.filters.startYear && state.filters.endYear) {
+      if (params.CQL_FILTER.length) {
+        params.CQL_FILTER += ' AND ';
+      }
+      params.CQL_FILTER += `(nu_ano >= (${state.filters.startYear}) AND nu_ano <= (${state.filters.endYear}))`;
+    }
+
+    const paramsUrl = new URLSearchParams(params);
+    const fullUrl = `${url}${paramsUrl}`;
+    console.log('URL WMS Prodes gerada:', fullUrl);
+
+    commit('setUrlCurrentWmsMonitoring', `${url}${paramsUrl}`);
+
+  },
 
   async getFeatures({ state, commit, dispatch }) {
-  commit('setUrlCurrentWmsMonitoring', '');
+    commit('setUrlCurrentWmsMonitoring', '');
 
-  try {
-    commit('setLoadingMonitoring', true);
-    commit('setshowFeaturesMonitoring', true);
-    commit('setLoadingFeatures', true);
+    try {
+      commit('setLoadingMonitoring', true);
+      commit('setshowFeaturesMonitoring', true);
+      commit('setLoadingFeatures', true);
 
-    const map = window.mapMain;
-    if (state.filters.currentView) {
-      const bounds = map.getBounds();
-      const sw = bounds.getSouthWest();
-      const ne = bounds.getNorthEast();
-      const nw = L.latLng(ne.lat, sw.lng);
-      const se = L.latLng(sw.lat, ne.lng);
-      const bboxPolygon = L.polygon([sw, se, ne, nw, sw]);
-      const geojson = bboxPolygon.toGeoJSON();
-      const wkt = stringify(geojson.geometry);
-      commit('setIntersectsWmsMonitoring', `INTERSECTS(geom,${wkt})`);
-    } else {
-      commit('setIntersectsWmsMonitoring', '');
+      const map = window.mapMain;
+      if (state.filters.currentView) {
+        const bounds = map.getBounds();
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        const nw = L.latLng(ne.lat, sw.lng);
+        const se = L.latLng(sw.lat, ne.lng);
+        const bboxPolygon = L.polygon([sw, se, ne, nw, sw]);
+        const geojson = bboxPolygon.toGeoJSON();
+        const wkt = stringify(geojson.geometry);
+        commit('setIntersectsWmsMonitoring', `INTERSECTS(geom,${wkt})`);
+      } else {
+        commit('setIntersectsWmsMonitoring', '');
+      }
+
+      await dispatch('generateUrlWmsMonitoring');
+    } catch (exception) {
+      // Tratamento de erro
+    } finally {
+      commit('setLoadingFeatures', false);
+      commit('setLoadingGeoJson', false);
+      commit('setLoadingMonitoring', false);
     }
-
-    // ... resto do código permanece igual ...
-    
-    await dispatch('generateUrlWmsMonitoring');
-  } catch (exception) {
-    // Tratamento de erro
-  } finally {
-    commit('setLoadingFeatures', false);
-    commit('setLoadingGeoJson', false);
-    commit('setLoadingMonitoring', false);
-  }
-},
+  },
 
   async getFilterOptions({ commit }) {
     const regional_coordinators = await this.$api.$get('funai/cr/');

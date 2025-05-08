@@ -138,18 +138,6 @@
       <v-tabs-items v-model="tab">
         <v-tab-item value="tab-1">
           <ProdesFilters />
-          <v-list
-            v-if="orderedSupportLayersGroups.length"
-            class="pt-0"
-          >
-            <template v-for="group in orderedSupportLayersGroups">
-              <SupportLayersGroupBase
-                :key="group.id"
-                :group="group"
-                :selected-layers="showFeatures"
-              />
-            </template>
-          </v-list>
         </v-tab-item>
         <v-tab-item value="tab-2">
           <DeterFilters />

@@ -132,12 +132,17 @@
         />
       </v-col>
     </v-row>
+    <v-divider></v-divider>
+    <p class="font-weight-regular pt-2 grey--text text--darken-2">
+        {{ $t('legend') }}
+      </p>
   </v-col>
 </template>
 
 <i18n>
 {
     "en": {
+        "legend": "Legend:",
         "search-label": "Search",
         "opacity-label": "Opacity",
         "current-view-label": "Search in current area?",
@@ -149,6 +154,7 @@
         "title-switch-disable-features": "Disable Monitoring Layer"
     },
     "pt-br": {
+        "legend": "Legenda:",
         "search-label": "Buscar",
         "opacity-label": "Opacidade",
         "current-view-label": "Pesquisar nesta área?",
@@ -187,16 +193,6 @@ export default {
         cr: [],
         ti: null,
       },
-      headers: [
-        { text: 'Código Funai', value: 'co_funai' },
-        { text: 'Terra Indígena', value: 'no_ti' },
-        { text: 'Coordenação Regional', value: 'ds_cr' },
-        { text: 'Classe', value: 'no_estagio' },
-        { text: 'Data da Imagem', value: 'dt_imagem' },
-        { text: 'Área do Polígono (ha)', value: 'nu_area_ha' },
-        { text: 'Latitude', value: 'nu_latitude' },
-        { text: 'Longitude', value: 'nu_longitude' },
-      ],
       checkNewFilters: false,
       isLoadingTotal: false,
       legendData: legend,

@@ -162,39 +162,7 @@ export default {
             })
         },
 
-        setMonitoringStyle(feature) {
-            const estagio = feature.properties.no_estagio
-            const style = {
-                weight: 3,
-                fill: true,
-                fillOpacity: this.opacity / 100,
-            }
-
-            switch (estagio) {
-                case 'CR': // Corte Raso
-                    style.color = '#ff3333'
-                    style.fillColor = '#ff3333'
-                    break
-                case 'DG': // Degradação
-                    style.color = '#ff8000'
-                    style.fillColor = '#ff8000'
-                    break
-                case 'FF': // Fogo em Floresta
-                    style.color = '#b35900'
-                    style.fillColor = '#b35900'
-                    break
-                case 'DR': // Desmatamento em Regeneração
-                    style.color = '#990099'
-                    style.fillColor = '#990099'
-                    break
-                default: // Estilo padrão
-                    style.color = '#000000'
-                    style.fillColor = '#000000'
-            }
-
-            return style
-        },
-
+      
         async getFeatureDetails(featureId) {
             this.selectedMonitoringFeature = null
             try {
