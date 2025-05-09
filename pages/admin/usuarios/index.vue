@@ -141,6 +141,12 @@
                 label="Inativo"
                 class="mt-n2"
               />
+              <UserManager
+          :available-roles="rolesList"
+          :selected-roles="editUserData.roles"
+          @add-role="addRoleToUser"
+          @remove-role="removeRoleFromUser"
+        />
             </v-form>
           </v-card-text>
         </CustomDialog>
@@ -270,6 +276,7 @@ import StatusFilterUser from '/components/admin/StatusFilterUser.vue';
 import SearchFiltersUser from '/components/admin/SearchFiltersUser.vue';
 import CustomDialog from '/components/admin/CustomDialog.vue';
 import SavePdfUser from '/components/admin/SavePdfUser.vue';
+import UserManager from '/components/admin/UserManager.vue'
 
 export default {
   name: 'Usuarios',
@@ -279,10 +286,25 @@ export default {
     SearchFiltersUser,
     CustomDialog,
     SavePdfUser,
+    UserManager,
   },
   layout: 'admin',
+
+  props: {
+    availableRoles: {
+      type: Array,
+      default: () => []
+    },
+    selectedRoles: {
+      type: Array,
+      default: () => []
+    }
+  },
+
   data() {
     return {
+      searchAvailable: '',
+      searchSelected: '',
       search: '',
       showModalEdit: false,
       selectedInstitution: null,
@@ -335,7 +357,7 @@ export default {
       );
     },
 
-    ...mapState('admin', ['institutionList']),
+    ...mapState('admin', ['institutionList', 'rolesList']),
   },
 
   async mounted() {
@@ -402,8 +424,7 @@ export default {
 
     async addUser() {
       try {
-        const response = await this.$api.post(
-          '/user/',
+        const response = await this.$api.post('/user/',
           {
             username: this.newUser.username,
             email: this.newUser.email,
@@ -443,19 +464,23 @@ export default {
       this.$refs.form.resetValidation();
     },
 
-    async editUser() {
+ async editUser() {
       try {
         if (!this.editUserData.id) {
           throw new Error('ID do usuário não definido.');
         }
+        
+        const payload = {
+          username: this.editUserData.username,
+          email: this.editUserData.email,
+          institution_id: this.editUserData.institution_id,
+          is_active: !this.editUserData.is_inactive,
+          roles: this.editUserData.roles.map(role => role.id) // Envie apenas os IDs das roles
+        };
+
         const response = await this.$api.patch(
           `/user/${this.editUserData.id}/`,
-          {
-            username: this.editUserData.username,
-            email: this.editUserData.email,
-            institution_id: this.editUserData.institution_id,
-            is_active: !this.editUserData.is_inactive,
-          },
+          payload
         );
 
         if (response.status === 200) {
@@ -470,7 +495,7 @@ export default {
           throw new Error('Resposta inesperada da API.');
         }
       } catch (error) {
-        console.error('Erro ao criar usuário:', error);
+        console.error('Erro ao editar usuário:', error);
         this.$store.commit('alert/addAlert', {
           timeout: 3000,
           message: this.$t('erro-create-user'),
@@ -478,17 +503,58 @@ export default {
       }
     },
 
-    openEditDialog(user) {
-      this.editUserData = {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        institution_id: user.institution_id,
-        is_inactive: !user.is_active,
-      };
-      this.selectedInstitution = user.institution;
-      this.showModalEdit = true;
+  async openEditDialog(user) {
+  try {
+    // Busca os dados do usuário e as roles disponíveis simultaneamente
+    const [userResponse, rolesResponse] = await Promise.all([
+      this.$api.get(`/user/${user.id}/`),
+      this.$api.get('/user/role/')
+    ]);
+    
+    const userData = userResponse.data;
+    const rolesList = rolesResponse.data;
+    
+    console.log('Dados do usuário:', userData);
+    console.log('Roles disponíveis:', rolesList);
+    
+    this.editUserData = {
+      id: userData.id,
+      username: userData.username,
+      email: userData.email,
+      institution_id: userData.institution_id,
+      is_inactive: !userData.is_active,
+      roles: userData.roles || []
+    };
+    
+    // Atualiza a lista de roles disponíveis no store
+    this.$store.commit('admin/setRolesList', rolesList);
+    
+    this.showModalEdit = true;
+  } catch (error) {
+    console.error('Erro ao buscar dados:', error);
+    // Fallback para dados locais
+    this.editUserData = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      institution_id: user.institution_id,
+      is_inactive: !user.is_active,
+      roles: user.roles || []
+    };
+    this.showModalEdit = true;
+  }
+},
+
+    addRoleToUser(role) {
+      if (!this.editUserData.roles.some(r => r.id === role.id)) {
+        this.editUserData.roles = [...this.editUserData.roles, role];
+      }
     },
+
+    removeRoleFromUser(role) {
+      this.editUserData.roles = this.editUserData.roles.filter(r => r.id !== role.id);
+    },
+
 
     toggleFilters() {
       this.showFilters = !this.showFilters;
