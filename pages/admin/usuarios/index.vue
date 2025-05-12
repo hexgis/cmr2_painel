@@ -77,6 +77,14 @@
                 :rules="[requiredRule]"
                 required
               />
+
+             <UserManager
+                :available-roles="rolesList"
+                :selected-roles="newUser.roles || []"
+                mode="create"
+                @add-role="addRoleToNewUser"
+                @remove-role="removeRoleFromNewUser"
+             />
             </v-form>
           </v-card-text>
         </CustomDialog>
@@ -141,6 +149,13 @@
                 label="Inativo"
                 class="mt-n2"
               />
+             <UserManager
+              :available-roles="rolesList"
+              :selected-roles="editUserData.roles || []"
+              mode="edit"
+              @add-role="addRoleToUser"
+              @remove-role="removeRoleFromUser"
+            />
             </v-form>
           </v-card-text>
         </CustomDialog>
@@ -270,6 +285,7 @@ import StatusFilterUser from '/components/admin/StatusFilterUser.vue';
 import SearchFiltersUser from '/components/admin/SearchFiltersUser.vue';
 import CustomDialog from '/components/admin/CustomDialog.vue';
 import SavePdfUser from '/components/admin/SavePdfUser.vue';
+import UserManager from '/components/admin/UserManager.vue'
 
 export default {
   name: 'Usuarios',
@@ -279,8 +295,10 @@ export default {
     SearchFiltersUser,
     CustomDialog,
     SavePdfUser,
+    UserManager,
   },
   layout: 'admin',
+
   data() {
     return {
       search: '',
@@ -310,6 +328,7 @@ export default {
         username: '',
         email: '',
         institution_id: null,
+        roles: []
       },
       editUserData: {
         id: null,
@@ -335,15 +354,25 @@ export default {
       );
     },
 
-    ...mapState('admin', ['institutionList']),
+    ...mapState('admin', ['institutionList', 'rolesList']),
   },
 
   async mounted() {
     await this.fetchInstitutionList();
+    await this.fetchRoles();
     this.fetchUsers();
   },
 
   methods: {
+
+    async fetchRoles() {
+      try {
+        const response = await this.$api.get('/user/role/');
+        this.$store.commit('admin/setRolesList', response.data);
+      } catch (error) {
+        console.error('Erro ao carregar roles:', error);
+      }
+    },
 
     applyFilters(filters) {
       this.filters = filters;
@@ -374,7 +403,6 @@ export default {
     async fetchUsers() {
       try {
         const response = await this.$api.get('/user/');
-
         if (Array.isArray(response.data) && response.data.length > 0) {
           this.users = response.data;
           this.filteredUsers = this.users;
@@ -400,16 +428,43 @@ export default {
       this.storeCategories[2].total = adminUser;
     },
 
+    addRoleToNewUser(role) {
+      if (!this.newUser.roles) {
+        this.$set(this.newUser, 'roles', []);
+      }
+      if (!this.newUser.roles.some(r => r.id === role.id)) {
+        this.newUser.roles.push(role);
+      }
+    },
+
+    removeRoleFromNewUser(role) {
+      this.newUser.roles = this.newUser.roles.filter(r => r.id !== role.id);
+    },
+
+    addRoleToUser(role) {
+      if (!this.editUserData.roles) {
+        this.$set(this.editUserData, 'roles', []);
+      }
+      if (!this.editUserData.roles.some(r => r.id === role.id)) {
+        this.editUserData.roles.push(role);
+      }
+    },
+
+    removeRoleFromUser(role) {
+      this.editUserData.roles = this.editUserData.roles.filter(r => r.id !== role.id);
+    },
+
     async addUser() {
       try {
-        const response = await this.$api.post(
-          '/user/',
-          {
-            username: this.newUser.username,
-            email: this.newUser.email,
-            institution_id: this.newUser.institution_id,
-          },
-        );
+        const payload = {
+          username: this.newUser.username,
+          email: this.newUser.email,
+          institution_id: this.newUser.institution_id,
+        roles: this.newUser.roles.map(role => role.id),
+        };
+
+        const response = await this.$api.post('/user/', payload);
+        
         if (response.status === 201) {
           this.showModal = false;
           this.fetchUsers();
@@ -418,8 +473,6 @@ export default {
             timeout: 3000,
             message: this.$t('add-user'),
           });
-        } else {
-          throw new Error('Resposta inesperada da API.');
         }
       } catch (error) {
         console.error('Erro ao criar usuário:', error);
@@ -430,99 +483,147 @@ export default {
       }
     },
 
-    resetForm() {
-      this.newUser = { username: '', email: '', institution: '' };
-      this.editUserData = {
-        id: null,
-        username: '',
-        email: '',
-        institution_id: null,
-        is_inactive: false,
+  resetForm() {
+    this.newUser = { 
+      username: '', 
+      email: '', 
+      institution_id: null,
+      roles: [] 
+    };
+    this.editUserData = {
+      id: null,
+      username: '',
+      email: '',
+      institution_id: null,
+      is_inactive: false,
+      roles: [] 
+    };
+    this.selectedInstitution = null;
+    this.$refs.form.resetValidation();
+  },
+
+  async editUser() {
+    try {
+      if (!this.editUserData.id) {
+        throw new Error('ID do usuário não definido.');
+      }
+      
+      const payload = {
+        username: this.editUserData.username,
+        email: this.editUserData.email,
+        institution_id: this.editUserData.institution_id,
+        is_active: !this.editUserData.is_inactive,
+        roles: this.editUserData.roles.map(role => role.id) 
       };
-      this.selectedInstitution = null;
-      this.$refs.form.resetValidation();
-    },
 
-    async editUser() {
-      try {
-        if (!this.editUserData.id) {
-          throw new Error('ID do usuário não definido.');
-        }
-        const response = await this.$api.patch(
-          `/user/${this.editUserData.id}/`,
-          {
-            username: this.editUserData.username,
-            email: this.editUserData.email,
-            institution_id: this.editUserData.institution_id,
-            is_active: !this.editUserData.is_inactive,
-          },
-        );
+      const response = await this.$api.patch(
+        `/user/${this.editUserData.id}/`,
+        payload
+      );
 
-        if (response.status === 200) {
-          this.showModalEdit = false;
-          this.fetchUsers();
-          this.resetForm();
-          this.$store.commit('alert/addAlert', {
-            timeout: 3000,
-            message: this.$t('changed-user'),
-          });
-        } else {
-          throw new Error('Resposta inesperada da API.');
-        }
-      } catch (error) {
-        console.error('Erro ao criar usuário:', error);
+      if (response.status === 200) {
+        this.showModalEdit = false;
+        this.fetchUsers();
+        this.resetForm();
         this.$store.commit('alert/addAlert', {
           timeout: 3000,
-          message: this.$t('erro-create-user'),
+          message: this.$t('changed-user'),
         });
+      } else {
+        throw new Error('Resposta inesperada da API.');
       }
-    },
+    } catch (error) {
+      console.error('Erro ao editar usuário:', error);
+      this.$store.commit('alert/addAlert', {
+        timeout: 3000,
+        message: this.$t('erro-create-user'),
+      });
+    }
+  },
 
-    openEditDialog(user) {
+  async openEditDialog(user) {
+    try {
+      // Busca os dados do usuário e as roles disponíveis simultaneamente
+      const [userResponse, rolesResponse] = await Promise.all([
+        this.$api.get(`/user/${user.id}/`),
+        this.$api.get('/user/role/')
+      ]);
+      
+      const userData = userResponse.data;
+      const rolesList = rolesResponse.data;
+
+      this.editUserData = {
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        institution_id: userData.institution_id,
+        is_inactive: !userData.is_active,
+        roles: userData.roles || []
+      };
+      
+      // Atualiza a lista de roles disponíveis no store
+      this.$store.commit('admin/setRolesList', rolesList);
+      
+      this.showModalEdit = true;
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+    
       this.editUserData = {
         id: user.id,
         username: user.username,
         email: user.email,
         institution_id: user.institution_id,
         is_inactive: !user.is_active,
+        roles: user.roles || []
       };
-      this.selectedInstitution = user.institution;
       this.showModalEdit = true;
-    },
-
-    toggleFilters() {
-      this.showFilters = !this.showFilters;
-    },
-
-    generateCSV() {
-      // Cabeçalho do CSV
-      const headers = ['Nome', 'Email', 'Acesso Permitido', 'Instituição'];
-      const rows = this.filteredUsers.map((user) => [
-        user.username,
-        user.email,
-        user.is_active ? 'Ativo' : 'Inativo',
-        user.institution,
-      ]);
-
-      // Cria o conteúdo do CSV
-      const csvContent = [
-        headers.join(','), // Cabeçalho
-        ...rows.map((row) => row.join(',')), // Dados
-      ].join('\n');
-
-      // Cria um link para download
-      const blob = new Blob([csvContent], {
-        type: 'text/csv;charset=utf-8;',
-      });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'usuarios.csv'; // Nome do arquivo
-      link.click(); // Dispara o download
-      URL.revokeObjectURL(link.href); // Limpa o objeto URL
-    },
-
-    ...mapActions('admin', ['fetchInstitutionList']),
+    }
   },
+
+  addRoleToUser(role) {
+    if (!this.editUserData.roles.some(r => r.id === role.id)) {
+      this.editUserData.roles = [...this.editUserData.roles, role];
+    }
+  },
+
+  removeRoleFromUser(role) {
+    this.editUserData.roles = this.editUserData.roles.filter(r => r.id !== role.id);
+  },
+
+
+  toggleFilters() {
+    this.showFilters = !this.showFilters;
+  },
+
+  generateCSV() {
+    // Cabeçalho do CSV
+    const headers = ['Nome', 'Email', 'Acesso Permitido', 'Instituição'];
+    const rows = this.filteredUsers.map((user) => [
+      user.username,
+      user.email,
+      user.is_active ? 'Ativo' : 'Inativo',
+      user.institution,
+    ]);
+
+    // Cria o conteúdo do CSV
+    const csvContent = [
+      headers.join(','), // Cabeçalho
+      ...rows.map((row) => row.join(',')), // Dados
+    ].join('\n');
+
+    // Cria um link para download
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8;',
+    });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'usuarios.csv'; // Nome do arquivo
+    link.click(); // Dispara o download
+    URL.revokeObjectURL(link.href); // Limpa o objeto URL
+  },
+
+  ...mapActions('admin', ['fetchInstitutionList']),
+ },
 };
 </script>
 
@@ -551,7 +652,7 @@ export default {
     gap: 1rem
 
 .wrapper
-    display: flex
+    display: flexs
     flex-direction: row
     align-items: center
     justify-content: space-between
