@@ -379,6 +379,19 @@ export default {
     monitoringGeoserver: process.env.MONITORING_GEOSERVER === 'true',
 
     baseLayers: [
+    {
+        url: '//mt0.google.com/vt/lyrs=y&hl=pt&x={x}&y={y}&z={z}',
+        options: {
+          label: 'Google Hybrid',
+          tag: 'Google Hybrid',
+          attribution:
+                        'Map data &copy; <a href="//maps.google.com/">Google</a> Hybrid',
+          maxZoom: 21,
+          maxNativeZoom: 19,
+          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+          zIndex: 1,
+        },
+      },
       {
         url: '//{s}.tile.osm.org/{z}/{x}/{y}.png',
         options: {
@@ -417,19 +430,7 @@ export default {
       //     zIndex: 1,
       //   },
       // },
-      {
-        url: '//mt0.google.com/vt/lyrs=y&hl=pt&x={x}&y={y}&z={z}',
-        options: {
-          label: 'Google Hybrid',
-          tag: 'Google Hybrid',
-          attribution:
-                        'Map data &copy; <a href="//maps.google.com/">Google</a> Hybrid',
-          maxZoom: 21,
-          maxNativeZoom: 19,
-          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-          zIndex: 1,
-        },
-      },
+     
       // {
       //     url:
       //         '//securewatch.digitalglobe.com/earthservice/wmtsaccess?connectId=
