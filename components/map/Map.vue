@@ -20,7 +20,6 @@
             />
 
             <div
-              v-if="isLoggedIn"
               class="pt-2"
             >
               <MapSearchTi
