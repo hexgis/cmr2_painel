@@ -1,12 +1,12 @@
 <template>
   <div class="permissions-container">
     <div class="permission-list">
-      <h5>Roles disponíveis</h5>
+      <h5>{{ title }}</h5>
       <v-list dense>
         <v-list-item
           v-for="role in filteredAvailableRoles"
           :key="role.id"
-          @click="addRole(role)"
+          @click="selectRole(role)"
         >
           <v-list-item-title>{{ role.name }}</v-list-item-title>
           <v-icon>mdi-chevron-right</v-icon>
@@ -15,10 +15,10 @@
     </div>
 
     <div class="permission-list">
-      <h5>Roles escolhido(s)</h5>
-        <v-list dense>
+      <h5>Perfil(s) escolhido(s)</h5>
+      <v-list dense>
         <v-list-item
-          v-for="role in filteredSelectedRoles"
+          v-for="role in selectedRoles"
           :key="role.id"
           @click="removeRole(role)"
         >
@@ -40,38 +40,31 @@ export default {
     selectedRoles: {
       type: Array,
       default: () => []
-    }
-  },
-  data() {
-    return {
-      searchAvailable: '',
-      searchSelected: ''
+    },
+    mode: {
+      type: String,
+      default: 'edit',
+      validator: value => ['edit', 'create'].includes(value)
     }
   },
   computed: {
-  filteredAvailableRoles() {
-    if (!this.availableRoles) return [];
-    
-    return this.availableRoles.filter(role => 
-      role.name.toLowerCase().includes(this.searchAvailable.toLowerCase()) &&
-      !this.selectedRoles.some(r => r.id === role.id)
-    )
-  },
-  filteredSelectedRoles() {
-    return this.selectedRoles || [];
-  },
+    title() {
+      return this.mode === 'edit' ? 'Perfis disponíveis' : 'Selecione os perfis';
+    },
 
-   hasRoleChanges() {
-    // Compara as roles selecionadas atuais com as originais
-    return !this.arraysEqual(this.selectedRoles, this.originalSelectedRoles);
-  }
-},
+    filteredAvailableRoles() {
+      if (!this.availableRoles) return [];
+      return this.availableRoles.filter(role => 
+        !this.selectedRoles.some(r => r.id === role.id)
+      );
+    }
+  },
   methods: {
-    addRole(role) {
-      this.$emit('add-role', role)
+    selectRole(role) {
+      this.$emit('add-role', role);
     },
     removeRole(role) {
-      this.$emit('remove-role', role)
+      this.$emit('remove-role', role);
     }
   }
 }
