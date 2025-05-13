@@ -184,28 +184,92 @@ export const actions = {
       commit('setLoadingMonitoring', true);
       commit('setshowFeaturesMonitoring', true);
       commit('setLoadingFeatures', true);
+    
+
+
 
       const map = window.mapMain;
       if (state.filters.currentView) {
         const bounds = map.getBounds();
+
         const sw = bounds.getSouthWest();
         const ne = bounds.getNorthEast();
         const nw = L.latLng(ne.lat, sw.lng);
         const se = L.latLng(sw.lat, ne.lng);
+
         const bboxPolygon = L.polygon([sw, se, ne, nw, sw]);
+
         const geojson = bboxPolygon.toGeoJSON();
+
         const wkt = stringify(geojson.geometry);
+
         commit('setIntersectsWmsMonitoring', `INTERSECTS(geom,${wkt})`);
       } else {
         commit('setIntersectsWmsMonitoring', '');
       }
 
+      const arrayTI = [];
+      if (state.filters.ti && state.filters.ti.length) {
+        Object.values(state.filters.ti).forEach((item) => {
+          arrayTI.push(item.co_funai);
+        });
+      }
+
+      const arrayCR = [];
+      if (state.filters.cr && state.filters.cr.length) {
+        Object.values(state.filters.cr).forEach((item) => {
+          arrayCR.push(item.co_cr);
+        });
+      }
+
+      try {
+        if (!state.filters.currentView) {
+          let bbox;
+          if ((state.filters.cr && state.filters.cr.length) || (state.filters.ti && state.filters.ti.length)) {
+            bbox = await this.$api.$post('monitoring/consolidated/bbox/', {
+              "co_cr": [...arrayCR], 
+              "co_funai": [...arrayTI],
+            });
+            if (bbox) {
+              const bounds = L.latLngBounds(
+                [bbox[1], bbox[0]],
+                [bbox[3], bbox[2]],
+              );
+              map.fitBounds(bounds);
+            }
+          }
+        }
+      } catch (_) {
+        commit(
+          'alert/addAlert',
+          {
+            message: this.$i18n.t('default-error', {
+              action: this.$i18n.t('retrieve'),
+              resource: this.$i18n.t('monitoring'),
+            }),
+          },
+          { root: true },
+        );
+      }
+
       await dispatch('generateUrlWmsMonitoring');
+
     } catch (exception) {
-      // Tratamento de erro
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring'),
+          }),
+        },
+        { root: true },
+      );
     } finally {
       commit('setLoadingFeatures', false);
       commit('setLoadingGeoJson', false);
+      commit('setLoadingStatistic', false);
+      commit('setLoadingFeatures', false);
       commit('setLoadingMonitoring', false);
     }
   },
