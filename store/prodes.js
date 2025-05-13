@@ -24,17 +24,7 @@ export const state = () => ({
   filters: {
     startYear: 2025,
     endYear: 2025,
-    currentView: true,
-    priority: null,
-    cr: [],
-    ti: [
-      {
-        co_funai: 1201,
-        no_ti: "Alto Rio Purus"
-      }
-    ],
-    startDate: "2025-01-01",
-    endDate: "2025-12-31"
+   
   },
   opacity: 100,
   

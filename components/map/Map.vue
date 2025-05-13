@@ -283,7 +283,7 @@ import BaseWmsMetadataPopup from '@/components/base/BaseWmsMetadataPopup';
 // import AlgorithmLayers from '@/components/algorithms/AlgorithmLayers'
 // import WebhooksLayers from '@/components/webhooks/WebhooksLayers'
 import PriorityLayers from '@/components/priority/PriorityLayers';
-import DeterLayers from '@/components/deter/DeterLayers';
+import DeterLayers from '@/components/remote-sensing/deter/DeterLayers.vue';
 import AlertLayers from '@/components/monitoring/AlertLayers';
 import LandUseLayers from '@/components/land-use/LandUseLayers';
 import SupportUserLayersMap from '@/components/support/SupportUserLayersMap';
