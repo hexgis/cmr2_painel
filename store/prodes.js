@@ -171,9 +171,7 @@ export const actions = {
     }
 
     const paramsUrl = new URLSearchParams(params);
-    console.log('Parâmetros WMS:', params); 
     const fullUrl = `${url}${paramsUrl}`;
-    console.log('URL WMS Prodes gerada:', fullUrl);
 
     commit('setUrlCurrentWmsMonitoring', `${url}${paramsUrl}`);
 
