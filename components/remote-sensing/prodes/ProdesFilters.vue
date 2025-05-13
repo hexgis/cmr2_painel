@@ -134,8 +134,27 @@
     </v-row>
     <v-divider></v-divider>
     <p class="font-weight-regular pt-2 grey--text text--darken-2">
-        {{ $t('legend') }}
-      </p>
+  {{ $t('legend') }}
+</p>
+
+<!-- Legenda de anos com quadrados coloridos -->
+<v-row v-if="selectedYears.length > 0" class="mt-2">
+  <v-col cols="12">
+    <div class="year-legend-list">
+      <div 
+        v-for="year in selectedYears" 
+        :key="year"
+        class="legend-item"
+      >
+        <div 
+          class="color-square"
+          :style="{ backgroundColor: yearColors[year] || '#CCCCCC' }"
+        ></div>
+        <span class="year-label">{{ year }}</span>
+      </div>
+    </div>
+  </v-col>
+</v-row>
   </v-col>
 </template>
 
@@ -182,9 +201,16 @@ export default {
       yearOptions.push(year);
     }
 
+    const yearColors = {
+    2015: '#FF5733', 2016: '#33FF57', 2017: '#3357FF', 2018: '#F333FF',
+    2019: '#F3FF33', 2020: '#FF33F3', 2021: '#33FFF3', 2022: '#8A2BE2',
+    2023: '#FF6347', 2024: '#7CFC00', 2025: '#9932CC'
+  };
+
     return {
       isGeoserver: process.env.MONITORING_GEOSERVER === 'true',
       yearOptions,
+      yearColors,
       filters: {
         startYear: currentYear,
         endYear: currentYear,
@@ -203,6 +229,25 @@ export default {
   },
 
   computed: {
+    selectedYears() {
+    if (!this.currentUrlWmsMonitoring) return [];
+    
+
+    const urlParams = new URLSearchParams(this.currentUrlWmsMonitoring.split('?')[1]);
+    const cqlFilter = urlParams.get('CQL_FILTER') || '';
+      
+    const yearMatches = cqlFilter.match(/nu_ano >= \((\d+)\) AND nu_ano <= \((\d+)\)/);
+    
+    if (yearMatches && yearMatches.length >= 3) {
+      const startYear = parseInt(yearMatches[1]);
+      const endYear = parseInt(yearMatches[2]);
+      
+      // Retorna array com todos os anos no intervalo
+      return Array.from({length: endYear - startYear + 1}, (_, i) => startYear + i);
+    }
+    
+    return [];
+  },
     opacity: {
       get() {
         return this.$store.state.prodes.opacity;
@@ -331,5 +376,53 @@ export default {
         font-size: 0.8rem;
         padding-right: 0px;
     }
+}
+</style>
+
+<style scoped lang="scss">
+.year-legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-square {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.year-label {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+@media (max-width: 768px) {
+  .full-width {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .text-label {
+    font-size: 0.8rem;
+    padding-right: 0px;
+  }
+  
+  .color-square {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .year-label {
+    font-size: 0.8rem;
+  }
 }
 </style>

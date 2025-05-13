@@ -37,7 +37,9 @@ export const state = () => ({
     endDate: "2025-12-31"
   },
   opacity: 100,
+  
 });
+
 
 export const getters = {
   getShowFeaturesMonitoring: (state) => {
@@ -161,8 +163,6 @@ export const actions = {
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
 
-    //params.CQL_FILTER += `AND nu_ano = (${state.filters.endDate.substring(0, 4)})`;
-
     if (state.filters.startYear && state.filters.endYear) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
@@ -171,6 +171,7 @@ export const actions = {
     }
 
     const paramsUrl = new URLSearchParams(params);
+    console.log('Parâmetros WMS:', params); 
     const fullUrl = `${url}${paramsUrl}`;
     console.log('URL WMS Prodes gerada:', fullUrl);
 
@@ -239,7 +240,6 @@ export const actions = {
       });
     }
   },
-
 };
 
 
