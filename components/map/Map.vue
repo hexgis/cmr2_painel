@@ -205,6 +205,8 @@
 
         <MonitoringLayers :map="map" />
 
+        <ProdesLayers :map="map" />
+
         <DeterLayers :map="map" />
 
         <!-- <AlgorithmLayers /> -->
@@ -280,7 +282,7 @@ import BaseWmsMetadataPopup from '@/components/base/BaseWmsMetadataPopup';
 // import AlgorithmLayers from '@/components/algorithms/AlgorithmLayers'
 // import WebhooksLayers from '@/components/webhooks/WebhooksLayers'
 import PriorityLayers from '@/components/priority/PriorityLayers';
-import DeterLayers from '@/components/deter/DeterLayers';
+import DeterLayers from '@/components/remote-sensing/deter/DeterLayers.vue';
 import AlertLayers from '@/components/monitoring/AlertLayers';
 import LandUseLayers from '@/components/land-use/LandUseLayers';
 import SupportUserLayersMap from '@/components/support/SupportUserLayersMap';
@@ -291,6 +293,7 @@ import DrawingPanel from '@/components/map/drawing-tool/DrawingPanel.vue';
 import BaseTiMetadata from '../base/BaseTiMetadata.vue';
 import Highlighter from '@/components/map/Highlighter.vue';
 import MapIndigenousLand from '@/components/map/MapIndigenousLand';
+import ProdesLayers from '@/components/remote-sensing/prodes/ProdesLayers.vue'
 
 if (typeof window !== 'undefined') {
   require('leaflet-basemaps');
@@ -330,6 +333,7 @@ export default {
     MapIndigenousLand,
     Highlighter,
     BaseTiMetadata,
+    ProdesLayers,
   },
 
   props: {
@@ -338,6 +342,12 @@ export default {
       default: null,
     },
   },
+
+  mounted() {
+  window.mapMain.on('click', (e) => {
+    this.$store.dispatch('getWmsFeatureInfo', e.latlng);
+  });
+},
 
   data: () => ({
     selectedItems: [],
