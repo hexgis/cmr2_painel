@@ -11,7 +11,11 @@
           {{ $t('title') }}
         </h6>
 
-        <v-tooltip>
+        <v-tooltip  
+          bottom
+          max-width="400px"
+          color="grey darken-4"
+        >
           <template #activator="{ on }">
             <v-icon
               class="infoIconMargin"
@@ -20,7 +24,7 @@
               mdi-information
             </v-icon>
           </template>
-          <span>
+          <span class="mt-10">
             {{ $t('prodes-description-line1') }}
             <br>
             {{ $t('prodes-description-line2') }}
@@ -44,7 +48,10 @@
         >
           {{ $t('title-deter') }}
         </h4>
-        <v-tooltip>
+        <v-tooltip 
+          bottom
+          max-width="400px"
+          color="grey darken-4">
           <template #activator="{ on }">
             <v-icon
               class="infoIconMargin"
@@ -69,7 +76,11 @@
         >
           {{ $t('title-fogo') }}
         </h4>
-        <v-tooltip>
+        <v-tooltip
+          bottom
+          max-width="400px"
+          color="grey darken-4"
+        >
           <template #activator="{ on }">
             <v-icon
               class="infoIconMargin"
@@ -128,6 +139,7 @@
         href="#tab-3"
         class="tab-item"
         style="font-size: 12px; line-height: 1.2"
+        disabled
       >
         Risco e foco<br>de calor
         <v-icon>mdi-fire</v-icon>

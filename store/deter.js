@@ -22,8 +22,12 @@ export const state = () => ({
     tiFilters: [],
   },
   filters: {
-    startYear: 2025,
-    endYear: 2025,
+    startDate: null,
+    endDate: null,
+    currentView: false,
+    priority: null,
+    cr: [],
+    ti: null,
     
   },
   opacity: 100,
@@ -153,11 +157,11 @@ export const actions = {
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
 
-    if (state.filters.startYear && state.filters.endYear) {
+    if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
       }
-      params.CQL_FILTER += `(nu_ano >= (${state.filters.startYear}) AND nu_ano <= (${state.filters.endYear}))`;
+      params.CQL_FILTER += `(dt_deteccao >= (${state.filters.startDate}) AND dt_deteccao <= (${state.filters.endDate}))`;
     }
 
     const paramsUrl = new URLSearchParams(params);
@@ -167,7 +171,7 @@ export const actions = {
 
   },
 
-  async getFeatures({ state, commit, dispatch }) {
+async getFeatures({ state, commit, dispatch }) {
     commit('setUrlCurrentWmsMonitoring', '');
 
     try {

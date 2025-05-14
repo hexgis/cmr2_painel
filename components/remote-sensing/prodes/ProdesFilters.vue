@@ -133,9 +133,9 @@
       </v-col>
     </v-row>
     <v-divider></v-divider>
-    <p class="font-weight-regular pt-2 grey--text text--darken-2">
+   <!-- <p class="font-weight-regular pt-2 grey--text text--darken-2">
         {{ $t('legend') }}
-      </p>
+      </p>-->
   </v-col>
 </template>
 
