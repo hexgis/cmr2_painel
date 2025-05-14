@@ -3,7 +3,7 @@ const { stringify } = require('wkt');
 export const state = () => ({
   features: null,
   urlWmsMonitoring: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
-  geoserverLayerMonitoring: 'CMR-PUBLICO:img_alerta_deter_a',
+  geoserverLayerMonitoring: 'CMR-PUBLICO:vw_prodes_com_terra_indigena_a',
   intersectsWmsMonitoring: '',
   MonitoringWmsOptions: {
     name: 'monitoring',
@@ -22,13 +22,9 @@ export const state = () => ({
     tiFilters: [],
   },
   filters: {
-    startDate: null,
-    endDate: null,
-    currentView: false,
-    priority: null,
-    cr: [],
-    ti: null,
-    
+    startYear: 2025,
+    endYear: 2025,
+   
   },
   opacity: 100,
   
@@ -157,11 +153,11 @@ export const actions = {
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
 
-    if (state.filters.startDate && state.filters.endDate) {
+    if (state.filters.startYear && state.filters.endYear) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
       }
-      params.CQL_FILTER += `(dt_deteccao >= (${state.filters.startDate}) AND dt_deteccao <= (${state.filters.endDate}))`;
+      params.CQL_FILTER += `(nu_ano >= (${state.filters.startYear}) AND nu_ano <= (${state.filters.endYear}))`;
     }
 
     const paramsUrl = new URLSearchParams(params);
@@ -171,7 +167,7 @@ export const actions = {
 
   },
 
-async getFeatures({ state, commit, dispatch }) {
+  async getFeatures({ state, commit, dispatch }) {
     commit('setUrlCurrentWmsMonitoring', '');
 
     try {

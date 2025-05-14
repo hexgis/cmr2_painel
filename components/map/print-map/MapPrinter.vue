@@ -222,7 +222,7 @@ export default {
         bounds: null,
       });
     },
-    ...mapState('map', ['tmsToPrint']),
+    
     ...mapMutations('map', ['setTmsToPrint']),
   },
 };

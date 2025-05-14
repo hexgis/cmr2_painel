@@ -1,6 +1,6 @@
 <template>
     <div>
-        <l-lwms-tile-layer
+        <l-lwms-tile-layer 
             ref="wmsLayerMonitoring"
             :base-url="currentUrlWmsMonitoring"
             :layers="geoserverLayerMonitoring"
@@ -36,7 +36,7 @@ import { mapState, mapGetters } from 'vuex'
 import BaseMetadataPopup from '@/components/base/BaseMetadataPopup'
 
 export default {
-    name: 'MonitoringLayers',
+    name: 'DeterLayers',
 
     components: {
         BaseMetadataPopup,
@@ -55,7 +55,7 @@ export default {
     }),
 
     computed: {
-        ...mapState('monitoring', [
+        ...mapState('deter', [
             'currentUrlWmsMonitoring',
             'showFeaturesMonitoring',
             'geoserverLayerMonitoring',
@@ -70,7 +70,7 @@ export default {
             'heatMap',
             'selectedStages',
         ]),
-        ...mapGetters('monitoring', [
+        ...mapGetters('deter', [
             'featuresLoaded',
             'getShowFeaturesMonitoring',
         ]),
@@ -108,10 +108,7 @@ export default {
             else if (!value && this.heatmapLayer) this.map.removeLayer(this.heatmapLayer)
         },
 
-        heatMap(value) {
-            if (value) this.createMonitoramentoHeatLayer()
-            else this.map.removeLayer(this.heatmapLayer)
-        },
+        
     },
 
     methods: {
@@ -155,37 +152,13 @@ export default {
                 onEachFeature: this.onEachFeature,
             })
         },
-        onEachFeature(feature, layer) {
-            layer.setStyle(this.setMonitoringStyle(feature))
-            layer.on('click', () => {
-                this.getFeatureDetails(feature.properties.id)
-            })
-        },
-
-      
-        async getFeatureDetails(featureId) {
-            this.selectedMonitoringFeature = null
-            try {
-                this.selectedMonitoringFeature = await this.$api.$get(
-                    `monitoring/consolidated/detail/${featureId}/`
-                )
-            } catch (exception) {
-                this.$store.commit('alert/addAlert', {
-                    message: this.$t('detail-api-error'),
-                })
-            }
-        },
+        
 
         flyTo() {
-            const bounds = this.$L.geoJSON(this.features).getBounds()
+            const bounds = this.$L.geoJSON(this.features && this.features.length).getBounds()
             if (bounds.getNorthEast() && bounds.getSouthWest()) {
                 this.map.flyToBounds(bounds)
             }
-        },
-
-        createMonitoramentoHeatLayer() {
-            this.heatmapLayer = this.$L.heatLayer(this.resultsHeatmap, this.resultsHeatmapOptions)
-            this.map.addLayer(this.heatmapLayer)
         },
     },
 }
