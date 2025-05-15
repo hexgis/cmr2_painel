@@ -198,7 +198,7 @@ export default {
     ],
     fieldConfig: {
     // Campos que devem ser ignorados
-      excludedFields: ['bbox', 'path', 'row', 'no_br', 'id_key', 'id_tb', 'ranking'],
+      excludedFields: ['bbox', 'path', 'row', 'no_br', 'id_key', 'id_tb', 'ranking', 'id_cr', 'id_ti'],
       // Substituições completas de nomes de campos
       fieldNames: {
         nu_buffer_distancia: 'Buffer Distância',
@@ -374,6 +374,12 @@ export default {
         dt_t_um: 'Data T1',
         origin_id: 'ID',
         id_key: 'Chave ID',
+
+        //DETER
+        tb_download_deter_a_b_id: 'Download Deter AB',
+        ds_mes: 'Mês',
+        dt_deteccao: 'Data de detecção',
+
       },
     },
   }),

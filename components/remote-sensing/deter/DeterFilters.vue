@@ -12,8 +12,8 @@
       <v-col cols="3">
         <div class="d-flex justify-end align-center mt-1">
           <v-switch
-            v-if="currentUrlWmsMonitoring"
-            v-model="featuresMonitoring"
+            v-if="currentUrlWmsDeter"
+            v-model="featuresDeter"
             class="mt-3"
             hide-details
             :title="$t('title-switch-disable-features')"
@@ -54,68 +54,64 @@
       </v-col>
     </v-row>
    
-
     <v-row class="pt-3">
-  <v-col class="py-0 full-width">
-    <BaseDateField
-      v-model="filters.startDate"
-      :label="$t('start-date-label')"
-      :required="true"
-      outlined
-    />
-  </v-col>
-
-  <v-col class="py-0 full-width">
-    <BaseDateField
-      v-model="filters.endDate"
-      :label="$t('end-date-label')"
-      :required="true"
-      :min-date="filters.startDate"
-      outlined
-    />
-  </v-col>
-</v-row>
+      <v-col class="py-0 full-width">
+        <v-select
+          v-model="filters.startYear"
+          :label="$t('start-year-label')"
+          :items="yearOptions"
+          :required="true"
+          outlined
+        />
+      </v-col>
+      <v-col class="py-0 full-width">
+        <v-select
+          v-model="filters.endYear"
+          :label="$t('end-year-label')"
+          :items="yearOptions"
+          :required="true"
+          outlined
+        />
+      </v-col>
+    </v-row>
     
-    <v-row  
+    <v-row
       no-gutters
       align="center"
       class="mt-3"
     >
-      <v-col
-        v-if="showFeaturesMonitoring"
-        class="ml-5"
-      >
+      <v-col v-if="showFeaturesDeter">
         <v-btn
           block
           small
           color="primary"
           outlined
-          :loading="loadingMonitoring"
-          @click="searchMonitoring"
+          :loading="loadingDeter"
+          @click="searchDeter"
         >
           {{ $t('search-label') }}
         </v-btn>
       </v-col>
-      <v-col v-if="!showFeaturesMonitoring">
+      <v-col v-if="!showFeaturesDeter">
         <v-btn
           block
           small
           color="primary"
           outlined
-          :loading="loadingMonitoring"
-          @click="searchMonitoring"
+          :loading="loadingDeter"
+          @click="searchDeter"
         >
           {{ $t('search-label') }}
         </v-btn>
       </v-col>
     </v-row>
     <v-divider
-      v-if="showFeaturesMonitoring && !isLoadingFeatures"
+      v-if="showFeaturesDeter && !isLoadingFeatures"
       class="mt-4"
     />
 
     <v-row
-      v-if="showFeaturesMonitoring && !isLoadingFeatures"
+      v-if="showFeaturesDeter && !isLoadingFeatures"
       align="center"
       class="mt-2"
     >
@@ -134,8 +130,8 @@
       </v-col>
     </v-row>
     <v-divider></v-divider>
-    <!--<p class="font-weight-regular pt-2 grey--text text--darken-2">
-        {{ $t('legend') }} fasfasf
+   <!-- <p class="font-weight-regular pt-2 grey--text text--darken-2">
+        {{ $t('legend') }}
       </p>-->
   </v-col>
 </template>
@@ -147,24 +143,24 @@
         "search-label": "Search",
         "opacity-label": "Opacity",
         "current-view-label": "Search in current area?",
-        "start-date-label": "Start Date",
-        "end-date-label": "End Date",
+        "start-year-label": "Start Year",
+        "end-year-label": "End Year",
         "total-area-label": "Total Area",
         "regional-coordination-label": "Regional Coordination (All)",
         "indigenous-lands-label": "Indigenous Lands",
-        "title-switch-disable-features": "Disable Monitoring Layer"
+        "title-switch-disable-features": "Disable Deter Layer"
     },
     "pt-br": {
         "legend": "Legenda:",
         "search-label": "Buscar",
         "opacity-label": "Opacidade",
         "current-view-label": "Pesquisar nesta área?",
-        "start-date-label": "Data Início",
-        "end-date-label": "Data Fim",
+        "start-year-label": "Ano Início",
+        "end-year-label": "Ano Final",
         "total-area-label": "Área total",
         "regional-coordination-label": "Coordenação Regional (Todas)",
         "indigenous-lands-label": "Terras Indígenas",
-        "title-switch-disable-features": "Desabilitar Camada de Monitoramento"
+        "title-switch-disable-features": "Desabilitar Camada de Deter"
     }
 }
 </i18n>
@@ -172,21 +168,22 @@
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';
 import legend from '@/assets/legend.png';
-import BaseDateField from '@/components/base/BaseDateField';
 
 export default {
   name: 'DeterFilters',
 
-   components: { BaseDateField },
-
   data() {
+    const currentYear = new Date().getFullYear();
+    const yearOptions = [];
+    for (let year = 2015; year <= currentYear; year++) {
+      yearOptions.push(year);
+    }
+
     return {
-      isGeoserver: process.env.MONITORING_GEOSERVER === 'true',
+      yearOptions,
       filters: {
-        startDate: this.$moment()
-          .subtract(30, 'days')
-          .format('YYYY-MM-DD'),
-        endDate: this.$moment().format('YYYY-MM-DD'),
+        startYear: currentYear,
+        endYear: currentYear,
         currentView: false,
         priority: null,
         cr: [],
@@ -211,25 +208,25 @@ export default {
       },
     },
 
-    featuresMonitoring: {
+    featuresDeter: {
       get() {
-        return this.$store.state.deter.showFeaturesMonitoring;
+        return this.$store.state.deter.showFeaturesDeter;
       },
       set(value) {
         this.$store.commit(
-          'deter/setshowFeaturesMonitoring',
+          'deter/setshowFeaturesDeter',
           value,
         );
       },
     },
 
     ...mapState('deter', [
-      'currentUrlWmsMonitoring',
+      'currentUrlWmsDeter',
       'isLoadingFeatures',
-      'loadingMonitoring',
+      'loadingDeter',
       'filterOptions',
       'features',
-      'showFeaturesMonitoring',   
+      'showFeaturesDeter',   
     ]),
   },
 
@@ -285,28 +282,28 @@ export default {
       else this.filters.ti = null;
     },
 
-   searchMonitoring() {
-  const { filters } = this;
-  const { currentView, cr, startDate, endDate } = filters;
+    searchDeter() {
+      const { filters } = this;
+      const {
+        currentView, cr, startYear, endYear,
+      } = filters;
 
-  if ((currentView || cr.length) && startDate && endDate) {
-    this.error = false;
-    
-    // Verifica se a data final é maior ou igual à data inicial
-    if (new Date(endDate) < new Date(startDate)) {
+      if ((currentView || cr.length) && startYear && endYear) {
+        this.error = false;
+        
+        // Convert years to dates for the store if needed
+        const filtersForStore = {
+          ...filters,
+          startDate: `${startYear}-01-01`,
+          endDate: `${endYear}-12-31`
+        };
+        
+        this.setFilters(filtersForStore);
+        this.getFeatures();
+        return;
+      }
       this.error = true;
-      this.$store.commit('alert/addAlert', {
-        message: this.$i18n.t('A data final deve ser maior ou igual à data inicial'),
-      }, { root: true });
-      return;
-    }
-    
-    this.setFilters(filters);
-    this.getFeatures();
-    return;
-  }
-  this.error = true;
-},
+    },
     
     ...mapMutations('deter', [
       'setFilters',  

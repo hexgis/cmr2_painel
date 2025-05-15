@@ -12,8 +12,8 @@
       <v-col cols="3">
         <div class="d-flex justify-end align-center mt-1">
           <v-switch
-            v-if="currentUrlWmsMonitoring"
-            v-model="featuresMonitoring"
+            v-if="currentUrlWmsProdes"
+            v-model="featuresProdes"
             class="mt-3"
             hide-details
             :title="$t('title-switch-disable-features')"
@@ -80,41 +80,38 @@
       align="center"
       class="mt-3"
     >
-      <v-col
-        v-if="showFeaturesMonitoring"
-        class="ml-5"
-      >
+      <v-col v-if="showFeaturesProdes">
         <v-btn
           block
           small
           color="primary"
           outlined
-          :loading="loadingMonitoring"
-          @click="searchMonitoring"
+          :loading="loadingProdes"
+          @click="searchProdes"
         >
           {{ $t('search-label') }}
         </v-btn>
       </v-col>
-      <v-col v-if="!showFeaturesMonitoring">
+      <v-col v-if="!showFeaturesProdes">
         <v-btn
           block
           small
           color="primary"
           outlined
-          :loading="loadingMonitoring"
-          @click="searchMonitoring"
+          :loading="loadingProdes"
+          @click="searchProdes"
         >
           {{ $t('search-label') }}
         </v-btn>
       </v-col>
     </v-row>
     <v-divider
-      v-if="showFeaturesMonitoring && !isLoadingFeatures"
+      v-if="showFeaturesProdes && !isLoadingFeatures"
       class="mt-4"
     />
 
     <v-row
-      v-if="showFeaturesMonitoring && !isLoadingFeatures"
+      v-if="showFeaturesProdes && !isLoadingFeatures"
       align="center"
       class="mt-2"
     >
@@ -151,7 +148,7 @@
         "total-area-label": "Total Area",
         "regional-coordination-label": "Regional Coordination (All)",
         "indigenous-lands-label": "Indigenous Lands",
-        "title-switch-disable-features": "Disable Monitoring Layer"
+        "title-switch-disable-features": "Disable Prodes Layer"
     },
     "pt-br": {
         "legend": "Legenda:",
@@ -163,7 +160,7 @@
         "total-area-label": "Área total",
         "regional-coordination-label": "Coordenação Regional (Todas)",
         "indigenous-lands-label": "Terras Indígenas",
-        "title-switch-disable-features": "Desabilitar Camada de Monitoramento"
+        "title-switch-disable-features": "Desabilitar Camada de Prodes"
     }
 }
 </i18n>
@@ -183,7 +180,6 @@ export default {
     }
 
     return {
-      isGeoserver: process.env.MONITORING_GEOSERVER === 'true',
       yearOptions,
       filters: {
         startYear: currentYear,
@@ -212,25 +208,25 @@ export default {
       },
     },
 
-    featuresMonitoring: {
+    featuresProdes: {
       get() {
-        return this.$store.state.prodes.showFeaturesMonitoring;
+        return this.$store.state.prodes.showFeaturesProdes;
       },
       set(value) {
         this.$store.commit(
-          'prodes/setshowFeaturesMonitoring',
+          'prodes/setshowFeaturesProdes',
           value,
         );
       },
     },
 
     ...mapState('prodes', [
-      'currentUrlWmsMonitoring',
+      'currentUrlWmsProdes',
       'isLoadingFeatures',
-      'loadingMonitoring',
+      'loadingProdes',
       'filterOptions',
       'features',
-      'showFeaturesMonitoring',   
+      'showFeaturesProdes',   
     ]),
   },
 
@@ -286,7 +282,7 @@ export default {
       else this.filters.ti = null;
     },
 
-    searchMonitoring() {
+    searchProdes() {
       const { filters } = this;
       const {
         currentView, cr, startYear, endYear,
