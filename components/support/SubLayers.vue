@@ -34,7 +34,7 @@
               <span>{{ category.label }}</span>
             </v-col>
             <v-col class="d-flex justify-end pa-0" cols="2">
-              <v-tooltip top>
+              <v-tooltip bottom color="grey darken-4" >
                 <template #activator="{ on, attrs }">
                   <v-icon v-bind="attrs" v-on="on">
                     mdi-information
@@ -84,14 +84,13 @@ export default {
     img: null,
     loading: false,
     descriptions: {
-      'declarada': 'Área já declarada como protegida oficialmente.',
+      'declarada': 'Fase em que o processo é submetido à apreciação do Ministro da Justiça, que decidirá sobre o tema e, caso entenda cabível, declarará os limites e determinará a a demarcação física da referida área objeto do procedimento demarcatório, mediante Portaria publicada no Diário Oficial da União.',
       'restricao_uso': 'Área com restrição de uso por proteção ambiental.',
-      'regularizada': 'Área regularizada',
-      'encaminhada_ri': 'Processo em análise no Registro de Imóveis.',
-      'homologada': 'Área homologada',
-      'delimitada': 'Área delimitada',
-    }    
-    
+      'regularizada': 'Áreas que se encontram em procedimento administrativo de constituição de reserva (compra direta, desapropriação ou doação) já finalizado e a área registrada em cartório imobiliário em nome da União, com usufruto indígena.',
+      'encaminhada_ri': 'Áreas que se encontram em procedimento administrativo de constituição de reserva (compra direta, desapropriação ou doação) ainda não finalizado.',
+      'homologada': 'Fase em que há a publicação dos limites materializados e georreferenciados da área, através de Decreto Presidencial, passando a ser constituída como terra indígena.',
+      'delimitada': 'Fase na qual há a conclusão dos estudos e que estes foram aprovados pela Presidência da Funai através de publicação no Diário Oficial da União e do Estado em que se localiza o objeto sob processo de demarcação.',
+    }      
   }),
 
   mounted() {
@@ -148,7 +147,7 @@ export default {
                             const rawName = fill.name || fill.title || '';
                             const label = this.capitalizeFirstLetter(rawName.toLowerCase());
                             const key = rawName.toLowerCase().replace(/\s/g, '_');
-                            const tooltipText = this.descriptions[key] || 'Sem descrição disponível.';
+                            const tooltipText = this.descriptions[key] || 'Sem dados/descrição disponível.';
 
                             sublayers[`field${index}`] = {
                               name: rawName,
