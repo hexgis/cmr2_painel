@@ -81,7 +81,7 @@
     "high-resolution-mosaics-tab": "High Resolution and Mosaics",
     "support-fire-tab": "Fire Hazard and Hot Spots (INPE)",
     "landuse-tab": "Land Use And Occupation",
-    "remote-sensing-tab": "Remote Sensing",
+    "inpe-tab": "INPE",
     "urgent-alerts-tab": "Urgent Alerts",
     "priority-tab": "Priorities",
     "document-tab": "Document",
@@ -97,7 +97,7 @@
     "high-resolution-mosaics-tab": "Alta Resolução e Mosaicos",
     "support-fire-tab": "Risco de Fogo e Focos de Calor (INPE)",
     "landuse-tab": "Uso e Ocupação do Solo",
-    "remote-sensing-tab": "Sensoriamento Remoto",
+    "inpe-tab": "INPE",
     "urgent-alerts-tab": "Alerta Urgente",
     "priority-tab": "Polígonos Prioritários",
     "document-tab": "Documental",
@@ -214,9 +214,9 @@ export default {
           componentKey: null,
         },
         {
-          name: this.$t('remote-sensing-tab'),
+          name: this.$t('inpe-tab'),
           icon: 'mdi-satellite-variant',
-          route: '/cmr/remote-sensing',
+          route: '/cmr/inpe',
           show: process.env.ROUTE_SUPPORT_PRODES === 'true',
         },
         {
@@ -226,6 +226,13 @@ export default {
           requiredLogin: true,
           show: process.env.ROUTE_ANALYTICS === 'true',
           componentKey: 'analytics',
+        },
+
+        {
+          name: this.$t('support-fire-tab'),
+          icon: 'mdi-fire',
+          route: '/cmr/support-hazard',
+          show: process.env.ROUTE_SUPPORT_HAZARD === 'true',
         },
       ];
     },

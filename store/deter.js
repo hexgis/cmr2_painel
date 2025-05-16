@@ -3,7 +3,7 @@ const { stringify } = require('wkt');
 export const state = () => ({
   features: null,
   urlWmsDeter: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
-  geoserverLayerDeter: 'CMR-PUBLICO:img_alerta_deter_a',
+  geoserverLayerDeter: 'CMR-FUNAI:img_alerta_deter_a',
   currentUrlWmsDeter: '',
   showFeaturesDeter: false,
    DeterWmsOptions: {
@@ -130,8 +130,8 @@ export const actions = {
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
 
-    // Apply year filter
-    if (state.filters.startYear && state.filters.endYear) {
+  
+    if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
       }
@@ -140,6 +140,8 @@ export const actions = {
 
     const paramsUrl = new URLSearchParams(params);
     const fullUrl = `${url}${paramsUrl}`;
+    console.log(fullUrl);
+    
 
     commit('setUrlCurrentWmsDeter', fullUrl);
   },
@@ -187,12 +189,12 @@ export const actions = {
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
 
-    // Apply year filter
-    if (state.filters.startYear && state.filters.endYear) {
+    
+    if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
       }
-      params.CQL_FILTER += `(nu_ano >= ${state.filters.startYear} AND nu_ano <= ${state.filters.endYear})`;
+      params.CQL_FILTER += `(dt_deteccao >= ${state.filters.startDate} AND dt_deteccao <= ${state.filters.endDate})`;
     }
 
     try {
@@ -410,12 +412,12 @@ export const actions = {
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
 
-    // Apply year filter
-    if (state.filters.startYear && state.filters.endYear) {
+    
+    if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
       }
-      params.CQL_FILTER += `(nu_ano >= ${state.filters.startYear} AND nu_ano <= ${state.filters.endYear})`;
+      params.CQL_FILTER += `(dt_deteccao >= ${state.filters.startDate} AND dt_deteccao <= ${state.filters.endDate})`;
     }
 
     try {

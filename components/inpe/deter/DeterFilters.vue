@@ -53,28 +53,26 @@
         </v-slide-y-transition>
       </v-col>
     </v-row>
-   
     <v-row class="pt-3">
       <v-col class="py-0 full-width">
-        <v-select
-          v-model="filters.startYear"
-          :label="$t('start-year-label')"
-          :items="yearOptions"
+        <BaseDateField
+          v-model="filters.startDate"
+          :label="$t('start-date-label')"
           :required="true"
           outlined
+          :min-date="'2015-01-01'"
         />
       </v-col>
       <v-col class="py-0 full-width">
-        <v-select
-          v-model="filters.endYear"
-          :label="$t('end-year-label')"
-          :items="yearOptions"
+        <BaseDateField
+          v-model="filters.endDate"
+          :label="$t('end-date-label')"
           :required="true"
           outlined
+          :min-date="'2015-01-01'"
         />
       </v-col>
     </v-row>
-    
     <v-row
       no-gutters
       align="center"
@@ -143,8 +141,8 @@
         "search-label": "Search",
         "opacity-label": "Opacity",
         "current-view-label": "Search in current area?",
-        "start-year-label": "Start Year",
-        "end-year-label": "End Year",
+        "start-date-label": "Start Date",
+        "end-date-label": "End Date",
         "total-area-label": "Total Area",
         "regional-coordination-label": "Regional Coordination (All)",
         "indigenous-lands-label": "Indigenous Lands",
@@ -155,8 +153,8 @@
         "search-label": "Buscar",
         "opacity-label": "Opacidade",
         "current-view-label": "Pesquisar nesta área?",
-        "start-year-label": "Ano Início",
-        "end-year-label": "Ano Final",
+        "start-date-label": "Data Início",
+        "end-date-label": "Data Final",
         "total-area-label": "Área total",
         "regional-coordination-label": "Coordenação Regional (Todas)",
         "indigenous-lands-label": "Terras Indígenas",
@@ -168,22 +166,23 @@
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';
 import legend from '@/assets/legend.png';
+import BaseDateField from '@/components/base/BaseDateField';
 
 export default {
   name: 'DeterFilters',
 
+  components: { BaseDateField },
+
   data() {
-    const currentYear = new Date().getFullYear();
-    const yearOptions = [];
-    for (let year = 2015; year <= currentYear; year++) {
-      yearOptions.push(year);
-    }
+    
 
     return {
-      yearOptions,
+    
       filters: {
-        startYear: currentYear,
-        endYear: currentYear,
+        startDate: this.$moment()
+          .subtract(30, 'days')
+          .format('YYYY-MM-DD'),
+        endDate: this.$moment().format('YYYY-MM-DD'),
         currentView: false,
         priority: null,
         cr: [],
@@ -243,11 +242,7 @@ export default {
       this.populateCrOptions();
     },
 
-    'filters.startYear'(newVal) {
-      if (newVal > this.filters.endYear) {
-        this.filters.endYear = newVal;
-      }
-    },
+    
   },
 
   mounted() {
@@ -284,21 +279,21 @@ export default {
 
     searchDeter() {
       const { filters } = this;
-      const {
-        currentView, cr, startYear, endYear,
-      } = filters;
+      const { currentView, cr, startDate, endDate } = filters;
 
-      if ((currentView || cr.length) && startYear && endYear) {
+
+      if ((currentView || cr.length) && startDate && endDate) {
         this.error = false;
+
+      if (new Date(endDate) < new Date(startDate)) {  
+        this.error = true;
+          this.$store.commit('alert/addAlert', {
+            message: this.$i18n.t('A data final deve ser maior ou igual à data inicial'),
+          }, { root: true });
+          return;
+        }
         
-        // Convert years to dates for the store if needed
-        const filtersForStore = {
-          ...filters,
-          startDate: `${startYear}-01-01`,
-          endDate: `${endYear}-12-31`
-        };
-        
-        this.setFilters(filtersForStore);
+        this.setFilters(filters);
         this.getFeatures();
         return;
       }
