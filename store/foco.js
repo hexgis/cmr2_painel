@@ -3,7 +3,7 @@ const { stringify } = require('wkt');
 export const state = () => ({
   features: null,
   urlWmsFoco: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
-  geoserverLayerFoco: 'CMR-FUNAI:vw_satelite_aqua_m_m_loc_focos_de_calor_p1',
+  geoserverLayerFoco: '',
   currentUrlWmsFoco: '',
   showFeaturesFoco: false,
    FocoWmsOptions: {
@@ -29,6 +29,7 @@ export const state = () => ({
   },
   opacity: 100,
   intersectsWmsFoco: '',
+  
 });
 
 export const getters = {
@@ -45,6 +46,10 @@ export const getters = {
 };
 
 export const mutations = {
+  setGeoserverLayerFoco(state, layer) {
+    state.geoserverLayerFoco = layer;
+  },
+
   setIntersectsWmsFoco(state, intersectsWmsFoco) {
     state.intersectsWmsFoco = intersectsWmsFoco;
   },
@@ -92,6 +97,8 @@ export const mutations = {
 
 export const actions = {
   async generateUrlWmsFoco({ state, commit }, newBbox = false) {
+    if (!state.geoserverLayerFoco) return; 
+    
     const params = {
       layers: state.geoserverLayerFoco,
       env: `fill-opacity:${state.opacity / 100}`,

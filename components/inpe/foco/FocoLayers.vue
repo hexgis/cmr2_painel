@@ -1,18 +1,18 @@
 <template>
     
     <div>
- <l-lwms-tile-layer 
-   v-if="currentUrlWmsFoco && showFeaturesFoco"
-   ref="wmsLayerFoco"
-   :base-url="currentUrlWmsFoco"
-   :layers="geoserverLayerFoco"
-   format="image/png"
-   :transparent="true"
-   :z-index="3"
-   :opacity="opacity / 100"
-   :visible="showFeaturesFoco"
-   :options="{...FocoWmsOptions, name: $t('name-layer')}"
- />
+        <l-lwms-tile-layer 
+  v-if="currentUrlWmsFoco && showFeaturesFoco && geoserverLayerFoco"
+  ref="wmsLayerFoco"
+  :base-url="currentUrlWmsFoco"
+  :layers="geoserverLayerFoco"
+  format="image/png"
+  :transparent="true"
+  :z-index="3"
+  :opacity="opacity / 100"
+  :visible="showFeaturesFoco"
+  :options="{...FocoWmsOptions, name: $t('name-layer')}"
+/>
 </div>
 
 </template>
@@ -21,11 +21,11 @@
  {
      "en": {
          "detail-api-error": "Error while retrieving polygon data, contact a system administrator in case it persists." ,
-         "name-layer": "Foco"    
+         "name-layer": "Heat focus"    
      },
      "pt-br": {
          "detail-api-error": "Não foi possível resgatar os dados do polígono, entre em contato com um administrador caso persista.",          
-          "name-layer": "Foco"
+          "name-layer": "Foco de Calor"
      }
  }
 </i18n>

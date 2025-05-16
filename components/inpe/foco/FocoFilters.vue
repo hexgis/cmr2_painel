@@ -3,15 +3,15 @@
 
   <v-col class="px-4">
     <v-row>
-      <v-icon>mdi-fire</v-icon>
-      <span class="mt-7">AQUA M-M</span>
-      <v-switch v-model="switch1"></v-switch>
-    </v-row>
-    <v-row>
-      <v-icon>mdi-fire</v-icon>
-      <span class="mt-7">AQUA M-T</span>   
-      <v-switch v-model="switch2"></v-switch>
-    </v-row>
+  <v-icon>mdi-fire</v-icon>
+  <span class="mt-7">AQUA M-M</span>
+  <v-switch v-model="switch1"></v-switch>
+</v-row>
+<v-row>
+  <v-icon>mdi-fire</v-icon>
+  <span class="mt-7">AQUA M-T</span>   
+  <v-switch v-model="switch2"></v-switch>
+</v-row>
     
    
     <template v-if="isAnySwitchActive">
@@ -266,6 +266,27 @@ export default {
     'filterOptions.regionalFilters': function () {
       this.populateCrOptions();
     },
+
+    switch1(val) {
+    if (val) {
+      this.switch2 = false;
+      this.$store.commit('foco/setGeoserverLayerFoco', 'CMR-FUNAI:vw_satelite_aqua_m_m_loc_focos_de_calor_p');
+      if (this.showFeaturesFoco) this.searchFoco();
+    } else if (!this.switch2) {
+      this.$store.commit('foco/setGeoserverLayerFoco', '');
+      this.$store.commit('foco/clearFeatures');
+    }
+  },
+  switch2(val) {
+    if (val) {
+      this.switch1 = false;
+      this.$store.commit('foco/setGeoserverLayerFoco', 'CMR-FUNAI:vw_satelite_aqua_m_t_loc_focos_de_calor_p');
+      if (this.showFeaturesFoco) this.searchFoco();
+    } else if (!this.switch1) {
+      this.$store.commit('foco/setGeoserverLayerFoco', '');
+      this.$store.commit('foco/clearFeatures');
+    }
+  },
 
     
   },
