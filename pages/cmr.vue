@@ -170,6 +170,12 @@ export default {
           route: '/support-hazard',
           show: process.env.ROUTE_SUPPORT_HAZARD === 'true',
         },
+        {
+          name: this.$t('support-fire-tab'),
+          icon: 'mdi-fire',
+          route: '/cmr/support-hazard',
+          show: process.env.ROUTE_SUPPORT_HAZARD === 'true',
+        },
         */
 
       return [
@@ -228,12 +234,7 @@ export default {
           componentKey: 'analytics',
         },
 
-        {
-          name: this.$t('support-fire-tab'),
-          icon: 'mdi-fire',
-          route: '/cmr/support-hazard',
-          show: process.env.ROUTE_SUPPORT_HAZARD === 'true',
-        },
+        
       ];
     },
     tabs() {
