@@ -187,7 +187,7 @@
 
         <SupportLayersRaster />
 
-        <SupportLayersProdes />
+        
 
         <SupportLayersHazard />
 
@@ -208,6 +208,8 @@
         <ProdesLayers :map="map" />
 
         <DeterLayers :map="map" />
+
+        <FocoLayers :map="map" />
 
         <!-- <AlgorithmLayers /> -->
 
@@ -282,7 +284,7 @@ import BaseWmsMetadataPopup from '@/components/base/BaseWmsMetadataPopup';
 // import AlgorithmLayers from '@/components/algorithms/AlgorithmLayers'
 // import WebhooksLayers from '@/components/webhooks/WebhooksLayers'
 import PriorityLayers from '@/components/priority/PriorityLayers';
-import DeterLayers from '@/components/remote-sensing/deter/DeterLayers.vue';
+import DeterLayers from '@/components/inpe/deter/DeterLayers.vue';
 import AlertLayers from '@/components/monitoring/AlertLayers';
 import LandUseLayers from '@/components/land-use/LandUseLayers';
 import SupportUserLayersMap from '@/components/support/SupportUserLayersMap';
@@ -293,7 +295,8 @@ import DrawingPanel from '@/components/map/drawing-tool/DrawingPanel.vue';
 import BaseTiMetadata from '../base/BaseTiMetadata.vue';
 import Highlighter from '@/components/map/Highlighter.vue';
 import MapIndigenousLand from '@/components/map/MapIndigenousLand';
-import ProdesLayers from '@/components/remote-sensing/prodes/ProdesLayers.vue'
+import ProdesLayers from '@/components/inpe/prodes/ProdesLayers.vue'
+import FocoLayers from '../inpe/foco/FocoLayers.vue';
 
 if (typeof window !== 'undefined') {
   require('leaflet-basemaps');
@@ -334,6 +337,7 @@ export default {
     Highlighter,
     BaseTiMetadata,
     ProdesLayers,
+    FocoLayers
   },
 
   props: {

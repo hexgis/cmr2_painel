@@ -139,9 +139,8 @@
         href="#tab-3"
         class="tab-item"
         style="font-size: 12px; line-height: 1.2"
-        disabled
       >
-        Risco e foco<br>de calor
+        Foco de calor
         <v-icon>mdi-fire</v-icon>
       </v-tab>
     </v-tabs>
@@ -155,7 +154,7 @@
           <DeterFilters />
         </v-tab-item>
         <v-tab-item value="tab-3">
-          <RiscoFocoFilters />
+          <FocoFilters />
         </v-tab-item>
       </v-tabs-items>
     </div>
@@ -215,14 +214,14 @@
 import { mapState } from 'vuex';
 import _ from 'lodash';
 
-import DeterFilters from '../../components/remote-sensing/deter/DeterFilters.vue';
-import ProdesFilters from '../../components/remote-sensing/prodes/ProdesFilters.vue';
-import RiscoFocoFilters from '../../components/remote-sensing/risco-foco/RiscoFocoFilters.vue';
+import DeterFilters from '../../components/inpe/deter/DeterFilters.vue';
+import ProdesFilters from '../../components/inpe/prodes/ProdesFilters.vue';
+import FocoFilters from '../../components/inpe/foco/FocoFilters.vue';
 
 export default {
   name: 'SupportProdes',
 
-  components: { DeterFilters, ProdesFilters, RiscoFocoFilters},
+  components: { DeterFilters, ProdesFilters, FocoFilters},
 
   transition: 'scroll-y-transition',
 
