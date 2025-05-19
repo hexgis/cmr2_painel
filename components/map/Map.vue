@@ -78,8 +78,9 @@
 
             <div class="div-spacer" />
 
-            <template v-if="isLoggedIn">
+            <template >
               <FileLoaderControl
+                v-if="isLoggedIn"
                 :map="map"
                 :files="loadedFiles"
                 @loading="isLoading()"

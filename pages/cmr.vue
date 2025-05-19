@@ -217,6 +217,7 @@ export default {
           name: this.$t('remote-sensing-tab'),
           icon: 'mdi-satellite-variant',
           route: '/cmr/remote-sensing',
+          requiredLogin: true,
           show: process.env.ROUTE_SUPPORT_PRODES === 'true',
         },
         {
