@@ -1,6 +1,22 @@
 <template>
+<div>
+
   <v-col class="px-4">
     <v-row>
+  <v-icon>mdi-fire</v-icon>
+  <span class="mt-7">AQUA M-M</span>
+  <v-switch v-model="switch1"></v-switch>
+</v-row>
+<v-row>
+  <v-icon>mdi-fire</v-icon>
+  <span class="mt-7">AQUA M-T</span>   
+  <v-switch v-model="switch2"></v-switch>
+</v-row>
+    
+   
+    <template v-if="isAnySwitchActive">
+    <v-row>
+      
       <v-col cols="9">
         <v-checkbox
           v-model="filters.currentView"
@@ -12,8 +28,8 @@
       <v-col cols="3">
         <div class="d-flex justify-end align-center mt-1">
           <v-switch
-            v-if="currentUrlWmsMonitoring"
-            v-model="featuresMonitoring"
+            v-if="currentUrlWmsFoco"
+            v-model="featuresFoco"
             class="mt-3"
             hide-details
             :title="$t('title-switch-disable-features')"
@@ -53,69 +69,63 @@
         </v-slide-y-transition>
       </v-col>
     </v-row>
-   
-
     <v-row class="pt-3">
-  <v-col class="py-0 full-width">
-    <BaseDateField
-      v-model="filters.startDate"
-      :label="$t('start-date-label')"
-      :required="true"
-      outlined
-    />
-  </v-col>
-
-  <v-col class="py-0 full-width">
-    <BaseDateField
-      v-model="filters.endDate"
-      :label="$t('end-date-label')"
-      :required="true"
-      :min-date="filters.startDate"
-      outlined
-    />
-  </v-col>
-</v-row>
-    
-    <v-row  
+      <v-col class="py-0 full-width">
+        <BaseDateField
+          v-model="filters.startDate"
+          :label="$t('start-date-label')"
+          :required="true"
+          outlined
+          :min-date="'2015-01-01'"
+        />
+      </v-col>
+      <v-col class="py-0 full-width">
+        <BaseDateField
+          v-model="filters.endDate"
+          :label="$t('end-date-label')"
+          :required="true"
+          outlined
+          :min-date="'2015-01-01'"
+        />
+      </v-col>
+    </v-row>
+    <v-row
       no-gutters
       align="center"
       class="mt-3"
     >
-      <v-col
-        v-if="showFeaturesMonitoring"
-        class="ml-5"
-      >
+      <v-col v-if="showFeaturesFoco">
         <v-btn
           block
           small
           color="primary"
           outlined
-          :loading="loadingMonitoring"
-          @click="searchMonitoring"
+          :loading="loadingFoco"
+          @click="searchFoco"
         >
           {{ $t('search-label') }}
         </v-btn>
       </v-col>
-      <v-col v-if="!showFeaturesMonitoring">
+      <v-col v-if="!showFeaturesFoco">
         <v-btn
           block
           small
           color="primary"
           outlined
-          :loading="loadingMonitoring"
-          @click="searchMonitoring"
+          :loading="loadingFoco"
+          @click="searchFoco"
         >
           {{ $t('search-label') }}
         </v-btn>
       </v-col>
     </v-row>
     <v-divider
-      v-if="showFeaturesMonitoring && !isLoadingFeatures"
+      v-if="showFeaturesFoco && !isLoadingFeatures"
       class="mt-4"
     />
 
     <v-row
-      v-if="showFeaturesMonitoring && !isLoadingFeatures"
+      v-if="showFeaturesFoco && !isLoadingFeatures"
       align="center"
       class="mt-2"
     >
@@ -134,10 +144,14 @@
       </v-col>
     </v-row>
     <v-divider></v-divider>
-    <!--<p class="font-weight-regular pt-2 grey--text text--darken-2">
-        {{ $t('legend') }} fasfasf
+    </template>
+   <!-- <p class="font-weight-regular pt-2 grey--text text--darken-2">
+        {{ $t('legend') }}
       </p>-->
   </v-col>
+
+</div>
+
 </template>
 
 <i18n>
@@ -152,7 +166,7 @@
         "total-area-label": "Total Area",
         "regional-coordination-label": "Regional Coordination (All)",
         "indigenous-lands-label": "Indigenous Lands",
-        "title-switch-disable-features": "Disable Monitoring Layer"
+        "title-switch-disable-features": "Disable Foco Layer"
     },
     "pt-br": {
         "legend": "Legenda:",
@@ -160,11 +174,11 @@
         "opacity-label": "Opacidade",
         "current-view-label": "Pesquisar nesta área?",
         "start-date-label": "Data Início",
-        "end-date-label": "Data Fim",
+        "end-date-label": "Data Final",
         "total-area-label": "Área total",
         "regional-coordination-label": "Coordenação Regional (Todas)",
         "indigenous-lands-label": "Terras Indígenas",
-        "title-switch-disable-features": "Desabilitar Camada de Monitoramento"
+        "title-switch-disable-features": "Desabilitar Camada de Foco"
     }
 }
 </i18n>
@@ -175,13 +189,15 @@ import legend from '@/assets/legend.png';
 import BaseDateField from '@/components/base/BaseDateField';
 
 export default {
-  name: 'DeterFilters',
+  name: 'FocoFilters',
 
-   components: { BaseDateField },
+  components: { BaseDateField },
 
   data() {
+    
+
     return {
-      isGeoserver: process.env.MONITORING_GEOSERVER === 'true',
+    
       filters: {
         startDate: this.$moment()
           .subtract(30, 'days')
@@ -198,38 +214,43 @@ export default {
       error: false,
       flattened: [],
       dialog: false,
+      switch1: false,  // Para AQUA M-M
+      switch2: false,
     };
   },
 
   computed: {
+    isAnySwitchActive() {
+    return this.switch1 || this.switch2;
+  },
     opacity: {
       get() {
-        return this.$store.state.deter.opacity;
+        return this.$store.state.foco.opacity;
       },
       set(value) {
-        this.$store.commit('deter/setOpacity', value);
+        this.$store.commit('foco/setOpacity', value);
       },
     },
 
-    featuresMonitoring: {
+    featuresFoco: {
       get() {
-        return this.$store.state.deter.showFeaturesMonitoring;
+        return this.$store.state.foco.showFeaturesFoco;
       },
       set(value) {
         this.$store.commit(
-          'deter/setshowFeaturesMonitoring',
+          'foco/setshowFeaturesFoco',
           value,
         );
       },
     },
 
-    ...mapState('deter', [
-      'currentUrlWmsMonitoring',
+    ...mapState('foco', [
+      'currentUrlWmsFoco',
       'isLoadingFeatures',
-      'loadingMonitoring',
+      'loadingFoco',
       'filterOptions',
       'features',
-      'showFeaturesMonitoring',   
+      'showFeaturesFoco',   
     ]),
   },
 
@@ -246,11 +267,28 @@ export default {
       this.populateCrOptions();
     },
 
-    'filters.startYear'(newVal) {
-      if (newVal > this.filters.endYear) {
-        this.filters.endYear = newVal;
-      }
-    },
+    switch1(val) {
+    if (val) {
+      this.switch2 = false;
+      this.$store.commit('foco/setGeoserverLayerFoco', 'CMR-FUNAI:vw_satelite_aqua_m_m_loc_focos_de_calor_p');
+      if (this.showFeaturesFoco) this.searchFoco();
+    } else if (!this.switch2) {
+      this.$store.commit('foco/setGeoserverLayerFoco', '');
+      this.$store.commit('foco/clearFeatures');
+    }
+  },
+  switch2(val) {
+    if (val) {
+      this.switch1 = false;
+      this.$store.commit('foco/setGeoserverLayerFoco', 'CMR-FUNAI:vw_satelite_aqua_m_t_loc_focos_de_calor_p');
+      if (this.showFeaturesFoco) this.searchFoco();
+    } else if (!this.switch1) {
+      this.$store.commit('foco/setGeoserverLayerFoco', '');
+      this.$store.commit('foco/clearFeatures');
+    }
+  },
+
+    
   },
 
   mounted() {
@@ -281,37 +319,37 @@ export default {
     },
 
     populateTiOptions(cr) {
-      if (cr) this.$store.dispatch('deter/getTiOptions', cr);
+      if (cr) this.$store.dispatch('foco/getTiOptions', cr);
       else this.filters.ti = null;
     },
 
-   searchMonitoring() {
-  const { filters } = this;
-  const { currentView, cr, startDate, endDate } = filters;
+    searchFoco() {
+      const { filters } = this;
+      const { currentView, cr, startDate, endDate } = filters;
 
-  if ((currentView || cr.length) && startDate && endDate) {
-    this.error = false;
-    
-    // Verifica se a data final é maior ou igual à data inicial
-    if (new Date(endDate) < new Date(startDate)) {
+
+      if ((currentView || cr.length) && startDate && endDate) {
+        this.error = false;
+
+      if (new Date(endDate) < new Date(startDate)) {  
+        this.error = true;
+          this.$store.commit('alert/addAlert', {
+            message: this.$i18n.t('A data final deve ser maior ou igual à data inicial'),
+          }, { root: true });
+          return;
+        }
+        
+        this.setFilters(filters);
+        this.getFeatures();
+        return;
+      }
       this.error = true;
-      this.$store.commit('alert/addAlert', {
-        message: this.$i18n.t('A data final deve ser maior ou igual à data inicial'),
-      }, { root: true });
-      return;
-    }
+    },
     
-    this.setFilters(filters);
-    this.getFeatures();
-    return;
-  }
-  this.error = true;
-},
-    
-    ...mapMutations('deter', [
+    ...mapMutations('foco', [
       'setFilters',  
     ]),
-    ...mapActions('deter', [
+    ...mapActions('foco', [
       'getFilterOptions',
       'getFeatures',    
     ]),
