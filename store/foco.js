@@ -110,7 +110,7 @@ export const mutations = {
 export const actions = {
   async generateUrlWms({ state, commit }, layer) {
     if (!state.layers[layer].geoserverLayer) return;
-    
+
     const params = {
       layers: state.layers[layer].geoserverLayer,
       env: `fill-opacity:${state.layers[layer].opacity / 100}`,
@@ -158,7 +158,7 @@ export const actions = {
 
     const paramsUrl = new URLSearchParams(params);
     const fullUrl = `${url}${paramsUrl}`;
-    
+
     commit('setUrlCurrentWms', { layer, url: fullUrl });
   },
 

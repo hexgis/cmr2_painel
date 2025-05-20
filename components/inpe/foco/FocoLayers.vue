@@ -28,26 +28,16 @@
     </div>
 </template>
 
-<i18n>
-{
-  "en": {
-    "detail-api-error": "Error while retrieving polygon data, contact a system administrator in case it persists.",
-    "name-layer-aqua-mm": "AQUA M-M Heat Focus",
-    "name-layer-aqua-mt": "AQUA M-T Heat Focus"    
-  },
-  "pt-br": {
-    "detail-api-error": "Não foi possível resgatar os dados do polígono, entre em contato com um administrador caso persista.",          
-    "name-layer-aqua-mm": "Foco de Calor AQUA M-M",
-    "name-layer-aqua-mt": "Foco de Calor AQUA M-T"
-  }
-}
-</i18n>
-
 <script>
 import { mapState } from 'vuex'
+import BaseMetadataPopup from '@/components/base/BaseMetadataPopup'
 
 export default {
     name: 'FocoLayers',
+
+    components: {
+        BaseMetadataPopup,
+    },
 
     computed: {
         ...mapState('foco', ['wmsOptions', 'layers', 'isLoadingFeatures']),
@@ -79,3 +69,18 @@ export default {
     },
 }
 </script>
+
+<i18n> 
+    {
+      "en": {
+        "detail-api-error": "Error while retrieving polygon data, contact a system administrator in case it persists.",
+        "name-layer-aqua-mm": "AQUA M-M - Heat Focus",
+        "name-layer-aqua-mt": "AQUA M-T - Heat Focus"    
+      },
+      "pt-br": {
+        "detail-api-error": "Não foi possível resgatar os dados do polígono, entre em contato com um administrador caso persista.",          
+        "name-layer-aqua-mm": "Foco de Calor - AQUA MODIS (M)",
+        "name-layer-aqua-mt": "Foco de Calor - AQUA MODIS (T)"
+      }
+    }
+</i18n>

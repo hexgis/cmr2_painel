@@ -6,7 +6,7 @@ export const state = () => ({
   geoserverLayerProdes: 'CMR-PUBLICO:vw_prodes_com_terra_indigena_a',
   currentUrlWmsProdes: '',
   showFeaturesProdes: false,
-   ProdesWmsOptions: {
+  ProdesWmsOptions: {
     name: 'prodes',
     maxZoom: 21,
     maxNativeZoom: 19,
@@ -20,8 +20,8 @@ export const state = () => ({
   },
   filters: {
     startYear: 2025,
-    endYear: 2025,   
-    currentView: false, 
+    endYear: 2025,
+    currentView: false,
   },
   opacity: 100,
   intersectsWmsProdes: '',
