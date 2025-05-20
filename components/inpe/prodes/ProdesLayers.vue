@@ -102,11 +102,11 @@ export default {
     {
         "en": {
             "detail-api-error": "Error while retrieving polygon data, contact a system administrator in case it persists." ,
-            "name-layer": "Prodes (INPE)"    
+            "name-layer": "Prodes"    
         },
         "pt-br": {
             "detail-api-error": "Não foi possível resgatar os dados do polígono, entre em contato com um administrador caso persista.",          
-             "name-layer": "Prodes (INPE)"
+            "name-layer": "Prodes"
         }
     }
 </i18n>

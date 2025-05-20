@@ -231,7 +231,7 @@
 /* eslint-disable no-underscore-dangle --
  * Underscore attributes defined by "Leafleat" plugin
  */
-import { mapState, mapMutations, mapActions } from 'vuex';
+import { mapState, mapMutations, mapActions, mapGetters } from 'vuex';
 import DrawPopup from '../DrawPopup.vue';
 import BaseDialog from './BaseDialog.vue';
 import getGeometryArea from '~/plugins/getGeometryArea';
@@ -295,7 +295,7 @@ export default {
     ...mapState('map', ['buttonPopup', 'activeMenu']),
     ...mapState('supportLayers', ['supportLayers', 'showFeaturesSupportLayers']),
     ...mapState('searchInArea', ['layersGroups']),
-    ...mapState('auth', ['isLoggedIn']),
+    ...mapGetters('auth', ['isLoggedIn']),
   },
 
   watch: {
