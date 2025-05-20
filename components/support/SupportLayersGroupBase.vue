@@ -63,9 +63,21 @@ export default {
 
     orderedSupportLayers() {
       if (!this.supportLayers) return [];
-      return [...this.supportLayers].sort((a, b) => {
-        if (a.name.includes('Terras Indígenas')) return -1;
-        if (b.name.includes('Terras Indígenas')) return 1;
+        return [...this.supportLayers].sort((a, b) => {
+     
+      if (/terras ind[íi]genas/i.test(a.name)) return -1;
+      if (/terras ind[íi]genas/i.test(b.name)) return 1;
+     
+      const getBufferSize = (name) => {
+      const match = name.match(/buffer de ti\s*\(?\s*(\d+)\s*(km)?\s*\)?/i);
+        return match ? parseInt(match[1]) : 0;
+      };
+      const aSize = getBufferSize(a.name);
+      const bSize = getBufferSize(b.name);
+     
+      if (aSize && bSize) return aSize - bSize;
+      if (aSize) return -1;
+      if (bSize) return 1;
         return a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' });
       });
     },
