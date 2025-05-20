@@ -1,61 +1,73 @@
 const { stringify } = require('wkt');
 
 export const state = () => ({
-  features: null,
-  urlWmsFoco: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
-  geoserverLayerFoco: '',
-  currentUrlWmsFoco: '',
-  showFeaturesFoco: false,
-   FocoWmsOptions: {
-    name: 'foco',
+  layers: {
+    aquaMM: {
+      features: null,
+      geoserverLayer: 'CMR-FUNAI:vw_satelite_aqua_m_m_loc_focos_de_calor_p',
+      currentUrlWms: '',
+      showFeatures: false,
+      loading: false,
+      filters: {
+        startDate: null,
+        endDate: null,
+        currentView: false,
+        cr: [],
+        ti: null,
+      },
+      opacity: 100,
+      intersectsWms: '',
+    },
+    aquaMT: {
+      features: null,
+      geoserverLayer: 'CMR-FUNAI:vw_satelite_aqua_m_t_loc_focos_de_calor_p',
+      currentUrlWms: '',
+      showFeatures: false,
+      loading: false,
+      filters: {
+        startDate: null,
+        endDate: null,
+        currentView: false,
+        cr: [],
+        ti: null,
+      },
+      opacity: 100,
+      intersectsWms: '',
+    }
+  },
+  urlWmsBase: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
+  wmsOptions: {
     maxZoom: 21,
     maxNativeZoom: 19,
     queryable: true,
   },
-  loadingFoco: false,
   isLoadingFeatures: false,
   filterOptions: {
     regionalFilters: [],
     tiFilters: [],
   },
-  filters: {
-    startDate: null,
-    endDate: null,
-    currentView: false, 
-    priority: null,
-    cr: [],
-    ti: null,
-    
-  },
-  opacity: 100,
-  intersectsWmsFoco: '',
-  
 });
 
 export const getters = {
-  featuresLoaded(state) {
+  featuresLoaded: (state) => (layer) => {
     return (
-      state.features &&
-      state.features.features &&
-      state.features.features.length > 0
+      state.layers[layer].features &&
+      state.layers[layer].features.features &&
+      state.layers[layer].features.features.length > 0
     );
   },
-  getShowFeaturesFoco: (state) => {
-    return state.showFeaturesFoco;
+  getShowFeatures: (state) => (layer) => {
+    return state.layers[layer].showFeatures;
   },
 };
 
 export const mutations = {
-  setGeoserverLayerFoco(state, layer) {
-    state.geoserverLayerFoco = layer;
+  setIntersectsWms(state, { layer, intersectsWms }) {
+    state.layers[layer].intersectsWms = intersectsWms;
   },
 
-  setIntersectsWmsFoco(state, intersectsWmsFoco) {
-    state.intersectsWmsFoco = intersectsWmsFoco;
-  },
-
-  setshowFeaturesFoco(state, showFeaturesFoco) {
-    state.showFeaturesFoco = showFeaturesFoco;
+  setShowFeatures(state, { layer, showFeatures }) {
+    state.layers[layer].showFeatures = showFeatures;
   },
 
   setLoadingFeatures(state, payload) {
@@ -66,57 +78,57 @@ export const mutations = {
     state.filterOptions = data;
   },
 
-  setOpacity(state, opacity) {
-    state.opacity = opacity;
+  setOpacity(state, { layer, opacity }) {
+    state.layers[layer].opacity = opacity;
   },
 
-  setFilters(state, filters) {
-    state.filters = {
-      ...state.filters,
+  setFilters(state, { layer, filters }) {
+    state.layers[layer].filters = {
+      ...state.layers[layer].filters,
       ...filters,
     };
   },
 
-  setUrlCurrentWmsFoco(state, url) {
-    state.currentUrlWmsFoco = url;
+  setUrlCurrentWms(state, { layer, url }) {
+    state.layers[layer].currentUrlWms = url;
   },
 
-  setFeatures(state, features) {
-    state.features = features;
+  setFeatures(state, { layer, features }) {
+    state.layers[layer].features = features;
     state.isLoadingFeatures = false;
   },
 
-  setLoadingFoco(state, loadingFoco) {
-    state.loadingFoco = loadingFoco;
+  setLoading(state, { layer, loading }) {
+    state.layers[layer].loading = loading;
   },
 
-  clearFeatures(state) {
-    state.features = null;
+  clearFeatures(state, layer) {
+    state.layers[layer].features = null;
   },
 };
 
 export const actions = {
-  async generateUrlWmsFoco({ state, commit }, newBbox = false) {
-    if (!state.geoserverLayerFoco) return; 
-    
+  async generateUrlWms({ state, commit }, layer) {
+    if (!state.layers[layer].geoserverLayer) return;
+
     const params = {
-      layers: state.geoserverLayerFoco,
-      env: `fill-opacity:${state.opacity / 100}`,
+      layers: state.layers[layer].geoserverLayer,
+      env: `fill-opacity:${state.layers[layer].opacity / 100}`,
       CQL_FILTER: '',
-      opacity: state.opacity,
+      opacity: state.layers[layer].opacity,
     };
 
-    let url = state.urlWmsFoco;
+    let url = state.urlWmsBase;
 
     // Apply intersects filter
-    if (state.intersectsWmsFoco) {
-      params.CQL_FILTER += state.intersectsWmsFoco;
+    if (state.layers[layer].intersectsWms) {
+      params.CQL_FILTER += state.layers[layer].intersectsWms;
     }
 
     // Apply TI filter
     const arrayTI = [];
-    if (state.filters.ti && state.filters.ti.length) {
-      Object.values(state.filters.ti).forEach((item) => {
+    if (state.layers[layer].filters.ti && state.layers[layer].filters.ti.length) {
+      Object.values(state.layers[layer].filters.ti).forEach((item) => {
         arrayTI.push(item.co_funai);
       });
       if (params.CQL_FILTER.length) {
@@ -127,8 +139,8 @@ export const actions = {
 
     // Apply CR filter
     const arrayCR = [];
-    if (state.filters.cr && state.filters.cr.length) {
-      Object.values(state.filters.cr).forEach((item) => {
+    if (state.layers[layer].filters.cr && state.layers[layer].filters.cr.length) {
+      Object.values(state.layers[layer].filters.cr).forEach((item) => {
         arrayCR.push(item.co_cr);
       });
       if (params.CQL_FILTER.length) {
@@ -137,71 +149,64 @@ export const actions = {
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
 
-  
-    if (state.filters.startDate && state.filters.endDate) {
+    if (state.layers[layer].filters.startDate && state.layers[layer].filters.endDate) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
       }
-      params.CQL_FILTER += `(dt_foco_calor >= (${state.filters.startDate}) AND dt_foco_calor <= (${state.filters.endDate}))`;
+      params.CQL_FILTER += `(dt_foco_calor >= (${state.layers[layer].filters.startDate}) AND dt_foco_calor <= (${state.layers[layer].filters.endDate}))`;
     }
 
     const paramsUrl = new URLSearchParams(params);
     const fullUrl = `${url}${paramsUrl}`;
-    console.log(fullUrl);
-    
 
-    commit('setUrlCurrentWmsFoco', fullUrl);
+    commit('setUrlCurrentWms', { layer, url: fullUrl });
   },
 
-  async getFeatures({ state, commit, dispatch }) {
-    commit('setUrlCurrentWmsFoco', '');
-    commit('setLoadingFoco', true);
-    commit('clearFeatures');
+  async getFeatures({ state, commit, dispatch }, layer) {
+    commit('setUrlCurrentWms', { layer, url: '' });
+    commit('setLoading', { layer, loading: true });
+    commit('clearFeatures', layer);
 
     try {
-      commit('setshowFeaturesFoco', true);
+      commit('setShowFeatures', { layer, showFeatures: true });
       commit('setLoadingFeatures', true);
 
       const map = window.mapMain;
-      if (state.filters.currentView) {
+      if (state.layers[layer].filters.currentView) {
         const bounds = map.getBounds();
-
         const sw = bounds.getSouthWest();
         const ne = bounds.getNorthEast();
         const nw = L.latLng(ne.lat, sw.lng);
         const se = L.latLng(sw.lat, ne.lng);
-
         const bboxPolygon = L.polygon([sw, se, ne, nw, sw]);
-
         const geojson = bboxPolygon.toGeoJSON();
-
         const wkt = stringify(geojson.geometry);
 
-        commit('setIntersectsWmsFoco', `INTERSECTS(geom,${wkt})`);
+        commit('setIntersectsWms', { layer, intersectsWms: `INTERSECTS(geom,${wkt})` });
       } else {
-        commit('setIntersectsWmsFoco', '');
+        commit('setIntersectsWms', { layer, intersectsWms: '' });
       }
 
       const arrayTI = [];
-      if (state.filters.ti && state.filters.ti.length) {
-        Object.values(state.filters.ti).forEach((item) => {
+      if (state.layers[layer].filters.ti && state.layers[layer].filters.ti.length) {
+        Object.values(state.layers[layer].filters.ti).forEach((item) => {
           arrayTI.push(item.co_funai);
         });
       }
 
       const arrayCR = [];
-      if (state.filters.cr && state.filters.cr.length) {
-        Object.values(state.filters.cr).forEach((item) => {
+      if (state.layers[layer].filters.cr && state.layers[layer].filters.cr.length) {
+        Object.values(state.layers[layer].filters.cr).forEach((item) => {
           arrayCR.push(item.co_cr);
         });
       }
 
       try {
-        if (!state.filters.currentView) {
+        if (!state.layers[layer].filters.currentView) {
           let bbox;
           if (
-            (state.filters.cr && state.filters.cr.length) ||
-            (state.filters.ti && state.filters.ti.length)
+            (state.layers[layer].filters.cr && state.layers[layer].filters.cr.length) ||
+            (state.layers[layer].filters.ti && state.layers[layer].filters.ti.length)
           ) {
             bbox = await this.$api.$post('monitoring/consolidated/bbox/', {
               co_cr: [...arrayCR],
@@ -226,8 +231,7 @@ export const actions = {
         );
       }
 
-      await dispatch('generateUrlWmsFoco');
-      
+      await dispatch('generateUrlWms', layer);
 
     } catch (exception) {
       commit(
@@ -242,7 +246,7 @@ export const actions = {
       );
     } finally {
       commit('setLoadingFeatures', false);
-      commit('setLoadingFoco', false);
+      commit('setLoading', { layer, loading: false });
     }
   },
 
@@ -297,6 +301,4 @@ export const actions = {
       );
     }
   },
-
-  
 };

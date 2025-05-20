@@ -117,7 +117,7 @@ export default {
     methods: {
         addFeatures() {
             if (!this.features || !this.features.features) {
-                console.warn('Features are not loaded yet')
+                //console.warn('Features are not loaded yet')
                 return
             }
 

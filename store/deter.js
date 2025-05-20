@@ -6,7 +6,7 @@ export const state = () => ({
   geoserverLayerDeter: 'CMR-FUNAI:img_alerta_deter_a',
   currentUrlWmsDeter: '',
   showFeaturesDeter: false,
-   DeterWmsOptions: {
+  DeterWmsOptions: {
     name: 'deter',
     maxZoom: 21,
     maxNativeZoom: 19,
@@ -21,11 +21,11 @@ export const state = () => ({
   filters: {
     startDate: null,
     endDate: null,
-    currentView: false, 
+    currentView: false,
     priority: null,
     cr: [],
     ti: null,
-    
+
   },
   opacity: 100,
   intersectsWmsDeter: '',
@@ -130,7 +130,7 @@ export const actions = {
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
 
-  
+
     if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
@@ -140,8 +140,8 @@ export const actions = {
 
     const paramsUrl = new URLSearchParams(params);
     const fullUrl = `${url}${paramsUrl}`;
-    console.log(fullUrl);
-    
+
+
 
     commit('setUrlCurrentWmsDeter', fullUrl);
   },
@@ -189,7 +189,7 @@ export const actions = {
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
 
-    
+
     if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
@@ -412,7 +412,7 @@ export const actions = {
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
 
-    
+
     if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';

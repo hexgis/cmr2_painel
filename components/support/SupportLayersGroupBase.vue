@@ -63,21 +63,28 @@ export default {
 
     orderedSupportLayers() {
       if (!this.supportLayers) return [];
-        return [...this.supportLayers].sort((a, b) => {
-     
-      if (/terras ind[íi]genas/i.test(a.name)) return -1;
-      if (/terras ind[íi]genas/i.test(b.name)) return 1;
-     
-      const getBufferSize = (name) => {
-      const match = name.match(/buffer de ti\s*\(?\s*(\d+)\s*(km)?\s*\)?/i);
-        return match ? parseInt(match[1]) : 0;
-      };
-      const aSize = getBufferSize(a.name);
-      const bSize = getBufferSize(b.name);
-     
-      if (aSize && bSize) return aSize - bSize;
-      if (aSize) return -1;
-      if (bSize) return 1;
+      return [...this.supportLayers].sort((a, b) => {
+        // Terras Indígenas primeiro
+        if (/terras ind[íi]genas/i.test(a.name)) return -1;
+        if (/terras ind[íi]genas/i.test(b.name)) return 1;
+        
+        // Função para extrair o tamanho do buffer
+        const getBufferSize = (name) => {
+          const match = name.match(/buffer de ti\s*\(?\s*(\d+)\s*(km)?\s*\)?/i);
+          return match ? parseInt(match[1]) : 0;
+        };
+        
+        const aSize = getBufferSize(a.name);
+        const bSize = getBufferSize(b.name);
+        
+        // Se ambos são buffers, ordena pelo tamanho
+        if (aSize && bSize) return aSize - bSize;
+        
+        // Se apenas um é buffer, o buffer vem primeiro
+        if (aSize) return -1;
+        if (bSize) return 1;
+        
+        // Caso padrão (ordem alfabética)
         return a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' });
       });
     },
