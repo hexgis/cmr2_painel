@@ -268,12 +268,7 @@ export default {
       { icon: 'mdi-panorama-fisheye', type: 'CircleMarker' },
       { icon: 'mdi-format-text', type: 'TextBox' },
     ],
-    buttonsEdit: [
-      { icon: 'mdi-pencil-box', type: 'Edit' },
-      { icon: 'mdi-delete-outline', type: 'Delete' },
-      { icon: 'mdi-database-plus-outline', type: 'Save' },
-      { icon: 'mdi-download', type: 'Download' },
-    ],
+    
     createdControl: false,
     activeButton: null,
     drawingFinished: false,
@@ -288,9 +283,19 @@ export default {
   }),
 
   computed: {
+    buttonsEdit() {
+      return [
+        { icon: 'mdi-pencil-box', type: 'Edit' },
+        { icon: 'mdi-delete-outline', type: 'Delete' },
+        ...(this.isLoggedIn ? [{ icon: 'mdi-database-plus-outline', type: 'Save' }] : []),
+        { icon: 'mdi-download', type: 'Download' },
+      ];
+    },
+
     ...mapState('map', ['buttonPopup', 'activeMenu']),
     ...mapState('supportLayers', ['supportLayers', 'showFeaturesSupportLayers']),
     ...mapState('searchInArea', ['layersGroups']),
+    ...mapState('auth', ['isLoggedIn']),
   },
 
   watch: {

@@ -39,7 +39,7 @@
             <a
               v-for="attachments in history.status_history_attachments"
               :key="attachments.id"
-              :href="`https://cmrhomolog-api.funai.gov.br/adm-panel/tickets/download` + attachments.file_path"
+              :href="getDownloadLink(attachments.file_path)"
               target="_blank"
             >
               {{ attachments.name_file }}
@@ -85,11 +85,19 @@ export default {
     },
   },
   methods: {
+    getDownloadLink(attachments) {
+      if (!attachments) return '#';
+      const baseUrl = process.env.API_URL;
+      return `${baseUrl}adm-panel/tickets/download${attachments}`;
+    },
+
     getTimelineItemColor(status) {
       switch (status) {
         case 'Em Desenvolvimento':
           return '#F58A1F';
         case 'Concluído':
+          return '#12A844';
+        case 'Desenvolvido':
           return '#12A844';
         case 'Em Teste':
           return '#FFCE03';

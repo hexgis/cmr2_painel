@@ -907,7 +907,7 @@ export default {
 
     async saveImage() {
       this.loadingPrintImage = true;
-      const node = document.getElementById('printMap');
+      const node = document.getElementById('map-for-print');
       const mapBounds = document.getElementsByClassName('leaflet-control-mapbounds')[0];
       const mapControlZoom = document.getElementsByClassName('leaflet-control-zoom')[0];
       const infoControlRight = document.getElementsByClassName('leaflet-control-attribution')[1];
@@ -921,14 +921,14 @@ export default {
         const originalWidth = node.style.width;
         const originalHeight = node.style.height;
 
-        node.style.width = '820px';
-        node.style.height = '762px';
+        node.style.width = '1230px';
+        node.style.height = '780px';
 
         const options = {
           quality: 1,
           bgcolor: 'white',
-          width: 820,
-          height: 762,
+          width: 1230,
+          height: 780,
           style: {
             transform: 'scale(1)',
             transformOrigin: 'top left',
