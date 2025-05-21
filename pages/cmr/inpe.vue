@@ -119,7 +119,7 @@
         href="#tab-1"
         class="tab-item"
       >
-        Prodes<br>(INPE)
+        Prodes
         <v-icon>mdi-view-dashboard</v-icon>
       </v-tab>
 
