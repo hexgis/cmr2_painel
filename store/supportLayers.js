@@ -287,8 +287,8 @@ export const mutations = {
       group.layers = [];
 
       for (const layer of layers) {
-        layer.visible = false;
-
+        layer.visible = layer.active_on_init || false; 
+        
         if (layer.layer_type === 'wms' && layer.wms.default_opacity) {
           layer.opacity = layer.wms.default_opacity;
         } else {
