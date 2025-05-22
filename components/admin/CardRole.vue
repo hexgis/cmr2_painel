@@ -20,7 +20,6 @@
         mdi-pencil
       </v-icon>
     </v-card>
-
     <CustomDialog
       v-model="dialog"
       title="Editar"
@@ -63,7 +62,7 @@ export default {
     },
     label: {
       type: String,
-      default: 'Grupo',
+      default: 'Papel',
     },
     isPermissionChanged: {
       type: Boolean,
