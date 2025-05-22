@@ -278,13 +278,24 @@
                         <div v-if="showFeaturesDeter">
                           <p>
                             <strong>INPE - Deter</strong>
-                            <v-chip x-small>
-                              {{ features?.features?.length || 0 }}
-                            </v-chip>
                           </p>
-                          <hr style="border: 1px solid blue; margin: 0;">
+                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
                           <CustomizedLegend
+                          class="pt-1"
                             :items="deterItems"
+                          />
+                        </div>
+                        <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
+                          <p>
+                            <strong>INPE - Focos de Calor</strong>                           
+                          </p>
+                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;" >
+                          <CustomizedLegend
+                            class="pt-1"
+                            :items="heatFocusItems.filter(item => 
+                              (item.label === 'Aqua Modis Manhã' && showFeaturesAquaMM) ||
+                              (item.label === 'Aqua Modis Tarde' && showFeaturesAquaMT)
+                            )"                            
                           />
                         </div>
                       </div>
@@ -387,6 +398,14 @@
                       {{ handleData(filters.startDate) }}
                       {{ $t('and') }}
                       {{ handleData(filters.endDate) }}
+                    </p>
+                  </div>
+                  <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
+                    <p class="ml-1">
+                      {{ $t('heat-focus-print-label') }}
+                      {{ handleData(focoFilters.startDate) }}
+                      {{ $t('and') }}
+                      {{ handleData(focoFilters.endDate) }}
                     </p>
                   </div>
                 </div>
@@ -494,7 +513,10 @@
         "and": "and",
         "warning-message": "The number of selected TIs exceeds the limit for display on the print map. Only deforestation polygons will be shown. To view the statistics, reduce the selected TIs or access the 'Statistics' menu.",
         "agree": "I agree",
-        "deter-print-label": "DETER data between"
+        "deter-print-label": "DETER data between",
+        "heat-focus-print-label": "Heat focus data between",
+        "aqua-morning": "Aqua Modis Morning",
+        "aqua-afternoon": "Aqua Modis Afternoon"
     },
     "pt-br": {
         "print-out": "Impressão",
@@ -529,7 +551,10 @@
         "and": "e",
         "warning-message": "O número de TIs selecionadas excede o limite para visualização no mapa de impressão. Apenas os polígonos de desmatamento serão exibidos. Para ver as estatísticas, reduza as TIs selecionadas ou acesse o menu 'Estatísticas'.",
         "agree": "Ciente",
-        "deter-print-label": "Dados DETER entre"
+        "deter-print-label": "Dados DETER entre",
+        "heat-focus-print-label": "Dados de Focos de Calor entre",
+        "aqua-morning": "Aqua Modis Manhã",
+        "aqua-afternoon": "Aqua Modis Tarde"
     }
 }
 </i18n>
@@ -657,10 +682,21 @@ export default {
         abbreviation: 'VI',
         color: '#A0522d',
       },
-    ],
+    ],    
     deterItems: [
-      { label: 'Alerta', color: '#AAAAAA' },
-      
+      { label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' },
+    ],
+    heatFocusItems: [
+      { 
+        label: 'Aqua Modis Manhã', 
+        color: '#FFA500',       // Laranja para Aqua MT
+        icon: 'mdi-fire'
+      },
+      { 
+        label: 'Aqua Modis Tarde', 
+        color: '#FF0000',       // Vermelho para Aqua MM
+        icon: 'mdi-fire'
+      }
     ],
   }),
 
@@ -689,6 +725,8 @@ export default {
         || this.showFeaturesDeter
         || this.showFeaturesLandUse
         || this.showFeaturesUrgentAlerts
+        || this.showFeaturesAquaMM
+        || this.showFeaturesAquaMT
       );
     },
 
@@ -711,6 +749,26 @@ export default {
       return Object.values(this.supportLayersCategoryRaster).filter(
         (layer) => layer.visible,
       );
+    },
+
+    showFeaturesAquaMM() {
+      return this.layers?.aquaMM?.showFeatures || false;
+    },
+
+    showFeaturesAquaMT() {
+      return this.layers?.aquaMT?.showFeatures || false;
+    },
+
+    featuresAquaMM() {
+      return this.layers?.aquaMM?.features || null;
+    },
+
+    featuresAquaMT() {
+      return this.layers?.aquaMT?.features || null;
+    },
+
+    focoFilters() {
+      return this.layers?.aquaMM?.filters || {}; // Usamos os filters de qualquer layer pois são compartilhados
     },
 
     ...mapState('supportLayersUser', ['supportLayerUser']),
@@ -742,6 +800,11 @@ export default {
       'showFeaturesDeter',
       'features',
       'filters'
+    ]),
+    ...mapState('foco', [
+      'layers',
+      'filterOptions',
+      'isLoadingFeatures'
     ]),
   },
 

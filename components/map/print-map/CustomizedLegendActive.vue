@@ -2,8 +2,25 @@
   <v-col class="grey--text text--darken-2 pa-0 pb-0">
     <div>
       <v-row class="align-center" v-for="(item, index) in items" :key="index">
-        <v-icon class="mr-2" size="x-small" :color="item.color">mdi-square</v-icon>
-        <p>{{ $t(item.label) }} </p>      
+        <v-icon 
+          v-if="item.icon"
+          class="mr-2" 
+          size="small"
+          :color="item.color"
+          :style="{ border: item.border || 'none' }"
+        >
+          {{ item.icon }}
+        </v-icon>
+        <div 
+          v-else
+          class="legend-color mr-2"
+          :class="iconType"
+          :style="{
+            'background-color': item.color,
+            'border': item.border || 'none'
+          }"
+        ></div>
+        <p>{{ $t(item.label) }}</p>      
       </v-row>
     </div>
     <v-spacer />
@@ -34,7 +51,10 @@
       "disorderly-cs": "Disorderly Cs",
       "deforestation-cr": "Deforestation Cr",
       "geometric-cs": "Geometric Cs",
-      "mining": "Mining"
+      "mining": "Mining",
+      "Aqua Modis Manhã": "Aqua Modis Morning",
+      "Aqua Modis Tarde": "Aqua Modis Afternoon",
+      "Alerta" : "Alert"
   },
 
   "pt-br": {
@@ -59,7 +79,10 @@
       "disorderly-cs": "Cs Desordenado",
       "deforestation-cr": "Desmatamento Cr",
       "geometric-cs": "Cs Geométrico",
-      "mining": "Mineração"
+      "mining": "Mineração",
+      "Aqua Modis Manhã": "Aqua Modis Manhã",
+      "Aqua Modis Tarde": "Aqua Modis Tarde",
+      "Alerta": "Alerta"
   }
 }
 </i18n>
@@ -71,6 +94,12 @@ export default {
       type: Array,
     },
   },
+
+  data() {
+    return {
+      iconType: 'square',
+    };
+  },
   
 }
 </script>
@@ -80,8 +109,21 @@ p
   font-size: xx-small
   margin: 0
 
+.legend-color 
+  width: 14px
+  height: 14px
+  min-width: 14px
+  display: inline-block
+
+.square 
+  border-radius: 2px
+
+
+.circle 
+  border-radius: 50%
+
 .image-container
-    width: 100%
+  width: 100%
 
 .row
   margin: 0!important
