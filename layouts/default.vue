@@ -135,6 +135,10 @@ export default {
     }
   },
 
+  created() {
+    this.$store.dispatch('supportLayers/getCategoryGroupsBase');
+  },
+
   computed: {
     layerDrawer: {
       get() {

@@ -13,7 +13,7 @@
 
         <v-tooltip  
           bottom
-          max-width="400px"
+          max-width="600px"
           color="grey darken-4"
         >
           <template #activator="{ on }">
@@ -30,10 +30,6 @@
             {{ $t('prodes-description-line2') }}
             <br>
             {{ $t('prodes-description-line3') }}
-            <br>
-            {{ $t('prodes-description-line4') }}
-            <br>
-            {{ $t('prodes-description-line5') }}
           </span>
         </v-tooltip>
       </v-row>
@@ -50,7 +46,7 @@
         </h4>
         <v-tooltip 
           bottom
-          max-width="400px"
+          max-width="600px"
           color="grey darken-4">
           <template #activator="{ on }">
             <v-icon
@@ -78,7 +74,7 @@
         </h4>
         <v-tooltip
           bottom
-          max-width="400px"
+          max-width="600px"
           color="grey darken-4"
         >
           <template #activator="{ on }">
@@ -123,7 +119,7 @@
         href="#tab-1"
         class="tab-item"
       >
-        Prodes<br>(INPE)
+        Prodes
         <v-icon>mdi-view-dashboard</v-icon>
       </v-tab>
 
@@ -139,9 +135,8 @@
         href="#tab-3"
         class="tab-item"
         style="font-size: 12px; line-height: 1.2"
-        disabled
       >
-        Risco e foco<br>de calor
+        Foco de calor
         <v-icon>mdi-fire</v-icon>
       </v-tab>
     </v-tabs>
@@ -155,7 +150,7 @@
           <DeterFilters />
         </v-tab-item>
         <v-tab-item value="tab-3">
-          <RiscoFocoFilters />
+          <FocoFilters />
         </v-tab-item>
       </v-tabs-items>
     </div>
@@ -187,17 +182,15 @@
       "methodology-link": "Methodology at https://queimadas.dgi.inpe.br/~rqueimadas/documentos/RiscoFogo_Sucinto.pdf"
   },
   "pt-br": {
-      "title": "Camada Prodes (INPE)",
-      "prodes-description-line1": "PRODES é um projeto que utiliza os",
-      "prodes-description-line2": "satélites Landsat, CBERS e IRS-2,",
-      "prodes-description-line3": "e detecta áreas maiores que 6,25 ha.",
-      "prodes-description-line4": "As detecções contempladas pelo PRODES",
-      "prodes-description-line5": "são a partir do ano de 2005.",
+      "title": "Camada de Prodes (INPE)",
+      "prodes-description-line1": "PRODES é um projeto que utiliza os satélites Landsat, CBERS e IRS-2,",
+      "prodes-description-line2": "e detecta áreas maiores que 6,25 ha.",
+      "prodes-description-line3": "As detecções contempladas pelo PRODES são a partir do ano de 2005.",
 
-      "title-deter": "Polígonos Deter (INPE)",
+      "title-deter": "Polígonos de Deter (INPE)",
       "tooltip": "O INPE enfatiza que o DETER é um sistema de alerta desenvolvido para suporte à fiscalização de desmatamento.",
 
-      "title-fogo": "Camadas Fogo (INPE)",
+      "title-fogo": "Camadas de Foco de Calor (INPE)",
       "data-source": "INPE - Instituto Nacional de Pesquisas Espaciais, 2020.",
       "data-provided": "Dados fornecidos pelo Portal do Monitoramento de Queimadas e Incêndios Florestais.",
       "available-at": "Disponível em http://www.inpe.br/queimadas.",
@@ -215,14 +208,14 @@
 import { mapState } from 'vuex';
 import _ from 'lodash';
 
-import DeterFilters from '../../components/remote-sensing/deter/DeterFilters.vue';
-import ProdesFilters from '../../components/remote-sensing/prodes/ProdesFilters.vue';
-import RiscoFocoFilters from '../../components/remote-sensing/risco-foco/RiscoFocoFilters.vue';
+import DeterFilters from '../../components/inpe/deter/DeterFilters.vue';
+import ProdesFilters from '../../components/inpe/prodes/ProdesFilters.vue';
+import FocoFilters from '../../components/inpe/foco/FocoFilters.vue';
 
 export default {
   name: 'SupportProdes',
 
-  components: { DeterFilters, ProdesFilters, RiscoFocoFilters},
+  components: { DeterFilters, ProdesFilters, FocoFilters},
 
   transition: 'scroll-y-transition',
 
