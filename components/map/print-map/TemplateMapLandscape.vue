@@ -275,11 +275,20 @@
                             class="mt-1"
                           />
                         </div>
+                        <div v-if="showFeaturesDeter">
+                          <p>
+                            <strong>INPE - Deter</strong>
+                            <v-chip x-small>
+                              {{ features?.features?.length || 0 }}
+                            </v-chip>
+                          </p>
+                          <hr style="border: 1px solid blue; margin: 0;">
+                          <CustomizedLegend
+                            :items="deterItems"
+                          />
+                        </div>
                       </div>
-                      <LayerList
-                        :layers="supportLayersCategoryProdes"
-                        :prodes="true"
-                      />
+                     
                       <div
                         v-if="showFeaturesUrgentAlerts && showFeaturesMonitoring &&
                           showFeaturesLandUse && showFeaturesSupportLayers"
@@ -293,11 +302,6 @@
                           :items="urgentAlertItems"
                         />
                       </div>
-
-                      <CustomizedLegend
-                        v-if="showFeaturesDeter"
-                        :items="deterItems"
-                      />
                     </div>
                   </div>
                   <div>
@@ -375,6 +379,14 @@
                         {{ year }}<span v-if="index < uniqueYears.length - 1">,
                         </span>
                       </span>
+                    </p>
+                  </div>
+                  <div v-if="showFeaturesDeter">
+                    <p class="ml-1">
+                      {{ $t('deter-print-label') }}
+                      {{ handleData(filters.startDate) }}
+                      {{ $t('and') }}
+                      {{ handleData(filters.endDate) }}
                     </p>
                   </div>
                 </div>
@@ -481,7 +493,8 @@
         "monitoring-print-label": "Daily Monitoring Data between",
         "and": "and",
         "warning-message": "The number of selected TIs exceeds the limit for display on the print map. Only deforestation polygons will be shown. To view the statistics, reduce the selected TIs or access the 'Statistics' menu.",
-        "agree": "I agree"
+        "agree": "I agree",
+        "deter-print-label": "DETER data between"
     },
     "pt-br": {
         "print-out": "Impressão",
@@ -515,7 +528,8 @@
         "monitoring-print-label": "Dados de Monitoramento Diário entre",
         "and": "e",
         "warning-message": "O número de TIs selecionadas excede o limite para visualização no mapa de impressão. Apenas os polígonos de desmatamento serão exibidos. Para ver as estatísticas, reduza as TIs selecionadas ou acesse o menu 'Estatísticas'.",
-        "agree": "Ciente"
+        "agree": "Ciente",
+        "deter-print-label": "Dados DETER entre"
     }
 }
 </i18n>
@@ -587,15 +601,6 @@ export default {
     showWarningMessage: false,
     activeMonitoringLabel: [],
     loadingPrintImage: false,
-    deterItems: [
-      { label: 'burnt-scar', color: '#330000' },
-      { label: 'deforestation-veg', color: '#b2b266' },
-      { label: 'disorderly-cs', color: '#ff4dff' },
-      { label: 'deforestation-cr', color: '#cca300' },
-      { label: 'geometric-cs', color: '#669999' },
-      { label: 'degradation', color: '#ff8000' },
-      { label: 'mining', color: '#cccc00' },
-    ],
     urgentAlertItems: [
       { label: 'regeneration-deforestation', color: '#990099' },
       { label: 'degradation', color: '#ff8000' },
@@ -653,6 +658,10 @@ export default {
         color: '#A0522d',
       },
     ],
+    deterItems: [
+      { label: 'Alerta', color: '#AAAAAA' },
+      
+    ],
   }),
 
   computed: {
@@ -669,7 +678,6 @@ export default {
     hasCartographicDatasets() {
       return !!(
         this.showFeaturesSupportLayers
-        || this.supportLayersCategoryProdes
         || this.showFeaturesDeter
       );
     },
@@ -696,11 +704,6 @@ export default {
           layers: this.supportLayersCategoryFire,
           show: true,
         },
-        {
-          name: 'Prodes Category Layers',
-          layers: this.supportLayersCategoryProdes,
-          show: true,
-        },
       ].filter((category) => category.show);
     },
 
@@ -718,7 +721,6 @@ export default {
       'supportLayersCategoryFire',
       'supportLayersCategoryBase',
       'supportLayersCategoryRaster',
-      'supportLayersCategoryProdes',
       'supportLayersCategoryAntropismo',
     ]),
 
@@ -729,17 +731,27 @@ export default {
       'filters',
       'lastSearchStatisticsByFunai',
     ]),
-
-    ...mapState('deter', ['showFeaturesDeter', 'features']),
     ...mapState('urgent-alerts', ['showFeaturesUrgentAlerts']),
     ...mapState('land-use', [
       'showFeaturesLandUse',
       'features',
       'tableLandUse',
     ]),
+
+    ...mapState('deter', [
+      'showFeaturesDeter',
+      'features',
+      'filters'
+    ]),
   },
 
   watch: {
+    features(newVal) {
+      if (newVal?.features?.length > 100) { 
+        this.showWarningMessage = true;
+      }
+    },
+
     analyticsMonitoring(newVal) {
       // Verificar se newVal é vazio, nulo ou 0
       if (!newVal || newVal.length === 0) {
