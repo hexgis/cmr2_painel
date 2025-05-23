@@ -119,12 +119,39 @@
             </v-col>
         </v-row>
         <v-divider></v-divider>
-        <!-- <p class="font-weight-regular pt-2 grey--text text--darken-2">
-        {{ $t('legend') }}
-      </p>-->
+        <div v-if="showFeaturesProdes && !isLoadingFeatures">
+            <p class="font-weight-regular pt-2 grey--text text--darken-2 mb-n6">
+                {{ $t('legend') }}
+            </p>
+            <!-- Legenda Dinâmica para Anos Selecionados -->
+            <v-row v-if="prodesStyles && legendItems.length" class="mt-2">
+                <v-col>
+                    <v-list dense>
+                        <v-list-item
+                            v-for="item in legendItems"
+                            :key="item.label"
+                            class="mb-n4"
+                        >
+                            <v-list-item-icon>
+                                <span
+                                    class="legend-color"
+                                    :style="{
+                                        backgroundColor: item.color || '#000',
+                                    }"
+                                ></span>
+                            </v-list-item-icon>
+                            <v-list-item-content class="ml-n8 mb-1">
+                                <v-list-item-title>{{
+                                    item.label
+                                }}</v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
+                    </v-list>
+                </v-col>
+            </v-row>
+        </div>
     </v-col>
 </template>
-
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex'
 import legend from '@/assets/legend.png'
@@ -149,6 +176,7 @@ export default {
                 cr: [],
                 ti: null,
             },
+            filteredYears: [],
             checkNewFilters: false,
             isLoadingTotal: false,
             legendData: legend,
@@ -177,6 +205,35 @@ export default {
             },
         },
 
+        legendItems() {
+            // Verificar se prodesStyles existe
+            if (!this.$store.state.prodes.prodesStyles) {
+                return []
+            }
+
+            // Obter todos os anos disponíveis no prodesStyles
+            const availableYears = Object.keys(
+                this.$store.state.prodes.prodesStyles
+            )
+                .filter((year) => {
+                    // Verificar se o ano está dentro do intervalo de filtros
+                    const yearNum = parseInt(year)
+                    return (
+                        yearNum >= this.filters.startYear &&
+                        yearNum <= this.filters.endYear
+                    )
+                })
+                .map((year) => parseInt(year)) // Converter para número para ordenação correta
+                .sort((a, b) => b - a) // Ordenar do maior para o menor
+                .map((year) => String(year)) // Converter de volta para string se necessário
+
+            // Mapear anos para suas cores do prodesStyles
+            return this.filteredYears.map((year) => ({
+                label: String(year),
+                color: this.$store.state.prodes.prodesStyles[year] || '#000000',
+            }))
+        },
+
         ...mapState('prodes', [
             'currentUrlWmsProdes',
             'isLoadingFeatures',
@@ -184,6 +241,7 @@ export default {
             'filterOptions',
             'features',
             'showFeaturesProdes',
+            'prodesStyles',
         ]),
     },
 
@@ -209,6 +267,7 @@ export default {
 
     mounted() {
         this.getFilterOptions()
+        this.getProdesStyleFromGeoserver()
     },
 
     methods: {
@@ -239,6 +298,18 @@ export default {
             else this.filters.ti = null
         },
 
+        getYearsInRange(startYear, endYear) {
+            if (!this.$store.state.prodes.prodesStyles) return []
+
+            return Object.keys(this.$store.state.prodes.prodesStyles)
+                .filter((year) => {
+                    const yearNum = parseInt(year)
+                    return yearNum >= startYear && yearNum <= endYear
+                })
+                .map((year) => parseInt(year))
+                .sort((a, b) => b - a)
+        },
+
         searchProdes() {
             const { filters } = this
             const { currentView, cr, startYear, endYear } = filters
@@ -246,12 +317,15 @@ export default {
             if ((currentView || cr.length) && startYear && endYear) {
                 this.error = false
 
-                // Convert years to dates for the store if needed
+                // Converter anos para datas para o store
                 const filtersForStore = {
                     ...filters,
                     startDate: `${startYear}-01-01`,
                     endDate: `${endYear}-12-31`,
                 }
+
+                // Definir os anos filtrados apenas após a busca
+                this.filteredYears = this.getYearsInRange(startYear, endYear)
 
                 this.setFilters(filtersForStore)
                 this.getFeatures()
@@ -261,12 +335,38 @@ export default {
         },
 
         ...mapMutations('prodes', ['setFilters']),
-        ...mapActions('prodes', ['getFilterOptions', 'getFeatures']),
+        ...mapActions('prodes', [
+            'getFilterOptions',
+            'getFeatures',
+            'getProdesStyleFromGeoserver',
+        ]),
     },
 }
 </script>
 
 <style scoped lang="scss">
+@media (max-width: 768px) {
+    .full-width {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .text-label {
+        font-size: 0.8rem;
+        padding-right: 0px;
+    }
+}
+</style>
+
+<style scoped lang="scss">
+.legend-color {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    margin-right: 8px;
+}
+
 @media (max-width: 768px) {
     .full-width {
         flex: 0 0 100%;

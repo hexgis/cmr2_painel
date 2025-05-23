@@ -25,6 +25,7 @@ export const state = () => ({
   },
   opacity: 100,
   intersectsWmsProdes: '',
+  prodesStyles: {},
 });
 
 export const getters = {
@@ -39,14 +40,19 @@ export const getters = {
     return state.showFeaturesProdes;
   },
   getLegendItems: (state) => {
-    if (!state.features) return [];
-    
-    const years = [...new Set(
-      state.features.features.map(f => f.properties.nu_ano)
-    )].sort((a, b) => b - a);
-    
+    if (!state.features || !state.prodesStyles) return [];
+
+    // Obter anos únicos dos features que existem no prodesStyles
+    const years = Array.from(
+      new Set(
+        state.features.features
+          .map(f => f.properties.nu_ano)
+          .filter(year => state.prodesStyles.hasOwnProperty(year))
+      )
+    ).sort((a, b) => b - a); // Ordena do maior para o menor
+
     return years.map(year => ({
-      label: String(year), // Garantir que o rótulo seja uma string
+      label: String(year),
       color: state.prodesStyles[year],
     }));
   },
@@ -111,7 +117,7 @@ export const actions = {
         request: 'GetLegendGraphic',
         layer: state.geoserverLayerProdes,
         format: 'application/json',
-      };  
+      };
       const url = `${state.urlWmsProdes}${new URLSearchParams(params)}`;
       const response = await this.$api.$get(url);
       const styles = {};
@@ -125,7 +131,7 @@ export const actions = {
             }
           }
         });
-      }   
+      }
       commit('setProdesStyles', styles);
     } catch (error) {
       commit(
@@ -197,11 +203,11 @@ export const actions = {
 
   async fetchProdesFeatures({ state, commit, dispatch }) {
     commit('setLoadingFeatures', true);
-    commit('clearFeatures');  
+    commit('clearFeatures');
     try {
       // 1. Primeiro obtemos os estilos do GeoServer
       await dispatch('getProdesStyleFromGeoserver');
-  
+
       // 2. Configuração dos parâmetros WFS
       const params = {
         service: 'WFS',
@@ -212,10 +218,10 @@ export const actions = {
         CQL_FILTER: '',
         maxFeatures: 10000,
       };
-  
+
       // 3. Aplica filtros
       let cqlFilters = [];
-  
+
       // Filtro de interseção (view atual)
       if (state.filters.currentView) {
         const map = window.mapMain;
@@ -229,29 +235,29 @@ export const actions = {
         const wkt = stringify(bboxPolygon.toGeoJSON().geometry);
         cqlFilters.push(`INTERSECTS(geom,${wkt})`);
       }
-  
+
       // Filtro de TIs
       if (state.filters.ti?.length) {
         const tiList = state.filters.ti.map(ti => ti.co_funai).join(',');
         cqlFilters.push(`co_funai IN (${tiList})`);
       }
-  
+
       // Filtro de CRs
       if (state.filters.cr?.length) {
         const crList = state.filters.cr.map(cr => cr.co_cr).join(',');
         cqlFilters.push(`co_cr IN (${crList})`);
       }
-  
+
       // Filtro de anos
       if (state.filters.startYear && state.filters.endYear) {
         cqlFilters.push(`(nu_ano >= ${state.filters.startYear} AND nu_ano <= ${state.filters.endYear})`);
       }
-  
+
       // Combina todos os filtros
       if (cqlFilters.length) {
         params.CQL_FILTER = cqlFilters.join(' AND ');
       }
-  
+
       // 4. Ajuste de viewport se não for a view atual
       if (!state.filters.currentView) {
         try {
@@ -259,7 +265,7 @@ export const actions = {
             co_cr: state.filters.cr?.map(cr => cr.co_cr) || [],
             co_funai: state.filters.ti?.map(ti => ti.co_funai) || [],
           });
-  
+
           if (bboxResponse) {
             const map = window.mapMain;
             const bounds = L.latLngBounds(
@@ -270,10 +276,9 @@ export const actions = {
           }
         } catch (bboxError) {
           console.error('Erro ao ajustar viewport:', bboxError);
-          // Não interrompe o fluxo principal se o ajuste de viewport falhar
         }
       }
-  
+
       // 5. Faz a requisição WFS
       const url = `${state.urlWmsProdes}${new URLSearchParams(params)}`;
       const response = await this.$api.$get(url);
@@ -284,9 +289,9 @@ export const actions = {
           type: response.type,
           features: response.features,
         };
-  
+
         commit('setFeatures', geojson);
-  
+
         // 7. Gera URL WMS para visualização
         const wmsParams = {
           layers: state.geoserverLayerProdes,
@@ -296,13 +301,13 @@ export const actions = {
           env: `fill-opacity:${state.opacity / 100}`,
           CQL_FILTER: params.CQL_FILTER,
         };
-  
+
         const wmsUrl = `${state.urlWmsProdes}${new URLSearchParams(wmsParams)}`;
         commit('setUrlCurrentWmsProdes', wmsUrl);
       } else {
         throw new Error('Resposta do GeoServer sem features');
       }
-  
+
     } catch (error) {
       console.error('Erro ao buscar features do PRODES:', error);
       commit(
@@ -396,7 +401,7 @@ export const actions = {
       }
 
       await dispatch('generateUrlWmsProdes');
-      await dispatch('fetchProdesFeatures'); // Fetch GeoJSON features
+      await dispatch('fetchProdesFeatures');
 
     } catch (exception) {
       commit(
