@@ -275,13 +275,23 @@
                             class="mt-1"
                           />
                         </div>
+                        <div v-if="showFeaturesProdes">
+                          <p>
+                            <strong>INPE - Prodes</strong>
+                          </p>
+                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                          <CustomizedLegend
+                            class="pt-1"
+                            :items="prodesItems"
+                          />
+                        </div>
                         <div v-if="showFeaturesDeter">
                           <p>
                             <strong>INPE - Deter</strong>
                           </p>
                           <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
                           <CustomizedLegend
-                          class="pt-1"
+                            class="pt-1"
                             :items="deterItems"
                           />
                         </div>
@@ -390,6 +400,12 @@
                         {{ year }}<span v-if="index < uniqueYears.length - 1">,
                         </span>
                       </span>
+                    </p>
+                  </div>
+                  <div v-if="showFeaturesProdes">
+                    <p class="ml-1">
+                      {{ $t('prodes-print-label') }}
+                      {{ handleProdesYear() }}
                     </p>
                   </div>
                   <div v-if="showFeaturesDeter">
@@ -513,7 +529,8 @@
         "and": "and",
         "warning-message": "The number of selected TIs exceeds the limit for display on the print map. Only deforestation polygons will be shown. To view the statistics, reduce the selected TIs or access the 'Statistics' menu.",
         "agree": "I agree",
-        "deter-print-label": "DETER data between",
+        "prodes-print-label": "Prodes data between",
+        "deter-print-label": "Deter data between",
         "heat-focus-print-label": "Heat focus data between",
         "aqua-morning": "Aqua Modis Morning",
         "aqua-afternoon": "Aqua Modis Afternoon"
@@ -551,7 +568,8 @@
         "and": "e",
         "warning-message": "O número de TIs selecionadas excede o limite para visualização no mapa de impressão. Apenas os polígonos de desmatamento serão exibidos. Para ver as estatísticas, reduza as TIs selecionadas ou acesse o menu 'Estatísticas'.",
         "agree": "Ciente",
-        "deter-print-label": "Dados DETER entre",
+        "prodes-print-label": "Dados Prodes entre",
+        "deter-print-label": "Dados Deter entre",
         "heat-focus-print-label": "Dados de Focos de Calor entre",
         "aqua-morning": "Aqua Modis Manhã",
         "aqua-afternoon": "Aqua Modis Tarde"
@@ -682,19 +700,19 @@ export default {
         abbreviation: 'VI',
         color: '#A0522d',
       },
-    ],    
+    ],   
     deterItems: [
       { label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' },
     ],
     heatFocusItems: [
       { 
         label: 'Aqua Modis Manhã', 
-        color: '#FFA500',       // Laranja para Aqua MT
+        color: '#FFA500',      
         icon: 'mdi-fire'
       },
       { 
         label: 'Aqua Modis Tarde', 
-        color: '#FF0000',       // Vermelho para Aqua MM
+        color: '#FF0000',
         icon: 'mdi-fire'
       }
     ],
@@ -715,6 +733,7 @@ export default {
       return !!(
         this.showFeaturesSupportLayers
         || this.showFeaturesDeter
+        || this.showFeaturesProdes
       );
     },
 
@@ -722,6 +741,7 @@ export default {
       return !!(
         this.showFeaturesSupportLayers
         || this.showFeaturesMonitoring
+        || this.showFearuesProdes
         || this.showFeaturesDeter
         || this.showFeaturesLandUse
         || this.showFeaturesUrgentAlerts
@@ -771,6 +791,10 @@ export default {
       return this.layers?.aquaMM?.filters || {}; // Usamos os filters de qualquer layer pois são compartilhados
     },
 
+    prodesItems() {
+      return this.$store.getters['prodes/getLegendItems'];
+    },
+
     ...mapState('supportLayersUser', ['supportLayerUser']),
     ...mapState('map', ['bounds']),
     ...mapState('supportLayers', [
@@ -796,6 +820,11 @@ export default {
       'tableLandUse',
     ]),
 
+    ...mapState('prodes', [
+      'showFeaturesProdes',
+      'filters',
+      'features'
+    ]),
     ...mapState('deter', [
       'showFeaturesDeter',
       'features',
@@ -926,6 +955,18 @@ export default {
 
     vectorImage(layer) {
       return layer.vector.thumbnail_blob || layer.vector.image;
+    },
+
+    handleProdesYear() {
+      const prodesFilters = this.$store.state.prodes.filters;
+      
+      if (!prodesFilters) return '-';
+      
+      if (prodesFilters.startYear === prodesFilters.endYear) {
+        return prodesFilters.startYear;
+      }
+     
+      return `${prodesFilters.startYear} ${this.$t('and')} ${prodesFilters.endYear}`;
     },
 
     handleData(data) {

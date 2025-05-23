@@ -20,7 +20,7 @@
             'border': item.border || 'none'
           }"
         ></div>
-        <p>{{ $t(item.label) }}</p>      
+        <p>{{ isYear(item.label) ? item.label : $t(item.label) }}</p>     
       </v-row>
     </div>
     <v-spacer />
@@ -100,7 +100,12 @@ export default {
       iconType: 'square',
     };
   },
-  
+
+  methods: {
+    isYear(label) {
+      return /^\d{4}$/.test(label); 
+    },
+  },
 }
 </script>
 
@@ -110,9 +115,9 @@ p
   margin: 0
 
 .legend-color 
-  width: 14px
-  height: 14px
-  min-width: 14px
+  width: 12px
+  height: 12px
+  min-width: 12px
   display: inline-block
 
 .square 

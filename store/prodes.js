@@ -38,6 +38,18 @@ export const getters = {
   getShowFeaturesProdes: (state) => {
     return state.showFeaturesProdes;
   },
+  getLegendItems: (state) => {
+    if (!state.features) return [];
+    
+    const years = [...new Set(
+      state.features.features.map(f => f.properties.nu_ano)
+    )].sort((a, b) => b - a);
+    
+    return years.map(year => ({
+      label: String(year), // Garantir que o rótulo seja uma string
+      color: state.prodesStyles[year],
+    }));
+  },
 };
 
 export const mutations = {
@@ -84,9 +96,52 @@ export const mutations = {
   clearFeatures(state) {
     state.features = null;
   },
+
+  setProdesStyles(state, styles) {
+    state.prodesStyles = styles;
+  },
 };
 
 export const actions = {
+  async getProdesStyleFromGeoserver({ commit, state }) {
+    try {
+      const params = {
+        service: 'WMS',
+        version: '1.1.0',
+        request: 'GetLegendGraphic',
+        layer: state.geoserverLayerProdes,
+        format: 'application/json',
+      };  
+      const url = `${state.urlWmsProdes}${new URLSearchParams(params)}`;
+      const response = await this.$api.$get(url);
+      const styles = {};
+      if (response.Legend && response.Legend[0] && response.Legend[0].rules) {
+        response.Legend[0].rules.forEach((rule) => {
+          if (rule.filter && rule.name) {
+            const yearMatch = rule.filter.match(/nu_ano\s*=\s*['"]?(\d{4})['"]?/);
+            const fillColor = rule.symbolizers[0]?.Polygon?.fill || null;
+            if (yearMatch && yearMatch[1] && fillColor) {
+              styles[yearMatch[1]] = fillColor;
+            }
+          }
+        });
+      }   
+      commit('setProdesStyles', styles);
+    } catch (error) {
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('legend'),
+          }),
+          type: 'error',
+        },
+        { root: true }
+      );
+    }
+  },
+
   async generateUrlWmsProdes({ state, commit }, newBbox = false) {
     const params = {
       layers: state.geoserverLayerProdes,
@@ -140,69 +195,116 @@ export const actions = {
     commit('setUrlCurrentWmsProdes', fullUrl);
   },
 
-  async fetchProdesFeatures({ state, commit }) {
+  async fetchProdesFeatures({ state, commit, dispatch }) {
     commit('setLoadingFeatures', true);
-    let url = state.urlWmsProdes;
-
-    const params = {
-      service: 'WFS',
-      version: '1.0.0',
-      request: 'GetFeature',
-      typeName: state.geoserverLayerProdes,
-      outputFormat: 'application/json',
-      CQL_FILTER: '',
-      maxFeatures: 10000,
-    };
-
-    // Apply intersects filter
-    if (state.intersectsWmsProdes) {
-      params.CQL_FILTER += state.intersectsWmsProdes;
-    }
-
-    // Apply TI filter
-    const arrayTI = [];
-    if (state.filters.ti && state.filters.ti.length) {
-      Object.values(state.filters.ti).forEach((item) => {
-        arrayTI.push(item.co_funai);
-      });
-      if (params.CQL_FILTER.length) {
-        params.CQL_FILTER += ' AND ';
-      }
-      params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
-    }
-
-    // Apply CR filter
-    const arrayCR = [];
-    if (state.filters.cr && state.filters.cr.length) {
-      Object.values(state.filters.cr).forEach((item) => {
-        arrayCR.push(item.co_cr);
-      });
-      if (params.CQL_FILTER.length) {
-        params.CQL_FILTER += ' AND ';
-      }
-      params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
-    }
-
-    // Apply year filter
-    if (state.filters.startYear && state.filters.endYear) {
-      if (params.CQL_FILTER.length) {
-        params.CQL_FILTER += ' AND ';
-      }
-      params.CQL_FILTER += `(nu_ano >= ${state.filters.startYear} AND nu_ano <= ${state.filters.endYear})`;
-    }
-
+    commit('clearFeatures');  
     try {
-      const paramsUrl = new URLSearchParams(params);
-      url = `${url}${paramsUrl}`;
+      // 1. Primeiro obtemos os estilos do GeoServer
+      await dispatch('getProdesStyleFromGeoserver');
+  
+      // 2. Configuração dos parâmetros WFS
+      const params = {
+        service: 'WFS',
+        version: '1.0.0',
+        request: 'GetFeature',
+        typeName: state.geoserverLayerProdes,
+        outputFormat: 'application/json',
+        CQL_FILTER: '',
+        maxFeatures: 10000,
+      };
+  
+      // 3. Aplica filtros
+      let cqlFilters = [];
+  
+      // Filtro de interseção (view atual)
+      if (state.filters.currentView) {
+        const map = window.mapMain;
+        const bounds = map.getBounds();
+        const bboxPolygon = L.polygon([
+          bounds.getSouthWest(),
+          [bounds.getSouthWest().lat, bounds.getNorthEast().lng],
+          bounds.getNorthEast(),
+          [bounds.getNorthEast().lat, bounds.getSouthWest().lng],
+        ]);
+        const wkt = stringify(bboxPolygon.toGeoJSON().geometry);
+        cqlFilters.push(`INTERSECTS(geom,${wkt})`);
+      }
+  
+      // Filtro de TIs
+      if (state.filters.ti?.length) {
+        const tiList = state.filters.ti.map(ti => ti.co_funai).join(',');
+        cqlFilters.push(`co_funai IN (${tiList})`);
+      }
+  
+      // Filtro de CRs
+      if (state.filters.cr?.length) {
+        const crList = state.filters.cr.map(cr => cr.co_cr).join(',');
+        cqlFilters.push(`co_cr IN (${crList})`);
+      }
+  
+      // Filtro de anos
+      if (state.filters.startYear && state.filters.endYear) {
+        cqlFilters.push(`(nu_ano >= ${state.filters.startYear} AND nu_ano <= ${state.filters.endYear})`);
+      }
+  
+      // Combina todos os filtros
+      if (cqlFilters.length) {
+        params.CQL_FILTER = cqlFilters.join(' AND ');
+      }
+  
+      // 4. Ajuste de viewport se não for a view atual
+      if (!state.filters.currentView) {
+        try {
+          const bboxResponse = await this.$api.$post('monitoring/consolidated/bbox/', {
+            co_cr: state.filters.cr?.map(cr => cr.co_cr) || [],
+            co_funai: state.filters.ti?.map(ti => ti.co_funai) || [],
+          });
+  
+          if (bboxResponse) {
+            const map = window.mapMain;
+            const bounds = L.latLngBounds(
+              [bboxResponse[1], bboxResponse[0]],
+              [bboxResponse[3], bboxResponse[2]]
+            );
+            map.fitBounds(bounds, { maxZoom: 12 });
+          }
+        } catch (bboxError) {
+          console.error('Erro ao ajustar viewport:', bboxError);
+          // Não interrompe o fluxo principal se o ajuste de viewport falhar
+        }
+      }
+  
+      // 5. Faz a requisição WFS
+      const url = `${state.urlWmsProdes}${new URLSearchParams(params)}`;
       const response = await this.$api.$get(url);
 
-      const geojson = {
-        type: response.type,
-        features: response.features,
-      };
-
-      commit('setFeatures', geojson);
+      // 6. Processa a resposta
+      if (response?.features) {
+        const geojson = {
+          type: response.type,
+          features: response.features,
+        };
+  
+        commit('setFeatures', geojson);
+  
+        // 7. Gera URL WMS para visualização
+        const wmsParams = {
+          layers: state.geoserverLayerProdes,
+          format: 'image/png',
+          transparent: true,
+          version: '1.1.1',
+          env: `fill-opacity:${state.opacity / 100}`,
+          CQL_FILTER: params.CQL_FILTER,
+        };
+  
+        const wmsUrl = `${state.urlWmsProdes}${new URLSearchParams(wmsParams)}`;
+        commit('setUrlCurrentWmsProdes', wmsUrl);
+      } else {
+        throw new Error('Resposta do GeoServer sem features');
+      }
+  
     } catch (error) {
+      console.error('Erro ao buscar features do PRODES:', error);
       commit(
         'alert/addAlert',
         {
@@ -210,9 +312,11 @@ export const actions = {
             action: this.$i18n.t('retrieve'),
             resource: this.$i18n.t('prodes'),
           }),
+          type: 'error',
         },
-        { root: true },
+        { root: true }
       );
+      commit('setshowFeaturesProdes', false);
     } finally {
       commit('setLoadingFeatures', false);
     }
