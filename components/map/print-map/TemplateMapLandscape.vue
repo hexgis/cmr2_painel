@@ -1242,3 +1242,32 @@ img.layer-thumbnail {
   background: #ffffff;
 }
 </style>
+
+<style>
+  @media print {
+    @page {
+      size: landscape;
+      margin: 0;
+    }
+    /* Forçar cores de fundo e bordas na impressão */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    /* Estilo específico para as legendas */
+    .legend-item {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    /* Garantir que ícones de fogo sejam visíveis */
+    .v-icon {
+      color: inherit !important;
+    }
+  }
+
+  /* Estilos normais (não relacionados à impressão) */
+  #monitoring-data-details {
+    position: relative;
+  }
+  /* ... (mantenha o resto dos seus estilos existentes) ... */
+</style>

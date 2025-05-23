@@ -4,10 +4,13 @@
       <v-row class="align-center" v-for="(item, index) in items" :key="index">
         <v-icon 
           v-if="item.icon"
-          class="mr-2" 
+          class="mr-2 print-icon" 
           size="small"
           :color="item.color"
-          :style="{ border: item.border || 'none' }"
+          :style="{ 
+            border: item.border || 'none',
+            color: item.color + '!important'
+          }"
         >
           {{ item.icon }}
         </v-icon>
@@ -122,8 +125,7 @@ p
 
 .square 
   border-radius: 2px
-
-
+  
 .circle 
   border-radius: 50%
 
@@ -132,4 +134,23 @@ p
 
 .row
   margin: 0!important
+
+/* Estilos específicos para impressão */
+@media print 
+  .print-icon 
+    -webkit-print-color-adjust: exact !important
+    print-color-adjust: exact !important
+    color: inherit !important
+    fill: inherit !important
+    
+  .v-icon 
+    -webkit-print-color-adjust: exact !important
+    print-color-adjust: exact !important
+    color: inherit !important
+    fill: inherit !important
+    
+  * 
+    -webkit-print-color-adjust: exact !important
+    print-color-adjust: exact !important
+
 </style>
