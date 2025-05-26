@@ -190,7 +190,6 @@ export const actions = {
   },
 
   approveUser({ commit }, { id , permissions }) {
-    console.log(permissions)
     const url = `/user/access-requests/${id}/approve/`
     return this.$api.post(url, { permissions })
   }

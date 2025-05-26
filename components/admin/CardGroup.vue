@@ -118,7 +118,6 @@ export default {
           this.grantedPermissions = activePermissions;
           const response = await this.$api.get(`user/group-diff/${this.card.id}/`);
           this.revokedPermissions = response.data.layer_permissions.map((permission) => permission);
-          console.log('aqui', response.data.layer_permissions);
         } else {
           const activePermissions = this.card.layers.map((layer) => layer);
           this.grantedPermissions = activePermissions;
@@ -147,21 +146,18 @@ export default {
             layer_permissions: this.grantedPermissions.map((layer) => layer.id),
           });
           this.dialog = false;
-          console.log('Permissões atualizadas com sucesso.');
         } catch (e) {
           console.error('Erro ao salvar permissões:', e);
         } finally {
           this.$store.dispatch('admin/fetchGroupList');
         }
       } else {
-        console.log(this.localCardDescription);
         try {
           await this.$api.patch(`/permission/layer/${this.card.id}/`, {
             description: this.localCardDescription,
             layer_ids: this.grantedPermissions.map((layer) => layer.id),
           });
           this.dialog = false;
-          console.log('Permissões atualizadas com sucesso.');
         } catch (e) {
           console.error('Erro ao salvar permissões:', e);
         } finally {

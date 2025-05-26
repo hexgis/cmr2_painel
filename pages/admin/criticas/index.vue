@@ -495,8 +495,6 @@ export default {
       await this.$store.dispatch('admin/createTicket',  {ticketData: this.newTicketData});
       this.sucessModal = true
     } catch (error) {
-      console.log("Erro ao criar nova solicitação:", error);
-      console.error("Erro ao criar solicitação.");
       this.errorModal = true
     } finally {
       this.showModal = !this.showModal

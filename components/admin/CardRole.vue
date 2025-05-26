@@ -113,14 +113,10 @@ export default {
     async loadPermissions() {
       try {
         if (this.from === 'roles') {
-          console.log('hakuna matata');
           const activePermissions = this.card.groups.map((groups) => groups);
           this.grantedPermissions = activePermissions;
-          console.log('activePermissions', activePermissions);
           const response = await this.$api.get(`user/role-diff/${this.card.id}/`);
-          console.log('response', response.unassociated_groups);
           this.revokedPermissions = response.data.unassociated_groups.map((groups) => groups);
-          console.log('response.data.groups', response.data.groups);
         } else {
           const activePermissions = this.card.groups.map((groups) => groups);
           this.grantedPermissions = activePermissions;
@@ -148,11 +144,10 @@ export default {
             associated_groups: this.grantedPermissions.map((groups) => groups.id),
           });
           this.dialog = false;
-          console.log('Permissões atualizadas com sucesso.');
         } catch (e) {
           console.error('Erro ao salvar permissões:', e);
         } finally {
-          this.$store.dispatch('admin/fetchRoleList');
+          this.$store.dispatch('admin/fetchRolesList');
         }
       } else {
         console.log(this.localCardDescription);
@@ -162,11 +157,10 @@ export default {
             layer_ids: this.grantedPermissions.map((groups) => groups.id),
           });
           this.dialog = false;
-          console.log('Permissões atualizadas com sucesso.');
         } catch (e) {
           console.error('Erro ao salvar permissões:', e);
         } finally {
-          this.$store.dispatch('admin/fetchRoleList');
+          this.$store.dispatch('admin/fetchRolesList');
         }
       }
     },

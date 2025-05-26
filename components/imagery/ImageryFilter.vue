@@ -225,7 +225,6 @@ export default {
 
   watch: {
     isHighResSatellite(value) {
-      console.log('entered watcher with highressat: ', value);
       if (value) this.getDataUsage();
       else this.clearDataUsage();
     },

@@ -72,7 +72,7 @@ export default {
   data() {
     return {
       dialog: false,
-      groupName: '',
+      roleName: '',
       permissions: [],
       grantedPermissions: [],
       cardDescription: '',
