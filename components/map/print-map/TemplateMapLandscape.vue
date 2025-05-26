@@ -1100,23 +1100,21 @@ export default {
   gap: 0.5rem;
 }
 
-.bordered-red {
-  border: 2px solid red;
-  /* Borda vermelha */
+.bordered-red,
+.bordered-blue {
   padding: 10px;
   border-radius: 5px;
-  /* Borda arredondada */
+}
+
+.bordered-red {
+  border: 2px solid red;
 }
 
 .bordered-blue {
   border: 2px solid blue;
-  /* Borda azul */
-  padding: 10px;
-  border-radius: 5px;
-  /* Borda arredondada */
 }
 
-#data-table>div {
+#data-table > div {
   background: #fffbfb;
   opacity: 0.9;
   padding: 5px;
@@ -1148,9 +1146,20 @@ export default {
 }
 
 @media print {
-  .logo {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  @page {
+    size: landscape;
+    margin: 0;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .logo,
+  .legend-item {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .container {
@@ -1166,6 +1175,10 @@ export default {
   .no-print {
     display: none;
   }
+
+  .v-icon {
+    color: inherit !important;
+  }
 }
 
 p {
@@ -1173,23 +1186,21 @@ p {
   margin: 0;
 }
 
-.font-title p {
-  font-size: medium;
-  margin: 0px;
-  padding: 0px;
-  text-align: center;
-  line-break: anywhere;
-  max-width: 750px;
-  font-family: 'Roboto', sans-serif;
-  text-transform: uppercase;
-  font-size: 10px;
-  font-weight: 700;
-  color: #6c6c6c;
-}
-
 .font-title {
   line-break: anywhere;
   width: 100%;
+}
+
+.font-title p {
+  font-size: 10px;
+  margin: 0px;
+  padding: 0px;
+  text-align: center;
+  max-width: 750px;
+  font-family: 'Roboto', sans-serif;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #6c6c6c;
 }
 
 .print-mini-map-text {
@@ -1222,7 +1233,6 @@ p {
 
 .image-container {
   width: 100%;
-  /* Garante que o container tenha largura suficiente */
 }
 
 .row {
@@ -1243,31 +1253,3 @@ img.layer-thumbnail {
 }
 </style>
 
-<style>
-  @media print {
-    @page {
-      size: landscape;
-      margin: 0;
-    }
-    /* Forçar cores de fundo e bordas na impressão */
-    * {
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    /* Estilo específico para as legendas */
-    .legend-item {
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    /* Garantir que ícones de fogo sejam visíveis */
-    .v-icon {
-      color: inherit !important;
-    }
-  }
-
-  /* Estilos normais (não relacionados à impressão) */
-  #monitoring-data-details {
-    position: relative;
-  }
-  /* ... (mantenha o resto dos seus estilos existentes) ... */
-</style>
