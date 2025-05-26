@@ -118,12 +118,14 @@ export default {
           this.grantedPermissions = activePermissions;
           const response = await this.$api.get(`user/group-diff/${this.card.id}/`);
           this.revokedPermissions = response.data.layer_permissions.map((permission) => permission);
+          console.log('aqui', response.data.layer_permissions);
         } else {
           const activePermissions = this.card.layers.map((layer) => layer);
           this.grantedPermissions = activePermissions;
           const response = await this.$api.get(
             `permission/layer-diff/${this.card.id}/`,
           );
+
           this.revokedPermissions = response.data;
         }
       } catch (e) {

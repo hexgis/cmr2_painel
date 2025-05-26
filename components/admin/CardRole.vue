@@ -112,16 +112,20 @@ export default {
   methods: {
     async loadPermissions() {
       try {
-        if (this.from === 'groups') {
-          const activePermissions = this.card.layer_permissions.map((layer) => layer);
+        if (this.from === 'roles') {
+          console.log('hakuna matata');
+          const activePermissions = this.card.groups.map((groups) => groups);
           this.grantedPermissions = activePermissions;
-          const response = await this.$api.get(`user/group-diff/${this.card.id}/`);
-          this.revokedPermissions = response.data.layer_permissions.map((permission) => permission);
+          console.log('activePermissions', activePermissions);
+          const response = await this.$api.get(`user/role-diff/${this.card.id}/`);
+          console.log('response', response.unassociated_groups);
+          this.revokedPermissions = response.data.unassociated_groups.map((groups) => groups);
+          console.log('response.data.groups', response.data.groups);
         } else {
-          const activePermissions = this.card.layers.map((layer) => layer);
+          const activePermissions = this.card.groups.map((groups) => groups);
           this.grantedPermissions = activePermissions;
           const response = await this.$api.get(
-            `permission/layer-diff/${this.card.id}/`,
+            `permission/role-diff/${this.card.id}/`,
           );
           this.revokedPermissions = response.data;
         }
@@ -136,33 +140,33 @@ export default {
       this.isSelected = !this.isSelected;
     },
     async saveCard() {
-      if (this.from === 'groups') {
+      if (this.from === 'roles') {
         try {
-          await this.$api.patch(`/user/group/${this.card.id}/`, {
+          await this.$api.patch(`/user/role/${this.card.id}/`, {
             name: this.cardName,
             description: this.localCardDescription,
-            layer_permissions: this.grantedPermissions.map((layer) => layer.id),
+            associated_groups: this.grantedPermissions.map((groups) => groups.id),
           });
           this.dialog = false;
           console.log('Permissões atualizadas com sucesso.');
         } catch (e) {
           console.error('Erro ao salvar permissões:', e);
         } finally {
-          this.$store.dispatch('admin/fetchGroupList');
+          this.$store.dispatch('admin/fetchRoleList');
         }
       } else {
         console.log(this.localCardDescription);
         try {
           await this.$api.patch(`/permission/layer/${this.card.id}/`, {
             description: this.localCardDescription,
-            layer_ids: this.grantedPermissions.map((layer) => layer.id),
+            layer_ids: this.grantedPermissions.map((groups) => groups.id),
           });
           this.dialog = false;
           console.log('Permissões atualizadas com sucesso.');
         } catch (e) {
           console.error('Erro ao salvar permissões:', e);
         } finally {
-          this.$store.dispatch('admin/fetchGroupList');
+          this.$store.dispatch('admin/fetchRoleList');
         }
       }
     },

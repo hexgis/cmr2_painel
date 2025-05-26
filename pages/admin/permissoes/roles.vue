@@ -104,7 +104,7 @@ export default {
       const response = await this.$api.post('user/role/', {
         name: this.roleName,
         description: this.cardDescription,
-        layer_permissions: this.grantedPermissions.map((permission) => permission.id),
+        associated_groups: this.grantedPermissions.map((permission) => permission.id),
       });
       this.$store.dispatch('admin/fetchRolesList');
       this.dialog = false;
