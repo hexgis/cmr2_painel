@@ -45,10 +45,16 @@ export default {
           optionLabel: 'Grupos',
         },
         {
+          url: 'permissoes/roles/',
+          icon: 'mdi-account-cog',
+          optionLabel: 'Papéis',
+        },
+        {
           url: 'permissoes/instituicoes/',
           icon: 'mdi-office-building',
           optionLabel: 'Instituições',
         },
+
         // {
         //   url: 'permissoes/fpe/',
         //   icon: 'mdi-tree',

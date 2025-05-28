@@ -113,8 +113,6 @@ export default {
       } else {
         this.itemsFiltered = this.items;
       }
-
-      console.log(this.itemsFiltered);
     },
 
     handleSelect(layer) {
