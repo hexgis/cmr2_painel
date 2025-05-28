@@ -25,6 +25,7 @@ build:
     - main
     - develop
     - tags
+
 test:
   stage: test
   image: dirceusilva/base_k8s_python:latest
@@ -102,7 +103,7 @@ update-hmlg:
   dependencies:
     - push
   only:
-    - main
+    - develop
   when: manual
 
 

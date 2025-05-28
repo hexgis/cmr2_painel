@@ -219,7 +219,6 @@ export default {
     },
 
     setMonitoringStyle(feature) {
-      console.log(this.style);
       const { style } = this;
       style.fillOpacity = this.opacity / 100;
 

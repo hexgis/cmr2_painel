@@ -1,7 +1,7 @@
 <template>
   <div class="group">
     <span class="d-flex align-center justify-space-between">
-      <h1 class="text-uppercase">Gerenciamento de Grupos</h1>
+      <h1 class="text-uppercase">Gerenciamento de Papéis</h1>
       <v-btn
         color="primary"
         text
@@ -11,11 +11,11 @@
       </v-btn>
     </span>
     <span class="card--wrapper mt-4">
-      <CardGroup
-        v-for="group in groupList"
-        :key="group.id"
-        :card="group"
-        from="groups"
+      <CardRole
+        v-for="role in rolesList"
+        :key="role.id"
+        :card="role"
+        from="roles"
       />
     </span>
     <div class="add--btn">
@@ -30,7 +30,6 @@
         </v-icon>
       </v-btn>
     </div>
-
     <CustomDialog
       v-model="dialog"
       title="Adicionar"
@@ -40,10 +39,10 @@
       @save="addCardPermission"
     >
       <v-text-field
-        v-model="groupName"
+        v-model="roleName"
         class="pt-8"
         hide-details="auto"
-        label="Nome do Grupo"
+        label="Nome do Papel"
       />
       <v-text-field
         v-model="cardDescription"
@@ -62,29 +61,29 @@
 
 <script>
 import CustomDialog from '/components/admin/CustomDialog.vue';
-import CardGroup from '/components/admin/CardGroup.vue';
+import CardRole from '/components/admin/CardRole.vue';
 import PermissionManager from '/components/admin/PermissionManager.vue';
 import { mapGetters } from 'vuex';
 
 export default {
-  name: 'Grupos',
-  components: { CardGroup, CustomDialog, PermissionManager },
+  name: 'Papeis',
+  components: { CardRole, CustomDialog, PermissionManager },
   layout: 'admin',
   data() {
     return {
       dialog: false,
-      groupName: '',
+      roleName: '',
       permissions: [],
       grantedPermissions: [],
       cardDescription: '',
     };
   },
   async mounted() {
-    this.$store.dispatch('admin/fetchGroupList');
-    this.permissions = await this.$api.get('permission/');
+    this.$store.dispatch('admin/fetchRolesList');
+    this.permissions = await this.$api.get('user/group/');
   },
   computed: {
-    ...mapGetters('admin', ['groupList']),
+    ...mapGetters('admin', ['rolesList']),
 
     revokedPermissions: {
       get() {
@@ -102,12 +101,12 @@ export default {
       this.revokedPermissions = revokedPermissions;
     },
     async addCardPermission() {
-      const response = await this.$api.post('user/group/', {
-        name: this.groupName,
+      const response = await this.$api.post('user/role/', {
+        name: this.roleName,
         description: this.cardDescription,
-        layer_permissions: this.grantedPermissions.map((permission) => permission.id),
+        associated_groups: this.grantedPermissions.map((permission) => permission.id),
       });
-      this.$store.dispatch('admin/fetchGroupList');
+      this.$store.dispatch('admin/fetchRolesList');
       this.dialog = false;
     },
   },
