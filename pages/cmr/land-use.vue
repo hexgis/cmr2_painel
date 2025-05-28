@@ -21,38 +21,12 @@
           <span> {{ $t('info') }} </span>
         </v-tooltip>
       </div>
-      <v-switch
-        v-if="features"
-        v-model="showFeaturesLandUse"
-        class="mt-n1 ml-5"
-        hide-details
-      />
     </div>
     <LandUseFilter @onSearch="search()" />
     <div
       v-if="showFeaturesLandUse && !isLoadingFeatures"
       class="px-4"
-    >
-      <v-divider class="mt-1" />
-      <p class="font-weight-regular pt-2 grey--text text--darken-2">
-        {{ $t('legend') }}
-      </p>
-      <v-col class="grey--text text--darken-2">
-        <v-row
-          v-for="(category, index) in landUseCategories"
-          :key="index"
-          class="mb-2"
-        >
-          <v-icon
-            class="mr-2"
-            :color="category.color"
-          >
-            mdi-square
-          </v-icon>
-          {{ $t(`land-use-categories.${category.key}`) }}
-        </v-row>
-      </v-col>
-    </div>
+    />
   </div>
 </template>
 
@@ -114,18 +88,6 @@ export default {
       text: 'Texto de teste.',
       timer: '',
       checkNewFilters: false,
-      landUseCategories: [
-        { key: 'agriculture', color: '#ffff00' },
-        { key: 'clear-cut', color: '#ff0000' },
-        { key: 'degradation', color: '#ff00ff' },
-        { key: 'water-body', color: '#00ffff' },
-        { key: 'mining', color: '#e9dcc6' },
-        { key: 'not-observed', color: '#000000' },
-        { key: 'highway', color: '#708090' },
-        { key: 'forestry', color: '#FF8000' },
-        { key: 'natural-vegetation', color: '#228b22' },
-        { key: 'village', color: '#A0522d' },
-      ],
     };
   },
 
