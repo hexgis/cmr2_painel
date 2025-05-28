@@ -275,11 +275,41 @@
                             class="mt-1"
                           />
                         </div>
+                        <div v-if="showFeaturesProdes">
+                          <p>
+                            <strong>INPE - Prodes</strong>
+                          </p>
+                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                          <CustomizedLegend
+                            class="pt-1"
+                            :items="prodesItems"
+                          />
+                        </div>
+                        <div v-if="showFeaturesDeter">
+                          <p>
+                            <strong>INPE - Deter</strong>
+                          </p>
+                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                          <CustomizedLegend
+                            class="pt-1"
+                            :items="deterItems"
+                          />
+                        </div>
+                        <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
+                          <p>
+                            <strong>INPE - Focos de Calor</strong>                           
+                          </p>
+                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;" >
+                          <CustomizedLegend
+                            class="pt-1"
+                            :items="heatFocusItems.filter(item => 
+                              (item.label === 'Aqua Modis Manhã' && showFeaturesAquaMM) ||
+                              (item.label === 'Aqua Modis Tarde' && showFeaturesAquaMT)
+                            )"                            
+                          />
+                        </div>
                       </div>
-                      <LayerList
-                        :layers="supportLayersCategoryProdes"
-                        :prodes="true"
-                      />
+                     
                       <div
                         v-if="showFeaturesUrgentAlerts && showFeaturesMonitoring &&
                           showFeaturesLandUse && showFeaturesSupportLayers"
@@ -293,11 +323,6 @@
                           :items="urgentAlertItems"
                         />
                       </div>
-
-                      <CustomizedLegend
-                        v-if="showFeaturesDeter"
-                        :items="deterItems"
-                      />
                     </div>
                   </div>
                   <div>
@@ -375,6 +400,28 @@
                         {{ year }}<span v-if="index < uniqueYears.length - 1">,
                         </span>
                       </span>
+                    </p>
+                  </div>
+                  <div v-if="showFeaturesProdes">
+                    <p class="ml-1">
+                      {{ $t('prodes-print-label') }}
+                      {{ handleProdesYear() }}
+                    </p>
+                  </div>
+                  <div v-if="showFeaturesDeter">
+                    <p class="ml-1">
+                      {{ $t('deter-print-label') }}
+                      {{ handleData(filters.startDate) }}
+                      {{ $t('and') }}
+                      {{ handleData(filters.endDate) }}
+                    </p>
+                  </div>
+                  <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
+                    <p class="ml-1">
+                      {{ $t('heat-focus-print-label') }}
+                      {{ handleData(focoFilters.startDate) }}
+                      {{ $t('and') }}
+                      {{ handleData(focoFilters.endDate) }}
                     </p>
                   </div>
                 </div>
@@ -481,7 +528,12 @@
         "monitoring-print-label": "Daily Monitoring Data between",
         "and": "and",
         "warning-message": "The number of selected TIs exceeds the limit for display on the print map. Only deforestation polygons will be shown. To view the statistics, reduce the selected TIs or access the 'Statistics' menu.",
-        "agree": "I agree"
+        "agree": "I agree",
+        "prodes-print-label": "Prodes data between",
+        "deter-print-label": "Deter data between",
+        "heat-focus-print-label": "Heat focus data between",
+        "aqua-morning": "Aqua Modis Morning",
+        "aqua-afternoon": "Aqua Modis Afternoon"
     },
     "pt-br": {
         "print-out": "Impressão",
@@ -515,7 +567,12 @@
         "monitoring-print-label": "Dados de Monitoramento Diário entre",
         "and": "e",
         "warning-message": "O número de TIs selecionadas excede o limite para visualização no mapa de impressão. Apenas os polígonos de desmatamento serão exibidos. Para ver as estatísticas, reduza as TIs selecionadas ou acesse o menu 'Estatísticas'.",
-        "agree": "Ciente"
+        "agree": "Ciente",
+        "prodes-print-label": "Dados Prodes entre",
+        "deter-print-label": "Dados Deter entre",
+        "heat-focus-print-label": "Dados de Focos de Calor entre",
+        "aqua-morning": "Aqua Modis Manhã",
+        "aqua-afternoon": "Aqua Modis Tarde"
     }
 }
 </i18n>
@@ -587,15 +644,6 @@ export default {
     showWarningMessage: false,
     activeMonitoringLabel: [],
     loadingPrintImage: false,
-    deterItems: [
-      { label: 'burnt-scar', color: '#330000' },
-      { label: 'deforestation-veg', color: '#b2b266' },
-      { label: 'disorderly-cs', color: '#ff4dff' },
-      { label: 'deforestation-cr', color: '#cca300' },
-      { label: 'geometric-cs', color: '#669999' },
-      { label: 'degradation', color: '#ff8000' },
-      { label: 'mining', color: '#cccc00' },
-    ],
     urgentAlertItems: [
       { label: 'regeneration-deforestation', color: '#990099' },
       { label: 'degradation', color: '#ff8000' },
@@ -652,6 +700,21 @@ export default {
         abbreviation: 'VI',
         color: '#A0522d',
       },
+    ],   
+    deterItems: [
+      { label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' },
+    ],
+    heatFocusItems: [
+      { 
+        label: 'Aqua Modis Manhã', 
+        color: '#FFA500',      
+        icon: 'mdi-fire'
+      },
+      { 
+        label: 'Aqua Modis Tarde', 
+        color: '#FF0000',
+        icon: 'mdi-fire'
+      }
     ],
   }),
 
@@ -669,8 +732,8 @@ export default {
     hasCartographicDatasets() {
       return !!(
         this.showFeaturesSupportLayers
-        || this.supportLayersCategoryProdes
         || this.showFeaturesDeter
+        || this.showFeaturesProdes
       );
     },
 
@@ -678,9 +741,12 @@ export default {
       return !!(
         this.showFeaturesSupportLayers
         || this.showFeaturesMonitoring
+        || this.showFearuesProdes
         || this.showFeaturesDeter
         || this.showFeaturesLandUse
         || this.showFeaturesUrgentAlerts
+        || this.showFeaturesAquaMM
+        || this.showFeaturesAquaMT
       );
     },
 
@@ -696,11 +762,6 @@ export default {
           layers: this.supportLayersCategoryFire,
           show: true,
         },
-        {
-          name: 'Prodes Category Layers',
-          layers: this.supportLayersCategoryProdes,
-          show: true,
-        },
       ].filter((category) => category.show);
     },
 
@@ -708,6 +769,30 @@ export default {
       return Object.values(this.supportLayersCategoryRaster).filter(
         (layer) => layer.visible,
       );
+    },
+
+    showFeaturesAquaMM() {
+      return this.layers?.aquaMM?.showFeatures || false;
+    },
+
+    showFeaturesAquaMT() {
+      return this.layers?.aquaMT?.showFeatures || false;
+    },
+
+    featuresAquaMM() {
+      return this.layers?.aquaMM?.features || null;
+    },
+
+    featuresAquaMT() {
+      return this.layers?.aquaMT?.features || null;
+    },
+
+    focoFilters() {
+      return this.layers?.aquaMM?.filters || {}; // Usamos os filters de qualquer layer pois são compartilhados
+    },
+
+    prodesItems() {
+      return this.$store.getters['prodes/getLegendItems'];
     },
 
     ...mapState('supportLayersUser', ['supportLayerUser']),
@@ -718,7 +803,6 @@ export default {
       'supportLayersCategoryFire',
       'supportLayersCategoryBase',
       'supportLayersCategoryRaster',
-      'supportLayersCategoryProdes',
       'supportLayersCategoryAntropismo',
     ]),
 
@@ -729,17 +813,37 @@ export default {
       'filters',
       'lastSearchStatisticsByFunai',
     ]),
-
-    ...mapState('deter', ['showFeaturesDeter', 'features']),
     ...mapState('urgent-alerts', ['showFeaturesUrgentAlerts']),
     ...mapState('land-use', [
       'showFeaturesLandUse',
       'features',
       'tableLandUse',
     ]),
+
+    ...mapState('prodes', [
+      'showFeaturesProdes',
+      'filters',
+      'features'
+    ]),
+    ...mapState('deter', [
+      'showFeaturesDeter',
+      'features',
+      'filters'
+    ]),
+    ...mapState('foco', [
+      'layers',
+      'filterOptions',
+      'isLoadingFeatures'
+    ]),
   },
 
   watch: {
+    features(newVal) {
+      if (newVal?.features?.length > 100) { 
+        this.showWarningMessage = true;
+      }
+    },
+
     analyticsMonitoring(newVal) {
       // Verificar se newVal é vazio, nulo ou 0
       if (!newVal || newVal.length === 0) {
@@ -851,6 +955,18 @@ export default {
 
     vectorImage(layer) {
       return layer.vector.thumbnail_blob || layer.vector.image;
+    },
+
+    handleProdesYear() {
+      const prodesFilters = this.$store.state.prodes.filters;
+      
+      if (!prodesFilters) return '-';
+      
+      if (prodesFilters.startYear === prodesFilters.endYear) {
+        return prodesFilters.startYear;
+      }
+     
+      return `${prodesFilters.startYear} ${this.$t('and')} ${prodesFilters.endYear}`;
     },
 
     handleData(data) {
@@ -984,23 +1100,21 @@ export default {
   gap: 0.5rem;
 }
 
-.bordered-red {
-  border: 2px solid red;
-  /* Borda vermelha */
+.bordered-red,
+.bordered-blue {
   padding: 10px;
   border-radius: 5px;
-  /* Borda arredondada */
+}
+
+.bordered-red {
+  border: 2px solid red;
 }
 
 .bordered-blue {
   border: 2px solid blue;
-  /* Borda azul */
-  padding: 10px;
-  border-radius: 5px;
-  /* Borda arredondada */
 }
 
-#data-table>div {
+#data-table > div {
   background: #fffbfb;
   opacity: 0.9;
   padding: 5px;
@@ -1032,9 +1146,20 @@ export default {
 }
 
 @media print {
-  .logo {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  @page {
+    size: landscape;
+    margin: 0;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .logo,
+  .legend-item {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .container {
@@ -1050,6 +1175,10 @@ export default {
   .no-print {
     display: none;
   }
+
+  .v-icon {
+    color: inherit !important;
+  }
 }
 
 p {
@@ -1057,23 +1186,21 @@ p {
   margin: 0;
 }
 
-.font-title p {
-  font-size: medium;
-  margin: 0px;
-  padding: 0px;
-  text-align: center;
-  line-break: anywhere;
-  max-width: 750px;
-  font-family: 'Roboto', sans-serif;
-  text-transform: uppercase;
-  font-size: 10px;
-  font-weight: 700;
-  color: #6c6c6c;
-}
-
 .font-title {
   line-break: anywhere;
   width: 100%;
+}
+
+.font-title p {
+  font-size: 10px;
+  margin: 0px;
+  padding: 0px;
+  text-align: center;
+  max-width: 750px;
+  font-family: 'Roboto', sans-serif;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #6c6c6c;
 }
 
 .print-mini-map-text {
@@ -1106,7 +1233,6 @@ p {
 
 .image-container {
   width: 100%;
-  /* Garante que o container tenha largura suficiente */
 }
 
 .row {
@@ -1126,3 +1252,4 @@ img.layer-thumbnail {
   background: #ffffff;
 }
 </style>
+
