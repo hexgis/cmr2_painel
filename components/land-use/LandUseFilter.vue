@@ -73,17 +73,34 @@
     >
       <v-col v-if="showFeaturesLandUse">
         <v-btn
-          block
+          color="accent"
+          :loading="isLoadingGeoJson"
+          fab
           small
-          color="primary"
-          outlined
-          :loading="loadingLandUse"
-          @click="searchLandUse"
+          icon
+          @click="downloadGeoJsonLandUse()"
         >
-          {{ $t('search-label') }}
+          <v-icon>mdi-download</v-icon>
+        </v-btn>
+        <v-btn
+          :loading="isLoadingTable"
+          icon
+          fab
+          small
+          color="accent"
+          @click="showTableDialog(true)"
+        >
+          <v-tooltip left>
+            <template #activator="{ on }">
+              <v-icon v-on="on">
+                mdi-table
+              </v-icon>
+            </template>
+            <span>{{ $t('table-label') }}</span>
+          </v-tooltip>
         </v-btn>
       </v-col>
-      <v-col v-if="!showFeaturesLandUse">
+      <v-col>
         <v-btn
           block
           small
@@ -100,7 +117,29 @@
       v-if="showFeaturesLandUse && !isLoadingFeatures"
       class="mt-4"
     />
-
+    <v-row
+      v-if="showFeaturesLandUse && !isLoadingFeatures && features && features.features"
+      class="mt-2"
+    >
+      <v-col
+        cols="12"
+        class="grey--text text--darken-2 d-flex justify-space-between"
+      >
+        <span>
+          {{ $t('total-poligono-label') }}:
+        </span>
+        <strong>{{ features.features.length }}</strong>
+      </v-col>
+      <v-col
+        cols="12"
+        class="grey--text text--darken-2 d-flex justify-space-between"
+      >
+        <span>
+          {{ $t('total-area-label') }}:
+        </span>
+        <strong>{{ totalArea }} ha</strong>
+      </v-col>
+    </v-row>
     <v-row
       v-if="showFeaturesLandUse && !isLoadingFeatures"
       align="center"
@@ -121,58 +160,76 @@
       </v-col>
     </v-row>
     <v-divider />
+    <v-divider />
     <div v-if="showFeaturesLandUse && !isLoadingFeatures">
       <p class="font-weight-regular pt-2 grey--text text--darken-2 mb-n6">
         {{ $t('legend') }}
       </p>
-      <!-- Legenda Dinâmica para Ano Selecionado-->
-      <div v-if="showFeaturesLandUse && !isLoadingFeatures">
-        <v-row
-          v-if="legendItems.length"
-          class="mt-2"
-        >
-          <v-col>
-            <v-list dense>
-              <v-list-item
-                v-for="item in legendItems"
-                :key="item.label"
-                class="mb-n4"
-              >
-                <v-list-item-icon>
-                  <span
-                    class="legend-color"
-                    :style="{ backgroundColor: item.color }"
-                  />
-                </v-list-item-icon>
-                <v-list-item-content class="ml-n8 mb-1">
-                  <v-list-item-title>
-                    {{ item.label }}
-                  </v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
-          </v-col>
-        </v-row>
-      </div>
+      <v-row
+        v-if="legendItems.length"
+        class="mt-2"
+      >
+        <v-col>
+          <v-list dense>
+            <v-list-item
+              v-for="item in legendItems"
+              :key="item.label"
+              class="mb-n4"
+            >
+              <v-list-item-icon>
+                <span
+                  class="legend-color"
+                  :style="{ backgroundColor: item.color }"
+                />
+              </v-list-item-icon>
+              <v-list-item-content class="ml-n8 mb-1">
+                <v-list-item-title>
+                  {{ item.label }}
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-col>
+      </v-row>
+    </div>
+
+    <div
+      v-if="tableDialogLand"
+      class="d-none"
+    >
+      <TableDialog
+        :table="tableDialogLand"
+        :headers="headers"
+        :value="formattedTableLandUse"
+        :loading-table="isLoadingTable"
+        :loading-c-s-v="isLoadingCSV"
+        :table-name="$t('table-name')"
+        :f-download-c-s-v="downloadTableLandUse"
+        :f-close-table="closeTable"
+      />
     </div>
   </v-col>
 </template>
 
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';
+import legend from '../../assets/legend.png';
+import TableDialog from '../table-dialog/TableDialog.vue';
 
 export default {
   name: 'LandUseFilters',
 
+  components: { TableDialog },
+
   data() {
     const currentYear = new Date().getFullYear();
     const yearOptions = [];
-    for (let year = 2015; year <= currentYear; year += 1) {
+    for (let year = 2015; year <= currentYear; year++) {
       yearOptions.push(year);
     }
 
     return {
-      yearOptions,
+      yearOptions: [2015, 2019].filter((year) => year <= new Date().getFullYear()),
       filters: {
         year: currentYear,
         currentView: false,
@@ -180,16 +237,59 @@ export default {
         cr: [],
         ti: null,
       },
+      headers: [
+        { text: 'Código Funai', value: 'co_funai' },
+        { text: 'Coordenação Regional', value: 'ds_cr' },
+        { text: 'Terra Indígena', value: 'no_ti' },
+        { text: 'Ano', value: 'nu_ano' },
+        { text: 'Agropecuaria (ha)', value: 'nu_area_ag_ha' },
+        { text: 'Corte raso (ha)', value: 'nu_area_cr_ha' },
+        { text: 'Degradação (ha)', value: 'nu_area_dg_ha' },
+        { text: 'Massa de água (ha)', value: 'nu_area_ma_ha' },
+        { text: 'Silvicultura', value: 'nu_area_sv_ha' },
+        { text: 'Vegetação natural (ha)', value: 'nu_area_vn_ha' },
+        { text: 'Vilarejo (ha)', value: 'nu_area_vi_ha' },
+        { text: 'Rodovia (ha)', value: 'nu_area_rv_ha' },
+        { text: 'Mineração (ha)', value: 'nu_area_mi_ha' },
+        { text: 'Não observado (ha)', value: 'nu_area_no_ha' },
+        { text: 'Total (ha)', value: 'nu_area_ha' },
+      ],
       filteredYears: [],
       checkNewFilters: false,
       isLoadingTotal: false,
+      legendData: legend,
       error: false,
       flattened: [],
       dialog: false,
+      tableDialogLand: false,
+      isLoadingTable: false,
+      isLoadingCSV: false,
+      isLoadingGeoJson: false,
     };
   },
 
   computed: {
+    totalArea() {
+      if (this.features && this.features.features && this.features.features.length) {
+        const total = this.features.features
+          .reduce((total, feature) => total + (feature.properties.nu_area_ha || 0), 0);
+        return this.formatFieldValue(total, 'nu_area_ha');
+      }
+      return this.formatFieldValue(0, 'nu_area_ha');
+    },
+    formattedTableLandUse() {
+      if (!this.tableLandUse || !this.tableLandUse.length) {
+        return [];
+      }
+      return this.tableLandUse.map((item) => {
+        const formattedItem = { ...item };
+        this.headers.forEach((header) => {
+          const field = header.value;
+          formattedItem[field] = this.formatFieldValue(item[field], field);
+        });
+        return formattedItem;
+      });
+    },
     opacity: {
       get() {
         return this.$store.state['land-use'].opacity;
@@ -198,7 +298,6 @@ export default {
         this.$store.commit('land-use/setOpacity', value);
       },
     },
-
     featuresLandUse: {
       get() {
         return this.$store.state['land-use'].showFeaturesLandUse;
@@ -207,11 +306,12 @@ export default {
         this.$store.commit('land-use/setshowFeaturesLandUse', value);
       },
     },
-
     legendItems() {
       return this.$store.getters['land-use/getLegendItems'];
     },
-
+    tableLandUse() {
+      return this.$store.state['land-use'].tableLandUse;
+    },
     ...mapState('land-use', [
       'currentUrlWmsLandUse',
       'isLoadingFeatures',
@@ -224,15 +324,14 @@ export default {
   },
 
   watch: {
-    'filters.cr': function filtersCrWatcher(value) {
+    'filters.cr': function (value) {
       const arrayCrPoulate = [];
       Object.values(value).forEach((item) => {
         arrayCrPoulate.push(item.co_cr);
       });
       this.populateTiOptions(arrayCrPoulate);
     },
-
-    'filterOptions.regionalFilters': function regionalFiltersWatcher() {
+    'filterOptions.regionalFilters': function () {
       this.populateCrOptions();
     },
   },
@@ -240,10 +339,55 @@ export default {
   mounted() {
     this.getFilterOptions();
     this.getLandUseStyleFromGeoserver();
-    this.$store.commit('land-use/setshowFeaturesLandUse', true);
   },
 
   methods: {
+    formatFieldValue(value, field = '') {
+      if (value === null || value === undefined) {
+        return 'N/A';
+      }
+
+      const fieldName = field.toLowerCase();
+
+      const isDateField = (
+        typeof value === 'string'
+        && (fieldName.startsWith('dt_') || fieldName.startsWith('data_') || fieldName.startsWith('date'))
+        && this.$moment(value).isValid()
+      );
+
+      const isBooleanField = typeof value === 'boolean';
+
+      const isNumberField = typeof value === 'number';
+
+      const isLatLongField = ['lat', 'lng', 'long', 'latitude', 'longitude'].some((key) => fieldName.includes(key));
+
+      if (isDateField) {
+        return this.$moment(value).format('DD/MM/YYYY');
+      }
+
+      if (isBooleanField) {
+        return value ? 'Sim' : 'Não';
+      }
+
+      if (isNumberField || fieldName.startsWith('nu_')) {
+        if (isLatLongField) {
+          return value.toFixed(5);
+        }
+        if (typeof value === 'string') {
+          // eslint-disable-next-line no-param-reassign
+          value = parseFloat(value);
+        }
+        const rounded = value.toFixed(2);
+        const [intPart, decimalPart] = rounded.split('.');
+
+        return decimalPart !== '00' || (fieldName.startsWith('nu_') && fieldName.includes('area'))
+          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
+          : parseInt(value, 10);
+      }
+
+      // Valor padrão (string ou outros)
+      return value || 'N/A';
+    },
     populateCrOptions() {
       const groups = {};
 
@@ -265,61 +409,55 @@ export default {
 
       return this.flattened;
     },
-
     populateTiOptions(cr) {
       if (cr) this.$store.dispatch('land-use/getTiOptions', cr);
       else this.filters.ti = null;
     },
-
     searchLandUse() {
       const { filters } = this;
-      const {
-        currentView, cr, year,
-      } = filters;
+      const { currentView, cr, year } = filters;
 
       if ((currentView || cr.length) && year) {
         this.error = false;
 
-        // Converter ano para datas para o store (usando o mesmo ano para início e fim)
         const filtersForStore = {
           ...filters,
           startDate: `${year}-01-01`,
           endDate: `${year}-12-31`,
         };
 
-        // Definir o ano filtrado
         this.filteredYears = [year];
-
         this.setFilters(filtersForStore);
         this.getFeatures();
         return;
       }
       this.error = true;
     },
-
-    ...mapMutations('land-use', ['setFilters']),
+    showTableDialog(value) {
+      if (this.features) {
+        this.tableDialogLand = value;
+        this.getDataTableLandUse();
+      }
+    },
+    closeTable(value) {
+      this.tableDialogLand = value;
+      if (this.checkNewFilters) {
+        this.getFeatures();
+        this.checkNewFilters = false;
+      }
+    },
+    ...mapMutations('land-use', ['setFilters', 'settableDialogLand']),
     ...mapActions('land-use', [
       'getFilterOptions',
       'getFeatures',
       'getLandUseStyleFromGeoserver',
+      'downloadGeoJsonLandUse',
+      'getDataTableLandUse',
+      'downloadTableLandUse',
     ]),
   },
 };
 </script>
-
-<style scoped lang="scss">
-@media (max-width: 768px) {
-  .full-width {
-      flex: 0 0 100%;
-      max-width: 100%;
-  }
-
-  .text-label {
-      font-size: 0.8rem;
-      padding-right: 0px;
-  }
-}
-</style>
 
 <style scoped lang="scss">
 .legend-color {
@@ -332,40 +470,46 @@ export default {
 
 @media (max-width: 768px) {
   .full-width {
-      flex: 0 0 100%;
-      max-width: 100%;
+    flex: 0 0 100%;
+    max-width: 100%;
   }
 
   .text-label {
-      font-size: 0.8rem;
-      padding-right: 0px;
+    font-size: 0.8rem;
+    padding-right: 0px;
   }
 }
 </style>
 
 <i18n>
-  {
-      "en": {
-          "legend": "Legend:",
-          "search-label": "Search",
-          "opacity-label": "Opacity",
-          "current-view-label": "Search in current area?",
-          "year-label": "Year",
-          "total-area-label": "Total Area",
-          "regional-coordination-label": "Regional Coordination (All)",
-          "indigenous-lands-label": "Indigenous Lands",
-          "title-switch-disable-features": "Disable LandUse Layer"
-      },
-      "pt-br": {
-          "legend": "Legenda:",
-          "search-label": "Buscar",
-          "opacity-label": "Opacidade",
-          "current-view-label": "Pesquisar nesta área?",
-          "year-label": "Ano",
-          "total-area-label": "Área total",
-          "regional-coordination-label": "Coordenação Regional (Todas)",
-          "indigenous-lands-label": "Terras Indígenas",
-          "title-switch-disable-features": "Desabilitar Camada de LandUse"
-      }
+{
+  "en": {
+    "legend": "Legend:",
+    "search-label": "Search",
+    "opacity-label": "Opacity",
+    "current-view-label": "Search in current area?",
+    "year-label": "Year",
+    "total-area-label": "Total area",
+    "total-poligono-label": "Total polygons",
+    "regional-coordination-label": "Regional Coordination (All)",
+    "indigenous-lands-label": "Indigenous Lands",
+    "title-switch-disable-features": "Disable LandUse Layer",
+    "table-label": "Table",
+    "table-name": "Table Land Use"
+  },
+  "pt-br": {
+    "legend": "Legenda:",
+    "search-label": "Buscar",
+    "opacity-label": "Opacidade",
+    "current-view-label": "Pesquisar nesta área?",
+    "year-label": "Ano",
+    "total-area-label": "Área total",
+    "total-poligono-label": "Total de polígonos",
+    "regional-coordination-label": "Coordenação Regional (Todas)",
+    "indigenous-lands-label": "Terras Indígenas",
+    "title-switch-disable-features": "Desabilitar Camada de LandUse",
+    "table-label": "Tabela",
+    "table-name": "Tabela de Uso e Ocupação do Solo"
   }
+}
 </i18n>

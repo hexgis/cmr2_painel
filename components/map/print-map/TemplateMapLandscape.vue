@@ -80,8 +80,8 @@
                     <p v-if="parseFloat(item.nu_area_ha) > 0">
                       Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_vn_ha) > 0">
-                      VN: {{ formatNumber(item.nu_area_vn_ha) }} ha
+                   <p v-if="parseFloat(item.nu_area_ag_ha) > 0">
+                      AG: {{ formatNumber(item.nu_area_ag_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_cr_ha) > 0">
                       CR: {{ formatNumber(item.nu_area_cr_ha) }} ha
@@ -92,23 +92,23 @@
                     <p v-if="parseFloat(item.nu_area_ma_ha) > 0">
                       MA: {{ formatNumber(item.nu_area_ma_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_sv_ha) > 0">
-                      SV: {{ formatNumber(item.nu_area_sv_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_vi_ha) > 0">
-                      VI: {{ formatNumber(item.nu_area_vi_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_ag_ha) > 0">
-                      AG: {{ formatNumber(item.nu_area_ag_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_rv_ha) > 0">
-                      RV: {{ formatNumber(item.nu_area_rv_ha) }} ha
-                    </p>
                     <p v-if="parseFloat(item.nu_area_mi_ha) > 0">
                       MI: {{ formatNumber(item.nu_area_mi_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_no_ha) > 0">
                       NO: {{ formatNumber(item.nu_area_no_ha) }} ha
+                    </p>
+                    <p v-if="parseFloat(item.nu_area_rv_ha) > 0">
+                      RV: {{ formatNumber(item.nu_area_rv_ha) }} ha
+                    </p>
+                    <p v-if="parseFloat(item.nu_area_sv_ha) > 0">
+                      SV: {{ formatNumber(item.nu_area_sv_ha) }} ha
+                    </p>
+                    <p v-if="parseFloat(item.nu_area_vn_ha) > 0">
+                      VN: {{ formatNumber(item.nu_area_vn_ha) }} ha
+                    </p>
+                    <p v-if="parseFloat(item.nu_area_vi_ha) > 0">
+                      VI: {{ formatNumber(item.nu_area_vi_ha) }} ha
                     </p>
                   </div>
                 </template>
@@ -242,19 +242,7 @@
                             :items="urgentAlertItems"
                           />
                         </div>
-                        <div v-if="showFeaturesLandUse">
-                          <p>
-                            <strong>Uso e Ocupação</strong>
-                            <v-chip x-small>
-                              {{ tableLandUse.length }}
-                            </v-chip>
-                          </p>
-                          <hr style="border: 1px solid blue;margin: 0;">
-                          <CustomizedLegend
-                            v-if="showFeaturesLandUse"
-                            :items="landUseCategories"
-                          />
-                        </div>
+
                         <div
                           v-if="showFeaturesSupportLayers
                             && (Object.values(supportLayers).filter(l => l.visible).length)
@@ -275,6 +263,30 @@
                             class="mt-1"
                           />
                         </div>
+
+
+
+
+
+                        <div v-if="showFeaturesLandUse">
+                          <p>
+                            <strong>Uso e Ocupação do Solo</strong>
+                             <v-chip x-small>
+                              {{ tableLandUse.length }}
+                            </v-chip>
+                          </p>
+                          <hr style="border: 1px solid blue; margin: 0; margin-top: 0px;">
+                          <CustomizedLegend
+                            class="pt-1"
+                            :items="landUseItems"
+                          />
+                        </div>
+
+
+
+
+
+
                         <div v-if="showFeaturesProdes">
                           <p>
                             <strong>INPE - Prodes</strong>
@@ -297,19 +309,19 @@
                         </div>
                         <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
                           <p>
-                            <strong>INPE - Focos de Calor</strong>                           
+                            <strong>INPE - Focos de Calor</strong>
                           </p>
                           <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;" >
                           <CustomizedLegend
                             class="pt-1"
-                            :items="heatFocusItems.filter(item => 
+                            :items="heatFocusItems.filter(item =>
                               (item.label === 'Aqua Modis Manhã' && showFeaturesAquaMM) ||
                               (item.label === 'Aqua Modis Tarde' && showFeaturesAquaMT)
-                            )"                            
+                            )"
                           />
                         </div>
                       </div>
-                     
+
                       <div
                         v-if="showFeaturesUrgentAlerts && showFeaturesMonitoring &&
                           showFeaturesLandUse && showFeaturesSupportLayers"
@@ -517,13 +529,6 @@
         "deforestation-cr": "Deforestation Cr",
         "geometric-cs": "Geometric Cs",
         "mining": "Mining",
-        "land-use-categories": {
-            "agriculture": "Agriculture",
-            "water-body": "Water Body",
-            "village": "Village",
-            "natural-vegetation": "Natural Vegetation",
-            "clear-cut": "Clear Cut"
-        },
         "land-use-print-label": "Year usage and occupancy data",
         "monitoring-print-label": "Daily Monitoring Data between",
         "and": "and",
@@ -556,13 +561,6 @@
         "deforestation-cr": "Desmatamento Cr",
         "geometric-cs": "Cs Geométrico",
         "mining": "Mineração",
-        "land-use-categories": {
-            "agriculture": "Agropecuária",
-            "water-body": "Massa de Água",
-            "village": "Vilarejo",
-            "natural-vegetation": "Vegetação Natural",
-            "clear-cut": "Corte Raso"
-        },
         "land-use-print-label": "Dados de Uso e Ocupação ano",
         "monitoring-print-label": "Dados de Monitoramento Diário entre",
         "and": "e",
@@ -649,69 +647,18 @@ export default {
       { label: 'degradation', color: '#ff8000' },
       { label: 'clear-cut', color: '#ff3333' },
     ],
-    landUseCategories: [
-      {
-        label: 'land-use-categories.agriculture',
-        abbreviation: 'AG',
-        color: '#ffff00',
-      },
-      {
-        label: 'land-use-categories.clear-cut',
-        abbreviation: 'CR',
-        color: '#ff0000',
-      },
-      {
-        label: 'land-use-categories.degradation',
-        abbreviation: 'DG',
-        color: '#ff00ff',
-      },
-      {
-        label: 'land-use-categories.water-body',
-        abbreviation: 'MA',
-        color: '#00ffff',
-      },
-      {
-        label: 'land-use-categories.mining',
-        abbreviation: 'MI',
-        color: '#e9dcc6',
-      },
-      {
-        label: 'land-use-categories.not-observed',
-        abbreviation: 'NO',
-        color: '#000000',
-      },
-      {
-        label: 'land-use-categories.highway',
-        abbreviation: 'RV',
-        color: '#708090',
-      },
-      {
-        label: 'land-use-categories.forestry',
-        abbreviation: 'SV',
-        color: '#FF8000',
-      },
-      {
-        label: 'land-use-categories.natural-vegetation',
-        abbreviation: 'VN',
-        color: '#228b22',
-      },
-      {
-        label: 'land-use-categories.village',
-        abbreviation: 'VI',
-        color: '#A0522d',
-      },
-    ],   
+
     deterItems: [
       { label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' },
     ],
     heatFocusItems: [
-      { 
-        label: 'Aqua Modis Manhã', 
-        color: '#FFA500',      
+      {
+        label: 'Aqua Modis Manhã',
+        color: '#FFA500',
         icon: 'mdi-fire'
       },
-      { 
-        label: 'Aqua Modis Tarde', 
+      {
+        label: 'Aqua Modis Tarde',
         color: '#FF0000',
         icon: 'mdi-fire'
       }
@@ -795,6 +742,10 @@ export default {
       return this.$store.getters['prodes/getLegendItems'];
     },
 
+     landUseItems() {
+      return this.$store.getters['land-use/getLegendItems'];
+    },
+
     ...mapState('supportLayersUser', ['supportLayerUser']),
     ...mapState('map', ['bounds']),
     ...mapState('supportLayers', [
@@ -839,7 +790,7 @@ export default {
 
   watch: {
     features(newVal) {
-      if (newVal?.features?.length > 100) { 
+      if (newVal?.features?.length > 100) {
         this.showWarningMessage = true;
       }
     },
@@ -874,7 +825,7 @@ export default {
 
     tableLandUse() {
       // Atualiza showWarningMessage quando o tamanho de tableLandUse mudar
-      // this.showWarningMessage = this.tableLandUse.length > 7;
+      this.showWarningMessage = this.tableLandUse.length > 7;
     },
   },
 
@@ -959,13 +910,13 @@ export default {
 
     handleProdesYear() {
       const prodesFilters = this.$store.state.prodes.filters;
-      
+
       if (!prodesFilters) return '-';
-      
+
       if (prodesFilters.startYear === prodesFilters.endYear) {
         return prodesFilters.startYear;
       }
-     
+
       return `${prodesFilters.startYear} ${this.$t('and')} ${prodesFilters.endYear}`;
     },
 

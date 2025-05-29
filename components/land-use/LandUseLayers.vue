@@ -101,7 +101,7 @@ export default {
         },
         "pt-br": {
             "detail-api-error": "Não foi possível resgatar os dados do polígono, entre em contato com um administrador caso persista.",
-            "name-layer": "LandUse"
+            "name-layer": "Uso e Ocupação do Solo"
         }
     }
 </i18n>
