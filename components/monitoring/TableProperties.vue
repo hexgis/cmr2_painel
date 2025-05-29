@@ -49,14 +49,15 @@
           <!-- Template dinâmico para todas as colunas -->
           <template
             v-for="header in headers"
-            #[`item.${header.value}`]="{ item }">
+            #[`item.${header.value}`]="{ item }"
+          >
             <!-- Caso especial para prioridade -->
             <template v-if="header.value === 'prioridade'">
               <v-chip
+                :key="`chip-${item.origin_id}-${header.value}`"
                 class="mt-2"
                 :color="getColor(item[header.value])"
                 :dark="getColor(item[header.value]) !== 'yellow'"
-                :key="`chip-${item.origin_id}-${header.value}`"
               >
                 {{ item[header.value] }}
               </v-chip>
@@ -65,9 +66,9 @@
             <!-- Caso especial para ações -->
             <template v-else-if="header.value === 'actions'">
               <MapPrinterPriority
+                :key="`map-printer-${item.origin_id}-${header.value}`"
                 class="mx-2 mb-2"
                 :value="dialogPrint"
-                :key="`map-printer-${item.origin_id}-${header.value}`"
               />
             </template>
 
@@ -191,7 +192,7 @@ export default {
       }
 
       if (isBooleanField) {
-        return value ? 'Sim' : 'Não';
+        return value ? 'Adm' : 'Não';
       }
 
       if (isNumberField || fieldName.startsWith('nu_')) {

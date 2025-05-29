@@ -39,11 +39,11 @@ export default {
   data() {
     return {
       props: [
-        {
-          url: 'permissoes/grupos/',
-          icon: 'mdi-group',
-          optionLabel: 'Grupos',
-        },
+        // {
+        //   url: 'permissoes/grupos/',
+        //   icon: 'mdi-group',
+        //   optionLabel: 'Grupos',
+        // },
         {
           url: 'permissoes/roles/',
           icon: 'mdi-account-cog',
