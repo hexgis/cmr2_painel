@@ -128,7 +128,7 @@
         <span>
           {{ $t('total-poligono-label') }}:
         </span>
-        <strong>{{ features.features.length }}</strong>
+        {{ features.features.length }}
       </v-col>
       <v-col
         cols="12"
@@ -137,7 +137,7 @@
         <span>
           {{ $t('total-area-label') }}:
         </span>
-        <strong>{{ totalArea }} ha</strong>
+        {{ totalArea }} ha
       </v-col>
     </v-row>
     <v-row
