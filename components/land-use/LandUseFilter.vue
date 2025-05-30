@@ -47,14 +47,11 @@
             hide-details
             multiple
             clearable
-            class="pa-0"
+            class="pa-0 mt-n3"
             outlined
           />
         </v-slide-y-transition>
       </v-col>
-    </v-row>
-
-    <v-row class="pt-3">
       <v-col class="py-0 full-width">
         <v-select
           v-model="filters.year"
@@ -62,16 +59,34 @@
           :items="yearOptions"
           :required="true"
           outlined
+          :menu-props="{ top: false, offsetY: true }"
         />
       </v-col>
+      <v-col cols="12">
+        <v-btn
+          block
+          small
+          color="primary"
+          outlined
+          :loading="loadingLandUse"
+          class="pa-0 mt-n8"
+          @click="searchLandUse"
+        >
+          {{ $t('search-label') }}
+        </v-btn>
+      </v-col>
     </v-row>
-
     <v-row
+      v-if="showFeaturesLandUse
+        && features && features.features && features.features.length > 0"
       no-gutters
       align="center"
       class="mt-3"
     >
-      <v-col v-if="showFeaturesLandUse">
+      <v-col
+        cols="12"
+        class="mt-n3 mb-1"
+      >
         <v-btn
           color="accent"
           :loading="isLoadingGeoJson"
@@ -80,7 +95,14 @@
           icon
           @click="downloadGeoJsonLandUse()"
         >
-          <v-icon>mdi-download</v-icon>
+          <v-tooltip left>
+            <template #activator="{ on }">
+              <v-icon v-on="on">
+                mdi-download
+              </v-icon>
+            </template>
+            <span>{{ $t('download-label') }}</span>
+          </v-tooltip>
         </v-btn>
         <v-btn
           :loading="isLoadingTable"
@@ -100,30 +122,12 @@
           </v-tooltip>
         </v-btn>
       </v-col>
-      <v-col>
-        <v-btn
-          block
-          small
-          color="primary"
-          outlined
-          :loading="loadingLandUse"
-          @click="searchLandUse"
-        >
-          {{ $t('search-label') }}
-        </v-btn>
+      <v-col cols="12">
+        <v-divider />
       </v-col>
-    </v-row>
-    <v-divider
-      v-if="showFeaturesLandUse && !isLoadingFeatures"
-      class="mt-4"
-    />
-    <v-row
-      v-if="showFeaturesLandUse && !isLoadingFeatures && features && features.features"
-      class="mt-2"
-    >
       <v-col
         cols="12"
-        class="grey--text text--darken-2 d-flex justify-space-between"
+        class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4"
       >
         <span>
           {{ $t('total-poligono-label') }}:
@@ -139,32 +143,29 @@
         </span>
         {{ totalArea }} ha
       </v-col>
-    </v-row>
-    <v-row
-      v-if="showFeaturesLandUse && !isLoadingFeatures"
-      align="center"
-      class="mt-2"
-    >
-      <v-col
-        cols="4"
-        class="grey--text text--darken-2"
-      >
-        {{ $t('opacity-label') }}
+      <v-row class="mt-2">
+        <v-col
+          cols="4"
+          class="grey--text text--darken-2"
+        >
+          {{ $t('opacity-label') }}
+        </v-col>
+        <v-col cols="8">
+          <v-slider
+            v-model="opacity"
+            hide-details
+            thumb-label
+          />
+        </v-col>
+      </v-row>
+      <v-col cols="12">
+        <v-divider />
       </v-col>
-      <v-col cols="8">
-        <v-slider
-          v-model="opacity"
-          hide-details
-          thumb-label
-        />
+      <v-col cols="12">
+        <p class="font-weight-regular pt-2 grey--text text--darken-2 mb-n6">
+          {{ $t('legend') }}
+        </p>
       </v-col>
-    </v-row>
-    <v-divider />
-    <v-divider />
-    <div v-if="showFeaturesLandUse && !isLoadingFeatures">
-      <p class="font-weight-regular pt-2 grey--text text--darken-2 mb-n6">
-        {{ $t('legend') }}
-      </p>
       <v-row
         v-if="legendItems.length"
         class="mt-2"
@@ -191,23 +192,17 @@
           </v-list>
         </v-col>
       </v-row>
-    </div>
-
-    <div
-      v-if="tableDialogLand"
-      class="d-none"
-    >
-      <TableDialog
-        :table="tableDialogLand"
-        :headers="headers"
-        :value="formattedTableLandUse"
-        :loading-table="isLoadingTable"
-        :loading-c-s-v="isLoadingCSV"
-        :table-name="$t('table-name')"
-        :f-download-c-s-v="downloadTableLandUse"
-        :f-close-table="closeTable"
-      />
-    </div>
+    </v-row>
+    <TableDialog
+      :table="tableDialogLand"
+      :headers="headers"
+      :value="formattedTableLandUse"
+      :loading-table="isLoadingTable"
+      :loading-c-s-v="isLoadingCSV"
+      :table-name="$t('table-name')"
+      :f-download-c-s-v="downloadTableLandUse"
+      :f-close-table="closeTable"
+    />
   </v-col>
 </template>
 
@@ -494,6 +489,7 @@ export default {
     "regional-coordination-label": "Regional Coordination (All)",
     "indigenous-lands-label": "Indigenous Lands",
     "title-switch-disable-features": "Disable LandUse Layer",
+    "download-label": "Download",
     "table-label": "Table",
     "table-name": "Table Land Use"
   },
@@ -508,6 +504,7 @@ export default {
     "regional-coordination-label": "Coordenação Regional (Todas)",
     "indigenous-lands-label": "Terras Indígenas",
     "title-switch-disable-features": "Desabilitar Camada de LandUse",
+    "download-label": "Baixar",
     "table-label": "Tabela",
     "table-name": "Tabela de Uso e Ocupação do Solo"
   }

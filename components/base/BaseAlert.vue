@@ -1,6 +1,6 @@
 <template>
   <v-snackbar
-    v-if="showAlert"
+    v-if="showAlert && currentAlert"
     v-model="showAlert"
     :timeout="currentAlert.timeout || 5000"
   >
@@ -9,7 +9,7 @@
     </span>
     <template #action>
       <v-btn
-        v-if="currentAlert.action"
+        v-if="currentAlert && currentAlert.action"
         color="accent"
         text
         @click="action"
@@ -21,22 +21,11 @@
         text
         @click="closeAlert"
       >
-        <v-icon> mdi-close </v-icon>
+        <v-icon>mdi-close</v-icon>
       </v-btn>
     </template>
   </v-snackbar>
 </template>
-
-<i18n>
-{
-    "en": {
-        "generic-error": "An error has ocurred, contact the system administrator in case it persists."
-    },
-    "pt-br": {
-        "generic-error": "Ocorreu um erro, entre em contato com o administrador caso este persista."
-    }
-}
-</i18n>
 
 <script>
 import { mapState, mapMutations } from 'vuex';
@@ -47,7 +36,6 @@ export default {
   data: () => ({
     showAlert: false,
     delay: 500,
-    nextAlert: null,
   }),
 
   computed: {
@@ -67,16 +55,20 @@ export default {
       }
     },
 
-    alerts() {
-      if (this.alerts.length > 0 && !this.showAlert) {
+    alerts(newAlerts) {
+      if (newAlerts.length > 0 && !this.showAlert) {
         this.showAlert = true;
+      } else if (newAlerts.length === 0) {
+        this.showAlert = false;
       }
     },
   },
 
   methods: {
     action() {
-      this.currentAlert.action(this.currentAlert.payload);
+      if (this.currentAlert && this.currentAlert.action) {
+        this.currentAlert.action(this.currentAlert.payload);
+      }
       this.closeAlert();
     },
 
@@ -88,3 +80,14 @@ export default {
   },
 };
 </script>
+
+<i18n>
+{
+  "en": {
+    "generic-error": "An error has occurred, contact the system administrator if it persists."
+  },
+  "pt-br": {
+    "generic-error": "Ocorreu um erro, entre em contato com o administrador caso persista."
+  }
+}
+</i18n>
