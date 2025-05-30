@@ -289,7 +289,7 @@ export const actions = {
     commit('clearFeatures');
     try {
       await dispatch('getLandUseStyleFromGeoserver');
-
+  
       const params = {
         service: 'WFS',
         version: '1.0.0',
@@ -299,9 +299,9 @@ export const actions = {
         CQL_FILTER: '',
         maxFeatures: 10000,
       };
-
+  
       let cqlFilters = [];
-
+  
       if (state.filters.currentView) {
         const map = window.mapMain;
         const bounds = map.getBounds();
@@ -314,36 +314,43 @@ export const actions = {
         const wkt = stringify(bboxPolygon.toGeoJSON().geometry);
         cqlFilters.push(`INTERSECTS(geom,${wkt})`);
       }
-
+  
       if (state.filters.ti?.length) {
         const tiList = state.filters.ti.map(ti => ti.co_funai).join(',');
         cqlFilters.push(`co_funai IN (${tiList})`);
       }
-
+  
       if (state.filters.cr?.length) {
         const crList = state.filters.cr.map(cr => cr.co_cr).join(',');
         cqlFilters.push(`co_cr IN (${crList})`);
       }
-
+  
       if (state.filters.year) {
         cqlFilters.push(`(nu_ano = ${state.filters.year})`);
       }
-
+  
       if (cqlFilters.length) {
         params.CQL_FILTER = cqlFilters.join(' AND ');
       }
-
+  
+      console.log('CQL Filters for fetchLandUseFeatures:', params.CQL_FILTER); // Log CQL filters
+      console.log('Layer Name:', state.geoserverLayerLandUse); // Log layer name
+  
       const url = `${state.urlWmsLandUse}${new URLSearchParams(params)}`;
       const response = await this.$api.$get(url);
-
+  
+      console.log('GeoServer Features Response:', response); // Log raw response
+      console.log('Features:', response?.features); // Log features
+      console.log('Estagios in Features:', response?.features.map(f => f.properties.no_estagio)); // Log stages
+  
       if (response?.features) {
         const geojson = {
           type: response.type,
           features: response.features,
         };
-
+  
         commit('setFeatures', geojson);
-
+  
         const wmsParams = {
           layers: state.geoserverLayerLandUse,
           format: 'image/png',
@@ -352,13 +359,14 @@ export const actions = {
           env: `fill-opacity:${state.opacity / 100}`,
           CQL_FILTER: params.CQL_FILTER,
         };
-
+  
         const wmsUrl = `${state.urlWmsLandUse}${new URLSearchParams(wmsParams)}`;
+        console.log('Generated WMS URL:', wmsUrl); // Log WMS URL
         commit('setUrlCurrentWmsLandUse', wmsUrl);
       } else {
         throw new Error('Resposta do GeoServer sem features');
       }
-
+  
     } catch (error) {
       console.error('Erro ao buscar features do LANDUSE:', error);
       commit(

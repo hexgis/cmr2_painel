@@ -77,8 +77,7 @@
       </v-col>
     </v-row>
     <v-row
-      v-if="showFeaturesLandUse
-        && features && features.features && features.features.length > 0"
+      v-if="showFeaturesLandUse && features && features.features && features.features.length > 0"
       no-gutters
       align="center"
       class="mt-3"
@@ -129,18 +128,14 @@
         cols="12"
         class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4"
       >
-        <span>
-          {{ $t('total-poligono-label') }}:
-        </span>
+        <span>{{ $t('total-poligono-label') }}:</span>
         {{ features.features.length }}
       </v-col>
       <v-col
         cols="12"
         class="grey--text text--darken-2 d-flex justify-space-between"
       >
-        <span>
-          {{ $t('total-area-label') }}:
-        </span>
+        <span>{{ $t('total-area-label') }}:</span>
         {{ totalArea }} ha
       </v-col>
       <v-row class="mt-2">
@@ -175,7 +170,7 @@
             <v-list-item
               v-for="item in legendItems"
               :key="item.label"
-              class="mb-n4"
+              class="pa-0 mb-n8"
             >
               <v-list-item-icon>
                 <span
@@ -183,11 +178,18 @@
                   :style="{ backgroundColor: item.color }"
                 />
               </v-list-item-icon>
-              <v-list-item-content class="ml-n8 mb-1">
-                <v-list-item-title>
-                  {{ item.label }}
-                </v-list-item-title>
+              <v-list-item-content>
+                <v-list-item-title>{{ item.label }}</v-list-item-title>
               </v-list-item-content>
+              <v-list-item-action>
+                <v-switch
+                  v-model="item.visible"
+                  dense
+                  hide-details
+                  :title="$t('toggle-legend-item')"
+                  @change="toggleLegendItem(item)"
+                />
+              </v-list-item-action>
             </v-list-item>
           </v-list>
         </v-col>
@@ -266,8 +268,10 @@ export default {
   computed: {
     totalArea() {
       if (this.features && this.features.features && this.features.features.length) {
-        const total = this.features.features
-          .reduce((total, feature) => total + (feature.properties.nu_area_ha || 0), 0);
+        const total = this.features.features.reduce(
+          (total, feature) => total + (feature.properties.nu_area_ha || 0),
+          0,
+        );
         return this.formatFieldValue(total, 'nu_area_ha');
       }
       return this.formatFieldValue(0, 'nu_area_ha');
@@ -302,7 +306,10 @@ export default {
       },
     },
     legendItems() {
-      return this.$store.getters['land-use/getLegendItems'];
+      return this.$store.getters['land-use/getLegendItems'].map((item) => ({
+        ...item,
+        visible: item.visible !== undefined ? item.visible : true,
+      }));
     },
     tableLandUse() {
       return this.$store.state['land-use'].tableLandUse;
@@ -344,11 +351,11 @@ export default {
 
       const fieldName = field.toLowerCase();
 
-      const isDateField = (
-        typeof value === 'string'
-        && (fieldName.startsWith('dt_') || fieldName.startsWith('data_') || fieldName.startsWith('date'))
-        && this.$moment(value).isValid()
-      );
+      const isDateField = typeof value === 'string'
+        && (fieldName.startsWith('dt_')
+          || fieldName.startsWith('data_')
+          || fieldName.startsWith('date'))
+        && this.$moment(value).isValid();
 
       const isBooleanField = typeof value === 'boolean';
 
@@ -380,7 +387,6 @@ export default {
           : parseInt(value, 10);
       }
 
-      // Valor padrão (string ou outros)
       return value || 'N/A';
     },
     populateCrOptions() {
@@ -441,6 +447,9 @@ export default {
         this.checkNewFilters = false;
       }
     },
+    toggleLegendItem(item) {
+      // Implement logic to handle legend item visibility if needed
+    },
     ...mapMutations('land-use', ['setFilters', 'settableDialogLand']),
     ...mapActions('land-use', [
       'getFilterOptions',
@@ -461,6 +470,8 @@ export default {
   height: 16px;
   border-radius: 2px;
   margin-right: 8px;
+  margin-top: 12px;
+  padding: 0px;
 }
 
 @media (max-width: 768px) {
@@ -491,7 +502,8 @@ export default {
     "title-switch-disable-features": "Disable LandUse Layer",
     "download-label": "Download",
     "table-label": "Table",
-    "table-name": "Table Land Use"
+    "table-name": "Table Land Use",
+    "toggle-legend-item": "Toggle legend item"
   },
   "pt-br": {
     "legend": "Legenda:",
@@ -506,7 +518,8 @@ export default {
     "title-switch-disable-features": "Desabilitar Camada de LandUse",
     "download-label": "Baixar",
     "table-label": "Tabela",
-    "table-name": "Tabela de Uso e Ocupação do Solo"
+    "table-name": "Tabela de Uso e Ocupação do Solo",
+    "toggle-legend-item": "Alternar item da legenda"
   }
 }
 </i18n>
