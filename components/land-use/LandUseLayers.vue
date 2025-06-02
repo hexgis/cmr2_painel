@@ -60,24 +60,37 @@ export default {
       deep: true,
       immediate: false,
     },
+
     map(newMap) {
       if (newMap) {
         window.mapMain = newMap;
         this.addFeatures();
       }
     },
+
     currentUrlWmsLandUse(newUrl) {
       if (this.$refs.wmsLayer && newUrl) {
         this.$refs.wmsLayer.mapObject.setUrl(newUrl);
       }
     },
+
     showFeaturesLandUse(newValue) {
-      if (!newValue && this.$refs.wmsLayer) {
-        this.$refs.wmsLayer.mapObject.setVisible(false);
-      } else if (newValue && this.$refs.wmsLayer) {
-        this.$refs.wmsLayer.mapObject.setVisible(true);
+      if (!this.$refs.wmsLayer || !this.$refs.wmsLayer.mapObject || !this.map) {
+        return;
+      }
+      const layer = this.$refs.wmsLayer.mapObject;
+      if (typeof layer.setVisible === 'function') {
+        layer.setVisible(newValue);
+      } else {
+        if (newValue) {
+          layer.addTo(this.map);
+        }
+        if (!newValue) {
+          layer.remove();
+        }
       }
     },
+
     opacity(newOpacity) {
       if (this.$refs.wmsLayer && this.$refs.wmsLayer.mapObject) {
         this.$refs.wmsLayer.mapObject.setOpacity(newOpacity / 100);
@@ -86,6 +99,7 @@ export default {
       }
     },
   },
+
   methods: {
     addFeatures() {
       if (
