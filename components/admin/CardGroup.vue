@@ -46,6 +46,7 @@
         :revoked-permissions="revokedPermissions"
         granted-title="Grupos Associados"
         revoked-title="Grupos Não Associados"
+        @update-permissions="$emit('update-permissions', $event)"
       />
     </CustomDialog>
   </div>

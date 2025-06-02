@@ -10,7 +10,7 @@
       <h4>{{ cardName }}</h4>
       <hr class="mb-4 mt-4">
       <p class="text--lightgray">
-        Tipo
+        Descrição
       </p>
       <p>{{ card.description }}</p>
       <v-icon
@@ -47,6 +47,7 @@
         :revoked-permissions="revokedPermissions"
         granted-title="Grupos Associados"
         revoked-title="Grupos Não Associados"
+        @update-permissions="$emit('update-permissions', $event)"
       />
 
       <PermissionManager

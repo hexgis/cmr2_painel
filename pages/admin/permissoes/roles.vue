@@ -119,7 +119,7 @@ export default {
           name: user.username || user.email,
           email: user.email,
         }));
-        this.grantedRoleUsers = []; // Start with empty granted users
+        this.grantedRoleUsers = [];
       } catch (error) {
         console.error('Error loading users:', error);
       }
