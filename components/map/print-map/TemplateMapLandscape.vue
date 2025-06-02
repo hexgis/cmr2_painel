@@ -80,7 +80,7 @@
                     <p v-if="parseFloat(item.nu_area_ha) > 0">
                       Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
                     </p>
-                   <p v-if="parseFloat(item.nu_area_ag_ha) > 0">
+                    <p v-if="parseFloat(item.nu_area_ag_ha) > 0">
                       AG: {{ formatNumber(item.nu_area_ag_ha) }} ha
                     </p>
                     <p v-if="parseFloat(item.nu_area_cr_ha) > 0">
@@ -264,14 +264,10 @@
                           />
                         </div>
 
-
-
-
-
                         <div v-if="showFeaturesLandUse">
                           <p>
                             <strong>Uso e Ocupação do Solo</strong>
-                             <v-chip x-small>
+                            <v-chip x-small>
                               {{ tableLandUse.length }}
                             </v-chip>
                           </p>
@@ -281,11 +277,6 @@
                             :items="landUseItems"
                           />
                         </div>
-
-
-
-
-
 
                         <div v-if="showFeaturesProdes">
                           <p>
@@ -311,7 +302,7 @@
                           <p>
                             <strong>INPE - Focos de Calor</strong>
                           </p>
-                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;" >
+                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
                           <CustomizedLegend
                             class="pt-1"
                             :items="heatFocusItems.filter(item =>
@@ -655,13 +646,13 @@ export default {
       {
         label: 'Aqua Modis Manhã',
         color: '#FFA500',
-        icon: 'mdi-fire'
+        icon: 'mdi-fire',
       },
       {
         label: 'Aqua Modis Tarde',
         color: '#FF0000',
-        icon: 'mdi-fire'
-      }
+        icon: 'mdi-fire',
+      },
     ],
   }),
 
@@ -719,31 +710,36 @@ export default {
     },
 
     showFeaturesAquaMM() {
-      return this.layers?.aquaMM?.showFeatures || false;
+      return (this.layers && this.layers.aquaMM && this.layers.aquaMM.showFeatures) || false;
     },
 
     showFeaturesAquaMT() {
-      return this.layers?.aquaMT?.showFeatures || false;
+      return (this.layers && this.layers.aquaMT && this.layers.aquaMT.showFeatures) || false;
     },
 
     featuresAquaMM() {
-      return this.layers?.aquaMM?.features || null;
+      return (this.layers && this.layers.aquaMM && this.layers.aquaMM.features) || null;
     },
 
     featuresAquaMT() {
-      return this.layers?.aquaMT?.features || null;
+      return (this.layers && this.layers.aquaMT && this.layers.aquaMT.features) || null;
     },
 
     focoFilters() {
-      return this.layers?.aquaMM?.filters || {}; // Usamos os filters de qualquer layer pois são compartilhados
+      // Usamos os filters de qualquer layer pois são compartilhados
+      return (
+        this.layers
+        && this.layers.aquaMM
+        && this.layers.aquaMM.filters
+      ) || {};
     },
 
     prodesItems() {
       return this.$store.getters['prodes/getLegendItems'];
     },
 
-     landUseItems() {
-      return this.$store.getters['land-use/getLegendItems'];
+    landUseItems() {
+      return this.$store.getters['land-use/getActiveLegendItems'];
     },
 
     ...mapState('supportLayersUser', ['supportLayerUser']),
@@ -774,23 +770,23 @@ export default {
     ...mapState('prodes', [
       'showFeaturesProdes',
       'filters',
-      'features'
+      'features',
     ]),
     ...mapState('deter', [
       'showFeaturesDeter',
       'features',
-      'filters'
+      'filters',
     ]),
     ...mapState('foco', [
       'layers',
       'filterOptions',
-      'isLoadingFeatures'
+      'isLoadingFeatures',
     ]),
   },
 
   watch: {
     features(newVal) {
-      if (newVal?.features?.length > 100) {
+      if (newVal && newVal.features && newVal.features.length > 100) {
         this.showWarningMessage = true;
       }
     },
@@ -1019,7 +1015,7 @@ export default {
         this.loadingPrintImage = false;
       } catch (error) {
         console.error('Erro ao gerar imagem:', error);
-        alert('Ocorreu um erro ao gerar a imagem.');
+        this.$emit('show-error', 'Ocorreu um erro ao gerar a imagem.');
         this.loadingPrintImage = false;
       } finally {
         infoControlRight.setAttribute('style', 'width: auto');
@@ -1075,7 +1071,14 @@ export default {
   width: 100%;
 }
 
-.vue2leaflet-map map-wrapper leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom {
+.vue2leaflet-map
+map-wrapper
+leaflet-container
+leaflet-touch
+leaflet-fade-anim
+leaflet-grab
+leaflet-touch-drag
+leaflet-touch-zoom {
   height: 30vh !important;
 }
 
@@ -1203,4 +1206,3 @@ img.layer-thumbnail {
   background: #ffffff;
 }
 </style>
-

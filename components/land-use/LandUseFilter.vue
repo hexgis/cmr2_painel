@@ -147,9 +147,11 @@
         </v-col>
         <v-col cols="8">
           <v-slider
+            v-if="opacity !== null"
             v-model="opacity"
             hide-details
             thumb-label
+            @input="updateOpacity"
           />
         </v-col>
       </v-row>
@@ -169,8 +171,9 @@
           <v-list dense>
             <v-list-item
               v-for="item in legendItems"
-              :key="item.label"
+              :key="item.estagio"
               class="pa-0 mb-n8"
+              :class="{ 'active-legend-item': item.active }"
             >
               <v-list-item-icon>
                 <span
@@ -187,6 +190,7 @@
                   dense
                   hide-details
                   :title="$t('toggle-legend-item')"
+                  :loading="loadingEstagios[item.estagio]"
                   @change="toggleLegendItem(item)"
                 />
               </v-list-item-action>
@@ -210,14 +214,11 @@
 
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';
-import legend from '../../assets/legend.png';
 import TableDialog from '../table-dialog/TableDialog.vue';
 
 export default {
   name: 'LandUseFilters',
-
   components: { TableDialog },
-
   data() {
     const currentYear = new Date().getFullYear();
     const yearOptions = [];
@@ -232,18 +233,19 @@ export default {
         currentView: false,
         priority: null,
         cr: [],
-        ti: null,
+        ti: [],
       },
+      error: false,
       headers: [
         { text: 'Código Funai', value: 'co_funai' },
         { text: 'Coordenação Regional', value: 'ds_cr' },
         { text: 'Terra Indígena', value: 'no_ti' },
         { text: 'Ano', value: 'nu_ano' },
-        { text: 'Agropecuaria (ha)', value: 'nu_area_ag_ha' },
+        { text: 'Agropecuária (ha)', value: 'nu_area_ag_ha' },
         { text: 'Corte raso (ha)', value: 'nu_area_cr_ha' },
         { text: 'Degradação (ha)', value: 'nu_area_dg_ha' },
         { text: 'Massa de água (ha)', value: 'nu_area_ma_ha' },
-        { text: 'Silvicultura', value: 'nu_area_sv_ha' },
+        { text: 'Silvicultura (ha)', value: 'nu_area_sv_ha' },
         { text: 'Vegetação natural (ha)', value: 'nu_area_vn_ha' },
         { text: 'Vilarejo (ha)', value: 'nu_area_vi_ha' },
         { text: 'Rodovia (ha)', value: 'nu_area_rv_ha' },
@@ -254,22 +256,20 @@ export default {
       filteredYears: [],
       checkNewFilters: false,
       isLoadingTotal: false,
-      legendData: legend,
-      error: false,
       flattened: [],
       dialog: false,
       tableDialogLand: false,
       isLoadingTable: false,
       isLoadingCSV: false,
       isLoadingGeoJson: false,
+      loadingEstagios: {}, // Objeto para rastrear o estado de carregamento de cada estágio
     };
   },
-
   computed: {
     totalArea() {
       if (this.features && this.features.features && this.features.features.length) {
         const total = this.features.features.reduce(
-          (total, feature) => total + (feature.properties.nu_area_ha || 0),
+          (sum, feature) => sum + ((feature.properties && feature.properties.nu_area_ha) || 0),
           0,
         );
         return this.formatFieldValue(total, 'nu_area_ha');
@@ -306,10 +306,7 @@ export default {
       },
     },
     legendItems() {
-      return this.$store.getters['land-use/getLegendItems'].map((item) => ({
-        ...item,
-        visible: item.visible !== undefined ? item.visible : true,
-      }));
+      return this.$store.getters['land-use/getLegendItems'];
     },
     tableLandUse() {
       return this.$store.state['land-use'].tableLandUse;
@@ -324,43 +321,40 @@ export default {
       'landUseStyles',
     ]),
   },
-
   watch: {
-    'filters.cr': function (value) {
-      const arrayCrPoulate = [];
-      Object.values(value).forEach((item) => {
-        arrayCrPoulate.push(item.co_cr);
-      });
-      this.populateTiOptions(arrayCrPoulate);
+    'filters.cr': function filtersCrWatcher(value) {
+      const arrayCrPopulate = value.map((item) => item.co_cr);
+      this.populateTiOptions(arrayCrPopulate);
     },
-    'filterOptions.regionalFilters': function () {
+    'filterOptions.regionalFilters': function regionalFiltersWatcher() {
       this.populateCrOptions();
     },
+    opacity() {
+      this.$store.dispatch('land-use/generateUrlWmsLandUse');
+    },
   },
-
   mounted() {
     this.getFilterOptions();
     this.getLandUseStyleFromGeoserver();
   },
-
   methods: {
+    updateOpacity: _.debounce(function updateOpacity(value) {
+      this.opacity = value;
+    }, 100),
+
     formatFieldValue(value, field = '') {
       if (value === null || value === undefined) {
         return 'N/A';
       }
 
       const fieldName = field.toLowerCase();
-
       const isDateField = typeof value === 'string'
         && (fieldName.startsWith('dt_')
           || fieldName.startsWith('data_')
           || fieldName.startsWith('date'))
         && this.$moment(value).isValid();
-
       const isBooleanField = typeof value === 'boolean';
-
       const isNumberField = typeof value === 'number';
-
       const isLatLongField = ['lat', 'lng', 'long', 'latitude', 'longitude'].some((key) => fieldName.includes(key));
 
       if (isDateField) {
@@ -375,21 +369,25 @@ export default {
         if (isLatLongField) {
           return value.toFixed(5);
         }
+        let parsedValue = value;
         if (typeof value === 'string') {
-          // eslint-disable-next-line no-param-reassign
-          value = parseFloat(value);
+          parsedValue = parseFloat(value);
         }
-        const rounded = value.toFixed(2);
+        if (isNaN(parsedValue)) {
+          return 'N/A';
+        }
+        const rounded = parsedValue.toFixed(2);
         const [intPart, decimalPart] = rounded.split('.');
 
         return decimalPart !== '00' || (fieldName.startsWith('nu_') && fieldName.includes('area'))
           ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
-          : parseInt(value, 10);
+          : parseInt(value, 10).toString();
       }
 
-      return value || 'N/A';
+      return value.toString() || 'N/A';
     },
     populateCrOptions() {
+      this.flattened = [];
       const groups = {};
 
       this.filterOptions.regionalFilters.forEach((x) => {
@@ -397,22 +395,21 @@ export default {
           ds_cr: x.ds_cr,
           list: [],
         };
-
         groups[x.no_regiao].list.push(x);
       });
 
       Object.keys(groups).forEach((categoryId) => {
         const category = groups[categoryId];
-        const categoryRegiao = categoryId;
-        this.flattened.push({ header: categoryRegiao });
+        this.flattened.push({ header: categoryId });
         this.flattened.push(...category.list);
       });
-
-      return this.flattened;
     },
     populateTiOptions(cr) {
-      if (cr) this.$store.dispatch('land-use/getTiOptions', cr);
-      else this.filters.ti = null;
+      if (cr && cr.length) {
+        this.$store.dispatch('land-use/getTiOptions', cr);
+      } else {
+        this.filters.ti = [];
+      }
     },
     searchLandUse() {
       const { filters } = this;
@@ -420,19 +417,32 @@ export default {
 
       if ((currentView || cr.length) && year) {
         this.error = false;
-
         const filtersForStore = {
           ...filters,
           startDate: `${year}-01-01`,
           endDate: `${year}-12-31`,
         };
 
+        // Verificar se todos os estágios estão desativados
+        const allEstagiosDisabled = Object.values(this.$store.state['land-use'].legendVisibility).every(
+          (visible) => !visible,
+        );
+
+        if (allEstagiosDisabled) {
+          // Limpar legendVisibility, features e tableLandUse
+          this.$store.commit('land-use/resetLegendVisibility');
+          this.$store.commit('land-use/clearFeatures');
+          this.$store.commit('land-use/setTableLandUse', []);
+        }
+
         this.filteredYears = [year];
         this.setFilters(filtersForStore);
-        this.getFeatures();
-        return;
+        this.getFeatures().then(() => {
+          this.getDataTableLandUse();
+        });
+      } else {
+        this.error = true;
       }
-      this.error = true;
     },
     showTableDialog(value) {
       if (this.features) {
@@ -447,10 +457,26 @@ export default {
         this.checkNewFilters = false;
       }
     },
-    toggleLegendItem(item) {
-      // Implement logic to handle legend item visibility if needed
-    },
-    ...mapMutations('land-use', ['setFilters', 'settableDialogLand']),
+    toggleLegendItem: _.debounce(async function toggleLegendItem(item) {
+      try {
+        // Ativa o loading para o estágio específico
+        this.$set(this.loadingEstagios, item.estagio, true);
+        await this.$store.dispatch('land-use/toggleLegendVisibility', {
+          estagio: item.estagio,
+          visible: item.visible,
+        });
+      } catch (error) {
+        console.error('Erro ao alternar visibilidade do estágio:', error);
+        // Reverte o switch para o estado anterior em caso de erro
+        const revertedItem = { ...item, visible: !item.visible };
+        const idx = this.legendItems.findIndex((i) => i.estagio === item.estagio);
+        this.$set(this.legendItems, idx, revertedItem);
+      } finally {
+        // Desativa o loading para o estágio
+        this.$set(this.loadingEstagios, item.estagio, false);
+      }
+    }, 300),
+    ...mapMutations('land-use', ['setFilters']),
     ...mapActions('land-use', [
       'getFilterOptions',
       'getFeatures',
