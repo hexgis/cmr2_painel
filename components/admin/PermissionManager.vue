@@ -1,7 +1,7 @@
 <template>
   <div class="permissions-container">
     <div class="permission-list">
-      <h5>Permissões Não Concedidas</h5>
+      <h5>{{ revokedTitle }}</h5>
       <v-list dense>
         <v-list-item
           v-for="(permission, index) in revokedPermissions"
@@ -9,25 +9,32 @@
           @click="moveToGranted(index)"
         >
           <v-list-item-content>
-            <!-- <v-list-item-title>{{ permission[0].name }} | {{ permission[0].description }}  </v-list-item-title> -->
-            <v-list-item-title v-if="permission.group_name">{{ permission.group_name }} | {{ permission.name }}  </v-list-item-title>
-            <v-list-item-title v-else-if="permission.name">{{ permission.name }} | {{ permission.description }}  </v-list-item-title>
+            <v-list-item-title v-if="permission.group_name">
+              {{ permission.group_name }} | {{ permission.name }}
+            </v-list-item-title>
+            <v-list-item-title v-else-if="permission.name">
+              {{ permission.name }} | {{ permission.description }}
+            </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list>
     </div>
 
     <div class="permission-list">
-      <h5>Permissões Concedidas</h5>
+      <h5>{{ grantedTitle }}</h5>
       <v-list dense>
         <v-list-item
-        v-for="(permission, index) in grantedPermissions"
-        :key="`granted-${index}`"
-        @click="moveToRevoked(index)"
+          v-for="(permission, index) in grantedPermissions"
+          :key="`granted-${index}`"
+          @click="moveToRevoked(index)"
         >
           <v-list-item-content>
-            <v-list-item-title v-if="permission.group_name">{{ permission.group_name }} | {{ permission.name }}  </v-list-item-title>
-            <v-list-item-title v-else>{{ permission.name }} | {{ permission.description }}  </v-list-item-title>
+            <v-list-item-title v-if="permission.group_name">
+              {{ permission.group_name }} | {{ permission.name }}
+            </v-list-item-title>
+            <v-list-item-title v-else>
+              {{ permission.name }} | {{ permission.description }}
+            </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -45,12 +52,20 @@ export default {
       type: Array,
       required: true,
     },
+    grantedTitle: {
+      type: String,
+      default: 'Permissões Concedidas',
+    },
+    revokedTitle: {
+      type: String,
+      default: 'Permissões Não Concedidas',
+    },
   },
   methods: {
     moveToRevoked(index) {
       const [permission] = this.grantedPermissions.splice(index, 1);
       this.revokedPermissions.push(permission);
-      this.$emit("update-permissions", {
+      this.$emit('update-permissions', {
         grantedPermissions: [...this.grantedPermissions],
         revokedPermissions: [...this.revokedPermissions],
       });
@@ -58,7 +73,7 @@ export default {
     moveToGranted(index) {
       const [permission] = this.revokedPermissions.splice(index, 1);
       this.grantedPermissions.push(permission);
-      this.$emit("update-permissions", {
+      this.$emit('update-permissions', {
         grantedPermissions: [...this.grantedPermissions],
         revokedPermissions: [...this.revokedPermissions],
       });
@@ -92,4 +107,3 @@ v-list
   height: 210px
   overflow-y: auto
 </style>
-

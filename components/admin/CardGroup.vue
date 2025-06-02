@@ -44,7 +44,8 @@
       <PermissionManager
         :granted-permissions="grantedPermissions"
         :revoked-permissions="revokedPermissions"
-        @update-permissions="$emit('update-permissions', $event)"
+        granted-title="Grupos Associados"
+        revoked-title="Grupos Não Associados"
       />
     </CustomDialog>
   </div>
