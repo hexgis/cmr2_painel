@@ -16,23 +16,50 @@
         :key="group.id"
         :card="group"
         label="Camada"
-        :grantedPermissions="grantedPermissions"
-        :revokedPermissions="revokedPermissions"
+        :granted-permissions="grantedPermissions"
+        :revoked-permissions="revokedPermissions"
+        :is-permission-changed="isPermissionChanged"
         @update-permissions="updatePermissions"
-        :isPermissionChanged="isPermissionChanged"
       />
     </span>
     <div class="add--btn">
-      <v-btn height="50" color="primary" rounded @click="dialog = !dialog">
-        <v-icon size="20">mdi-plus</v-icon>
+      <v-btn
+        height="50"
+        color="primary"
+        rounded
+        @click="dialog = !dialog"
+      >
+        <v-icon size="20">
+          mdi-plus
+        </v-icon>
       </v-btn>
     </div>
-    <CustomDialog v-model="dialog" title="Adicionar" :hasCta="true" width="800px" :saveBtn="addCardPermission" :saveActive="isFilled">
-      <v-text-field required class="pt-8" hide-details="auto" v-model="groupName" label="Nome da Camada" />
-      <v-text-field required class="pt-8" v-model="cardDescription" hide-details="auto" label="Descrição" />
+    <CustomDialog
+      v-model="dialog"
+      title="Adicionar"
+      :has-cta="true"
+      width="800px"
+      :save-btn="addCardPermission"
+      :save-active="isFilled"
+    >
+      <v-text-field
+        v-model="groupName"
+        outlined
+        class="pt-8"
+        hide-details="auto"
+        label="Nome da Camada"
+      />
+      <v-text-field
+        v-model="cardDescription"
+        outlined
+        required
+        class="pt-8"
+        hide-details="auto"
+        label="Descrição"
+      />
       <PermissionManager
-        :grantedPermissions="grantedPermissions"
-        :revokedPermissions="revokedPermissions"
+        :granted-permissions="grantedPermissions"
+        :revoked-permissions="revokedPermissions"
         @update-permissions="updatePermissions"
       />
     </CustomDialog>
@@ -46,8 +73,8 @@ import PermissionManager from '/components/admin/PermissionManager.vue';
 import { mapGetters } from 'vuex';
 
 export default {
-  components: { CardGroup, CustomDialog, PermissionManager },
   name: 'Layers',
+  components: { CardGroup, CustomDialog, PermissionManager },
   layout: 'admin',
   data() {
     return {
@@ -80,16 +107,14 @@ export default {
   },
   methods: {
     getPermissionsForCard(group) {
-      return this.responsePermissions.filter(permission =>
-        group.layers.some(layer => layer.name === permission.name)
-      );
+      return this.responsePermissions.filter((permission) => group.layers.some((layer) => layer.name === permission.name));
     },
     async addCardPermission() {
       const response = await this.$api.post('permission/layer/', {
         name: this.groupName,
         description: this.cardDescription,
-        layer_ids: this.grantedPermissions.map(permission => permission.id),
-      })
+        layer_ids: this.grantedPermissions.map((permission) => permission.id),
+      });
       this.response.push(response.data);
       this.dialog = false;
     },
