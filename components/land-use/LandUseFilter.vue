@@ -182,14 +182,17 @@
                 />
               </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title>{{ item.label }}</v-list-item-title>
+                <span
+                  class="grey--text text--darken-2 text-body-2"
+                >
+                  {{ item.label }}
+                </span>
               </v-list-item-content>
               <v-list-item-action>
                 <v-switch
                   v-model="item.visible"
                   dense
                   hide-details
-                  :title="$t('toggle-legend-item')"
                   :loading="loadingEstagios[item.estagio]"
                   @change="toggleLegendItem(item)"
                 />
@@ -542,8 +545,8 @@ export default {
     "title-switch-disable-features": "Disable LandUse Layer",
     "download-label": "Download",
     "table-label": "Table",
-    "table-name": "Table Land Use",
-    "toggle-legend-item": "Toggle legend item"
+    "table-name": "Table Land Use"
+
   },
   "pt-br": {
     "legend": "Legenda:",
@@ -558,8 +561,8 @@ export default {
     "title-switch-disable-features": "Desabilitar Camada de LandUse",
     "download-label": "Baixar",
     "table-label": "Tabela",
-    "table-name": "Tabela de Uso e Ocupação do Solo",
-    "toggle-legend-item": "Alternar item da legenda"
+    "table-name": "Tabela de Uso e Ocupação do Solo"
+
   }
 }
 </i18n>
