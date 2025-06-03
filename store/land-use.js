@@ -1,6 +1,6 @@
   const { stringify } = require('wkt');
   import Vue from 'vue';
-
+ 
   export const state = () => ({
     features: null,
     urlWmsLandUse: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',

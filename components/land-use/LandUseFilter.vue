@@ -338,9 +338,20 @@ export default {
     this.getLandUseStyleFromGeoserver();
   },
   methods: {
-    updateOpacity: _.debounce(function updateOpacity(value) {
-      this.opacity = value;
-    }, 100),
+    debounce(func, wait) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+      };
+    },
+
+    // Método updateOpacity usando debounce
+    updateOpacity(value) {
+      this.debounce((val) => {
+        this.opacity = val;
+      }, 100)(value);
+    },
 
     formatFieldValue(value, field = '') {
       if (value === null || value === undefined) {
@@ -457,25 +468,28 @@ export default {
         this.checkNewFilters = false;
       }
     },
-    toggleLegendItem: _.debounce(async function toggleLegendItem(item) {
-      try {
+
+    toggleLegendItem(item) {
+      return this.debounce(async () => {
+        try {
         // Ativa o loading para o estágio específico
-        this.$set(this.loadingEstagios, item.estagio, true);
-        await this.$store.dispatch('land-use/toggleLegendVisibility', {
-          estagio: item.estagio,
-          visible: item.visible,
-        });
-      } catch (error) {
-        console.error('Erro ao alternar visibilidade do estágio:', error);
-        // Reverte o switch para o estado anterior em caso de erro
-        const revertedItem = { ...item, visible: !item.visible };
-        const idx = this.legendItems.findIndex((i) => i.estagio === item.estagio);
-        this.$set(this.legendItems, idx, revertedItem);
-      } finally {
+          this.$set(this.loadingEstagios, item.estagio, true);
+          await this.$store.dispatch('land-use/toggleLegendVisibility', {
+            estagio: item.estagio,
+            visible: item.visible,
+          });
+        } catch (error) {
+          console.error('Erro ao alternar visibilidade do estágio:', error);
+          // Reverte o switch para o estado anterior em caso de erro
+          const revertedItem = { ...item, visible: !item.visible };
+          const idx = this.legendItems.findIndex((i) => i.estagio === item.estagio);
+          this.$set(this.legendItems, idx, revertedItem);
+        } finally {
         // Desativa o loading para o estágio
-        this.$set(this.loadingEstagios, item.estagio, false);
-      }
-    }, 300),
+          this.$set(this.loadingEstagios, item.estagio, false);
+        }
+      }, 300)();
+    },
     ...mapMutations('land-use', ['setFilters']),
     ...mapActions('land-use', [
       'getFilterOptions',
