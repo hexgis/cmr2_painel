@@ -33,11 +33,13 @@
         v-model="cardName"
         class="pt-8"
         hide-details="auto"
+        outlined
         :label="label"
       />
       <v-text-field
         v-model="localCardDescription"
         class="pt-8"
+        outlined
         hide-details="auto"
         label="Descrição"
       />
