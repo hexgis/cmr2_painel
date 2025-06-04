@@ -52,8 +52,12 @@
                   </v-row>
                   <!-- Exibir co_funai primeiro para a camada de Terras Indígenas -->
                   <template
-                    v-if="layerName === 'Terras Indígenas' &&
-                      shouldDisplayField('co_funai') && feature.co_funai"
+                    v-if="
+                      (layerName === 'Terras Indígenas' ||
+                        layerName === 'Uso e Ocupação do Solo') &&
+                        shouldDisplayField('co_funai') &&
+                        feature.co_funai
+                    "
                   >
                     <v-row
                       :key="`co_funai-${i}`"
@@ -99,7 +103,9 @@
                   <template v-for="(value, field) in feature">
                     <template
                       v-if="shouldDisplayField(field) && field !== 'origin_id' &&
-                        !(layerName === 'Terras Indígenas' && field === 'co_funai')"
+                        !((layerName === 'Terras Indígenas' ||
+                          layerName === 'Uso e Ocupação do Solo')
+                          && field === 'co_funai')"
                     >
                       <v-row
                         :key="field + i"
@@ -426,6 +432,10 @@ export default {
         sg_regiao: 'Região',
         no_satelite: 'Satélite',
         hr_foco_calor: 'Horário',
+
+        // USO E OCUPAÇÃO DO SOLO
+        no_satelites: 'Satélites',
+        nu_resolucoes: 'Resoluções',
       },
     },
   }),
@@ -460,7 +470,9 @@ export default {
 
   methods: {
     shouldDisplayField(field) {
-      return !this.fieldConfig.excludedFields.some((excluded) => field.toLowerCase().includes(excluded));
+      return !this.fieldConfig.excludedFields.some(
+        (excluded) => field.toLowerCase().includes(excluded),
+      );
     },
 
     formatFieldName(field) {

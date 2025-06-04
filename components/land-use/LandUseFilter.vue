@@ -10,15 +10,28 @@
         />
       </v-col>
       <v-col cols="3">
-        <div class="d-flex justify-end align-center mt-1">
-          <v-switch
-            v-if="currentUrlWmsLandUse"
-            v-model="featuresLandUse"
-            class="mt-3"
-            hide-details
-            :title="$t('title-switch-disable-features')"
-          />
-        </div>
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <div
+              class="d-flex justify-end align-center mt-1"
+              v-on="on"
+            >
+              <v-switch
+                v-if="currentUrlWmsLandUse"
+                v-model="featuresLandUse"
+                class="mt-3"
+                hide-details
+              />
+            </div>
+          </template>
+          <span>
+            {{
+              featuresLandUse
+                ? $t('title-switch-disable-features')
+                : $t('title-switch-enable-features')
+            }}
+          </span>
+        </v-tooltip>
       </v-col>
       <v-col cols="12">
         <v-combobox
@@ -94,7 +107,7 @@
           icon
           @click="downloadGeoJsonLandUse()"
         >
-          <v-tooltip left>
+          <v-tooltip bottom>
             <template #activator="{ on }">
               <v-icon v-on="on">
                 mdi-download
@@ -111,7 +124,7 @@
           color="accent"
           @click="showTableDialog(true)"
         >
-          <v-tooltip left>
+          <v-tooltip bottom>
             <template #activator="{ on }">
               <v-icon v-on="on">
                 mdi-table
@@ -168,31 +181,30 @@
         class="mt-2"
       >
         <v-col>
-          <v-list dense>
+          <v-list
+            dense
+            flat
+          >
             <v-list-item
               v-for="item in legendItems"
               :key="item.estagio"
-              class="pa-0 mb-n8"
+              class="pa-1 compact-list-item"
               :class="{ 'active-legend-item': item.active }"
             >
-              <v-list-item-icon>
+              <v-list-item-icon class="my-0">
                 <span
                   class="legend-color"
                   :style="{ backgroundColor: item.color }"
                 />
               </v-list-item-icon>
-              <v-list-item-content>
-                <span
-                  class="grey--text text--darken-2 text-body-2"
-                >
+              <v-list-item-content class="py-0">
+                <span class="grey--text text--darken-2 compact-text">
                   {{ item.label }}
                 </span>
               </v-list-item-content>
-              <v-list-item-action>
+              <v-list-item-action class="my-0 compact-action">
                 <v-switch
                   v-model="item.visible"
-                  dense
-                  hide-details
                   :loading="loadingEstagios[item.estagio]"
                   @change="toggleLegendItem(item)"
                 />
@@ -225,7 +237,7 @@ export default {
   data() {
     const currentYear = new Date().getFullYear();
     const yearOptions = [];
-    for (let year = 2015; year <= currentYear; year++) {
+    for (let year = 2015; year <= currentYear; year += 1) {
       yearOptions.push(year);
     }
 
@@ -316,12 +328,10 @@ export default {
     },
     ...mapState('land-use', [
       'currentUrlWmsLandUse',
-      'isLoadingFeatures',
       'loadingLandUse',
       'filterOptions',
       'features',
       'showFeaturesLandUse',
-      'landUseStyles',
     ]),
   },
   watch: {
@@ -387,7 +397,7 @@ export default {
         if (typeof value === 'string') {
           parsedValue = parseFloat(value);
         }
-        if (isNaN(parsedValue)) {
+        if (Number.isNaN(parsedValue)) {
           return 'N/A';
         }
         const rounded = parsedValue.toFixed(2);
@@ -517,6 +527,17 @@ export default {
   padding: 0px;
 }
 
+.compact-list-item {
+  min-height: 32px !important;
+  margin: 0 !important;
+  padding: 0px 0px !important;
+}
+
+.compact-text {
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+
 @media (max-width: 768px) {
   .full-width {
     flex: 0 0 100%;
@@ -545,7 +566,9 @@ export default {
     "title-switch-disable-features": "Disable LandUse Layer",
     "download-label": "Download",
     "table-label": "Table",
-    "table-name": "Table Land Use"
+    "table-name": "Table Land Use",
+    "title-switch-disable-features": "Disable LandUse Layer",
+    "title-switch-enable-features": "Enable LandUse Layer"
 
   },
   "pt-br": {
@@ -558,10 +581,12 @@ export default {
     "total-poligono-label": "Total de polígonos",
     "regional-coordination-label": "Coordenação Regional (Todas)",
     "indigenous-lands-label": "Terras Indígenas",
-    "title-switch-disable-features": "Desabilitar Camada de LandUse",
+    "title-switch-disable-features": "Desabilitar Camada de Uso e Ocupação do Solo",
     "download-label": "Baixar",
     "table-label": "Tabela",
-    "table-name": "Tabela de Uso e Ocupação do Solo"
+     "table-name": "Tabela de Uso e Ocupação do Solo",
+    "title-switch-disable-features": "Desabilitar Camada de Uso e Ocupação do Solo",
+    "title-switch-enable-features": "Habilitar Camada de Uso e Ocupação do Solo"
 
   }
 }
