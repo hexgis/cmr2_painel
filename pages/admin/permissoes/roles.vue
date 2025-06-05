@@ -40,12 +40,14 @@
     >
       <v-text-field
         v-model="roleName"
+        outlined
         class="pt-8"
         hide-details="auto"
         label="Nome do Papel"
       />
       <v-text-field
         v-model="cardDescription"
+        outlined
         class="pt-8"
         hide-details="auto"
         label="Descrição"
@@ -54,6 +56,14 @@
         :granted-permissions="grantedPermissions"
         :revoked-permissions="revokedPermissions"
         @update-permissions="updatePermissions"
+      />
+
+      <PermissionManager
+        :granted-permissions="grantedRoleUsers"
+        :revoked-permissions="revokedRoleUsers"
+        granted-title="Usuários Associados"
+        revoked-title="Usuários Não Associados"
+        @update-permissions="updateUserPermissions"
       />
     </CustomDialog>
   </div>
@@ -75,10 +85,14 @@ export default {
       roleName: '',
       permissions: [],
       grantedPermissions: [],
+      grantedRoleUsers: [],
+      revokedRoleUsers: [],
       cardDescription: '',
+      users: [],
     };
   },
   async mounted() {
+    await this.loadUsers();
     this.$store.dispatch('admin/fetchRolesList');
     this.permissions = await this.$api.get('user/group/');
   },
@@ -96,24 +110,56 @@ export default {
 
   },
   methods: {
+    async loadUsers() {
+      try {
+        const response = await this.$api.get('user/');
+        // Initially all users are in revoked (non-associated)
+        this.revokedRoleUsers = response.data.map((user) => ({
+          id: user.id,
+          name: user.username || user.email,
+          email: user.email,
+        }));
+        this.grantedRoleUsers = [];
+      } catch (error) {
+        console.error('Error loading users:', error);
+      }
+    },
+
     updatePermissions({ grantedPermissions, revokedPermissions }) {
       this.grantedPermissions = grantedPermissions;
       this.revokedPermissions = revokedPermissions;
     },
+
+    updateUserPermissions({ grantedPermissions, revokedPermissions }) {
+      this.grantedRoleUsers = grantedPermissions;
+      this.revokedRoleUsers = revokedPermissions;
+    },
+
     async addCardPermission() {
-      const response = await this.$api.post('user/role/', {
-        name: this.roleName,
-        description: this.cardDescription,
-        associated_groups: this.grantedPermissions.map((permission) => permission.id),
-      });
-      this.$store.dispatch('admin/fetchRolesList');
-      this.dialog = false;
+      try {
+        const response = await this.$api.post('user/role/', {
+          name: this.roleName,
+          description: this.cardDescription,
+          associated_groups: this.grantedPermissions.map((permission) => permission.id),
+          associated_users: this.grantedRoleUsers.map((user) => user.id),
+        });
+
+        await this.$store.dispatch('admin/fetchRolesList');
+        this.dialog = false;
+
+        // Reset form
+        this.roleName = '';
+        this.cardDescription = '';
+        this.grantedPermissions = [];
+        this.grantedRoleUsers = [];
+        await this.loadUsers(); // Reload users list
+      } catch (error) {
+        console.error('Error creating role:', error);
+      }
     },
   },
 };
-
 </script>
-
 <style lang="sass" scoped>
 .group
   width: 100%

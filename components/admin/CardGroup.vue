@@ -33,17 +33,21 @@
         v-model="cardName"
         class="pt-8"
         hide-details="auto"
+        outlined
         :label="label"
       />
       <v-text-field
         v-model="localCardDescription"
         class="pt-8"
+        outlined
         hide-details="auto"
         label="Descrição"
       />
       <PermissionManager
         :granted-permissions="grantedPermissions"
         :revoked-permissions="revokedPermissions"
+        granted-title="Grupos Associados"
+        revoked-title="Grupos Não Associados"
         @update-permissions="$emit('update-permissions', $event)"
       />
     </CustomDialog>

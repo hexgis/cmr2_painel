@@ -28,25 +28,7 @@
                     alt="northarrow"
                     class="north-arrow"
                 />
-            </l-control>
-
-            <!-- <PriorityLayers :map="map" />
-            <MonitoringLayers :map="map" />
-            <SupportLayers />
-            <SupportUserLayersMap />
-            <SupportLayersHazard />
-            <SupportLayersProdes />
-            <SupportLayersRaster />
-            <AlertLayers :map="map" />
-            <DeterLayers :map="map" />-->
-            <LandUseLayers
-                v-if="
-                    showFeaturesLandUse &&
-                    features.features &&
-                    features.features.length
-                "
-                :map="map"
-            />
+            </l-control>          
         </l-map>
     </client-only>
 </template>
@@ -67,20 +49,7 @@
  * Underscore attributes defined by "Leafleat" plugin
  */
 
-import { mapActions, mapState } from 'vuex'
-
-import MiniMapForPrint from '@/components/map/MiniMapForPrint.vue'
-import PriorityLayers from '@/components/priority/PriorityLayers'
-import MonitoringLayers from '@/components/monitoring/MonitoringLayers'
-import SupportLayers from '@/components/support/SupportLayers'
-import SupportLayersHazard from '@/components/support/SupportLayersHazard'
-import SupportLayersProdes from '@/components/support/SupportLayersProdes'
-import SupportLayersRaster from '@/components/support/SupportLayersRaster'
-import AlertLayers from '@/components/monitoring/AlertLayers'
-import DeterLayers from '@/components/deter/DeterLayers'
-import LandUseLayers from '@/components/land-use/LandUseLayers'
-import SupportUserLayersMap from '@/components/support/SupportUserLayersMap'
-
+import { mapState } from 'vuex'
 if (typeof window !== 'undefined') {
     require('leaflet-bing-layer')
 }
@@ -90,20 +59,7 @@ const cloneLayer = require('leaflet-clonelayer')
 const intervalZooms = require('../../../utils/zoomIntervalsGraticule')
 
 export default {
-    components: {
-        MiniMapForPrint,
-        PriorityLayers,
-        MonitoringLayers,
-        SupportLayers,
-        AlertLayers,
-        DeterLayers,
-        SupportLayersProdes,
-        SupportLayersRaster,
-        SupportLayersHazard,
-        LandUseLayers,
-        SupportUserLayersMap,
-    },
-
+   
     props: {
         leafSize: {
             type: Object,
@@ -226,63 +182,73 @@ export default {
         },
 
         async createMap() {
-            try {
-                require('@/plugins/L.SimpleGraticule')
-                require('@/plugins/L.Control.MapBounds')
+    try {
+        require('@/plugins/L.SimpleGraticule')
+        require('@/plugins/L.Control.MapBounds')
 
-                if (!this.$refs.printMap) {
-                    throw new Error('Referência ao mapa não encontrada.')
-                }
+        if (!this.$refs.printMap) {
+            throw new Error('Referência ao mapa não encontrada.')
+        }
 
-                this.map = this.$refs.printMap.mapObject
+        this.map = this.$refs.printMap.mapObject
 
-                window.L = this.$L // define leaflet global
+        window.L = this.$L // define leaflet global
 
-                if (!this.map) {
-                    throw new Error('Mapa não foi corretamente inicializado.')
-                }
+        if (!this.map) {
+            throw new Error('Mapa não foi corretamente inicializado.')
+        }
 
-                this.currentBouldMap = await this.map.getBounds()
-                this.$nextTick(() => {
-                    this.$emit('updateBounds', this.currentBouldMap)
-                })
-                this.map.invalidateSize()
-                this.map.on('move', this.onMainMapMoving)
-                this.map.on('moveend', this.onMainMapMoved)
+        this.currentBouldMap = await this.map.getBounds()
+        this.$nextTick(() => {
+            this.$emit('updateBounds', this.currentBouldMap)
+        })
+        this.map.invalidateSize()
+        this.map.on('move', this.onMainMapMoving)
+        this.map.on('moveend', this.onMainMapMoved)
 
-                await this.$L.control
-                    .mapBounds({
-                        type: 'center',
-                        position: 'bottomleft',
-                        template: 'Centroide do mapa: {y} , {x} ',
-                    })
-                    .addTo(this.map)
-                const options = {
-                    interval: 20,
-                    showOriginLabel: true,
-                    redraw: 'move',
-                    zoomIntervals: intervalZooms?.default[this.leafSize.type],
-                }
-                await this.$L.simpleGraticule(options).addTo(this.map)
+        // Add centroid control
+        await this.$L.control
+            .mapBounds({
+                type: 'center',
+                position: 'bottomleft',
+                template: 'Centroide do mapa: {y} , {x} ',
+            })
+            .addTo(this.map)
 
-                if (
-                    this.selectedBaseMap &&
-                    this.selectedBaseMap.options.label === 'Bing'
-                ) {
-                    const bingLayer = this.createBingLayer()
-                    if (bingLayer) {
-                        this.map.addLayer(bingLayer)
-                    }
-                }
-                this.valueScale = true
-                this.valueNorthArrow = true
-            } catch (error) {
-                this.$store.commit('alert/addAlert', {
-                    message: 'Erro ao adicionar camada ao mapa',
-                })
+        // Add scale control in kilometers
+        await this.$L.control
+            .scale({
+                position: 'bottomleft',
+                metric: true, // Show kilometers
+                imperial: false, // Hide miles
+            })
+            .addTo(this.map)
+
+        const options = {
+            interval: 20,
+            showOriginLabel: true,
+            redraw: 'move',
+            zoomIntervals: intervalZooms?.default[this.leafSize.type],
+        }
+        await this.$L.simpleGraticule(options).addTo(this.map)
+
+        if (
+            this.selectedBaseMap &&
+            this.selectedBaseMap.options.label === 'Bing'
+        ) {
+            const bingLayer = this.createBingLayer()
+            if (bingLayer) {
+                this.map.addLayer(bingLayer)
             }
-        },
-
+        }
+        this.valueScale = true
+        this.valueNorthArrow = true
+    } catch (error) {
+        this.$store.commit('alert/addAlert', {
+            message: 'Erro ao adicionar camada ao mapa',
+        })
+    }
+},
         onMainMapMoved() {
             const center = this.map.getCenter()
             this.$emit('getCenter', center)
@@ -324,11 +290,14 @@ export default {
 
 .leaflet-control-mapbounds.leaflet-control
     background: rgba(255, 255, 255, 0.7) !important
-    padding: 5px 5px
-    margin-left: 5px
-    border-radius: px
-    font-size: 12px
+    padding: 2px
+    margin: 0 !important
+    position: flex
+    bottom: 0
+    left: 0
+    font-size: 11px
     box-shadow: 0 1px 5px rgba(0,0,0,0.4)
     color: #333
+
 
 </style>

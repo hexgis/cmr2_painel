@@ -6,12 +6,12 @@
 </template>
 
 <script>
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { logoBase64 } from '@/utils/logoBase64';
 
 export default {
-  name: "SavePdfUser",
+  name: 'SavePdfUser',
   props: {
     users: {
       type: Array,
@@ -22,31 +22,31 @@ export default {
   methods: {
     generatePDF() {
       const doc = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a4"
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
       });
 
       // Adiciona o logo e o título ao PDF
       const imgWidth = 65;
       const imgHeight = 15;
-      doc.addImage(logoBase64(), "PNG", 15, 10, imgWidth, imgHeight);
+      doc.addImage(logoBase64(), 'PNG', 15, 10, imgWidth, imgHeight);
       doc.setFontSize(12);
-      doc.text("Lista de Usuários", 90, 20);
+      doc.text('Lista de Usuários', 90, 20);
 
       // Cria a tabela com os dados dos usuários
       autoTable(doc, {
         startY: 30,
-        head: [['Nome', 'Email', 'Tipo de usuário', 'Acesso Permitido', 'Instituição']],
-        body: this.users.map(user => [
+        head: [['Nome', 'Email', 'Administrador', 'Acesso Permitido', 'Instituição']],
+        body: this.users.map((user) => [
           user.username,
           user.email,
-          user.is_staff ? 'ADM' : 'Comum',
+          user.is_staff ? 'Sim' : 'Não',
           user.is_active ? 'Sim' : 'Não',
           user.institution,
         ]),
         headStyles: {
-          fillColor: `#D92B3F`,
+          fillColor: '#D92B3F',
           textColor: [255, 255, 255],
         },
       });

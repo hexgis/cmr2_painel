@@ -10,7 +10,7 @@
       <h4>{{ cardName }}</h4>
       <hr class="mb-4 mt-4">
       <p class="text--lightgray">
-        Tipo
+        Descrição
       </p>
       <p>{{ card.description }}</p>
       <v-icon
@@ -30,12 +30,14 @@
     >
       <v-text-field
         v-model="cardName"
+        outlined
         class="pt-8"
         hide-details="auto"
         :label="label"
       />
       <v-text-field
         v-model="localCardDescription"
+        outlined
         class="pt-8"
         hide-details="auto"
         label="Descrição"
@@ -43,7 +45,16 @@
       <PermissionManager
         :granted-permissions="grantedPermissions"
         :revoked-permissions="revokedPermissions"
+        granted-title="Grupos Associados"
+        revoked-title="Grupos Não Associados"
         @update-permissions="$emit('update-permissions', $event)"
+      />
+
+      <PermissionManager
+        :granted-permissions="grantedRoleUsers"
+        :revoked-permissions="revokedRoleUsers"
+        granted-title="Usuários Associados"
+        revoked-title="Usuários Não Associados"
       />
     </CustomDialog>
   </div>
@@ -79,6 +90,8 @@ export default {
       isSelected: false,
       grantedPermissions: [],
       revokedPermissions: [],
+      grantedRoleUsers: [],
+      revokedRoleUsers: [],
       localCardDescription: '',
     };
   },
@@ -113,11 +126,30 @@ export default {
     async loadPermissions() {
       try {
         if (this.from === 'roles') {
-          const activePermissions = this.card.groups.map((groups) => groups);
-          this.grantedPermissions = activePermissions;
-          const response = await this.$api.get(`user/role-diff/${this.card.id}/`);
-          this.revokedPermissions = response.data.unassociated_groups.map((groups) => groups);
+          // Load all users and groups data in a single call
+          const [groupResponse, userResponse] = await Promise.all([
+            this.$api.get(`user/role-diff/${this.card.id}/`),
+            this.$api.get(`permission/role/${this.card.id}/users/`),
+          ]);
+
+          // Set granted and revoked groups
+          this.grantedPermissions = this.card.groups.map((group) => group);
+          this.revokedPermissions = groupResponse.data.unassociated_groups;
+
+          // Set granted and revoked users
+          this.grantedRoleUsers = userResponse.data.associated_users.map((user) => ({
+            id: user.id,
+            email: user.email,
+            institution: user.institution,
+          }));
+
+          this.revokedRoleUsers = userResponse.data.unassociated_users.map((user) => ({
+            id: user.id,
+            email: user.email,
+            institution: user.institution,
+          }));
         } else {
+          // Original layer permission logic
           const activePermissions = this.card.groups.map((groups) => groups);
           this.grantedPermissions = activePermissions;
           const response = await this.$api.get(
@@ -129,6 +161,7 @@ export default {
         console.error('Erro ao carregar permissões:', e);
       }
     },
+
     editCard() {
       this.dialog = true;
     },
@@ -141,26 +174,25 @@ export default {
           await this.$api.patch(`/user/role/${this.card.id}/`, {
             name: this.cardName,
             description: this.localCardDescription,
-            associated_groups: this.grantedPermissions.map((groups) => groups.id),
+            associated_groups: this.grantedPermissions.map((group) => group.id),
+            associated_users: this.grantedRoleUsers.map((user) => user.id),
           });
           this.dialog = false;
+          await this.$store.dispatch('admin/fetchRolesList');
         } catch (e) {
           console.error('Erro ao salvar permissões:', e);
-        } finally {
-          this.$store.dispatch('admin/fetchRolesList');
         }
       } else {
-        console.log(this.localCardDescription);
+        // Original layer permission save logic
         try {
           await this.$api.patch(`/permission/layer/${this.card.id}/`, {
             description: this.localCardDescription,
             layer_ids: this.grantedPermissions.map((groups) => groups.id),
           });
           this.dialog = false;
+          await this.$store.dispatch('admin/fetchRolesList');
         } catch (e) {
           console.error('Erro ao salvar permissões:', e);
-        } finally {
-          this.$store.dispatch('admin/fetchRolesList');
         }
       }
     },
