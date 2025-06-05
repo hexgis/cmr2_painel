@@ -50,11 +50,8 @@
                   >
                     <v-col />
                   </v-row>
-                  <!-- Exibir co_funai primeiro para a camada de Terras Indígenas -->
-                  <template
-                    v-if="layerName === 'Terras Indígenas' &&
-                      shouldDisplayField('co_funai') && feature.co_funai"
-                  >
+                  <!-- Exibir co_funai primeiro, se presente -->
+                  <template v-if="shouldDisplayField('co_funai') && feature.co_funai">
                     <v-row
                       :key="`co_funai-${i}`"
                       class="mx-0 list-separator"
@@ -77,7 +74,7 @@
                   <!-- Exibir origin_id, se aplicável -->
                   <template v-if="shouldDisplayField('origin_id') && feature.origin_id">
                     <v-row
-                      :key="`separator-${i}`"
+                      :key="`origin_id-${i}`"
                       class="mx-0 list-separator"
                       dense
                     >
@@ -95,11 +92,14 @@
                       </v-col>
                     </v-row>
                   </template>
-                  <!-- Iterar sobre os outros campos, exceto co_funai para Terras Indígenas -->
+                  <!-- Iterar sobre os outros campos, exceto co_funai e origin_id -->
                   <template v-for="(value, field) in feature">
                     <template
-                      v-if="shouldDisplayField(field) && field !== 'origin_id' &&
-                        !(layerName === 'Terras Indígenas' && field === 'co_funai')"
+                      v-if="
+                        shouldDisplayField(field)
+                          && field !== 'co_funai'
+                          && field !== 'origin_id'
+                      "
                     >
                       <v-row
                         :key="field + i"
@@ -181,6 +181,7 @@
     </l-popup>
   </l-layer-group>
 </template>
+
 <i18n>
   {
       "en": {
@@ -192,7 +193,8 @@
           "layer-api-error": "Não foi possível resgatar as informações das camadas de apoio."
       }
   }
-  </i18n>
+</i18n>
+
 <script>
 import { mapState } from 'vuex';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
@@ -245,7 +247,6 @@ export default {
         nu_buffer_distancia: 'Buffer Distância',
         co_funai: 'Código Funai',
         no_ti: 'Nome da Terra Indígena',
-
         // COORDENAÇÕES REGIONAIS
         co_cr: 'Código CR',
         no_cr: 'Nome CR',
@@ -259,7 +260,6 @@ export default {
         sg_uf: 'UF',
         ds_telefone: 'Telefone',
         ds_cadatro: 'Data de Cadastro',
-
         // INSTRUMENTO DE GESTÃO
         no_ig: 'Instrumento de Gestão',
         nu_ano_elaboracao: 'Ano de Elaboração',
@@ -267,7 +267,6 @@ export default {
         ds_ttl_publi: 'Título da Publicação',
         ds_disp_meio_local: 'Disponível em (Meio/Local)',
         co_funai_tb: 'Código Funai',
-
         // LOCALIDADES INDIGENAS
         id: 'ID',
         cd_munic: 'Código Município',
@@ -280,25 +279,21 @@ export default {
         cd_li: 'Código LI',
         id_li: 'ID LI',
         nm_li: 'Nome da LI',
-
         // TERRAS INDIGENAS EM ESTUDO
-        no_grupo_etnico: 'Grupo Étinico',
+        no_grupo_etnico: 'Grupo Étnico',
         ds_fase_ti: 'Fase TI',
         ds_reestudo_ti: 'Reestudo TI',
         ds_portaria_em_estudo: 'Portaria em Estudo',
         ds_matricula_regularizada: 'Matrícula Regularizada',
         dt_cadastro: 'Data de Cadastro',
         nu_area_ha: 'Área Ha',
-
         // TERRAS INDIGENAS
         ds_cr: 'CR',
         possui_ig: 'Possui Inst. de Gestão',
-
         // ANTROPISMO CONSOLIDADO - 2015
         nu_area_km2: 'Área Km²',
         no_classe: 'Nome da Classe',
         sg_classe: 'Sigla da Classe',
-
         // ÁREAS QUILOMBOLAS
         co_sr: 'Código SR',
         dt_publica: 'Data de publicação',
@@ -311,20 +306,17 @@ export default {
         ds_descricao: 'Descrição',
         nr_escalao: 'Escala',
         tp_levanta: 'Tipo de Levantamento',
-
         // UNIDADES DE CONSERVAÇÃO FEDERAL
         no_uc: 'Nome UC',
         sg_uc: 'Sigla UC',
         no_unidade: 'Nome da Unidade',
-        co_cnuc: 'Código CNUC',
+        co_cnuc: 'Código CANU',
         ds_link_icmbio: 'Link ICMBIO',
-
         // GRADE LANDSAT
         path: 'Órbita',
         row: 'Ponto',
         path_row: 'Órbita Ponto',
         orb_ponto: 'Órbita Ponto',
-
         // ASSENTAMENTOS RURAIS
         cd_sipra: 'Código SIPRA',
         nu_beneficio: 'Benefício',
@@ -334,7 +326,6 @@ export default {
         dt_obtencao: 'Data de Obtenção',
         no_sr: 'SR',
         nu_area_ref_incra: 'Área Ref. INCRA',
-
         // CAR
         co_terra_indigena: 'Código Terra Indígena',
         no_terra_indigena: 'Nome Terra Indígena',
@@ -346,7 +337,6 @@ export default {
         tp_imovel: 'Tipo de Imóvel',
         ds_condicao_imovel: 'Condição do Imóvel',
         tp_situacao: 'Situação',
-
         // IMOVEIS CERTIFICADOS PRIVADO (SIGEF)
         no_rt: 'RT',
         co_art: 'Código ART',
@@ -358,12 +348,10 @@ export default {
         ds_registro_d: 'Registro D',
         cd_municipio: 'Código Município',
         cd_uf: 'Código UF',
-
         // IMOVEIS CERTIFICADOS PRIVADO (SNCI)
         nu_certificado: 'Número do Certificado',
         dt_certificado: 'Data do Certificado',
         no_imovel: 'Imóvel',
-
         // TRECHOS RODOVIARIOS
         nu_br: 'BR',
         no_inicio_rodovia: 'Início da Rodovia',
@@ -377,24 +365,19 @@ export default {
         nm_tipo_trecho: 'Tipo do Trecho',
         sg_tipo_trecho: 'Sigla do Trecho',
         sg_legenda: 'Sigla Legenda',
-
         // ÁREAS MUNICIPAIS
         nu_uf_geocodigo: 'Número UF Geocódigo',
         nu_geocodigo: 'Número Geocódigo',
         nu_ano_referencia: 'Ano Referência',
-
         // FAIXA DE FRONTEIRA
         no_faixa_de_fronteira: 'Faixa de Fronteira',
-
         // SEDE DE MUNICÍPIOS
         geometriaa: 'Geometria',
         geocodigo: 'Geocódigo',
-
         // DADOS SIGMINE
         nu_numero: 'Número',
         no_ult_evento: 'Último Evento',
         no_subs: 'Substância',
-
         // COMITES DE BACIAS HIDROGRAFICAS ESTADUAIS
         no_cbe: 'Comitê Estadual',
         cd_cbe: 'Código CBE',
@@ -406,7 +389,6 @@ export default {
         nu_pibuf: 'PIB Estado',
         nu_popurb2019: 'População Urbana (2019)',
         nu_poprur2019: 'População Rural (2019)',
-
         // MONITORAMENTO DIÁRIO
         ti_nu_area_ha: 'Área Ha',
         no_estagio: 'Estágio',
@@ -416,16 +398,17 @@ export default {
         dt_t_um: 'Data T1',
         origin_id: 'ID',
         id_key: 'Chave ID',
-
         // DETER
         tb_download_deter_a_b_id: 'Download Deter AB',
         ds_mes: 'Mês',
         dt_deteccao: 'Data de detecção',
-
         // FOCO CALOR
         sg_regiao: 'Região',
         no_satelite: 'Satélite',
         hr_foco_calor: 'Horário',
+        // USO E OCUPAÇÃO DO SOLO
+        no_satelites: 'Satélites',
+        nu_resolucoes: 'Resoluções',
       },
     },
   }),
@@ -460,7 +443,9 @@ export default {
 
   methods: {
     shouldDisplayField(field) {
-      return !this.fieldConfig.excludedFields.some((excluded) => field.toLowerCase().includes(excluded));
+      return !this.fieldConfig.excludedFields.some(
+        (excluded) => field.toLowerCase().includes(excluded),
+      );
     },
 
     formatFieldName(field) {
@@ -661,7 +646,7 @@ export default {
       params[params.version === '1.3.0' ? 'j' : 'y'] = Math.trunc(point.y);
 
       return (
-      // eslint-disable-next-line no-underscore-dangle
+        // eslint-disable-next-line no-underscore-dangle
         layer._url
                 + this.$L.Util.getParamString(params, layer._url, true)
       );

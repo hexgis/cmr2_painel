@@ -28,25 +28,7 @@
                     alt="northarrow"
                     class="north-arrow"
                 />
-            </l-control>
-
-            <!-- <PriorityLayers :map="map" />
-            <MonitoringLayers :map="map" />
-            <SupportLayers />
-            <SupportUserLayersMap />
-            <SupportLayersHazard />
-            <SupportLayersProdes />
-            <SupportLayersRaster />
-            <AlertLayers :map="map" />
-            <DeterLayers :map="map" />-->
-            <LandUseLayers
-                v-if="
-                    showFeaturesLandUse &&
-                    features.features &&
-                    features.features.length
-                "
-                :map="map"
-            />
+            </l-control>          
         </l-map>
     </client-only>
 </template>
@@ -67,20 +49,7 @@
  * Underscore attributes defined by "Leafleat" plugin
  */
 
-import { mapActions, mapState } from 'vuex'
-
-import MiniMapForPrint from '@/components/map/MiniMapForPrint.vue'
-import PriorityLayers from '@/components/priority/PriorityLayers'
-import MonitoringLayers from '@/components/monitoring/MonitoringLayers'
-import SupportLayers from '@/components/support/SupportLayers'
-import SupportLayersHazard from '@/components/support/SupportLayersHazard'
-import SupportLayersProdes from '@/components/support/SupportLayersProdes'
-import SupportLayersRaster from '@/components/support/SupportLayersRaster'
-import AlertLayers from '@/components/monitoring/AlertLayers'
-import DeterLayers from '@/components/deter/DeterLayers'
-import LandUseLayers from '@/components/land-use/LandUseLayers'
-import SupportUserLayersMap from '@/components/support/SupportUserLayersMap'
-
+import { mapState } from 'vuex'
 if (typeof window !== 'undefined') {
     require('leaflet-bing-layer')
 }
@@ -90,20 +59,7 @@ const cloneLayer = require('leaflet-clonelayer')
 const intervalZooms = require('../../../utils/zoomIntervalsGraticule')
 
 export default {
-    components: {
-        MiniMapForPrint,
-        PriorityLayers,
-        MonitoringLayers,
-        SupportLayers,
-        AlertLayers,
-        DeterLayers,
-        SupportLayersProdes,
-        SupportLayersRaster,
-        SupportLayersHazard,
-        LandUseLayers,
-        SupportUserLayersMap,
-    },
-
+   
     props: {
         leafSize: {
             type: Object,
