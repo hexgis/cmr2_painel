@@ -180,7 +180,7 @@ export default {
   },
   "pt-br": {
     "detail-api-error": "Não foi possível obter os dados do polígono, entre em contato com um administrador se persistir.",
-    "legend-name": "Uso e Ocupação do Solo",
+    "legend-name": "Monitoramento Diário",
     "no-data-message": "Nenhum dado disponível para a(s) selecionada(s).",
     "name-layer-heatmap": "Monitoramento Diário - Heatmap"
   }
