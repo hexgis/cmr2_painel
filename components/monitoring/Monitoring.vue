@@ -1,318 +1,636 @@
 <template>
-  <div>
-    <div>
-      <MonitoringFilter @onSearch="search()" />
-    </div>
-    <div
-      v-if="showFeaturesMonitoring && !isLoadingFeatures"
-      class="mx-4"
-    >
-      <v-divider />
-      <p class="font-weight-regular pt-2 grey--text text--darken-2">
-        {{ $t('legend') }}
-      </p>
-      <v-col class="grey--text text--darken-2">
-        <div class="d-flex align-center justify-space-between mb-2">
-          <div class="d-flex align-center">
-            <v-icon
-              class="mr-2"
-              color="#990099"
-            >
-              mdi-square
-            </v-icon>
-            <span class="grey--text text--darken-2 text-body-2">
-              {{ $t('recovery-deforestation') }}
-            </span>
-          </div>
-          <v-switch
-            v-model="monitoringSubLayersDR"
-            class="mt-0 pt-0"
-            hide-details
-          />
-        </div>
-
-        <div class="d-flex align-center justify-space-between mb-2">
-          <div class="d-flex align-center">
-            <v-icon
-              class="mr-2"
-              color="#b35900"
-            >
-              mdi-square
-            </v-icon>
-            <span class="grey--text text--darken-2 text-body-2">
-              {{ $t('forest-fire') }}
-            </span>
-          </div>
-          <v-switch
-            v-model="monitoringSubLayersFF"
-            class="mt-0 pt-0"
-            hide-details
-          />
-        </div>
-
-        <div class="d-flex align-center justify-space-between mb-2">
-          <div class="d-flex align-center">
-            <v-icon
-              class="mr-2"
-              color="#ff8000"
-            >
-              mdi-square
-            </v-icon>
-            <span class="grey--text text--darken-2 text-body-2">
-              {{ $t('degradation') }}
-            </span>
-          </div>
-          <v-switch
-            v-model="monitoringSubLayersDG"
-            class="mt-0 pt-0"
-            hide-details
-          />
-        </div>
-
-        <div class="d-flex align-center justify-space-between mb-2">
-          <div class="d-flex align-center">
-            <v-icon
-              class="mr-2"
-              color="#ff3333"
-            >
-              mdi-square
-            </v-icon>
-            <span class="grey--text text--darken-2 text-body-2">
-              {{ $t('clear-cutting') }}
-            </span>
-          </div>
-          <v-switch
-            v-model="monitoringSubLayersCR"
-            class="mt-0 pt-0"
-            hide-details
-          />
-        </div>
-
-        <v-spacer />
+  <v-col class="px-4">
+    <!-- Filtros de Pesquisa -->
+    <v-row>
+      <v-col cols="9">
+        <v-checkbox
+          v-model="filters.currentView"
+          :label="$t('current-view-label')"
+          :error="error"
+          hide-details
+        />
       </v-col>
-    </div>
-  </div>
+      <v-col cols="3">
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <div
+              class="d-flex justify-end align-center mt-1"
+              v-on="on"
+            >
+              <v-switch
+                v-if="currentUrlWmsMonitoring"
+                v-model="featuresMonitoring"
+                class="mt-3"
+                hide-details
+              />
+            </div>
+          </template>
+          <span>
+            {{ featuresMonitoring ? $t('title-switch-disable-features') : $t('title-switch-enable-features') }}
+          </span>
+        </v-tooltip>
+      </v-col>
+      <v-col cols="12">
+        <v-combobox
+          v-model="filters.cr"
+          :label="$t('regional-coordination-label')"
+          :items="flattened"
+          item-value="co_cr"
+          item-text="ds_cr"
+          hide-details
+          clearable
+          multiple
+          :error="error"
+          class="pa-0"
+          outlined
+        />
+      </v-col>
+      <v-col cols="12">
+        <v-slide-y-transition>
+          <v-combobox
+            v-if="filters.cr && filterOptions.tiFilters"
+            v-model="filters.ti"
+            :label="$t('indigenous-lands-label')"
+            :items="filterOptions.tiFilters"
+            item-text="no_ti"
+            item-value="co_funai"
+            hide-details
+            multiple
+            clearable
+            class="pa-0 mt-n3"
+            outlined
+          />
+        </v-slide-y-transition>
+      </v-col>
+      <v-col
+        cols="6"
+        class="py-0"
+      >
+        <BaseDateField
+          v-model="filters.startDate"
+          :label="$t('start-date-label')"
+          :required="true"
+          outlined
+          :min-date="'2015-01-01'"
+        />
+      </v-col>
+      <v-col
+        cols="6"
+        class="py-0"
+      >
+        <BaseDateField
+          v-model="filters.endDate"
+          :label="$t('end-date-label')"
+          :required="true"
+          outlined
+          :error="error"
+          :min-date="'2015-01-01'"
+        />
+      </v-col>
+      <v-col cols="12">
+        <v-btn
+          block
+          small
+          color="primary"
+          outlined
+          :loading="loadingMonitoring"
+          class="pa-0 mt-n8"
+          @click="searchMonitoring"
+        >
+          {{ $t('search-label') }}
+        </v-btn>
+      </v-col>
+    </v-row>
+
+    <!-- Resultados e Controles -->
+    <v-row
+      v-if="showFeaturesMonitoring && features && features.features && features.features.length > 0"
+      no-gutters
+      align="center"
+      class="mt-3"
+    >
+      <v-col
+        cols="12"
+        class="mt-n3 mb-1"
+      >
+        <DialogConfirmDownload />
+        <v-btn
+          :loading="isLoadingStatistic"
+          small
+          color="accent"
+          icon
+          @click="showTableDialogAnalytics(true), (dialog = true)"
+        >
+          <v-tooltip bottom>
+            <template #activator="{ on }">
+              <v-icon v-on="on">
+                mdi-chart-box
+              </v-icon>
+            </template>
+            <span>{{ $t('statistics-label') }}</span>
+          </v-tooltip>
+        </v-btn>
+        <v-btn
+          :loading="isLoadingTable"
+          icon
+          fab
+          small
+          color="accent"
+          @click="showTableDialog(true)"
+        >
+          <v-tooltip bottom>
+            <template #activator="{ on }">
+              <v-icon v-on="on">
+                mdi-table
+              </v-icon>
+            </template>
+            <span>{{ $t('table-label') }}</span>
+          </v-tooltip>
+        </v-btn>
+      </v-col>
+      <v-col cols="12">
+        <v-divider />
+      </v-col>
+      <v-col
+        cols="12"
+        class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4"
+      >
+        <span>{{ $t('total-poligono-label') }}:</span>
+        {{ features.features.length }}
+      </v-col>
+      <v-col
+        cols="12"
+        class="grey--text text--darken-2 d-flex justify-space-between"
+      >
+        <span>{{ $t('total-area-label') }}:</span>
+        {{ totalArea }} ha
+      </v-col>
+      <v-row class="mt-2">
+        <v-col
+          cols="4"
+          class="grey--text text--darken-2"
+        >
+          {{ $t('opacity-label') }}
+        </v-col>
+        <v-col cols="8">
+          <v-slider
+            v-if="opacity !== null"
+            v-model="opacity"
+            hide-details
+            thumb-label
+            @input="updateOpacity"
+          />
+        </v-col>
+        <v-col>
+          <span class="grey--text text--darken-2">{{ $t('heat-map-label') }}</span>
+        </v-col>
+        <v-col
+          cols="3"
+          class="d-flex justify-end"
+        >
+          <v-switch
+            v-model="heatMap"
+            class="mt-0 pt-0"
+            :loading="loadingHeatmap"
+            :disabled="loadingHeatmap || !features?.features?.length"
+            hide-details
+          />
+        </v-col>
+      </v-row>
+      <v-col cols="12">
+        <v-divider />
+      </v-col>
+      <v-col cols="12">
+        <p class="font-weight-regular pt-2 grey--text text--darken-2 mb-n6">
+          {{ $t('legend') }}
+        </p>
+      </v-col>
+      <v-row
+        v-if="legendItems.length"
+        class="mt-2"
+      >
+        <v-col>
+          <v-list
+            dense
+            flat
+          >
+            <v-list-item
+              v-for="item in legendItems"
+              :key="item.estagio"
+              class="pa-1 compact-list-item"
+              :class="{ 'active-legend-item': item.active }"
+            >
+              <v-list-item-icon class="my-0">
+                <span
+                  class="legend-color"
+                  :style="{ backgroundColor: item.color }"
+                />
+              </v-list-item-icon>
+              <v-list-item-content class="py-0">
+                <span class="grey--text text--darken-2 compact-text">{{ item.label }}</span>
+              </v-list-item-content>
+              <v-list-item-action class="my-0 compact-action">
+                <v-switch
+                  v-model="item.visible"
+                  :loading="loadingEstagios[item.estagio]"
+                  @change="toggleLegendItem(item)"
+                />
+              </v-list-item-action>
+            </v-list-item>
+          </v-list>
+        </v-col>
+      </v-row>
+    </v-row>
+
+    <!-- Diálogos -->
+    <TableDialog
+      :table="tableDialogMonitoring"
+      :headers="headers"
+      :value="formattedTableMonitoring"
+      :loading-table="isLoadingTable"
+      :loading-c-s-v="isLoadingCSV"
+      :table-name="$t('table-name')"
+      :f-download-c-s-v="downloadTableMonitoring"
+      :f-close-table="closeTable"
+    />
+    <AnalyticalDialog
+      :value="analyticsMonitoringDialog"
+      :close-dialog="closeAnalyticalDialog"
+    />
+  </v-col>
 </template>
 
-<i18n>
-{
-    "en": {
-        "legend": "Legend:",
-        "monitoring-info-part1": "Monitoring is based on visual interpretation",
-        "monitoring-info-part2": "of Landsat-8 with a 32-day interval.",
-        "monitoring-info-part3": "Monitoring detections are available",
-        "monitoring-info-part4": "from August 30, 2015 (variable by orbit-point).",
-        "recovery-deforestation": "Regenerating Deforestation",
-        "forest-fire": "Forest Fire",
-        "degradation": "Degradation",
-        "clear-cutting": "Clear-Cutting"
-    },
-    "pt-br": {
-        "legend": "Legenda:",
-        "monitoring-info-part1": "O Monitoramento é baseado na interpretação",
-        "monitoring-info-part2": "visual do Landsat-8 com intervalo de 32 dias.",
-        "monitoring-info-part3": "As detecções do monitoramento são contempladas",
-        "monitoring-info-part4": "a partir de 30 de agosto de 2015 (variável por órbita-ponto).",
-        "recovery-deforestation": "Desmatamento em Regeneração",
-        "forest-fire": "Fogo em Floresta",
-        "degradation": "Degradação",
-        "clear-cutting": "Corte Raso"
-    }
-}
-</i18n>
-
 <script>
-import { mapActions, mapState } from 'vuex';
-import MonitoringFilter from '@/components/monitoring/MonitoringFilter';
+import { mapMutations, mapState, mapActions } from 'vuex';
+import TableDialog from '../table-dialog/TableDialog.vue';
+import BaseDateField from '@/components/base/BaseDateField';
+import DialogConfirmDownload from '@/components/monitoring/DialogConfirmDownload.vue';
+import AnalyticalDialog from '../analytical-dialog/AnalyticalDialog.vue';
 
 export default {
-  components: { MonitoringFilter },
-
+  name: 'MonitoringFilters',
+  components: {
+    TableDialog,
+    BaseDateField,
+    DialogConfirmDownload,
+    AnalyticalDialog,
+  },
   data() {
     return {
+      filters: {
+        startDate: this.$moment().subtract(30, 'days').format('YYYY-MM-DD'),
+        endDate: this.$moment().format('YYYY-MM-DD'),
+        currentView: false,
+        priority: null,
+        cr: [],
+        ti: null,
+      },
+      error: false,
+      headers: [
+        { text: 'Código Funai', value: 'co_funai' },
+        { text: 'Coordenação Regional', value: 'ds_cr' },
+        { text: 'Terra Indígena', value: 'no_ti' },
+        { text: 'Data', value: 'dt_t_um' },
+        { text: 'Agropecuária (ha)', value: 'nu_area_ag_ha' },
+        { text: 'Corte raso (ha)', value: 'nu_area_cr_ha' },
+        { text: 'Degradação (ha)', value: 'nu_area_dg_ha' },
+        { text: 'Massa de água (ha)', value: 'nu_area_ma_ha' },
+        { text: 'Silvicultura (ha)', value: 'nu_area_sv_ha' },
+        { text: 'Vegetação natural (ha)', value: 'nu_area_vn_ha' },
+        { text: 'Vilarejo (ha)', value: 'nu_area_vi_ha' },
+        { text: 'Rodovia (ha)', value: 'nu_area_rv_ha' },
+        { text: 'Mineração (ha)', value: 'nu_area_mi_ha' },
+        { text: 'Não observado (ha)', value: 'nu_area_no_ha' },
+        { text: 'Total (ha)', value: 'nu_area_ha' },
+      ],
+      filteredYears: [],
       checkNewFilters: false,
-      dr: true,
-      ff: true,
-      dg: true,
-      cr: true,
+      isLoadingTotal: false,
+      flattened: [],
+      dialog: false,
+      tableDialogMonitoring: false,
+      isLoadingTable: false,
+      isLoadingCSV: false,
+      isLoadingGeoJson: false,
+      loadingEstagios: {},
     };
   },
-
-  watch: {
-    dr(newValue) {
-      this.handleCheckboxChange(newValue, 'DR');
-    },
-    ff(newValue) {
-      this.handleCheckboxChange(newValue, 'FF');
-    },
-    dg(newValue) {
-      this.handleCheckboxChange(newValue, 'DG');
-    },
-    cr(newValue) {
-      this.handleCheckboxChange(newValue, 'CR');
-    },
-  },
-
   computed: {
+    totalArea() {
+      if (this.features && this.features.features && this.features.features.length) {
+        const total = this.features.features.reduce(
+          (sum, feature) => sum + ((feature.properties && feature.properties.nu_area_ha) || 0),
+          0,
+        );
+        return this.formatFieldValue(total, 'nu_area_ha');
+      }
+      return this.formatFieldValue(0, 'nu_area_ha');
+    },
+    formattedTableMonitoring() {
+      if (!this.tableMonitoring || !this.tableMonitoring.length) {
+        return [];
+      }
+      return this.tableMonitoring.map((item) => {
+        const formattedItem = { ...item };
+        this.headers.forEach((header) => {
+          const field = header.value;
+          formattedItem[field] = this.formatFieldValue(item[field], field);
+        });
+        return formattedItem;
+      });
+    },
+    opacity: {
+      get() {
+        return this.$store.state.monitoring.opacity;
+      },
+      set(value) {
+        this.$store.commit('monitoring/setOpacity', value);
+      },
+    },
+    heatMap: {
+      get() {
+        return this.$store.state.monitoring.heatMap;
+      },
+      set(value) {
+        this.$store.dispatch('monitoring/generateHeatmapMonitoring', value);
+      },
+    },
     featuresMonitoring: {
       get() {
         return this.$store.state.monitoring.showFeaturesMonitoring;
       },
-
       set(value) {
-        this.$store.commit(
-          'monitoring/setshowFeaturesMonitoring',
-          value,
-        );
+        this.$store.commit('monitoring/setshowFeaturesMonitoring', value);
       },
     },
-
-    monitoringSubLayersFF: {
-      get() {
-        return this.$store.state.monitoring.monitoringSubLayers.FF;
-      },
-
-      set(value) {
-        this.$store.commit('monitoring/setMonitoringSubLayers', {
-          type: 'FF',
-          value,
-        });
-        this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
-        this.$store.commit('monitoring/setHeatMap', false);
-      },
+    legendItems() {
+      return this.$store.getters['monitoring/getLegendItems'];
     },
-
-    monitoringSubLayersDR: {
-      get() {
-        return this.$store.state.monitoring.monitoringSubLayers.DR;
-      },
-
-      set(value) {
-        this.$store.commit('monitoring/setMonitoringSubLayers', {
-          type: 'DR',
-          value,
-        });
-        this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
-        this.$store.commit('monitoring/setHeatMap', false);
-      },
+    tableMonitoring() {
+      return this.$store.state.monitoring.tableMonitoring;
     },
-
-    monitoringSubLayersDG: {
-      get() {
-        return this.$store.state.monitoring.monitoringSubLayers.DG;
-      },
-
-      set(value) {
-        this.$store.commit('monitoring/setMonitoringSubLayers', {
-          type: 'DG',
-          value,
-        });
-        // fire method to update the URL (action in vuex)
-        this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
-        this.$store.commit('monitoring/setHeatMap', false);
-      },
-    },
-
-    monitoringSubLayersCR: {
-      get() {
-        return this.$store.state.monitoring.monitoringSubLayers.CR;
-      },
-
-      set(value) {
-        this.$store.commit('monitoring/setMonitoringSubLayers', {
-          type: 'CR',
-          value,
-        });
-        this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
-        this.$store.commit('monitoring/setHeatMap', false);
-      },
-    },
-
     ...mapState('monitoring', [
-      'monitoringSubLayers',
-      'showFeaturesMonitoring',
+      'currentUrlWmsMonitoring',
+      'loadingMonitoring',
+      'filterOptions',
       'features',
-      'showTableDialogMonitoring',
-      'isLoadingFeatures',
-      'isLoadingStatistic',
       'analyticsMonitoringDialog',
-      'stageItemActive',
-      'selectedStages',
-      'setStageItemActive',
+      'isLoadingStatistic',
+      'showFeaturesMonitoring',
+      'loadingHeatmap',
     ]),
   },
-
+  watch: {
+    'filters.cr': function (value) {
+      const arrayCrPopulate = value.map((item) => item.co_cr);
+      this.populateTiOptions(arrayCrPopulate);
+    },
+    'filterOptions.regionalFilters': function () {
+      this.populateCrOptions();
+    },
+    opacity() {
+      this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
+    },
+  },
+  mounted() {
+    this.getFilterOptions();
+    this.getMonitoringStyleFromGeoserver();
+  },
   methods: {
-    async handleCheckboxChange(newValue, description) {
-      if (newValue) {
-        await this.updateDescription(description);
-      } else {
-        await this.removeDescription(description);
-      }
+    debounce(func, wait) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+      };
     },
+    updateOpacity(value) {
+      this.debounce((val) => {
+        this.opacity = val;
+      }, 100)(value);
+    },
+    formatFieldValue(value, field = '') {
+      if (value === null || value === undefined) return 'N/A';
 
-    updateStageItemList() {
-      const stageItemActive = [];
-      this.features.features.map((item) => {
-        this.selectedStages.map((stageActive) => {
-          stageActive === item.properties.no_estagio
-            ? stageItemActive.push(item)
-            : '';
-        });
+      const fieldName = field.toLowerCase();
+      const isDateField = typeof value === 'string'
+        && (fieldName.startsWith('dt_') || fieldName.startsWith('data_') || fieldName.startsWith('date'))
+        && this.$moment(value).isValid();
+      const isBooleanField = typeof value === 'boolean';
+      const isNumberField = typeof value === 'number';
+      const isLatLongField = ['lat', 'lng', 'long', 'latitude', 'longitude'].some((key) => fieldName.includes(key));
+
+      if (isDateField) return this.$moment(value).format('DD/MM/YYYY');
+      if (isBooleanField) return value ? 'Sim' : 'Não';
+      if (isNumberField || fieldName.startsWith('nu_')) {
+        if (isLatLongField) return value.toFixed(5);
+        let parsedValue = value;
+        if (typeof value === 'string') parsedValue = parseFloat(value);
+        if (Number.isNaN(parsedValue)) return 'N/A';
+        const rounded = parsedValue.toFixed(2);
+        const [intPart, decimalPart] = rounded.split('.');
+        return decimalPart !== '00' || (fieldName.startsWith('nu_') && fieldName.includes('area'))
+          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
+          : parseInt(value, 10).toString();
+      }
+      return value.toString() || 'N/A';
+    },
+    populateCrOptions() {
+      this.flattened = [];
+      const groups = {};
+      this.filterOptions.regionalFilters.forEach((x) => {
+        groups[x.no_regiao] = groups[x.no_regiao] || { ds_cr: x.ds_cr, list: [] };
+        groups[x.no_regiao].list.push(x);
       });
-      this.$store.commit('monitoring/setStageItemActive', stageItemActive);
+      Object.keys(groups).forEach((categoryId) => {
+        const category = groups[categoryId];
+        this.flattened.push({ header: categoryId });
+        this.flattened.push(...category.list);
+      });
     },
-
-    async updateDescription(value) {
-      this.updateStageItemList();
-      this.$store.commit('monitoring/setSelectedStages', value);
-      await this.updateFeatures();
-    },
-
-    async removeDescription(value) {
-      this.$store.commit('monitoring/removeSelectedStages', value);
-      this.updateStageItemList();
-      await this.updateFeatures();
-    },
-
-    search() {
-      // if (this.tableDialogMonitoring) {
-      //     this.checkNewFilters = true
-      //     this.getDataTableMonitoring()
-      // }
-      // if (this.analyticsMonitoringDialog) {
-      //     this.checkNewFilters = true
-      //     this.isLoadingStatistic = true
-      //     this.getDataAnalyticsMonitoringByFunaiYear()
-      // }
-
-      if (this.showTableDialogMonitoring) {
-        this.$store.dispatch('monitoring/getPropertiesTableMonitoring');
+    populateTiOptions(cr) {
+      if (cr && cr.length) {
+        this.$store.dispatch('monitoring/getTiOptions', cr);
       } else {
-        this.getFeatures();
+        this.filters.ti = [];
       }
     },
+    showTableDialogAnalytics(value) {
+      if (this.currentUrlWmsMonitoring) {
+        this.setanalyticsMonitoringDialog(value);
+        this.getDataAnalyticsMonitoringByFunaiYear();
+      }
+    },
+    searchMonitoring() {
+      const { filters } = this;
+      const {
+        currentView, cr, startDate, endDate,
+      } = filters;
 
+      if (
+        (currentView || cr.length)
+        && startDate
+        && endDate
+        && this.$moment(startDate).isValid()
+        && this.$moment(endDate).isValid()
+      ) {
+        this.error = false;
+        const filtersForStore = {
+          ...filters,
+          startDate: this.$moment(startDate).format('YYYY-MM-DD'),
+          endDate: this.$moment(endDate).format('YYYY-MM-DD'),
+        };
+
+        if (this.$moment(startDate).isAfter(endDate)) {
+          this.error = true;
+          this.$store.commit(
+            'alert/addAlert',
+            { message: this.$t('invalid-date-range'), type: 'error' },
+            { root: true },
+          );
+          return;
+        }
+
+        const allEstagiosDisabled = Object.values(this.$store.state.monitoring.legendVisibility).every(
+          (visible) => !visible,
+        );
+
+        if (allEstagiosDisabled) {
+          this.$store.commit('monitoring/resetLegendVisibility');
+          this.$store.commit('monitoring/clearFeatures');
+          this.$store.commit('monitoring/setTableMonitoring', []);
+        }
+
+        this.setFilters(filtersForStore);
+        this.getFeatures().then(() => {
+          this.getDataTableMonitoring();
+        });
+      } else {
+        this.error = true;
+      }
+    },
+    showTableDialog(value) {
+      if (this.features) {
+        this.tableDialogMonitoring = value;
+        this.getDataTableMonitoring();
+      }
+    },
+    closeTable(value) {
+      this.tableDialogMonitoring = value;
+      if (this.checkNewFilters) {
+        this.getFeatures();
+        this.checkNewFilters = false;
+      }
+    },
+    closeAnalyticalDialog(value) {
+      this.dialog = value;
+    },
+    toggleLegendItem(item) {
+      return this.debounce(async () => {
+        try {
+          this.$set(this.loadingEstagios, item.estagio, true);
+          await this.$store.dispatch('monitoring/toggleLegendVisibility', {
+            estagio: item.estagio,
+            visible: item.visible,
+          });
+        } catch (error) {
+          console.error('Erro ao alternar visibilidade do estágio:', error);
+          const revertedItem = { ...item, visible: !item.visible };
+          const idx = this.legendItems.findIndex((i) => i.estagio === item.estagio);
+          this.$set(this.legendItems, idx, revertedItem);
+        } finally {
+          this.$set(this.loadingEstagios, item.estagio, false);
+        }
+      }, 300)();
+    },
+    ...mapMutations('monitoring', ['setFilters', 'setLoadingStatistic', 'setanalyticsMonitoringDialog']),
     ...mapActions('monitoring', [
+      'getFilterOptions',
       'getFeatures',
-      'updateFeatures',
+      'getMonitoringStyleFromGeoserver',
+      'downloadGeoJsonMonitoring',
       'getDataTableMonitoring',
+      'downloadTableMonitoring',
       'getDataAnalyticsMonitoringByFunaiYear',
-      'generateUrlWmsMonitoring',
     ]),
   },
 };
 </script>
 
 <style scoped lang="scss">
-.infoIconMargin {
-    margin-left: 14px;
-    margin-top: 16px;
+.legend-color {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  margin-right: 8px;
+  margin-top: 12px;
+  padding: 0px;
 }
-
+.compact-list-item {
+  min-height: 32px !important;
+  margin: 0 !important;
+  padding: 0px 0px !important;
+}
+.compact-text {
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
 @media (max-width: 768px) {
-    .infoIconMargin {
-        margin-left: 2px;
-    }
+  .full-width {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .text-label {
+    font-size: 0.8rem;
+    padding-right: 0px;
+  }
 }
 </style>
+
+<i18n>
+{
+  "en": {
+    "legend": "Legend:",
+    "search-label": "Search",
+    "opacity-label": "Opacity",
+    "current-view-label": "Search in current area?",
+    "start-date-label": "Start Date",
+    "end-date-label": "End Date",
+    "total-area-label": "Total area",
+    "heat-map-label": "Heat Map",
+    "total-poligono-label": "Total polygons",
+    "regional-coordination-label": "Regional Coordination (All)",
+    "indigenous-lands-label": "Indigenous Lands",
+    "title-switch-disable-features": "Disable Monitoring Layer",
+    "title-switch-enable-features": "Enable Monitoring Layer",
+    "download-label": "Download",
+    "statistics-label": "Statistics",
+    "table-label": "Table",
+    "table-name": "Land Use Table",
+    "invalid-date-range": "Start date cannot be after end date",
+    "heatmap": "Heat Map"
+  },
+  "pt-br": {
+    "legend": "Legenda:",
+    "search-label": "Buscar",
+    "opacity-label": "Opacidade",
+    "current-view-label": "Pesquisar nesta área?",
+    "start-date-label": "Data Inicial",
+    "end-date-label": "Data Final",
+    "total-area-label": "Área total",
+    "heat-map-label": "Mapa de Calor",
+    "total-poligono-label": "Total de polígonos",
+    "regional-coordination-label": "Coordenação Regional (Todas)",
+    "indigenous-lands-label": "Terras Indígenas",
+    "title-switch-disable-features": "Desabilitar Camada de Uso e Ocupação do Solo",
+    "title-switch-enable-features": "Habilitar Camada de Uso e Ocupação do Solo",
+    "download-label": "Baixar",
+    "statistics-label": "Estatísticas",
+    "table-label": "Tabela",
+    "table-name": "Tabela de Monitoramento Diário",
+    "invalid-date-range": "A data inicial não pode ser posterior à data final",
+    "heatmap": "Mapa de Calor"
+  }
+}
+</i18n>

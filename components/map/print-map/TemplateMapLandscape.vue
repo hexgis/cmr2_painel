@@ -40,31 +40,30 @@
               id="data-table"
               class="leaflet-bottom leaflet-right"
             >
-              <!-- Primeira condição -->
               <template v-if="teste >= 0 && teste <= 7">
-                <template v-if="showFeaturesMonitoring && !hasLongMonitoringInfo">
+                <template v-if="showFeaturesMonitoring && tableMonitoring.length">
                   <div
-                    v-for="(item, i) in analyticsMonitoring"
-                    :key="'monitoring-' + item.no_ti + i"
+                    v-for="(item, index) in tableMonitoring"
+                    :key="'monitoring-' + index"
                     class="text-center bordered-red"
                   >
                     <p>
                       <strong>TI {{ item.no_ti }}</strong>
                     </p>
-                    <p>
-                      Área da TI: {{ formatNumber(item.ti_nu_area_ha) }} ha
+                    <p v-if="parseFloat(item.nu_area_ha) > 0">
+                      Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
                     </p>
-                    <p v-if="item.cr_nu_area_ha">
-                      CR: {{ formatNumber(item.cr_nu_area_ha) }} ha
+                    <p v-if="parseFloat(item.nu_area_cr_ha) > 0">
+                      CR: {{ formatNumber(item.nu_area_cr_ha) }} ha
                     </p>
-                    <p v-if="item.dg_nu_area_ha">
-                      DG: {{ formatNumber(item.dg_nu_area_ha) }} ha
+                    <p v-if="parseFloat(item.nu_area_dg_ha) > 0">
+                      DG: {{ formatNumber(item.nu_area_dg_ha) }} ha
                     </p>
-                    <p v-if="item.dr_nu_area_ha">
-                      DR: {{ formatNumber(item.dr_nu_area_ha) }} ha
+                    <p v-if="parseFloat(item.nu_area_dr_ha) > 0">
+                      DR: {{ formatNumber(item.nu_area_dr_ha) }} ha
                     </p>
-                    <p v-if="item.ff_nu_area_ha">
-                      FF: {{ formatNumber(item.ff_nu_area_ha) }} ha
+                    <p v-if="parseFloat(item.nu_area_ff_ha) > 0">
+                      FF: {{ formatNumber(item.nu_area_ff_ha) }} ha
                     </p>
                   </div>
                 </template>
@@ -217,16 +216,13 @@
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>
-                              {{ totalMonitoring }}
+                              {{ tableMonitoring.length }}
                             </v-chip>
                           </p>
-                          <hr
-                            style="border: 1px solid red; margin: 0;"
-                          >
-                          <LayerList
-                            v-if="showFeaturesMonitoring"
-                            :layers="activeMonitoringLabel"
-                            :monitoring="true"
+                          <hr style="border: 1px solid red; margin: 0; margin-top: 0px;">
+                          <CustomizedLegend
+                            class="pt-1"
+                            :items="monitoringItems"
                           />
                         </div>
                         <div
@@ -611,16 +607,16 @@ export default {
   },
 
   data: () => ({
-    hasLongMonitoringInfo: false,
+
     teste: 0,
     totalMonitoring: 0,
     totalLandUse: 0,
     headers: [
       { text: 'TI', value: 'no_ti' },
-      { text: 'Área CR (ha)', value: 'cr_nu_area_ha' },
-      { text: 'Área DG (ha)', value: 'dg_nu_area_ha' },
-      { text: 'Área DR (ha)', value: 'dr_nu_area_ha' },
-      { text: 'Área FF (ha)', value: 'ff_nu_area_ha' },
+      { text: 'Área CR (ha)', value: 'nu_area_cr_ha' },
+      { text: 'Área DG (ha)', value: 'nu_area_dg_ha' },
+      { text: 'Área DR (ha)', value: 'nu_area_dr_ha' },
+      { text: 'Área FF (ha)', value: 'nu_area_ff_ha' },
     ],
     map: null,
     miniMap: null,
@@ -679,7 +675,7 @@ export default {
       return !!(
         this.showFeaturesSupportLayers
         || this.showFeaturesMonitoring
-        || this.showFearuesProdes
+        || this.showFeaturesProdes
         || this.showFeaturesDeter
         || this.showFeaturesLandUse
         || this.showFeaturesUrgentAlerts
@@ -738,6 +734,10 @@ export default {
       return this.$store.getters['prodes/getLegendItems'];
     },
 
+    monitoringItems() {
+      return this.$store.getters['monitoring/getActiveLegendItems'];
+    },
+
     landUseItems() {
       return this.$store.getters['land-use/getActiveLegendItems'];
     },
@@ -754,11 +754,9 @@ export default {
     ]),
 
     ...mapState('monitoring', [
-      'selectedStages',
       'showFeaturesMonitoring',
-      'analyticsMonitoring',
-      'filters',
-      'lastSearchStatisticsByFunai',
+      'features',
+      'tableMonitoring',
     ]),
     ...mapState('urgent-alerts', ['showFeaturesUrgentAlerts']),
     ...mapState('land-use', [
@@ -791,32 +789,33 @@ export default {
       }
     },
 
-    analyticsMonitoring(newVal) {
-      // Verificar se newVal é vazio, nulo ou 0
-      if (!newVal || newVal.length === 0) {
-        // this.showWarningMessage = false;
-        this.teste = 0; // Garantir que o valor de teste seja 0
-        return;
-      }
-      this.totalMonitoring = newVal.length;
-      this.totalLandUse = this.tableLandUse.length;
-      // Verificar se a informação de monitoramento é longa
-      this.hasLongMonitoringInfo = newVal.length > 7;
-      if (this.hasLongMonitoringInfo) {
-        this.showWarningMessage = true;
-        return;
-      }
-      // Calcular total, somando apenas quando a soma estiver entre 1 e 7
-      const total = newVal.length
-        + (this.tableLandUse.length <= 7 ? this.tableLandUse.length : 0);
-      if (total > 7) {
-        this.showWarningMessage = true;
-        this.teste = total; // Garantir que o total correto seja atribuído a 'teste'
-        return;
-      }
-      // this.showWarningMessage = false;
-      // Atualiza a variável 'teste' com a soma correta
-      this.teste = total;
+    watch: {
+      tableMonitoring(newVal) {
+        if (!newVal || newVal.length === 0) {
+          this.teste = 0;
+          this.showWarningMessage = false;
+          return;
+        }
+        this.totalMonitoring = newVal.length;
+        this.totalLandUse = this.tableLandUse.length;
+
+        // Calcula o total combinado
+        const total = newVal.length + this.tableLandUse.length;
+
+        // Atualiza teste
+        this.teste = total;
+
+        // Ativa a mensagem de aviso se o total exceder 7
+        this.showWarningMessage = total > 7;
+      },
+
+      tableLandUse(newVal) {
+        // Atualiza o total combinado quando tableLandUse mudar
+        this.totalLandUse = newVal.length;
+        const total = this.totalMonitoring + newVal.length;
+        this.teste = total;
+        this.showWarningMessage = total > 7;
+      },
     },
 
     tableLandUse() {
@@ -827,53 +826,29 @@ export default {
 
   async mounted() {
     if (this.showFeaturesMonitoring) {
-      this.getDataAnalyticsMonitoringByFunai();
-      this.hasLongMonitoringInfo = true;
+      await this.getDataTableMonitoring();
     }
-    if (this.selectedStages) {
-      this.selectedStages.forEach((item) => {
-        if (item === 'CR') {
-          this.activeMonitoringLabel.push({
-            id: 'cr',
-            color: '#ff3333',
-            name: this.$t('clear-cut'),
-          });
-        } else if (item === 'DG') {
-          this.activeMonitoringLabel.push({
-            id: 'dg',
-            color: '#ff8000',
-            name: this.$t('degradation'),
-          });
-        } else if (item === 'FF') {
-          this.activeMonitoringLabel.push({
-            id: 'ff',
-            color: '#b35900',
-            name: this.$t('forest-fire'),
-          });
-        } else if (item === 'DR') {
-          this.activeMonitoringLabel.push({
-            id: 'dr',
-            color: '#990099',
-            name: this.$t('regeneration-deforestation'),
-          });
-        }
-      });
 
-      if (this.showFeaturesLandUse) await this.getDataTableLandUse();
+    if (this.showFeaturesLandUse) {
+      await this.getDataTableLandUse();
+    }
 
-      // if (this.filters.ti && this.filters.ti.length > 7) this.showWarningMessage = true;
+    // Inicializa o total
+    this.totalMonitoring = this.tableMonitoring.length;
+    this.totalLandUse = this.tableLandUse.length;
+    this.teste = this.totalMonitoring + this.totalLandUse;
+    this.showWarningMessage = this.teste > 7;
 
-      const visibleLayersCount = Object.values(this.supportLayers)
-        .filter((l) => l.visible).length;
-      if (visibleLayersCount > 7) {
-        this.showWarningMessage = true;
-      }
+    const visibleLayersCount = Object.values(this.supportLayers)
+      .filter((l) => l.visible).length;
+    if (visibleLayersCount > 7) {
+      this.showWarningMessage = true;
+    }
 
-      const visibleUserLayers = Object.values(this.supportLayerUser)
-        .filter((l) => l.visible).length;
-      if (visibleUserLayers > 7) {
-        this.showWarningMessage = true;
-      }
+    const visibleUserLayers = Object.values(this.supportLayerUser)
+      .filter((l) => l.visible).length;
+    if (visibleUserLayers > 7) {
+      this.showWarningMessage = true;
     }
   },
 
@@ -1024,7 +999,7 @@ export default {
       }
     },
 
-    ...mapActions('monitoring', ['getDataAnalyticsMonitoringByFunai']),
+    ...mapActions('monitoring', ['getDataTableMonitoring']),
     ...mapActions('land-use', ['getDataTableLandUse']),
   },
 };
