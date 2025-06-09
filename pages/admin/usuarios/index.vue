@@ -110,6 +110,79 @@
           </div>
         </div>
         <CustomDialog
+          v-model="showLogsModal"
+          title="Logs do Usuário"
+          width="1200"
+          :has-cta="false"
+        >
+         <p class="text-h6">
+            <strong>Registro de acesso do usuário</strong>
+          </p>
+          <v-card-text>
+        <v-simple-table dense class="mt-6">
+  <thead>
+    <tr>
+      <th>Data de Login</th>
+      <th>IP</th>
+      <th>Localização</th>
+      <th>Dispositivo</th>
+      <th>Navegador</th>
+      <th>Latitude</th>
+      <th>Longitude</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-for="login in userLoginHistory" :key="login.id">
+      <td>{{ login.last_date_login }}</td>
+      <td>{{ login.ip }}</td>
+      <td>{{ login.location }}</td>
+      <td>{{ login.type_device }}</td>
+      <td>{{ login.browser }}</td>
+      <td>{{ login.latitude }}</td>
+      <td>{{ login.longitude }}</td>
+    </tr>
+  </tbody>
+</v-simple-table>
+</v-card-text>
+
+<div v-if="!userLoginHistory.length" class="text-center mt-2">
+  Nenhum histórico de login encontrado.
+</div>
+ <p class="text-h6">
+            <strong>Dados Cadastais</strong>
+          </p>
+          <v-card-text>
+            <v-simple-table dense>
+              <thead>
+                <tr>
+                  <th>Alterado Por</th>
+                  <th>Data/Hora</th>
+                  <th>Ação</th>
+                  <th>Instituição</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="log in userLogs"
+                  :key="log.id"
+                >
+                <td>{{ log.user }}</td>
+                  <td>{{ log.action_time }}</td>
+                  <td>{{ log.action_flag_display }}</td>
+                  <td>{{ log.user_institution }}</td>
+
+                </tr>
+              </tbody>
+            </v-simple-table>
+            <div
+              v-if="!userLogs || !userLogs.length"
+              class="text-center mt-4"
+            >
+              Nenhum log encontrado para este usuário.
+            </div>
+          </v-card-text>
+        </CustomDialog>
+        <CustomDialog
           v-model="showModalEdit"
           title="Editar Usuário"
           max-width="500px"
@@ -194,6 +267,14 @@
           dense
           :search="search"
         >
+          <template #item.logs="{ item }">
+            <v-icon
+              style="cursor:pointer"
+              @click="openLogsDialog(item)"
+            >
+              mdi-menu
+            </v-icon>
+          </template>
           <template #item.is_staff="{ item }">
             <span>{{ item.is_staff ? 'Sim' : 'Não' }}</span>
           </template>
@@ -301,11 +382,18 @@ export default {
 
   data() {
     return {
+          userLoginHistory: [], // novo array
+      showLogsModal: false,
+      userLogs: [],
+      selectedUserLogs: null,
       search: '',
       showModalEdit: false,
       selectedInstitution: null,
       users: [],
       filteredUsers: [],
+      showLogsModal: false,
+      userLogs: [],
+      selectedUserLogs: null,
       headers: [
         { text: 'Nome', value: 'username' },
         { text: 'Email', value: 'email' },
@@ -313,7 +401,7 @@ export default {
         { text: 'Acesso Permitido', value: 'is_active' },
         { text: 'Instituição', value: 'institution' },
         { text: 'Editar', value: 'editar' },
-        // { text: 'Logs', value: 'logs' },
+        { text: 'Logs', value: 'logs' },
       ],
       filters: {
         active: false,
@@ -364,7 +452,34 @@ export default {
   },
 
   methods: {
+     parseChangedFields(changeMessage) {
+    try {
+      const parsed = JSON.parse(changeMessage);
+      if (Array.isArray(parsed) && parsed[0]?.changed?.fields) {
+        return parsed[0].changed.fields;
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  },
+    async openLogsDialog(user) {
+      this.selectedUserLogs = user;
+      this.showLogsModal = true;
 
+      try {
+        const response = await this.$api.get(`/history/logs/?user_id=${user.id}`);
+        this.userLogs = response.data;
+
+        const res = await this.$api.get(`/dashboard/get-user-login/?user_id=${user.id}`);
+        this.userLoginHistory = res.data;
+
+      } catch (e) {
+        this.userLogs = [];
+        this.userLoginHistory = [];
+      }
+
+    },
     async fetchRoles() {
       try {
         const response = await this.$api.get('/user/role/');
