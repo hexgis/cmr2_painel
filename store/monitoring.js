@@ -252,8 +252,8 @@ export default {
   // Ações para operações assíncronas e lógicas complexas
   actions: {
     // Busca dados para a tabela de monitoramento
-    async getDataTableMonitoring({ commit, state }) {
-      commit('setLoadingTable', true);
+  async getDataTableMonitoring({ commit, state }) {
+    commit('setLoadingTable', true);
       try {
         const params = {
           service: 'WFS',
@@ -294,37 +294,23 @@ export default {
           throw new Error('Nenhum dado encontrado');
         }
 
-        const groupedData = response.features.reduce((acc, { properties }) => {
-          const key = properties.co_funai;
-          const estagio = properties.no_estagio;
-          const area = properties.nu_area_ha || 0;
-
-          if (!acc[key]) {
-            acc[key] = {
-              co_funai: properties.co_funai || '',
-              ds_cr: properties.ds_cr || '',
-              no_ti: properties.no_ti || '',
-              nu_area_ha: 0,
-              nu_area_cr_ha: 0,
-              nu_area_dg_ha: 0,
-              nu_area_dr_ha: 0,
-              nu_area_ff_ha: 0,
-            };
-          }
-
-          const group = acc[key];
-          if (estagio) {
-            if (estagio === 'CR') group.nu_area_cr_ha += area;
-            if (estagio === 'DG') group.nu_area_dg_ha += area;
-            if (estagio === 'DR') group.nu_area_dr_ha += area;
-            if (estagio === 'FF') group.nu_area_ff_ha += area;
-          }
-          group.nu_area_ha += area;
-
-          return acc;
-        }, {});
-
-        commit('setTableMonitoring', Object.values(groupedData));
+        // Mapeia cada feature individualmente, preservando origin_id
+        const tableData = response.features.map(({ properties }) => ({
+          origin_id: properties.origin_id || '',
+          co_funai: properties.co_funai || '',
+          ds_cr: properties.ds_cr || '',
+          no_ti: properties.no_ti || '',
+          no_estagio: properties.no_estagio || '',
+          dt_imagem: properties.dt_imagem || '',
+          nu_area_ha: parseFloat(properties.nu_area_ha) || 0,
+          nu_area_cr_ha: properties.no_estagio === 'CR' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+          nu_area_dg_ha: properties.no_estagio === 'DG' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+          nu_area_dr_ha: properties.no_estagio === 'DR' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+          nu_area_ff_ha: properties.no_estagio === 'FF' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+          nu_latitude: parseFloat(properties.nu_latitude) || 0,
+          nu_longitude: parseFloat(properties.nu_longitude) || 0,
+        }));
+        commit('setTableMonitoring', tableData);
       } catch (error) {
         console.error('Erro ao buscar dados da tabela:', error);
         commit('setTableMonitoring', []);
@@ -421,7 +407,7 @@ export default {
       commit('setLoadingFeatures', true);
       try {
         await dispatch('getMonitoringStyleFromGeoserver');
-        
+
         const params = {
           service: 'WFS',
           version: '1.0.0',
@@ -463,7 +449,7 @@ export default {
         if (state.filters.startDate && state.filters.endDate) {
           cqlFilters.push(`dt_t_um BETWEEN '${state.filters.startDate}' AND '${state.filters.endDate}'`);
         }
-        
+
         if (cqlFilters.length) {
           params.CQL_FILTER = cqlFilters.join(' AND ');
         }
@@ -500,7 +486,7 @@ export default {
       commit('setUrlCurrentWmsMonitoring', '');
       commit('setLoadingMonitoring', true);
       commit('clearFeatures');
-      
+
       try {
         commit('setLoadingMonitoring', true);
         commit('setshowFeaturesMonitoring', true);
@@ -740,22 +726,23 @@ export default {
         if (!state.tableMonitoring.length) throw new Error('Nenhum dado disponível na tabela');
 
         const headers = [
-          'Código Funai', 'Coordenação Regional', 'Terra Indígena', 'Data',
-          'Agropecuaria (ha)', 'Corte raso (ha)', 'Degradação (ha)', 'Massa de água (ha)',
-          'Silvicultura', 'Vegetação natural (ha)', 'Vilarejo (ha)', 'Rodovia (ha)',
-          'Mineração (ha)', 'Não observado (ha)', 'Total (ha)',
-        ];
+          'ID','Código Funai', 'Terra Indígena', 'Coordenação Regional', 'Classe',
+          'Data da Imagem', 'Área do Polígono (ha)', 'Latitude', 'Longitude',
+           ];
 
         const csvContent = [
           headers.join(','),
           ...state.tableMonitoring.map(row => [
+            row.origin_id,
             row.co_funai,
-            `"${row.ds_cr}"`,
-            `"${row.no_ti}"`,
-            row.dt_t_um,
-            ...['cr', 'dg', 'dr', 'ff'].map(k => row[`nu_area_${k}_ha`]),
-            row.nu_area_ha,
-          ].join(',')),
+            `"${row.no_ti}"`,       // Terra Indígena
+            `"${row.ds_cr}"`,       // Coordenação Regional
+            row.no_estagio,         // Classe (substitui o mapeamento de áreas específicas)
+            row.dt_imagem,          // Data da Imagem (em vez de dt_t_um)
+            row.nu_area_ha,         // Área do Polígono
+            row.nu_latitude,        // Latitude
+            row.nu_longitude        // Longitude
+          ].join(','))
         ].join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -785,7 +772,7 @@ export default {
       commit('setLegendVisibility', { estagio, visible });
       await dispatch('generateUrlWmsMonitoring');
       await dispatch('fetchMonitoringFeatures');
-      
+
       // Se o mapa de calor está ativo, regenera os dados do heatmap
       if (state.heatMap) {
         await dispatch('generateHeatmapMonitoring', true);

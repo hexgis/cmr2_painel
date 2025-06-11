@@ -41,76 +41,80 @@
               class="leaflet-bottom leaflet-right"
             >
               <template v-if="teste >= 0 && teste <= 7">
-                <template v-if="showFeaturesMonitoring && tableMonitoring.length">
-                  <div
-                    v-for="(item, index) in tableMonitoring"
-                    :key="'monitoring-' + index"
-                    class="text-center bordered-red"
+                <div
+                  v-for="(item, index) in filteredCombinedTableData"
+                  :key="'combined-' + index"
+                  class="text-center"
+                  :class="{
+                    'bordered-red':
+                      item.monitoring
+                      && Object.keys(item.monitoring).some(key => item.monitoring[key] > 0),
+                    'bordered-blue':
+                      item.landUse
+                      && Object.keys(item.landUse).some(key => item.landUse[key] > 0),
+                  }"
+                >
+                  <p>
+                    <strong>TI {{ item.no_ti }}</strong>
+                  </p>
+                  <p v-if="parseFloat(item.nu_area_ha) > 0">
+                    Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                  </p>
+                  <!-- Monitoramento -->
+                  <template
+                    v-if="item.monitoring
+                      && Object.keys(item.monitoring).some(key => item.monitoring[key] > 0)"
                   >
-                    <p>
-                      <strong>TI {{ item.no_ti }}</strong>
+                    <p v-if="parseFloat(item.monitoring.nu_area_cr_ha) > 0">
+                      CR: {{ formatNumber(item.monitoring.nu_area_cr_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_ha) > 0">
-                      Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                    <p v-if="parseFloat(item.monitoring.nu_area_dg_ha) > 0">
+                      DG: {{ formatNumber(item.monitoring.nu_area_dg_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_cr_ha) > 0">
-                      CR: {{ formatNumber(item.nu_area_cr_ha) }} ha
+                    <p v-if="parseFloat(item.monitoring.nu_area_dr_ha) > 0">
+                      DR: {{ formatNumber(item.monitoring.nu_area_dr_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_dg_ha) > 0">
-                      DG: {{ formatNumber(item.nu_area_dg_ha) }} ha
+                    <p v-if="parseFloat(item.monitoring.nu_area_ff_ha) > 0">
+                      FF: {{ formatNumber(item.monitoring.nu_area_ff_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_dr_ha) > 0">
-                      DR: {{ formatNumber(item.nu_area_dr_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_ff_ha) > 0">
-                      FF: {{ formatNumber(item.nu_area_ff_ha) }} ha
-                    </p>
-                  </div>
-                </template>
-                <template v-if="showFeaturesLandUse && tableLandUse.length <= 7">
-                  <div
-                    v-for="(item, index) in tableLandUse"
-                    :key="'landuse-' + index"
-                    class="text-center bordered-blue"
+                  </template>
+                  <!-- Uso e Ocupação do Solo -->
+                  <template
+                    v-if="item.landUse
+                      && Object.keys(item.landUse).some(key => item.landUse[key] > 0)"
                   >
-                    <p>
-                      <strong>TI {{ item.no_ti }}</strong>
+                    <p v-if="parseFloat(item.landUse.nu_area_ag_ha) > 0">
+                      AG: {{ formatNumber(item.landUse.nu_area_ag_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_ha) > 0">
-                      Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                    <p v-if="parseFloat(item.landUse.nu_area_cr_ha) > 0">
+                      CR: {{ formatNumber(item.landUse.nu_area_cr_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_ag_ha) > 0">
-                      AG: {{ formatNumber(item.nu_area_ag_ha) }} ha
+                    <p v-if="parseFloat(item.landUse.nu_area_dg_ha) > 0">
+                      DG: {{ formatNumber(item.landUse.nu_area_dg_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_cr_ha) > 0">
-                      CR: {{ formatNumber(item.nu_area_cr_ha) }} ha
+                    <p v-if="parseFloat(item.landUse.nu_area_ma_ha) > 0">
+                      MA: {{ formatNumber(item.landUse.nu_area_ma_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_dg_ha) > 0">
-                      DG: {{ formatNumber(item.nu_area_dg_ha) }} ha
+                    <p v-if="parseFloat(item.landUse.nu_area_mi_ha) > 0">
+                      MI: {{ formatNumber(item.landUse.nu_area_mi_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_ma_ha) > 0">
-                      MA: {{ formatNumber(item.nu_area_ma_ha) }} ha
+                    <p v-if="parseFloat(item.landUse.nu_area_no_ha) > 0">
+                      NO: {{ formatNumber(item.landUse.nu_area_no_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_mi_ha) > 0">
-                      MI: {{ formatNumber(item.nu_area_mi_ha) }} ha
+                    <p v-if="parseFloat(item.landUse.nu_area_rv_ha) > 0">
+                      RV: {{ formatNumber(item.landUse.nu_area_rv_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_no_ha) > 0">
-                      NO: {{ formatNumber(item.nu_area_no_ha) }} ha
+                    <p v-if="parseFloat(item.landUse.nu_area_sv_ha) > 0">
+                      SV: {{ formatNumber(item.landUse.nu_area_sv_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_rv_ha) > 0">
-                      RV: {{ formatNumber(item.nu_area_rv_ha) }} ha
+                    <p v-if="parseFloat(item.landUse.nu_area_vn_ha) > 0">
+                      VN: {{ formatNumber(item.landUse.nu_area_vn_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_sv_ha) > 0">
-                      SV: {{ formatNumber(item.nu_area_sv_ha) }} ha
+                    <p v-if="parseFloat(item.landUse.nu_area_vi_ha) > 0">
+                      VI: {{ formatNumber(item.landUse.nu_area_vi_ha) }} ha
                     </p>
-                    <p v-if="parseFloat(item.nu_area_vn_ha) > 0">
-                      VN: {{ formatNumber(item.nu_area_vn_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_vi_ha) > 0">
-                      VI: {{ formatNumber(item.nu_area_vi_ha) }} ha
-                    </p>
-                  </div>
-                </template>
+                  </template>
+                </div>
               </template>
             </div>
             <v-card
@@ -216,7 +220,7 @@
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>
-                              {{ tableMonitoring.length }}
+                              {{ combinedTableData.length - tableLandUse.length }}
                             </v-chip>
                           </p>
                           <hr style="border: 1px solid red; margin: 0; margin-top: 0px;">
@@ -384,9 +388,9 @@
                   <div v-if="showFeaturesMonitoring">
                     <p class="ml-1">
                       {{ $t('monitoring-print-label') }}
-                      {{ handleData(filters.startDate) }}
+                      {{ handleData(monitoringFilters.startDate) }}
                       {{ $t('and') }}
-                      {{ handleData(filters.endDate) }}
+                      {{ handleData(monitoringFilters.endDate) }}
                     </p>
                   </div>
                   <div v-if="showFeaturesLandUse && uniqueYears.length > 0">
@@ -410,9 +414,9 @@
                   <div v-if="showFeaturesDeter">
                     <p class="ml-1">
                       {{ $t('deter-print-label') }}
-                      {{ handleData(filters.startDate) }}
+                      {{ handleData(deterFilters.startDate) }}
                       {{ $t('and') }}
-                      {{ handleData(filters.endDate) }}
+                      {{ handleData(deterFilters.endDate) }}
                     </p>
                   </div>
                   <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
@@ -495,70 +499,70 @@
 
 <i18n>
 {
-    "en": {
-        "print-out": "Print Out",
-        "legend": "Legend:",
-        "text-address0": " | Print date: ",
-        "text-address": " | Print date: ",
-        "text-info": "The information may be distorted depending on the cartographic bases used.",
-        "text-format": "Format-adapted map template ",
-        "input-button-back-second-step": "Back",
-        "input-button-pdf-image": "Generate PDF",
-        "download-image": "Download Image",
-        "author-label": "Author: ",
-        "clear-cut": "Clear Cut",
-        "degradation": "Degradation",
-        "forest-fire": "Forest Fire",
-        "regeneration-deforestation": "Regeneration Deforestation",
-        "burnt-scar": "Burnt Scar",
-        "deforestation-veg": "Vegetation Deforestation",
-        "disorderly-cs": "Disorderly Cs",
-        "deforestation-cr": "Deforestation Cr",
-        "geometric-cs": "Geometric Cs",
-        "mining": "Mining",
-        "land-use-print-label": "Year usage and occupancy data",
-        "monitoring-print-label": "Daily Monitoring Data between",
-        "and": "and",
-        "warning-message": "The number of selected TIs exceeds the limit for display on the print map. Only deforestation polygons will be shown. To view the statistics, reduce the selected TIs or access the 'Statistics' menu.",
-        "agree": "I agree",
-        "prodes-print-label": "Prodes data between",
-        "deter-print-label": "Deter data between",
-        "heat-focus-print-label": "Heat focus data between",
-        "aqua-morning": "Aqua Modis Morning",
-        "aqua-afternoon": "Aqua Modis Afternoon"
-    },
-    "pt-br": {
-        "print-out": "Impressão",
-        "legend": "Legenda:",
-        "text-address0": " | CENTRO DE MONITORAMENTO REMOTO - https://cmr.funai.gov.br ",
-        "text-address": " | Data da impressão: ",
-        "text-info": "As informações podem apresentar distorções em função das bases cartográficas utilizadas.",
-        "text-format": "Modelo de mapa adaptado para formato ",
-        "input-button-back-second-step": "Voltar",
-        "input-button-pdf-image": "Gerar PDF",
-        "download-image": "Baixar Imagem",
-        "author-label": "Autor: ",
-        "clear-cut": "Corte Raso",
-        "degradation": "Degradação",
-        "forest-fire": "Fogo em Floresta",
-        "regeneration-deforestation": "Desmatamento em Regeneração",
-        "burnt-scar": "Cicatriz de Queimada",
-        "deforestation-veg": "Desmatamento Veg",
-        "disorderly-cs": "Cs Desordenado",
-        "deforestation-cr": "Desmatamento Cr",
-        "geometric-cs": "Cs Geométrico",
-        "mining": "Mineração",
-        "land-use-print-label": "Dados de Uso e Ocupação ano",
-        "monitoring-print-label": "Dados de Monitoramento Diário entre",
-        "and": "e",
-        "warning-message": "O número de TIs selecionadas excede o limite para visualização no mapa de impressão. Apenas os polígonos de desmatamento serão exibidos. Para ver as estatísticas, reduza as TIs selecionadas ou acesse o menu 'Estatísticas'.",
-        "agree": "Ciente",
-        "prodes-print-label": "Dados Prodes entre",
-        "deter-print-label": "Dados Deter entre",
-        "heat-focus-print-label": "Dados de Focos de Calor entre",
-        "aqua-morning": "Aqua Modis Manhã",
-        "aqua-afternoon": "Aqua Modis Tarde"
-    }
+  "en": {
+    "print-out": "Print Out",
+    "legend": "Legend:",
+    "text-address0": " | Print date: ",
+    "text-address": " | Print date: ",
+    "text-info": "The information may be distorted depending on the cartographic bases used.",
+    "text-format": "Format-adapted map template ",
+    "input-button-back-second-step": "Back",
+    "input-button-pdf-image": "Generate PDF",
+    "download-image": "Download Image",
+    "author-label": "Author: ",
+    "clear-cut": "Clear Cut",
+    "degradation": "Degradation",
+    "forest-fire": "Forest Fire",
+    "regeneration-deforestation": "Regeneration Deforestation",
+    "burnt-scar": "Burnt Scar",
+    "deforestation-veg": "Vegetation Deforestation",
+    "disorderly-cs": "Disorderly Cs",
+    "deforestation-cr": "Deforestation Cr",
+    "geometric-cs": "Geometric Cs",
+    "mining": "Mining",
+    "land-use-print-label": "Year usage and occupancy data",
+    "monitoring-print-label": "Daily Monitoring Data between",
+    "and": "and",
+    "warning-message": "The number of selected TIs exceeds the limit for display on the print map. Only deforestation polygons will be shown. To view the statistics, reduce the selected TIs or access the 'Statistics' menu.",
+    "agree": "I agree",
+    "prodes-print-label": "Prodes data between",
+    "deter-print-label": "Deter data between",
+    "heat-focus-print-label": "Heat focus data between",
+    "aqua-morning": "Aqua Modis Morning",
+    "aqua-afternoon": "Aqua Modis Afternoon"
+  },
+  "pt-br": {
+    "print-out": "Impressão",
+    "legend": "Legenda:",
+    "text-address0": " | CENTRO DE MONITORAMENTO REMOTO - https://cmr.funai.gov.br ",
+    "text-address": " | Data da impressão: ",
+    "text-info": "As informações podem apresentar distorções em função das bases cartográficas utilizadas.",
+    "text-format": "Modelo de mapa adaptado para formato ",
+    "input-button-back-second-step": "Voltar",
+    "input-button-pdf-image": "Gerar PDF",
+    "download-image": "Baixar Imagem",
+    "author-label": "Autor: ",
+    "clear-cut": "Corte Raso",
+    "degradation": "Degradação",
+    "forest-fire": "Fogo em Floresta",
+    "regeneration-deforestation": "Desmatamento em Regeneração",
+    "burnt-scar": "Cicatriz de Queimada",
+    "deforestation-veg": "Desmatamento Veg",
+    "disorderly-cs": "Cs Desordenado",
+    "deforestation-cr": "Desmatamento Cr",
+    "geometric-cs": "Cs Geométrico",
+    "mining": "Mineração",
+    "land-use-print-label": "Dados de Uso e Ocupação ano",
+    "monitoring-print-label": "Dados de Monitoramento Diário entre",
+    "and": "e",
+    "warning-message": "O número de TIs selecionadas excede o limite para visualização no mapa de impressão. Apenas os polígonos de desmatamento serão exibidos. Para ver as estatísticas, reduza as TIs selecionadas ou acesse o menu 'Estatísticas'.",
+    "agree": "Ciente",
+    "prodes-print-label": "Dados Prodes entre",
+    "deter-print-label": "Dados Deter entre",
+    "heat-focus-print-label": "Dados de Focos de Calor entre",
+    "aqua-morning": "Aqua Modis Manhã",
+    "aqua-afternoon": "Aqua Modis Tarde"
+  }
 }
 </i18n>
 
@@ -607,7 +611,6 @@ export default {
   },
 
   data: () => ({
-
     teste: 0,
     totalMonitoring: 0,
     totalLandUse: 0,
@@ -634,7 +637,6 @@ export default {
       { label: 'degradation', color: '#ff8000' },
       { label: 'clear-cut', color: '#ff3333' },
     ],
-
     deterItems: [
       { label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' },
     ],
@@ -653,10 +655,144 @@ export default {
   }),
 
   computed: {
+    filteredCombinedTableData() {
+      return this.combinedTableData.filter((item) => {
+        const hasMonitoring = this.showFeaturesMonitoring
+                           && item.monitoring
+                           && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0);
+
+        const hasLandUse = this.showFeaturesLandUse
+                         && item.landUse
+                         && Object.keys(item.landUse).some((key) => item.landUse[key] > 0);
+
+        return hasMonitoring || hasLandUse;
+      });
+    },
+    combinedTableData() {
+      const combined = {};
+
+      // Processa tableMonitoring
+      this.tableMonitoring.forEach((item) => {
+        if (!combined[item.no_ti]) {
+          combined[item.no_ti] = {
+            no_ti: item.no_ti,
+            nu_area_ha: 0,
+            monitoring: {
+              nu_area_cr_ha: 0,
+              nu_area_dg_ha: 0,
+              nu_area_dr_ha: 0,
+              nu_area_ff_ha: 0,
+            },
+            landUse: {
+              nu_area_ag_ha: 0,
+              nu_area_cr_ha: 0,
+              nu_area_dg_ha: 0,
+              nu_area_ma_ha: 0,
+              nu_area_mi_ha: 0,
+              nu_area_no_ha: 0,
+              nu_area_rv_ha: 0,
+              nu_area_sv_ha: 0,
+              nu_area_vn_ha: 0,
+              nu_area_vi_ha: 0,
+            },
+          };
+        }
+        combined[item.no_ti].nu_area_ha += parseFloat(item.nu_area_ha) || 0;
+        combined[item.no_ti].monitoring.nu_area_cr_ha += parseFloat(item.nu_area_cr_ha) || 0;
+        combined[item.no_ti].monitoring.nu_area_dg_ha += parseFloat(item.nu_area_dg_ha) || 0;
+        combined[item.no_ti].monitoring.nu_area_dr_ha += parseFloat(item.nu_area_dr_ha) || 0;
+        combined[item.no_ti].monitoring.nu_area_ff_ha += parseFloat(item.nu_area_ff_ha) || 0;
+      });
+
+      // Processa tableLandUse
+      this.tableLandUse.forEach((item) => {
+        if (!combined[item.no_ti]) {
+          combined[item.no_ti] = {
+            no_ti: item.no_ti,
+            nu_area_ha: 0,
+            monitoring: {
+              nu_area_cr_ha: 0,
+              nu_area_dg_ha: 0,
+              nu_area_dr_ha: 0,
+              nu_area_ff_ha: 0,
+            },
+            landUse: {
+              nu_area_ag_ha: 0,
+              nu_area_cr_ha: 0,
+              nu_area_dg_ha: 0,
+              nu_area_ma_ha: 0,
+              nu_area_mi_ha: 0,
+              nu_area_no_ha: 0,
+              nu_area_rv_ha: 0,
+              nu_area_sv_ha: 0,
+              nu_area_vn_ha: 0,
+              nu_area_vi_ha: 0,
+            },
+          };
+        }
+        combined[item.no_ti].nu_area_ha += parseFloat(item.nu_area_ha) || 0;
+        combined[item.no_ti].landUse.nu_area_ag_ha += parseFloat(item.nu_area_ag_ha) || 0;
+        combined[item.no_ti].landUse.nu_area_cr_ha += parseFloat(item.nu_area_cr_ha) || 0;
+        combined[item.no_ti].landUse.nu_area_dg_ha += parseFloat(item.nu_area_dg_ha) || 0;
+        combined[item.no_ti].landUse.nu_area_ma_ha += parseFloat(item.nu_area_ma_ha) || 0;
+        combined[item.no_ti].landUse.nu_area_mi_ha += parseFloat(item.nu_area_mi_ha) || 0;
+        combined[item.no_ti].landUse.nu_area_no_ha += parseFloat(item.nu_area_no_ha) || 0;
+        combined[item.no_ti].landUse.nu_area_rv_ha += parseFloat(item.nu_area_rv_ha) || 0;
+        combined[item.no_ti].landUse.nu_area_sv_ha += parseFloat(item.nu_area_sv_ha) || 0;
+        combined[item.no_ti].landUse.nu_area_vn_ha += parseFloat(item.nu_area_vn_ha) || 0;
+        combined[item.no_ti].landUse.nu_area_vi_ha += parseFloat(item.nu_area_vi_ha) || 0;
+      });
+
+      return Object.values(combined);
+    },
+
+    totalAreas() {
+      return this.combinedTableData.reduce(
+        (acc, item) => {
+          acc.nu_area_ha += parseFloat(item.nu_area_ha) || 0;
+          acc.monitoring.nu_area_cr_ha += parseFloat(item.monitoring.nu_area_cr_ha) || 0;
+          acc.monitoring.nu_area_dg_ha += parseFloat(item.monitoring.nu_area_dg_ha) || 0;
+          acc.monitoring.nu_area_dr_ha += parseFloat(item.monitoring.nu_area_dr_ha) || 0;
+          acc.monitoring.nu_area_ff_ha += parseFloat(item.monitoring.nu_area_ff_ha) || 0;
+          acc.landUse.nu_area_ag_ha += parseFloat(item.landUse.nu_area_ag_ha) || 0;
+          acc.landUse.nu_area_cr_ha += parseFloat(item.landUse.nu_area_cr_ha) || 0;
+          acc.landUse.nu_area_dg_ha += parseFloat(item.landUse.nu_area_dg_ha) || 0;
+          acc.landUse.nu_area_ma_ha += parseFloat(item.landUse.nu_area_ma_ha) || 0;
+          acc.landUse.nu_area_mi_ha += parseFloat(item.landUse.nu_area_mi_ha) || 0;
+          acc.landUse.nu_area_no_ha += parseFloat(item.landUse.nu_area_no_ha) || 0;
+          acc.landUse.nu_area_rv_ha += parseFloat(item.landUse.nu_area_rv_ha) || 0;
+          acc.landUse.nu_area_sv_ha += parseFloat(item.landUse.nu_area_sv_ha) || 0;
+          acc.landUse.nu_area_vn_ha += parseFloat(item.landUse.nu_area_vn_ha) || 0;
+          acc.landUse.nu_area_vi_ha += parseFloat(item.landUse.nu_area_vi_ha) || 0;
+          return acc;
+        },
+        {
+          nu_area_ha: 0,
+          monitoring: {
+            nu_area_cr_ha: 0,
+            nu_area_dg_ha: 0,
+            nu_area_dr_ha: 0,
+            nu_area_ff_ha: 0,
+          },
+          landUse: {
+            nu_area_ag_ha: 0,
+            nu_area_cr_ha: 0,
+            nu_area_dg_ha: 0,
+            nu_area_ma_ha: 0,
+            nu_area_mi_ha: 0,
+            nu_area_no_ha: 0,
+            nu_area_rv_ha: 0,
+            nu_area_sv_ha: 0,
+            nu_area_vn_ha: 0,
+            nu_area_vi_ha: 0,
+          },
+        },
+      );
+    },
+
     uniqueYears() {
-      // Cria um Set para garantir que os anos sejam únicos
       const years = this.tableLandUse.map((item) => item.nu_ano);
-      return [...new Set(years)]; // Converte de volta para um array
+      return [...new Set(years)];
     },
 
     showDialog() {
@@ -722,7 +858,6 @@ export default {
     },
 
     focoFilters() {
-      // Usamos os filters de qualquer layer pois são compartilhados
       return (
         this.layers
         && this.layers.aquaMM
@@ -742,85 +877,45 @@ export default {
       return this.$store.getters['land-use/getActiveLegendItems'];
     },
 
-    ...mapState('supportLayersUser', ['supportLayerUser']),
-    ...mapState('map', ['bounds']),
-    ...mapState('supportLayers', [
-      'showFeaturesSupportLayers',
-      'supportLayers',
-      'supportLayersCategoryFire',
-      'supportLayersCategoryBase',
-      'supportLayersCategoryRaster',
-      'supportLayersCategoryAntropismo',
-    ]),
-
-    ...mapState('monitoring', [
-      'showFeaturesMonitoring',
-      'features',
-      'tableMonitoring',
-    ]),
-    ...mapState('urgent-alerts', ['showFeaturesUrgentAlerts']),
-    ...mapState('land-use', [
-      'showFeaturesLandUse',
-      'features',
-      'tableLandUse',
-    ]),
-
-    ...mapState('prodes', [
-      'showFeaturesProdes',
-      'filters',
-      'features',
-    ]),
-    ...mapState('deter', [
-      'showFeaturesDeter',
-      'features',
-      'filters',
-    ]),
-    ...mapState('foco', [
-      'layers',
-      'filterOptions',
-      'isLoadingFeatures',
-    ]),
+    ...mapState({
+      monitoringFilters: (state) => state.monitoring.filters,
+      prodesFilters: (state) => state.prodes.filters,
+      deterFilters: (state) => state.deter.filters,
+      showFeaturesMonitoring: (state) => state.monitoring.showFeaturesMonitoring,
+      monitoringFeatures: (state) => state.monitoring.features,
+      tableMonitoring: (state) => state.monitoring.tableMonitoring,
+      showFeaturesProdes: (state) => state.prodes.showFeaturesProdes,
+      prodesFeatures: (state) => state.prodes.features,
+      showFeaturesDeter: (state) => state.deter.showFeaturesDeter,
+      deterFeatures: (state) => state.deter.features,
+      showFeaturesLandUse: (state) => state['land-use'].showFeaturesLandUse,
+      landUseFeatures: (state) => state['land-use'].features,
+      tableLandUse: (state) => state['land-use'].tableLandUse,
+      supportLayerUser: (state) => state.supportLayersUser.supportLayerUser,
+      showFeaturesSupportLayers: (state) => state.supportLayers.showFeaturesSupportLayers,
+      supportLayers: (state) => state.supportLayers.supportLayers,
+      supportLayersCategoryFire: (state) => state.supportLayers.supportLayersCategoryFire,
+      supportLayersCategoryBase: (state) => state.supportLayers.supportLayersCategoryBase,
+      supportLayersCategoryRaster: (state) => state.supportLayers.supportLayersCategoryRaster,
+      supportLayersCategoryAntropismo: (state) => state.supportLayers.supportLayersCategoryAntropismo,
+      showFeaturesUrgentAlerts: (state) => state['urgent-alerts'].showFeaturesUrgentAlerts,
+      layers: (state) => state.foco.layers,
+      filterOptions: (state) => state.foco.filterOptions,
+      isLoadingFeatures: (state) => state.foco.isLoadingFeatures,
+      bounds: (state) => state.map.bounds,
+    }),
   },
 
   watch: {
-    features(newVal) {
+    monitoringFeatures(newVal) {
       if (newVal && newVal.features && newVal.features.length > 100) {
         this.showWarningMessage = true;
       }
     },
 
-    watch: {
-      tableMonitoring(newVal) {
-        if (!newVal || newVal.length === 0) {
-          this.teste = 0;
-          this.showWarningMessage = false;
-          return;
-        }
-        this.totalMonitoring = newVal.length;
-        this.totalLandUse = this.tableLandUse.length;
-
-        // Calcula o total combinado
-        const total = newVal.length + this.tableLandUse.length;
-
-        // Atualiza teste
-        this.teste = total;
-
-        // Ativa a mensagem de aviso se o total exceder 7
-        this.showWarningMessage = total > 7;
-      },
-
-      tableLandUse(newVal) {
-        // Atualiza o total combinado quando tableLandUse mudar
-        this.totalLandUse = newVal.length;
-        const total = this.totalMonitoring + newVal.length;
-        this.teste = total;
-        this.showWarningMessage = total > 7;
-      },
-    },
-
-    tableLandUse() {
-      // Atualiza showWarningMessage quando o tamanho de tableLandUse mudar
-      this.showWarningMessage = this.tableLandUse.length > 7;
+    combinedTableData(newVal) {
+      this.teste = newVal.length;
+      this.showWarningMessage = newVal.length > 7;
     },
   },
 
@@ -828,27 +923,26 @@ export default {
     if (this.showFeaturesMonitoring) {
       await this.getDataTableMonitoring();
     }
-
     if (this.showFeaturesLandUse) {
       await this.getDataTableLandUse();
     }
-
-    // Inicializa o total
-    this.totalMonitoring = this.tableMonitoring.length;
-    this.totalLandUse = this.tableLandUse.length;
-    this.teste = this.totalMonitoring + this.totalLandUse;
+    this.teste = this.combinedTableData.length;
     this.showWarningMessage = this.teste > 7;
 
     const visibleLayersCount = Object.values(this.supportLayers)
       .filter((l) => l.visible).length;
-    if (visibleLayersCount > 7) {
-      this.showWarningMessage = true;
+    if (visibleLayersCount > 0) {
+      if (visibleLayersCount > 7) {
+        this.showWarningMessage = true;
+      }
     }
 
     const visibleUserLayers = Object.values(this.supportLayerUser)
       .filter((l) => l.visible).length;
-    if (visibleUserLayers > 7) {
-      this.showWarningMessage = true;
+    if (visibleUserLayers > 0) {
+      if (visibleUserLayers > 7) {
+        this.showWarningMessage = true;
+      }
     }
   },
 
@@ -856,7 +950,6 @@ export default {
     formatNumber(value) {
       let number;
       if (typeof value === 'string') {
-        // Remove os pontos de milhar e substitui vírgula decimal por ponto
         const cleanedValue = value.replace(/\./g, '').replace(',', '.');
         number = parseFloat(cleanedValue);
       } else {
@@ -867,7 +960,6 @@ export default {
         const rounded = number.toFixed(3);
         const [intPart, decimalPart] = rounded.split('.');
 
-        // Formata com ponto para milhar e vírgula para decimal
         return decimalPart !== '00'
           ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
           : String(parseInt(number, 10));
@@ -880,21 +972,21 @@ export default {
     },
 
     handleProdesYear() {
-      const prodesFilters = this.$store.state.prodes.filters;
-
+      const { prodesFilters } = this;
       if (!prodesFilters) return '-';
-
       if (prodesFilters.startYear === prodesFilters.endYear) {
         return prodesFilters.startYear;
       }
-
       return `${prodesFilters.startYear} ${this.$t('and')} ${prodesFilters.endYear}`;
     },
 
     handleData(data) {
-      if (!data) return '-';
+      if (!data || typeof data !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+        console.warn('Data inválida:', data);
+        return 'Data indisponível';
+      }
       const [year, month, day] = data.split('-');
-      return `${day}/${month}/${year}`;
+      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
     },
 
     todayDate() {
@@ -902,8 +994,7 @@ export default {
       const dd = date.getDate();
       const mm = date.getMonth() + 1;
       const yyyy = date.getFullYear();
-      return `${dd < 10 ? `0${dd}` : dd}/${mm < 10 ? `0${mm}` : mm
-      }/${yyyy}`;
+      return `${dd < 10 ? `0${dd}` : dd}/${mm < 10 ? `0${mm}` : mm}/${yyyy}`;
     },
 
     updateBounds(bounds) {
@@ -927,12 +1018,11 @@ export default {
     getMapDimensions(tamanho) {
       switch (tamanho) {
         case 'A4':
-          return { width: 1105, height: 770 }; // in mm or appropriate units
+          return { width: 1105, height: 770 };
         case 'A3':
-          return { width: 1450, height: 860 };
-        // Add more cases as needed
+          return { width: 1450, height: 800 };
         default:
-          return { width: 210, height: 297 }; // Default to A4
+          return { width: 210, height: 297 };
       }
     },
 
@@ -951,7 +1041,7 @@ export default {
       const infoControlRight = document.getElementsByClassName('leaflet-control-attribution')[1];
 
       try {
-        const nameImageDownload = this.titleMap;
+        const nameImageDownload = this.mapTitle;
 
         mapControlZoom.style.display = 'none';
         mapBounds.style.width = '250px';
@@ -1036,6 +1126,10 @@ export default {
   border: 2px solid blue;
 }
 
+.bordered-black {
+  border: 2px solid black;
+}
+
 #data-table > div {
   background: #fffbfb;
   opacity: 0.9;
@@ -1046,15 +1140,8 @@ export default {
   width: 100%;
 }
 
-.vue2leaflet-map
-map-wrapper
-leaflet-container
-leaflet-touch
-leaflet-fade-anim
-leaflet-grab
-leaflet-touch-drag
-leaflet-touch-zoom {
-  height: 30vh !important;
+.vue-leaflet-map {
+  height: 100% !important;
 }
 
 .legend-info-map {
@@ -1129,7 +1216,7 @@ p {
   font-family: 'Roboto', sans-serif;
   text-transform: uppercase;
   font-weight: 700;
-  color: #6c6c6c;
+  color: #6c757d;
 }
 
 .print-mini-map-text {

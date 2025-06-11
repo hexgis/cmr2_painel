@@ -26,7 +26,11 @@
             </div>
           </template>
           <span>
-            {{ featuresMonitoring ? $t('title-switch-disable-features') : $t('title-switch-enable-features') }}
+            {{
+              featuresMonitoring
+                ? $t('title-switch-disable-features')
+                : $t('title-switch-enable-features')
+            }}
           </span>
         </v-tooltip>
       </v-col>
@@ -287,21 +291,15 @@ export default {
       },
       error: false,
       headers: [
+        { text: 'ID', value: 'origin_id' },
         { text: 'Código Funai', value: 'co_funai' },
-        { text: 'Coordenação Regional', value: 'ds_cr' },
         { text: 'Terra Indígena', value: 'no_ti' },
-        { text: 'Data', value: 'dt_t_um' },
-        { text: 'Agropecuária (ha)', value: 'nu_area_ag_ha' },
-        { text: 'Corte raso (ha)', value: 'nu_area_cr_ha' },
-        { text: 'Degradação (ha)', value: 'nu_area_dg_ha' },
-        { text: 'Massa de água (ha)', value: 'nu_area_ma_ha' },
-        { text: 'Silvicultura (ha)', value: 'nu_area_sv_ha' },
-        { text: 'Vegetação natural (ha)', value: 'nu_area_vn_ha' },
-        { text: 'Vilarejo (ha)', value: 'nu_area_vi_ha' },
-        { text: 'Rodovia (ha)', value: 'nu_area_rv_ha' },
-        { text: 'Mineração (ha)', value: 'nu_area_mi_ha' },
-        { text: 'Não observado (ha)', value: 'nu_area_no_ha' },
-        { text: 'Total (ha)', value: 'nu_area_ha' },
+        { text: 'Coordenação Regional', value: 'ds_cr' },
+        { text: 'Classe', value: 'no_estagio' },
+        { text: 'Data da Imagem', value: 'dt_imagem' },
+        { text: 'Área do Polígono (ha)', value: 'nu_area_ha' },
+        { text: 'Latitude', value: 'nu_latitude' },
+        { text: 'Longitude', value: 'nu_longitude' },
       ],
       filteredYears: [],
       checkNewFilters: false,
@@ -491,7 +489,9 @@ export default {
           return;
         }
 
-        const allEstagiosDisabled = Object.values(this.$store.state.monitoring.legendVisibility).every(
+        const allEstagiosDisabled = Object.values(
+          this.$store.state.monitoring.legendVisibility,
+        ).every(
           (visible) => !visible,
         );
 
