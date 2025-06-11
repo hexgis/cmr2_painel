@@ -86,7 +86,7 @@
     <div>
       <v-tabs-items v-model="tab">
         <v-tab-item value="tab-1">
-          <Monitoring />
+          <MonitoringFilters />
         </v-tab-item>
         <v-tab-item value="tab-2">
           <Alerts />
@@ -137,12 +137,12 @@
 
 <script>
 import Alerts from '~/components/monitoring/Alerts.vue';
-import Monitoring from '@/components/monitoring/Monitoring.vue';
+import MonitoringFilters from '@/components/monitoring/MonitoringFilters.vue';
 
 export default {
   components: {
     Alerts,
-    Monitoring,
+    MonitoringFilters,
   },
 
   data() {
