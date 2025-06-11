@@ -257,10 +257,15 @@
       :f-download-c-s-v="downloadTableMonitoring"
       :f-close-table="closeTable"
     />
-    <AnalyticalDialog
-      :value="analyticsMonitoringDialog"
-      :close-dialog="closeAnalyticalDialog"
-    />
+    <div
+      v-if="dialog"
+      class="d-none"
+    >
+      <AnalyticalDialog
+        :value="analyticsMonitoringDialog"
+        :close-dialog="closeAnalyticalDialog"
+      />
+    </div>
   </v-col>
 </template>
 
