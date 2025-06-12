@@ -181,6 +181,33 @@
               Nenhum log encontrado para este usuário.
             </div>
           </v-card-text>
+
+          <p class="text-h6">
+  <strong>Histórico de Alterações de Grupos de Acesso</strong>
+</p>
+<v-card-text>
+  <v-simple-table dense>
+    <thead>
+      <tr>
+        <th>Alterado Por</th>
+        <th>Data/Hora</th>
+        <th>Ação</th>
+        <th>Grupo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="change in userRoleChanges" :key="change.id">
+        <td>{{ change.changed_by }}</td>
+        <td>{{ change.changed_at }}</td>
+        <td>{{ change.action === 'added' ? 'Adicionado' : 'Removido' }}</td>
+        <td>{{ change.role }}</td>
+      </tr>
+    </tbody>
+  </v-simple-table>
+  <div v-if="!userRoleChanges.length" class="text-center mt-4">
+    Nenhuma alteração de grupo encontrada para este usuário.
+  </div>
+</v-card-text>
         </CustomDialog>
         <CustomDialog
           v-model="showModalEdit"
@@ -431,6 +458,7 @@ export default {
       ],
       requiredRule: (v) => !!v || 'Campo obrigatório',
       emailRule: (v) => /.+@.+\..+/.test(v) || 'E-mail inválido',
+      userRoleChanges: [],
     };
   },
 
@@ -468,15 +496,20 @@ export default {
       this.showLogsModal = true;
 
       try {
-        const response = await this.$api.get(`/history/logs/?user_id=${user.id}`);
-        this.userLogs = response.data;
+        const [logsResponse, loginResponse, roleChangesResponse] = await Promise.all([
+          this.$api.get(`/history/logs/?user_id=${user.id}`),
+          this.$api.get(`/dashboard/get-user-login/?user_id=${user.id}`),
+          this.$api.get(`/history/role-changes/?user_id=${user.id}`)
+        ]);
 
-        const res = await this.$api.get(`/dashboard/get-user-login/?user_id=${user.id}`);
-        this.userLoginHistory = res.data;
+        this.userLogs = logsResponse.data;
+        this.userLoginHistory = loginResponse.data;
+        this.userRoleChanges = roleChangesResponse.data;
 
       } catch (e) {
         this.userLogs = [];
         this.userLoginHistory = [];
+        this.userRoleChanges = [];
       }
 
     },
