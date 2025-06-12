@@ -216,7 +216,7 @@
                           align-items: flex-start;
                           gap: 5px;"
                       >
-                        <div v-if="showFeaturesMonitoring">
+                        <div v-if="showFeaturesMonitoring && monitoringCount > 0">
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>

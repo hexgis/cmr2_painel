@@ -214,7 +214,13 @@
         <span>{{ $t('total-area-label') }}:</span>
         {{ totalArea }} ha
       </v-col>
-      <v-row class="mt-2">
+      <v-col
+        cols="12"
+        class="mt-2"
+      >
+        <v-divider />
+      </v-col>
+      <v-row class="mt-0">
         <v-col
           cols="4"
           class="grey--text text--darken-2"
@@ -230,12 +236,12 @@
             @input="updateOpacity"
           />
         </v-col>
-        <v-col>
+        <v-col class="mt-n6">
           <span class="grey--text text--darken-2">{{ $t('heat-map-label') }}</span>
         </v-col>
         <v-col
           cols="3"
-          class="d-flex justify-end"
+          class="d-flex justify-end mt-n7 pr-1"
         >
           <v-switch
             v-model="heatMap"
