@@ -321,19 +321,21 @@ export default {
     },
 
     downloadCSV() {
-      if (this.btn_ti_year === true) {
-        this.downloadTableMonitoringAnalyticsByFunaiYear();
-      } else if (this.btn_ti_month_year === true) {
-        this.downloadTableMonitoringAnalyticsByFunaiMonthYear();
-      } else if (this.btn_day === true) {
-        this.downloadTableMonitoringAnalyticsByDay();
-      } else if (this.btn_ti === true) {
-        this.downloadTableMonitoringAnalyticsByFunai();
-      } else if (this.btn_year === true) {
-        this.downloadTableMonitoringAnalyticsByYear();
+      let type;
+      if (this.btn_ti_year) {
+        type = 'byFunaiYear';
+      } else if (this.btn_ti_month_year) {
+        type = 'byFunaiMonthYear';
+      } else if (this.btn_day) {
+        type = 'byDay';
+      } else if (this.btn_ti) {
+        type = 'byFunai';
+      } else if (this.btn_year) {
+        type = 'byYear';
       } else {
-        this.downloadTableMonitoringAnalyticsByMonthYear();
+        type = 'byMonthYear';
       }
+      this.downloadTableMonitoringAnalytics(type);
     },
 
     ...mapActions('monitoring', [
@@ -345,12 +347,8 @@ export default {
       'getDataAnalyticsMonitoringByPercentage',
       'getDataAnalyticsMonitoringByMonthYear',
       'getDataAnalyticsMonitoringByFunaiMonthYear',
-      'downloadTableMonitoringAnalyticsByDay',
-      'downloadTableMonitoringAnalyticsByMonthYear',
-      'downloadTableMonitoringAnalyticsByFunai',
-      'downloadTableMonitoringAnalyticsByFunaiMonthYear',
-      'downloadTableMonitoringAnalyticsByFunaiYear',
-      'downloadTableMonitoringAnalyticsByYear',
+      'downloadTableMonitoringAnalytics',
+
     ]),
   },
 

@@ -669,123 +669,64 @@ export default {
       });
     },
     combinedTableData() {
+      const keys = {
+        monitoring: ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'],
+        landUse: ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'],
+      };
+      const initializeObject = (keyList) => keyList.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
+      const initializeData = (noTi) => ({
+        no_ti: noTi,
+        nu_area_ha: 0,
+        monitoring: initializeObject(keys.monitoring),
+        landUse: initializeObject(keys.landUse),
+      });
+      const addValue = (target, key, value) => {
+        const updatedValue = (target[key] || 0) + (parseFloat(value) || 0);
+        // eslint-disable-next-line no-param-reassign
+        target[key] = updatedValue;
+      };
       const combined = {};
-
-      // Processa tableMonitoring
-      this.tableMonitoring.forEach((item) => {
-        if (!combined[item.no_ti]) {
-          combined[item.no_ti] = {
-            no_ti: item.no_ti,
-            nu_area_ha: 0,
-            monitoring: {
-              nu_area_cr_ha: 0,
-              nu_area_dg_ha: 0,
-              nu_area_dr_ha: 0,
-              nu_area_ff_ha: 0,
-            },
-            landUse: {
-              nu_area_ag_ha: 0,
-              nu_area_cr_ha: 0,
-              nu_area_dg_ha: 0,
-              nu_area_ma_ha: 0,
-              nu_area_mi_ha: 0,
-              nu_area_no_ha: 0,
-              nu_area_rv_ha: 0,
-              nu_area_sv_ha: 0,
-              nu_area_vn_ha: 0,
-              nu_area_vi_ha: 0,
-            },
-          };
-        }
-        combined[item.no_ti].nu_area_ha += parseFloat(item.nu_area_ha) || 0;
-        combined[item.no_ti].monitoring.nu_area_cr_ha += parseFloat(item.nu_area_cr_ha) || 0;
-        combined[item.no_ti].monitoring.nu_area_dg_ha += parseFloat(item.nu_area_dg_ha) || 0;
-        combined[item.no_ti].monitoring.nu_area_dr_ha += parseFloat(item.nu_area_dr_ha) || 0;
-        combined[item.no_ti].monitoring.nu_area_ff_ha += parseFloat(item.nu_area_ff_ha) || 0;
-      });
-
-      // Processa tableLandUse
-      this.tableLandUse.forEach((item) => {
-        if (!combined[item.no_ti]) {
-          combined[item.no_ti] = {
-            no_ti: item.no_ti,
-            nu_area_ha: 0,
-            monitoring: {
-              nu_area_cr_ha: 0,
-              nu_area_dg_ha: 0,
-              nu_area_dr_ha: 0,
-              nu_area_ff_ha: 0,
-            },
-            landUse: {
-              nu_area_ag_ha: 0,
-              nu_area_cr_ha: 0,
-              nu_area_dg_ha: 0,
-              nu_area_ma_ha: 0,
-              nu_area_mi_ha: 0,
-              nu_area_no_ha: 0,
-              nu_area_rv_ha: 0,
-              nu_area_sv_ha: 0,
-              nu_area_vn_ha: 0,
-              nu_area_vi_ha: 0,
-            },
-          };
-        }
-        combined[item.no_ti].nu_area_ha += parseFloat(item.nu_area_ha) || 0;
-        combined[item.no_ti].landUse.nu_area_ag_ha += parseFloat(item.nu_area_ag_ha) || 0;
-        combined[item.no_ti].landUse.nu_area_cr_ha += parseFloat(item.nu_area_cr_ha) || 0;
-        combined[item.no_ti].landUse.nu_area_dg_ha += parseFloat(item.nu_area_dg_ha) || 0;
-        combined[item.no_ti].landUse.nu_area_ma_ha += parseFloat(item.nu_area_ma_ha) || 0;
-        combined[item.no_ti].landUse.nu_area_mi_ha += parseFloat(item.nu_area_mi_ha) || 0;
-        combined[item.no_ti].landUse.nu_area_no_ha += parseFloat(item.nu_area_no_ha) || 0;
-        combined[item.no_ti].landUse.nu_area_rv_ha += parseFloat(item.nu_area_rv_ha) || 0;
-        combined[item.no_ti].landUse.nu_area_sv_ha += parseFloat(item.nu_area_sv_ha) || 0;
-        combined[item.no_ti].landUse.nu_area_vn_ha += parseFloat(item.nu_area_vn_ha) || 0;
-        combined[item.no_ti].landUse.nu_area_vi_ha += parseFloat(item.nu_area_vi_ha) || 0;
-      });
-
+      const processTable = (table, type) => {
+        table.forEach((item) => {
+          if (!item.no_ti) return;
+          if (!combined[item.no_ti]) combined[item.no_ti] = initializeData(item.no_ti);
+          const data = combined[item.no_ti];
+          addValue(data, 'nu_area_ha', item.nu_area_ha);
+          keys[type].forEach((key) => addValue(data[type], `nu_area_${key}`, item[`nu_area_${key}`]));
+        });
+      };
+      if (!Array.isArray(this.tableMonitoring) || !Array.isArray(this.tableLandUse)) {
+        console.warn('tableMonitoring ou tableLandUse não são arrays válidos.');
+        return [];
+      }
+      processTable(this.tableMonitoring, 'monitoring');
+      processTable(this.tableLandUse, 'landUse');
       return Object.values(combined);
     },
 
     totalAreas() {
+      const monitoringKeys = ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'];
+      const landUseKeys = ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'];
+      const initializeObject = (keys) => keys.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
+      const addValue = (target, key, value) => {
+        // eslint-disable-next-line no-param-reassign
+        target[key] += parseFloat(value) || 0;
+      };
+      if (!Array.isArray(this.combinedTableData)) {
+        console.warn('combinedTableData não é um array válido.');
+        return initializeObject(['ha', ...monitoringKeys, ...landUseKeys]);
+      }
       return this.combinedTableData.reduce(
         (acc, item) => {
-          acc.nu_area_ha += parseFloat(item.nu_area_ha) || 0;
-          acc.monitoring.nu_area_cr_ha += parseFloat(item.monitoring.nu_area_cr_ha) || 0;
-          acc.monitoring.nu_area_dg_ha += parseFloat(item.monitoring.nu_area_dg_ha) || 0;
-          acc.monitoring.nu_area_dr_ha += parseFloat(item.monitoring.nu_area_dr_ha) || 0;
-          acc.monitoring.nu_area_ff_ha += parseFloat(item.monitoring.nu_area_ff_ha) || 0;
-          acc.landUse.nu_area_ag_ha += parseFloat(item.landUse.nu_area_ag_ha) || 0;
-          acc.landUse.nu_area_cr_ha += parseFloat(item.landUse.nu_area_cr_ha) || 0;
-          acc.landUse.nu_area_dg_ha += parseFloat(item.landUse.nu_area_dg_ha) || 0;
-          acc.landUse.nu_area_ma_ha += parseFloat(item.landUse.nu_area_ma_ha) || 0;
-          acc.landUse.nu_area_mi_ha += parseFloat(item.landUse.nu_area_mi_ha) || 0;
-          acc.landUse.nu_area_no_ha += parseFloat(item.landUse.nu_area_no_ha) || 0;
-          acc.landUse.nu_area_rv_ha += parseFloat(item.landUse.nu_area_rv_ha) || 0;
-          acc.landUse.nu_area_sv_ha += parseFloat(item.landUse.nu_area_sv_ha) || 0;
-          acc.landUse.nu_area_vn_ha += parseFloat(item.landUse.nu_area_vn_ha) || 0;
-          acc.landUse.nu_area_vi_ha += parseFloat(item.landUse.nu_area_vi_ha) || 0;
+          addValue(acc, 'nu_area_ha', item.nu_area_ha);
+          monitoringKeys.forEach((key) => addValue(acc.monitoring, `nu_area_${key}`, item.monitoring[`nu_area_${key}`]));
+          landUseKeys.forEach((key) => addValue(acc.landUse, `nu_area_${key}`, item.landUse[`nu_area_${key}`]));
           return acc;
         },
         {
           nu_area_ha: 0,
-          monitoring: {
-            nu_area_cr_ha: 0,
-            nu_area_dg_ha: 0,
-            nu_area_dr_ha: 0,
-            nu_area_ff_ha: 0,
-          },
-          landUse: {
-            nu_area_ag_ha: 0,
-            nu_area_cr_ha: 0,
-            nu_area_dg_ha: 0,
-            nu_area_ma_ha: 0,
-            nu_area_mi_ha: 0,
-            nu_area_no_ha: 0,
-            nu_area_rv_ha: 0,
-            nu_area_sv_ha: 0,
-            nu_area_vn_ha: 0,
-            nu_area_vi_ha: 0,
-          },
+          monitoring: initializeObject(monitoringKeys),
+          landUse: initializeObject(landUseKeys),
         },
       );
     },
@@ -800,39 +741,24 @@ export default {
     },
 
     hasCartographicDatasets() {
-      return !!(
-        this.showFeaturesSupportLayers
-        || this.showFeaturesDeter
-        || this.showFeaturesProdes
-      );
+      return Object.keys(this)
+        .filter((key) => key.startsWith('showFeatures'))
+        .some((key) => this[key]);
     },
 
     hasLegend() {
-      return !!(
-        this.showFeaturesSupportLayers
-        || this.showFeaturesMonitoring
-        || this.showFeaturesProdes
-        || this.showFeaturesDeter
-        || this.showFeaturesLandUse
-        || this.showFeaturesUrgentAlerts
-        || this.showFeaturesAquaMM
-        || this.showFeaturesAquaMT
-      );
+      return Object.keys(this)
+        .filter((key) => key.startsWith('showFeatures'))
+        .some((key) => this[key]);
     },
 
     layerCategories() {
       return [
-        {
-          name: 'Support Layers',
-          layers: this.supportLayers,
-          show: this.showFeaturesSupportLayers,
-        },
-        {
-          name: 'Fire Category Layers',
-          layers: this.supportLayersCategoryFire,
-          show: true,
-        },
-      ].filter((category) => category.show);
+        ['Support Layers', this.supportLayers, this.showFeaturesSupportLayers],
+        ['Fire Category Layers', this.supportLayersCategoryFire, true],
+      ]
+        .map(([name, layers, show]) => ({ name, layers, show }))
+        .filter(({ show }) => show);
     },
 
     activeRasterLayers() {

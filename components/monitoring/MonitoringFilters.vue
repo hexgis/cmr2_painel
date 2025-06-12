@@ -151,8 +151,6 @@
     <v-row
       v-else-if="
         showFeaturesMonitoring
-          && features
-          && features.features
           && features.features.length > 0"
       no-gutters
       align="center"
@@ -372,10 +370,10 @@ export default {
   },
   computed: {
     hasFeatures() {
-      return this.features && this.features.features && this.features.features.length > 0;
+      return this.features.features.length > 0;
     },
     totalArea() {
-      if (this.features && this.features.features && this.features.features.length) {
+      if (this.features.features.length) {
         const total = this.features.features.reduce(
           (sum, feature) => sum + ((feature.properties && feature.properties.nu_area_ha) || 0),
           0,

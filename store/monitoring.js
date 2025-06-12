@@ -436,106 +436,6 @@ export default {
       commit('setshowFeaturesMonitoring', true);
     },
 
-     async getPropertiesTableMonitoring({ state, commit, dispatch }) {
-    commit('setLoadingSearchTableMonitoring', true);
-
-    const params = {
-      service: 'WFS',
-      version: '1.0.0',
-      request: 'GetFeature',
-      typeName: state.geoserverLayerMonitoring,
-      outputFormat: 'application/json',
-      CQL_FILTER: '',
-      maxFeatures: state.tableMonitoringTableOptions.itemsPerPage,
-      startIndex: (state.tableMonitoringTableOptions.page - 1) * state.tableMonitoringTableOptions.itemsPerPage,
-    };
-
-    try {
-      let url;
-      url = state.urlWmsMonitoring;
-
-      // gera os parametros
-      if (state.intersectsWmsMonitoring) {
-        params.CQL_FILTER += state.intersectsWmsMonitoring;
-      }
-
-
-      const arrayTI = [];
-      if (state.filters.ti && state.filters.ti.length) {
-        Object.values(state.filters.ti).forEach((item) => {
-          arrayTI.push(item.co_funai);
-        });
-        if (params.CQL_FILTER.length) {
-          params.CQL_FILTER += ' AND ';
-        }
-        params.CQL_FILTER += `co_funai IN (${arrayTI.toString()})`;
-      }
-
-      const arrayCR = [];
-      if (state.filters.cr && state.filters.cr.length) {
-        Object.values(state.filters.cr).forEach((item) => {
-          arrayCR.push(item.co_cr);
-        });
-        if (params.CQL_FILTER.length) {
-          params.CQL_FILTER += ' AND ';
-        }
-        params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
-      }
-
-      if (state.filters.startDate && state.filters.endDate) {
-        if (params.CQL_FILTER.length) {
-          params.CQL_FILTER += ' AND ';
-        }
-        params.CQL_FILTER += `(dt_t_um >= (${state.filters.startDate}) AND dt_t_um <= (${state.filters.endDate}))`;
-      }
-
-      const filtersSubLayersTrue = Object.keys(state.monitoringSubLayers).filter(key => state.monitoringSubLayers[key] === true);
-      if (filtersSubLayersTrue && filtersSubLayersTrue.length) {
-        params.CQL_FILTER += ' AND';
-        let sublayers = '';
-        filtersSubLayersTrue.forEach((value, key) => {
-          if (!state.monitoringSubLayers[value]) {
-            return;
-          }
-          if (key === 0) {
-            sublayers += ` no_estagio = '${value}'`;
-          }
-          if (key > 0) {
-            sublayers += ` OR no_estagio = '${value}'`;
-          }
-        });
-        params.CQL_FILTER += `(${sublayers})`;
-      }
-
-      const paramsUrl = new URLSearchParams(params);
-      url = `${url}${paramsUrl}`;
-
-      const response = await this.$api.$get(url, { params });
-
-      const res = response.features.map((feature) => feature.properties);
-      const total = response.totalFeatures;
-      commit('setTableMonitoringTableOptions', {
-        ...state.tableMonitoringTableOptions,
-        totalItems: total,
-      });
-
-      commit('setTable', res);
-    } catch (error) {
-      commit(
-        'alert/addAlert',
-        {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('retrieve'),
-            resource: this.$i18n.t('monitoring'),
-          }),
-        },
-        { root: true },
-      );
-    } finally {
-      commit('setLoadingSearchTableMonitoring', false);
-    }
-  },
-
     // Busca features de monitoramento
     async fetchMonitoringFeatures({ state, commit, dispatch }) {
       commit('setLoadingFeatures', true);
@@ -1227,92 +1127,74 @@ export default {
     }
   },
 
-   async downloadCSV({ commit, state, rootGetters }, { grouping, defaultFileName }) {
+  async downloadCSV({ commit, state, rootGetters }, { grouping, defaultFileName }) {
     commit('setLoadingCSV', true);
-    const params = { start_date: state.filters.startDate, end_date: state.filters.endDate, grouping };
-
-    if (state.filters.cr && state.filters.cr.length) {
-      const arrayCR = [];
-      Object.values(state.filters.cr).forEach((item) => {
-        arrayCR.push(item.co_cr);
+    function convertToCSV(data) {
+      if (!data || !data.length) return '';
+      const headers = Object.keys(data[0]);
+      const csvRows = [headers.join(';')];
+      data.forEach(row => {
+        const values = headers.map(header => `"${('' + row[header]).replace(/"/g, '\\"')}"`);
+        csvRows.push(values.join(';'));
       });
-      params.co_cr = arrayCR.toString();
+      return csvRows.join('\n');
     }
 
-    if (state.filters.ti && state.filters.ti.length) {
-      const arrayTI = [];
-      Object.values(state.filters.ti).forEach((item) => {
-        arrayTI.push(item.co_funai);
-      });
-      params.co_funai = arrayTI.toString();
+    function saveData(data, filename) {
+      const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
     }
 
-    if (state.filters.currentView) params.in_bbox = rootGetters['map/bbox'];
-
-  try {
+    try {
+      const params = {
+        start_date: state.filters.startDate,
+        end_date: state.filters.endDate,
+        grouping
+      };
       const analyticsMonitoringcsv = await this.$api.$get(
         'monitoring/consolidated/table-stats/', { params },
       );
 
-      // Verifica se há dados
-      if (!analyticsMonitoringcsv || !analyticsMonitoringcsv.length) {
+      if (!analyticsMonitoringcsv?.length) {
         throw new Error('Nenhum dado disponível para exportação');
       }
 
-      // Converte e faz download
       const csvString = convertToCSV(analyticsMonitoringcsv);
       saveData(csvString, defaultFileName);
 
-  } catch (error) {
+    } catch (error) {
       console.error('Erro ao gerar CSV:', error);
-  } finally {
+    } finally {
       commit('setLoadingCSV', false);
-  }
-},
-
-   // DATA
-  async downloadTableMonitoringAnalyticsByDay({ dispatch, state }) {
-    await dispatch('downloadCSV', {
-      grouping: state.filters.grouping_by_day,
-      defaultFileName: 'poligono_monitoramento_estatisticas_por_dia.csv'
-    });
+    }
   },
 
-  async downloadTableMonitoringAnalyticsByMonthYear({ dispatch, state }) {
-    await dispatch('downloadCSV', {
-      grouping: state.filters.grouping_by_monthyear,
-      defaultFileName: 'poligono_monitoramento_estatisticas_por_mês_e_ano.csv'
-    });
-  },
+    // DATA
+    async downloadTableMonitoringAnalytics({ dispatch, state }, type) {
+      const typeToConfig = {
+        byDay: ['grouping_by_day', 'poligono_monitoramento_estatisticas_por_dia.csv'],
+        byMonthYear: ['grouping_by_monthyear', 'poligono_monitoramento_estatisticas_por_mês_e_ano.csv'],
+        byYear: ['grouping_by_year', 'poligono_monitoramento_estatisticas_por_ano.csv'],
+        byFunai: ['grouping_by_co_funai', 'poligono_monitoramento_estatisticas_por_co_funai_e_dia.csv'],
+        byFunaiMonthYear: ['grouping_by_co_funai_and_monthyear', 'poligono_monitoramento_estatisticas_por_co_funai_mês_e_ano.csv'],
+        byFunaiYear: ['grouping_by_co_funai_year', 'poligono_monitoramento_estatisticas_por_co_funai_e_ano.csv'],
+      };
 
-  async downloadTableMonitoringAnalyticsByYear({ dispatch, state }) {
-    await dispatch('downloadCSV', {
-      grouping: state.filters.grouping_by_year,
-      defaultFileName: 'poligono_monitoramento_estatisticas_por_ano.csv'
-    });
-  },
+      const [groupingKey, defaultFileName] = typeToConfig[type] || [];
 
-  // FUNAI
-  async downloadTableMonitoringAnalyticsByFunai({ dispatch, state }) {
-    await dispatch('downloadCSV', {
-      grouping: state.filters.grouping_by_co_funai,
-      defaultFileName: 'poligono_monitoramento_estatisticas_por_co_funai_e_dia.csv'
-    });
-  },
+      if (!groupingKey || !defaultFileName) {
+        throw new Error(`Tipo de download inválido: ${type}`);
+      }
 
-  async downloadTableMonitoringAnalyticsByFunaiMonthYear({ dispatch, state }) {
-    await dispatch('downloadCSV', {
-      grouping: state.filters.grouping_by_co_funai_and_monthyear,
-      defaultFileName: 'poligono_monitoramento_estatisticas_por_co_funai_mês_e_ano.csv'
-    });
-  },
-
-  async downloadTableMonitoringAnalyticsByFunaiYear({ dispatch, state }) {
-    await dispatch('downloadCSV', {
-      grouping: state.filters.grouping_by_co_funai_year,
-      defaultFileName: 'poligono_monitoramento_estatisticas_por_co_funai_e_ano.csv'
-    });
-  },
+      await dispatch('downloadCSV', {
+        grouping: state.filters[groupingKey],
+        defaultFileName,
+      });
+    },
 
     // Verifica total de features para download de GeoJSON
     async checkHitsDownloadGeojsonMonitoring({ commit, state }) {

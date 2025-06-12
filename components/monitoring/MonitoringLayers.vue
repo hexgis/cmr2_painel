@@ -43,13 +43,10 @@ export default {
       'currentUrlWmsMonitoring', // URL atual do WMS
       'showFeaturesMonitoring', // Controla exibição das features
       'geoserverLayerMonitoring', // Camada do GeoServer para monitoramento
-      'geoserverLayerMonitoringHeatmap', // Camada do GeoServer para heatmap
-      'MonitoringWmsOptionsHeatmap', // Opções da camada WMS do heatmap
       'resultsHeatmap', // Dados do mapa de calor
       'resultsHeatmapOptions', // Opções de configuração do heatmap
       'features', // Features GeoJSON
       'opacity', // Opacidade da camada
-      'loadingMonitoring', // Indicador de carregamento
       'heatMap', // Controla exibição do heatmap
       'isLoadingFeatures', // Indicador de carregamento de features
     ]),
