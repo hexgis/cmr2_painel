@@ -149,28 +149,26 @@
   Nenhum histórico de login encontrado.
 </div>
  <p class="text-h6">
-            <strong>Dados Cadastais</strong>
+            <strong>Dados Cadastrais</strong>
           </p>
           <v-card-text>
             <v-simple-table dense>
               <thead>
                 <tr>
-                  <th>Alterado Por</th>
-                  <th>Data/Hora</th>
-                  <th>Ação</th>
+                  <th>Alterado por</th>
+                  <th>Alterado em</th>
+                  <th>Nome</th>
+                  <th>Email</th>
                   <th>Instituição</th>
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  v-for="log in userLogs"
-                  :key="log.id"
-                >
-                <td>{{ log.user }}</td>
-                  <td>{{ log.action_time }}</td>
-                  <td>{{ log.action_flag_display }}</td>
-                  <td>{{ log.user_institution }}</td>
-
+                <tr v-for="log in userLogs" :key="log.id">
+                  <td>{{ log.alterado_por }}</td>
+                  <td>{{ new Date(log.action_time).toLocaleString('pt-BR') }}</td>
+                  <td>{{ log.username }}</td>
+                  <td>{{ log.email }}</td>
+                  <td>{{ log.institution }}</td>
                 </tr>
               </tbody>
             </v-simple-table>
