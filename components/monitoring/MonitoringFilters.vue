@@ -522,7 +522,7 @@ export default {
     showTableDialogAnalytics(value) {
       if (this.currentUrlWmsMonitoring) {
         this.setanalyticsMonitoringDialog(value);
-        this.getDataAnalyticsMonitoringByFunaiYear();
+        this.getDataAnalyticsMonitoring();
       }
     },
     searchMonitoring() {
@@ -621,7 +621,7 @@ export default {
       'downloadGeoJsonMonitoring',
       'getDataTableMonitoring',
       'downloadTableMonitoring',
-      'getDataAnalyticsMonitoringByFunaiYear',
+      'getDataAnalyticsMonitoring',
     ]),
   },
 };
