@@ -107,8 +107,53 @@
     </v-row>
 
     <!-- Resultados e Controles -->
+    <div
+      v-if="isLoadingFeatures"
+      class="mt-1"
+    >
+      <v-row
+        no-gutters
+        justify="center"
+      >
+        <v-col cols="6">
+          <v-skeleton-loader type="table-cell@4" />
+        </v-col>
+        <v-col cols="6">
+          <div class="d-flex justify-end">
+            <v-skeleton-loader type="table-cell@4" />
+          </div>
+        </v-col>
+      </v-row>
+      <v-divider class="mt-1" />
+      <div>
+        <v-skeleton-loader type="table-cell" />
+        <v-row
+          v-for="n in 4"
+          :key="n"
+          no-gutters
+          align="center"
+          class="mb-4"
+        >
+          <v-col cols="1">
+            <v-skeleton-loader
+              width="20"
+              height="20"
+              tile
+              type="avatar"
+            />
+          </v-col>
+          <v-col cols="10">
+            <v-skeleton-loader type="text" />
+          </v-col>
+        </v-row>
+      </div>
+    </div>
     <v-row
-      v-if="showFeaturesMonitoring && features && features.features && features.features.length > 0"
+      v-else-if="
+        showFeaturesMonitoring
+          && features
+          && features.features
+          && features.features.length > 0"
       no-gutters
       align="center"
       class="mt-3"
@@ -196,7 +241,7 @@
             v-model="heatMap"
             class="mt-0 pt-0"
             :loading="loadingHeatmap"
-            :disabled="loadingHeatmap || !features?.features?.length"
+            :disabled="loadingHeatmap || !hasFeatures"
             hide-details
           />
         </v-col>
@@ -272,8 +317,8 @@
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';
 import TableDialog from '../table-dialog/TableDialog.vue';
-import BaseDateField from '@/components/base/BaseDateField';
-import DialogConfirmDownload from '@/components/monitoring/DialogConfirmDownload.vue';
+import BaseDateField from '../base/BaseDateField.vue';
+import DialogConfirmDownload from './DialogConfirmDownload.vue';
 import AnalyticalDialog from '../analytical-dialog/AnalyticalDialog.vue';
 
 export default {
@@ -309,6 +354,7 @@ export default {
       filteredYears: [],
       checkNewFilters: false,
       isLoadingTotal: false,
+      isLoadingFeatures: false, // Adicionado para controlar o skeleton loader
       flattened: [],
       dialog: false,
       tableDialogMonitoring: false,
@@ -319,6 +365,9 @@ export default {
     };
   },
   computed: {
+    hasFeatures() {
+      return this.features && this.features.features && this.features.features.length > 0;
+    },
     totalArea() {
       if (this.features && this.features.features && this.features.features.length) {
         const total = this.features.features.reduce(
@@ -384,11 +433,11 @@ export default {
     ]),
   },
   watch: {
-    'filters.cr': function (value) {
+    'filters.cr': function filtersCrWatcher(value) {
       const arrayCrPopulate = value.map((item) => item.co_cr);
       this.populateTiOptions(arrayCrPopulate);
     },
-    'filterOptions.regionalFilters': function () {
+    'filterOptions.regionalFilters': function filterOptionsRegionalFiltersWatcher() {
       this.populateCrOptions();
     },
     opacity() {
@@ -507,8 +556,12 @@ export default {
         }
 
         this.setFilters(filtersForStore);
+        this.isLoadingFeatures = true;
         this.getFeatures().then(() => {
           this.getDataTableMonitoring();
+          this.isLoadingFeatures = false;
+        }).catch(() => {
+          this.isLoadingFeatures = false;
         });
       } else {
         this.error = true;

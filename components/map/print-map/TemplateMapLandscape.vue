@@ -220,7 +220,7 @@
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>
-                              {{ combinedTableData.length - tableLandUse.length }}
+                              {{ monitoringCount }}
                             </v-chip>
                           </p>
                           <hr style="border: 1px solid red; margin: 0; margin-top: 0px;">
@@ -875,6 +875,15 @@ export default {
 
     landUseItems() {
       return this.$store.getters['land-use/getActiveLegendItems'];
+    },
+
+    monitoringCount() {
+      return this.combinedTableData.filter(
+        (item) => item.monitoring
+          && Object.keys(item.monitoring).some(
+            (key) => item.monitoring[key] > 0,
+          ),
+      ).length;
     },
 
     ...mapState({
