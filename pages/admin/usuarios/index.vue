@@ -197,7 +197,7 @@
       <tr v-for="change in userRoleChanges" :key="change.id">
         <td>{{ change.changed_by }}</td>
         <td>{{ change.changed_at }}</td>
-        <td>{{ change.action === 'added' ? 'Adicionado' : 'Removido' }}</td>
+        <td>{{ change.action }}</td>
         <td>{{ change.role }}</td>
       </tr>
     </tbody>
