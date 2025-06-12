@@ -36,6 +36,7 @@ export default {
     selectedMonitoringFeature: null, // Feature selecionada no monitoramento
     heatmapLayer: null, // Camada de mapa de calor
   }),
+
   computed: {
     ...mapState('monitoring', [
       'MonitoringWmsOptions', // Opções da camada WMS
@@ -56,8 +57,10 @@ export default {
   watch: {
     features: {
       handler(newFeatures) {
-        // Evita executar durante carregamento
-        if (this.loadingMonitoring || this.isLoadingFeatures) return;
+        if (this.isLoadingFeatures) {
+          return;
+        }
+        // Processa features se existirem
         if (newFeatures && newFeatures.features && newFeatures.features.length > 0) {
           this.addFeatures();
         } else if (this.showFeaturesMonitoring) {

@@ -433,7 +433,15 @@ export default {
     ]),
   },
   watch: {
+    'filters.currentView': function filtersCurrentViewWatcher(value) {
+      if (value && this.filters.cr.length > 0) {
+        this.filters.cr = []; // Limpa o v-combobox se o checkbox for marcado
+      }
+    },
     'filters.cr': function filtersCrWatcher(value) {
+      if (value.length > 0 && this.filters.currentView) {
+        this.filters.currentView = false; // Desmarca o checkbox se algo for selecionado no combobox
+      }
       const arrayCrPopulate = value.map((item) => item.co_cr);
       this.populateTiOptions(arrayCrPopulate);
     },
