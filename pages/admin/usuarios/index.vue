@@ -278,6 +278,7 @@
     <v-card class="mt-4 pa-4">
       <div class="d-flex justify-space-between align-center mb-2">
         <span class="font-weight-bold">Usuários</span>
+
         <!-- botão para escolher colunas -->
         <v-menu offset-y>
           <template #activator="{ on, attrs }">
@@ -302,6 +303,17 @@
             </v-list-item>
           </v-list>
         </v-menu>
+         <!-- pesquisa geral -->
+         <v-text-field
+           v-model="searchAll"
+           placeholder="Pesquisar tudo"
+           append-icon="mdi-magnify"
+           clearable
+           dense
+           hide-details
+           class="ml-4"
+           @click.stop
+         />
       </div>
 
       <v-data-table
@@ -636,9 +648,14 @@ export default {
       emailMenu: false,
       searchUsername: '',
       searchEmail: '',
+      searchAll: '',
     };
   },
-
+  watch: {
+    searchAll(val) {
+      this.search = val;
+    }
+  },
   computed: {
     totalValue() {
       return this.storeCategories.reduce(
@@ -799,16 +816,13 @@ export default {
     },
 
     addRoleToUser(role) {
-      if (!this.editUserData.roles) {
-        this.$set(this.editUserData, 'roles', []);
-      }
-      if (!this.editUserData.roles.some((r) => r.id === role.id)) {
-        this.editUserData.roles.push(role);
+      if (!this.editUserData.roles.some(r => r.id === role.id)) {
+        this.editUserData.roles = [...this.editUserData.roles, role];
       }
     },
 
     removeRoleFromUser(role) {
-      this.editUserData.roles = this.editUserData.roles.filter((r) => r.id !== role.id);
+      this.editUserData.roles = this.editUserData.roles.filter(r => r.id !== role.id);
     },
 
     async addUser() {
@@ -937,54 +951,30 @@ export default {
       }
     },
 
-    addRoleToUser(role) {
-      if (!this.editUserData.roles.some((r) => r.id === role.id)) {
-        this.editUserData.roles = [...this.editUserData.roles, role];
-      }
-    },
-
-    removeRoleFromUser(role) {
-      this.editUserData.roles = this.editUserData.roles.filter((r) => r.id !== role.id);
-    },
-
-    toggleFilters() {
-      this.showFilters = !this.showFilters;
-    },
-
     generateCSV() {
-    // Cabeçalho do CSV
+      // Cabeçalho do CSV
       const headers = ['Nome', 'Email', 'Acesso Permitido', 'Instituição'];
-      const rows = this.filteredUsers.map((user) => [
+      const rows = this.filteredUsers.map(user => [
         user.username,
         user.email,
         user.is_active ? 'Ativo' : 'Inativo',
         user.institution,
       ]);
-
-      // Cria o conteúdo do CSV
-      const csvContent = [
-        headers.join(','), // Cabeçalho
-        ...rows.map((row) => row.join(',')), // Dados
-      ].join('\n');
-
-      // Cria um link para download
-      const blob = new Blob([csvContent], {
-        type: 'text/csv;charset=utf-8;',
-      });
+      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'usuarios.csv'; // Nome do arquivo
-      link.click(); // Dispara o download
-      URL.revokeObjectURL(link.href); // Limpa o objeto URL
+      link.download = 'usuarios.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
     },
 
     ...mapActions('admin', ['fetchInstitutionList']),
-  },
+  }
 };
 </script>
 
 <style lang="sass" scoped>
-
 .line-separator
     border: 1px solid #9A9997
     margin: 1rem 0
@@ -1004,11 +994,11 @@ export default {
 
 .card--wrapper
     display: grid
-    grid-template-columns: repeat(auto-fit, minmax(350px,1fr))
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr))
     gap: 1rem
 
 .wrapper
-    display: flexs
+    display: flex
     flex-direction: row
     align-items: center
     justify-content: space-between
@@ -1016,5 +1006,4 @@ export default {
 .filter-list
     max-height: 200px
     overflow-y: auto
-
 </style>
