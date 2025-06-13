@@ -160,6 +160,7 @@
                   <th>Nome</th>
                   <th>Email</th>
                   <th>Instituição</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -169,6 +170,15 @@
                   <td>{{ log.username }}</td>
                   <td>{{ log.email }}</td>
                   <td>{{ log.institution }}</td>
+                  <td>
+                    <v-icon
+                      :color="log.is_active ? 'green' : 'red'"
+                      small
+                    >
+                      {{ log.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                    </v-icon>
+                    {{ log.is_active ? 'Ativo' : 'Inativo' }}
+                  </td>
                 </tr>
               </tbody>
             </v-simple-table>
@@ -181,7 +191,7 @@
           </v-card-text>
 
           <p class="text-h6">
-  <strong>Histórico de Alterações de Grupos de Acesso</strong>
+  <strong>Histórico de Alterações de Papéis de Acesso</strong>
 </p>
 <v-card-text>
   <v-simple-table dense>
@@ -190,7 +200,7 @@
         <th>Alterado Por</th>
         <th>Data/Hora</th>
         <th>Ação</th>
-        <th>Grupo</th>
+        <th>Papel</th>
       </tr>
     </thead>
     <tbody>
