@@ -41,79 +41,74 @@
               class="leaflet-bottom leaflet-right"
             >
               <template v-if="teste >= 0 && teste <= 7">
+                <!-- Bloco para Monitoramento -->
                 <div
-                  v-for="(item, index) in filteredCombinedTableData"
-                  :key="'combined-' + index"
-                  class="text-center"
-                  :class="{
-                    'bordered-red':
-                      item.monitoring
-                      && Object.keys(item.monitoring).some(key => item.monitoring[key] > 0),
-                    'bordered-blue':
-                      item.landUse
-                      && Object.keys(item.landUse).some(key => item.landUse[key] > 0),
-                  }"
+                  v-for="(item, index) in filteredMonitoringData"
+                  :key="'monitoring-' + index"
+                  class="text-center bordered-red"
                 >
                   <p>
-                    <strong>TI {{ item.no_ti }}</strong>
+                    <strong>TI {{ item.no_ti }} - Monitoramento</strong>
                   </p>
                   <p v-if="parseFloat(item.nu_area_ha) > 0">
                     Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
                   </p>
-                  <!-- Monitoramento -->
-                  <template
-                    v-if="item.monitoring
-                      && Object.keys(item.monitoring).some(key => item.monitoring[key] > 0)"
-                  >
-                    <p v-if="parseFloat(item.monitoring.nu_area_cr_ha) > 0">
-                      CR: {{ formatNumber(item.monitoring.nu_area_cr_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.monitoring.nu_area_dg_ha) > 0">
-                      DG: {{ formatNumber(item.monitoring.nu_area_dg_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.monitoring.nu_area_dr_ha) > 0">
-                      DR: {{ formatNumber(item.monitoring.nu_area_dr_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.monitoring.nu_area_ff_ha) > 0">
-                      FF: {{ formatNumber(item.monitoring.nu_area_ff_ha) }} ha
-                    </p>
-                  </template>
-                  <!-- Uso e Ocupação do Solo -->
-                  <template
-                    v-if="item.landUse
-                      && Object.keys(item.landUse).some(key => item.landUse[key] > 0)"
-                  >
-                    <p v-if="parseFloat(item.landUse.nu_area_ag_ha) > 0">
-                      AG: {{ formatNumber(item.landUse.nu_area_ag_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.landUse.nu_area_cr_ha) > 0">
-                      CR: {{ formatNumber(item.landUse.nu_area_cr_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.landUse.nu_area_dg_ha) > 0">
-                      DG: {{ formatNumber(item.landUse.nu_area_dg_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.landUse.nu_area_ma_ha) > 0">
-                      MA: {{ formatNumber(item.landUse.nu_area_ma_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.landUse.nu_area_mi_ha) > 0">
-                      MI: {{ formatNumber(item.landUse.nu_area_mi_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.landUse.nu_area_no_ha) > 0">
-                      NO: {{ formatNumber(item.landUse.nu_area_no_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.landUse.nu_area_rv_ha) > 0">
-                      RV: {{ formatNumber(item.landUse.nu_area_rv_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.landUse.nu_area_sv_ha) > 0">
-                      SV: {{ formatNumber(item.landUse.nu_area_sv_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.landUse.nu_area_vn_ha) > 0">
-                      VN: {{ formatNumber(item.landUse.nu_area_vn_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.landUse.nu_area_vi_ha) > 0">
-                      VI: {{ formatNumber(item.landUse.nu_area_vi_ha) }} ha
-                    </p>
-                  </template>
+                  <p v-if="parseFloat(item.monitoring.nu_area_cr_ha) > 0">
+                    CR: {{ formatNumber(item.monitoring.nu_area_cr_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.monitoring.nu_area_dg_ha) > 0">
+                    DG: {{ formatNumber(item.monitoring.nu_area_dg_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.monitoring.nu_area_dr_ha) > 0">
+                    DR: {{ formatNumber(item.monitoring.nu_area_dr_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.monitoring.nu_area_ff_ha) > 0">
+                    FF: {{ formatNumber(item.monitoring.nu_area_ff_ha) }} ha
+                  </p>
+                </div>
+
+                <!-- Bloco para Uso e Ocupação do Solo -->
+                <div
+                  v-for="(item, index) in filteredLandUseData"
+                  :key="'landuse-' + index"
+                  class="text-center bordered-blue"
+                >
+                  <p>
+                    <strong>TI {{ item.no_ti }} - Uso e Ocupação do Solo</strong>
+                  </p>
+                  <p v-if="parseFloat(item.nu_area_ha) > 0">
+                    Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_ag_ha) > 0">
+                    AG: {{ formatNumber(item.landUse.nu_area_ag_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_cr_ha) > 0">
+                    CR: {{ formatNumber(item.landUse.nu_area_cr_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_dg_ha) > 0">
+                    DG: {{ formatNumber(item.landUse.nu_area_dg_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_ma_ha) > 0">
+                    MA: {{ formatNumber(item.landUse.nu_area_ma_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_mi_ha) > 0">
+                    MI: {{ formatNumber(item.landUse.nu_area_mi_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_no_ha) > 0">
+                    NO: {{ formatNumber(item.landUse.nu_area_no_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_rv_ha) > 0">
+                    RV: {{ formatNumber(item.landUse.nu_area_rv_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_sv_ha) > 0">
+                    SV: {{ formatNumber(item.landUse.nu_area_sv_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_vn_ha) > 0">
+                    VN: {{ formatNumber(item.landUse.nu_area_vn_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_vi_ha) > 0">
+                    VI: {{ formatNumber(item.landUse.nu_area_vi_ha) }} ha
+                  </p>
                 </div>
               </template>
             </div>
@@ -655,6 +650,20 @@ export default {
   }),
 
   computed: {
+    filteredMonitoringData() {
+      return this.combinedTableData.filter(
+        (item) => item.monitoring
+        && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0),
+      );
+    },
+
+    filteredLandUseData() {
+      return this.combinedTableData.filter(
+        (item) => item.landUse
+        && Object.keys(item.landUse).some((key) => item.landUse[key] > 0),
+      );
+    },
+
     filteredCombinedTableData() {
       return this.combinedTableData.filter((item) => {
         const hasMonitoring = this.showFeaturesMonitoring

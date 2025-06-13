@@ -598,17 +598,40 @@ export default {
     toggleLegendItem(item) {
       return this.debounce(async () => {
         try {
+          // Tenta acessar a instância do mapa
+          const map = window.mapMain;
+          let currentZoom = null;
+          let currentCenter = null;
+
+          // Verifica se o mapa está disponível
+          if (map && typeof map.getZoom === 'function' && typeof map.getCenter === 'function') {
+            currentZoom = map.getZoom();
+            currentCenter = map.getCenter();
+          } else {
+            console.warn('Instância do mapa não está disponível. O zoom não será preservado.');
+          }
+
+          // Marca o item como carregando
           this.$set(this.loadingEstagios, item.estagio, true);
+
+          // Dispara a ação de alternar visibilidade no Vuex
           await this.$store.dispatch('monitoring/toggleLegendVisibility', {
             estagio: item.estagio,
             visible: item.visible,
           });
+
+          // Restaura o estado do mapa, se disponível
+          if (map && currentZoom !== null && currentCenter !== null) {
+            map.setView(currentCenter, currentZoom);
+          }
         } catch (error) {
           console.error('Erro ao alternar visibilidade do estágio:', error);
+          // Reverte a visibilidade em caso de erro
           const revertedItem = { ...item, visible: !item.visible };
           const idx = this.legendItems.findIndex((i) => i.estagio === item.estagio);
           this.$set(this.legendItems, idx, revertedItem);
         } finally {
+          // Remove o estado de carregamento
           this.$set(this.loadingEstagios, item.estagio, false);
         }
       }, 300)();
