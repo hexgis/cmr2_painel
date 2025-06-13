@@ -269,84 +269,242 @@
         </CustomDialog>
       </v-col>
     </v-row>
-    <div class="filter mt-4 mb-4">
-      <StatusFilterUser
-        @toggle-filters="toggleFilters"
-        @filters-changed="applyFilters"
-      />
-    </div>
     <div
       v-if="showFilters"
       class="search mt-4"
     >
       <SearchFiltersUser :filters="filters" />
     </div>
-    <div class="card--wrapper">
-      <v-card>
-        <v-card-title>
-          Usuários
-          <v-spacer />
-          <v-text-field
-            v-model="search"
-            append-icon="mdi-magnify"
-            label="Search"
-            single-line
-            hide-details
-          />
-        </v-card-title>
-        <v-data-table
-          v-if="filteredUsers.length"
-          :headers="headers"
-          :items="filteredUsers"
-          class="elevation-1 mt-4"
-          dense
-          :search="search"
+    <v-card class="mt-4 pa-4">
+      <div class="d-flex justify-space-between align-center mb-2">
+        <span class="font-weight-bold">Usuários</span>
+        <!-- botão para escolher colunas -->
+        <v-menu offset-y>
+          <template #activator="{ on, attrs }">
+            <v-btn text small v-bind="attrs" v-on="on">
+              Selecionar colunas
+              <v-icon right>mdi-chevron-down</v-icon>
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-list-item v-for="h in headers" :key="h.value">
+              <v-list-item-action>
+                <v-checkbox
+                  v-model="visibleColumns"
+                  :value="h.value"
+                  dense
+                  hide-details
+                />
+              </v-list-item-action>
+              <v-list-item-content>
+                <v-list-item-title>{{ h.text }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
+
+      <v-data-table
+        v-if="filteredUsers.length"
+        :headers="filteredHeaders"
+        :items="filteredByColumns"
+        class="elevation-1 mt-4"
+        dense
+        :search="search"
+      >
+        <!-- filtro Nome -->
+<template #header.username="{ header }">
+  <v-menu
+    v-model="usernameMenu"
+    offset-y
+    :close-on-content-click="false"
+  >
+    <template #activator="{ on, attrs }">
+      <v-btn text small v-bind="attrs" v-on="on">
+        {{ header.text }}<v-icon small>mdi-filter-variant</v-icon>
+      </v-btn>
+    </template>
+    <v-card style="width:250px">
+      <v-text-field
+        v-model="searchUsername"
+        placeholder="Pesquisar..."
+        outlined dense hide-details clearable
+        class="mx-3 mt-3" @click.stop
+      />
+      <v-divider/>
+      <v-list dense class="filter-list">
+        <v-list-item
+          v-for="name in filteredUsernameList" :key="name"
         >
-          <template #item.logs="{ item }">
-            <v-icon
-              style="cursor:pointer"
-              @click="openLogsDialog(item)"
-            >
-              mdi-menu
-            </v-icon>
-          </template>
-          <template #item.is_staff="{ item }">
-            <span>{{ item.is_staff ? 'Sim' : 'Não' }}</span>
-          </template>
-          <template #item.is_active="{ item }">
-            <div class="ml-8">
-              <v-icon
-                v-if="item.is_active"
-                color="green"
-              >
-                mdi-check-circle
-              </v-icon>
-              <v-icon
-                v-else
-                color="red"
-              >
-                mdi-close-circle
-              </v-icon>
-            </div>
-          </template>
+          <v-checkbox
+            v-model="columnFilters.username"
+            :value="name" :label="name"
+            dense @change="usernameMenu = false"
+          />
+        </v-list-item>
+      </v-list>
+    </v-card>
+  </v-menu>
+</template>
 
-          <template #item.editar="{ item }">
-            <v-icon
-              color="#000"
-              @click="openEditDialog(item)"
-            >
-              mdi-pencil
-            </v-icon>
-          </template>
+<!-- filtro Email -->
+<template #header.email="{ header }">
+  <v-menu
+    v-model="emailMenu"
+    offset-y
+    :close-on-content-click="false"
+  >
+    <template #activator="{ on, attrs }">
+      <v-btn text small v-bind="attrs" v-on="on">
+        {{ header.text }}<v-icon small>mdi-filter-variant</v-icon>
+      </v-btn>
+    </template>
+    <v-card style="width:250px">
+      <v-text-field
+        v-model="searchEmail"
+        placeholder="Pesquisar..."
+        outlined dense hide-details clearable
+        class="mx-3 mt-3" @click.stop
+      />
+      <v-divider/>
+      <v-list dense class="filter-list">
+        <v-list-item
+          v-for="mail in filteredEmailList" :key="mail"
+        >
+          <v-checkbox
+            v-model="columnFilters.email"
+            :value="mail" :label="mail"
+            dense @change="emailMenu = false"
+          />
+        </v-list-item>
+      </v-list>
+    </v-card>
+  </v-menu>
+</template>
 
-          <!-- <template v-slot:item.logs="{ item }">
-                        <v-icon color="#000" @click="openLogsDialog(item)">
-                            mdi-menu
-                        </v-icon>
-                    </template> -->
-        </v-data-table>
-      </v-card>
-    </div>
+<!-- filtro Administrador -->
+<template #header.is_staff="{ header }">
+  <v-menu offset-y>
+    <template #activator="{ on, attrs }">
+      <v-btn text small v-bind="attrs" v-on="on">
+        {{ header.text }}
+        <v-icon small class="ml-1">mdi-filter-variant</v-icon>
+      </v-btn>
+    </template>
+    <v-list dense>
+      <v-list-item>
+        <v-checkbox
+          v-model="columnFilters.is_staff"
+          :value="true"
+          label="Sim"
+          dense
+        />
+      </v-list-item>
+      <v-list-item>
+        <v-checkbox
+          v-model="columnFilters.is_staff"
+          :value="false"
+          label="Não"
+          dense
+        />
+      </v-list-item>
+    </v-list>
+  </v-menu>
+</template>
+
+<!-- filtro Acesso Permitido -->
+<template #header.is_active="{ header }">
+  <v-menu offset-y>
+    <template #activator="{ on, attrs }">
+      <v-btn text small v-bind="attrs" v-on="on">
+        {{ header.text }}
+        <v-icon small class="ml-1">mdi-filter-variant</v-icon>
+      </v-btn>
+    </template>
+    <v-list dense>
+      <v-list-item>
+        <v-checkbox
+          v-model="columnFilters.is_active"
+          :value="true"
+          label="Ativo"
+          dense
+        />
+      </v-list-item>
+      <v-list-item>
+        <v-checkbox
+          v-model="columnFilters.is_active"
+          :value="false"
+          label="Inativo"
+          dense
+        />
+      </v-list-item>
+    </v-list>
+  </v-menu>
+</template>
+
+<!-- filtro Instituição -->
+<template #header.institution="{ header }">
+  <v-menu
+    v-model="institutionMenu"
+    offset-y
+    :close-on-content-click="false"
+  >
+    <template #activator="{ on, attrs }">
+      <v-btn text small v-bind="attrs" v-on="on">
+        {{ header.text }}
+        <v-icon small class="ml-1">mdi-filter-variant</v-icon>
+      </v-btn>
+    </template>
+    <v-card style="width:250px">
+      <v-text-field
+        v-model="searchInstitution"
+        placeholder="Pesquisar..."
+        outlined
+        dense
+        hide-details
+        clearable
+        class="mx-3 mt-3"
+        @click.stop
+      />
+      <v-divider/>
+      <v-list dense class="filter-list">
+        <v-list-item
+          v-for="inst in filteredInstitutionList"
+          :key="inst.id"
+        >
+          <v-checkbox
+            v-model="columnFilters.institution"
+            :value="inst.name"
+            :label="inst.name"
+            dense
+            @change="institutionMenu = false"
+          />
+        </v-list-item>
+      </v-list>
+    </v-card>
+  </v-menu>
+</template>
+
+        <template #item.actions="{ item }">
+            <v-tooltip top>
+              <template #activator="{ on, attrs }">
+                <v-btn icon small color="grey darken-2" v-bind="attrs" v-on="on" @click="openEditDialog(item)">
+                  <v-icon>mdi-pencil</v-icon>
+                </v-btn>
+              </template>
+              <span>Editar</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <template #activator="{ on, attrs }">
+                <v-btn icon small color="primary" v-bind="attrs" v-on="on" @click="openLogsDialog(item)">
+                  <v-icon>mdi-menu</v-icon>
+                </v-btn>
+              </template>
+              <span>Logs</span>
+            </v-tooltip>
+          </template>
+      </v-data-table>
+    </v-card>
   </div>
 </template>
 
@@ -397,7 +555,6 @@
 <script>
 import { mapState, mapActions } from 'vuex';
 import GraphicBar from '/components/admin/GraphicBar.vue';
-import StatusFilterUser from '/components/admin/StatusFilterUser.vue';
 import SearchFiltersUser from '/components/admin/SearchFiltersUser.vue';
 import CustomDialog from '/components/admin/CustomDialog.vue';
 import SavePdfUser from '/components/admin/SavePdfUser.vue';
@@ -407,7 +564,6 @@ export default {
   name: 'Usuarios',
   components: {
     GraphicBar,
-    StatusFilterUser,
     SearchFiltersUser,
     CustomDialog,
     SavePdfUser,
@@ -435,8 +591,7 @@ export default {
         { text: 'Administrador', value: 'is_staff' },
         { text: 'Acesso Permitido', value: 'is_active' },
         { text: 'Instituição', value: 'institution' },
-        { text: 'Editar', value: 'editar' },
-        { text: 'Logs', value: 'logs' },
+        { text: 'Ações', value: 'actions', align: 'center' },
       ],
       filters: {
         active: false,
@@ -467,6 +622,20 @@ export default {
       requiredRule: (v) => !!v || 'Campo obrigatório',
       emailRule: (v) => /.+@.+\..+/.test(v) || 'E-mail inválido',
       userRoleChanges: [],
+      visibleColumns: ['username','email','is_staff','is_active','institution','actions'],
+      columnFilters: {
+        is_staff: [],    // [true, false]
+        is_active: [],   // [true, false]
+        institution: [],
+        username: [],
+        email: [],
+      },
+      searchInstitution: '',
+      institutionMenu: false,
+      usernameMenu: false,
+      emailMenu: false,
+      searchUsername: '',
+      searchEmail: '',
     };
   },
 
@@ -476,6 +645,38 @@ export default {
         (acc, category) => acc + category.total,
         0,
       );
+    },
+
+    filteredHeaders() {
+      return this.headers.filter(h => this.visibleColumns.includes(h.value));
+    },
+
+    filteredByColumns() {
+      return this.filteredUsers.filter(user => {
+        // para cada filtro de coluna
+        return Object.entries(this.columnFilters).every(([col, vals]) => {
+          return !vals.length || vals.includes(user[col]);
+        });
+      });
+    },
+
+    filteredInstitutionList() {
+      const term = (this.searchInstitution || '').toLowerCase();
+      return this.institutionList.filter(inst =>
+        inst.name.toLowerCase().includes(term)
+      );
+    },
+
+    filteredUsernameList() {
+      const term = (this.searchUsername||'').toLowerCase();
+      return [...new Set(this.filteredUsers.map(u=>u.username))]
+        .filter(v => v.toLowerCase().includes(term));
+    },
+
+    filteredEmailList() {
+      const term = (this.searchEmail||'').toLowerCase();
+      return [...new Set(this.filteredUsers.map(u=>u.email))]
+        .filter(v => v.toLowerCase().includes(term));
     },
 
     ...mapState('admin', ['institutionList', 'rolesList']),
@@ -522,7 +723,7 @@ export default {
 
     },
     async fetchRoles() {
-      try {
+      try {s
         const response = await this.$api.get('/user/role/');
         this.$store.commit('admin/setRolesList', response.data);
       } catch (error) {
@@ -811,5 +1012,9 @@ export default {
     flex-direction: row
     align-items: center
     justify-content: space-between
+
+.filter-list
+    max-height: 200px
+    overflow-y: auto
 
 </style>
