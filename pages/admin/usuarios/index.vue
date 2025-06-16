@@ -82,111 +82,212 @@
         <CustomDialog
           v-model="showLogsModal"
           title="Logs do Usuário"
-          width="1200"
+          width="1400"
           :has-cta="false"
         >
-         <p class="text-h6">
-            <strong>Registro de acesso do usuário</strong>
-          </p>
-          <v-card-text>
-        <v-simple-table dense class="mt-6">
-  <thead>
-    <tr>
-      <th>Data de Login</th>
-      <th>IP</th>
-      <th>Localização</th>
-      <th>Dispositivo</th>
-      <th>Navegador</th>
-      <th>Latitude</th>
-      <th>Longitude</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-for="login in userLoginHistory" :key="login.id">
-      <td>{{ login.last_date_login }}</td>
-      <td>{{ login.ip }}</td>
-      <td>{{ login.location }}</td>
-      <td>{{ login.type_device }}</td>
-      <td>{{ login.browser }}</td>
-      <td>{{ login.latitude }}</td>
-      <td>{{ login.longitude }}</td>
-    </tr>
-  </tbody>
-</v-simple-table>
-</v-card-text>
+          <!-- Tabs navigation similar to the image -->
+          <v-tabs
+            v-model="activeTab"
+            color="primary"
+            background-color="grey lighten-4"
+            show-arrows
+          >
+            <v-tab class="text-capitalize">
+              Dados Cadastrais
+            </v-tab>
+            <v-tab class="text-capitalize">
+              Registro de Acessos do Usuário e seus Grupos de Acesso
+            </v-tab>
+          </v-tabs>
 
-<div v-if="!userLoginHistory.length" class="text-center mt-2">
-  Nenhum histórico de login encontrado.
-</div>
- <p class="text-h6">
-            <strong>Dados Cadastrais</strong>
-          </p>
-          <v-card-text>
-            <v-simple-table dense>
-              <thead>
-                <tr>
-                  <th>Alterado por</th>
-                  <th>Alterado em</th>
-                  <th>Nome</th>
-                  <th>Email</th>
-                  <th>Instituição</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="log in userLogs" :key="log.id">
-                  <td>{{ log.alterado_por }}</td>
-                  <td>{{ new Date(log.action_time).toLocaleString('pt-BR') }}</td>
-                  <td>{{ log.username }}</td>
-                  <td>{{ log.email }}</td>
-                  <td>{{ log.institution }}</td>
-                  <td>
-                    <v-icon
-                      :color="log.is_active ? 'green' : 'red'"
-                      small
-                    >
-                      {{ log.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
-                    </v-icon>
-                    {{ log.is_active ? 'Ativo' : 'Inativo' }}
-                  </td>
-                </tr>
-              </tbody>
-            </v-simple-table>
-            <div
-              v-if="!userLogs || !userLogs.length"
-              class="text-center mt-4"
-            >
-              Nenhum log encontrado para este usuário.
-            </div>
-          </v-card-text>
+          <v-tabs-items v-model="activeTab">
+            <!-- Tab 1: Dados Cadastrais -->
+            <v-tab-item>
+              <v-card-text>
+                <div class="d-flex justify-space-between align-center mb-2">
+                  <div class="d-flex align-center">
+                    <!-- Search field -->
+                    <v-text-field
+                      v-model="searchLogs"
+                      placeholder="Pesquisar nos dados cadastrais"
+                      append-icon="mdi-magnify"
+                      clearable
+                      dense
+                      outlined
+                      hide-details
+                      style="width: 300px;"
+                    />
 
-          <p class="text-h6">
-  <strong>Histórico de Alterações de Papéis de Acesso</strong>
-</p>
-<v-card-text>
-  <v-simple-table dense>
-    <thead>
-      <tr>
-        <th>Alterado Por</th>
-        <th>Data/Hora</th>
-        <th>Ação</th>
-        <th>Papel</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="change in userRoleChanges" :key="change.id">
-        <td>{{ change.changed_by }}</td>
-        <td>{{ change.changed_at }}</td>
-        <td>{{ change.action }}</td>
-        <td>{{ change.role }}</td>
-      </tr>
-    </tbody>
-  </v-simple-table>
-  <div v-if="!userRoleChanges.length" class="text-center mt-4">
-    Nenhuma alteração de grupo encontrada para este usuário.
-  </div>
-</v-card-text>
+                    <!-- Export buttons -->
+                    <div class="d-flex align-center ml-3">
+                      <div class="export-label text-uppercase mr-2">
+                        Exportar:
+                      </div>
+                      <v-tooltip top>
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            color="#D92B3F"
+                            v-bind="attrs"
+                            v-on="on"
+                            class="mr-2"
+                            @click="generateLogsPDF"
+                          >
+                            <v-icon size="30">mdi-file-pdf-box</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>PDF</span>
+                      </v-tooltip>
+
+                      <v-tooltip top>
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            color="#43A047"
+                            @click="generateLogsCSV"
+                            v-bind="attrs"
+                            v-on="on"
+                          >
+                            <v-icon size="30">mdi-file-excel-box</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>CSV</span>
+                      </v-tooltip>
+                    </div>
+                  </div>
+                </div>
+
+                <v-data-table
+                  :headers="logsHeaders"
+                  :items="filteredUserLogs"
+                  class="elevation-1"
+                  dense
+                  :search="searchLogs"
+                  :items-per-page="10"
+                >
+                  <template #item.action_time="{ item }">
+                    {{ new Date(item.action_time).toLocaleString('pt-BR') }}
+                  </template>
+                  <template #item.is_active="{ item }">
+                    <div class="d-flex align-center">
+                      <v-icon
+                        :color="item.is_active ? 'green' : 'red'"
+                        small
+                      >
+                        {{ item.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                      </v-icon>
+                      <span class="ml-2">{{ item.is_active ? 'Ativo' : 'Inativo' }}</span>
+                    </div>
+                  </template>
+                </v-data-table>
+
+                <div
+                  v-if="!userLogs || !userLogs.length"
+                  class="text-center mt-4"
+                >
+                  Nenhum log encontrado para este usuário.
+                </div>
+              </v-card-text>
+            </v-tab-item>
+
+            <!-- Tab 2: Registro de Acessos -->
+            <v-tab-item>
+              <v-card-text>
+                <div class="d-flex justify-space-between align-center mb-2">
+                  <div class="d-flex align-center">
+                    <!-- Search field -->
+                    <v-text-field
+                      v-model="searchAccess"
+                      placeholder="Pesquisar nos registros de acesso"
+                      append-icon="mdi-magnify"
+                      clearable
+                      dense
+                      outlined
+                      hide-details
+                      style="width: 300px;"
+                    />
+
+                    <!-- Export buttons -->
+                    <div class="d-flex align-center ml-3">
+                      <div class="export-label text-uppercase mr-2">
+                        Exportar:
+                      </div>
+                      <v-tooltip top>
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            color="#D92B3F"
+                            v-bind="attrs"
+                            v-on="on"
+                            class="mr-2"
+                            @click="generateAccessPDF"
+                          >
+                            <v-icon size="30">mdi-file-pdf-box</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>PDF</span>
+                      </v-tooltip>
+
+                      <v-tooltip top>
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            color="#43A047"
+                            @click="generateAccessCSV"
+                            v-bind="attrs"
+                            v-on="on"
+                          >
+                            <v-icon size="30">mdi-file-excel-box</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>CSV</span>
+                      </v-tooltip>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Login History Table -->
+                <h3 class="mb-3">Histórico de Login</h3>
+                <v-data-table
+                  :headers="loginHeaders"
+                  :items="filteredUserLoginHistory"
+                  class="elevation-1 mb-6"
+                  dense
+                  :search="searchAccess"
+                  :items-per-page="5"
+                >
+                  <template #item.last_date_login="{ item }">
+                    {{ item.last_date_login }}
+                  </template>
+                </v-data-table>
+
+                <div v-if="!userLoginHistory.length" class="text-center mb-4">
+                  Nenhum histórico de login encontrado.
+                </div>
+
+                <!-- Role Changes Table -->
+                <h3 class="mb-3">Histórico de Alterações de Papéis de Acesso</h3>
+                <v-data-table
+                  :headers="roleChangesHeaders"
+                  :items="filteredUserRoleChanges"
+                  class="elevation-1"
+                  dense
+                  :search="searchAccess"
+                  :items-per-page="5"
+                >
+                  <template #item.changed_at="{ item }">
+                    {{ item.changed_at }}
+                  </template>
+                </v-data-table>
+
+                <div v-if="!userRoleChanges.length" class="text-center mt-4">
+                  Nenhuma alteração de grupo encontrada para este usuário.
+                </div>
+              </v-card-text>
+            </v-tab-item>
+          </v-tabs-items>
         </CustomDialog>
+
         <CustomDialog
           v-model="showModalEdit"
           title="Editar Usuário"
@@ -697,8 +798,38 @@ export default {
       searchAll: '',
       isButtonCollapsed: true,
       buttonCollapseTimeout: null,
+      activeTab: 0,
+      searchLogs: '',
+      searchAccess: '',
+
+      logsHeaders: [
+        { text: 'Alterado por', value: 'alterado_por' },
+        { text: 'Alterado em', value: 'action_time' },
+        { text: 'Nome', value: 'username' },
+        { text: 'Email', value: 'email' },
+        { text: 'Instituição', value: 'institution' },
+        { text: 'Status', value: 'is_active' },
+      ],
+
+      loginHeaders: [
+        { text: 'Data de Login', value: 'last_date_login' },
+        { text: 'IP', value: 'ip' },
+        { text: 'Localização', value: 'location' },
+        { text: 'Dispositivo', value: 'type_device' },
+        { text: 'Navegador', value: 'browser' },
+        { text: 'Latitude', value: 'latitude' },
+        { text: 'Longitude', value: 'longitude' },
+      ],
+
+      roleChangesHeaders: [
+        { text: 'Alterado Por', value: 'changed_by' },
+        { text: 'Data/Hora', value: 'changed_at' },
+        { text: 'Ação', value: 'action' },
+        { text: 'Papel', value: 'role' },
+      ],
     };
   },
+
   watch: {
     searchAll(val) {
       this.search = val;
@@ -742,6 +873,18 @@ export default {
       const term = (this.searchEmail||'').toLowerCase();
       return [...new Set(this.filteredUsers.map(u=>u.email))]
         .filter(v => v.toLowerCase().includes(term));
+    },
+
+    filteredUserLogs() {
+      return this.userLogs || [];
+    },
+
+    filteredUserLoginHistory() {
+      return this.userLoginHistory || [];
+    },
+
+    filteredUserRoleChanges() {
+      return this.userRoleChanges || [];
     },
 
     ...mapState('admin', ['institutionList', 'rolesList']),
@@ -1035,6 +1178,150 @@ export default {
       this.buttonCollapseTimeout = setTimeout(() => {
         this.isButtonCollapsed = true;
       }, 500);
+    },
+
+    generateLogsPDF() {
+      import('jspdf').then(({ default: jsPDF }) => {
+        import('jspdf-autotable').then(({ default: autoTable }) => {
+          const doc = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4',
+          });
+
+          doc.setFontSize(12);
+          doc.text('Dados Cadastrais do Usuário', 15, 20);
+
+          autoTable(doc, {
+            startY: 30,
+            head: [['Alterado por', 'Alterado em', 'Nome', 'Email', 'Instituição', 'Status']],
+            body: this.filteredUserLogs.map((log) => [
+              log.alterado_por,
+              new Date(log.action_time).toLocaleString('pt-BR'),
+              log.username,
+              log.email,
+              log.institution,
+              log.is_active ? 'Ativo' : 'Inativo',
+            ]),
+            headStyles: {
+              fillColor: '#D92B3F',
+              textColor: [255, 255, 255],
+            },
+          });
+
+          doc.save('dados_cadastrais_usuario.pdf');
+        });
+      });
+    },
+
+    generateLogsCSV() {
+      const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Instituição', 'Status'];
+      const rows = this.filteredUserLogs.map(log => [
+        log.alterado_por,
+        new Date(log.action_time).toLocaleString('pt-BR'),
+        log.username,
+        log.email,
+        log.institution,
+        log.is_active ? 'Ativo' : 'Inativo',
+      ]);
+      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'dados_cadastrais_usuario.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    },
+
+    generateAccessPDF() {
+      import('jspdf').then(({ default: jsPDF }) => {
+        import('jspdf-autotable').then(({ default: autoTable }) => {
+          const doc = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4',
+          });
+
+          doc.setFontSize(12);
+          doc.text('Registro de Acessos do Usuário', 15, 20);
+
+          // Login History
+          autoTable(doc, {
+            startY: 30,
+            head: [['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador']],
+            body: this.filteredUserLoginHistory.map((login) => [
+              login.last_date_login,
+              login.ip,
+              login.location,
+              login.type_device,
+              login.browser,
+            ]),
+            headStyles: {
+              fillColor: '#D92B3F',
+              textColor: [255, 255, 255],
+            },
+          });
+
+          // Role Changes
+          const finalY = doc.lastAutoTable.finalY + 20;
+          doc.text('Histórico de Alterações de Papéis', 15, finalY);
+
+          autoTable(doc, {
+            startY: finalY + 10,
+            head: [['Alterado Por', 'Data/Hora', 'Ação', 'Papel']],
+            body: this.filteredUserRoleChanges.map((change) => [
+              change.changed_by,
+              change.changed_at,
+              change.action,
+              change.role,
+            ]),
+            headStyles: {
+              fillColor: '#D92B3F',
+              textColor: [255, 255, 255],
+            },
+          });
+
+          doc.save('registro_acessos_usuario.pdf');
+        });
+      });
+    },
+
+    generateAccessCSV() {
+      const loginHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Latitude', 'Longitude'];
+      const loginRows = this.filteredUserLoginHistory.map(login => [
+        login.last_date_login,
+        login.ip,
+        login.location,
+        login.type_device,
+        login.browser,
+        login.latitude,
+        login.longitude,
+      ]);
+
+      const roleHeaders = ['Alterado Por', 'Data/Hora', 'Ação', 'Papel'];
+      const roleRows = this.filteredUserRoleChanges.map(change => [
+        change.changed_by,
+        change.changed_at,
+        change.action,
+        change.role,
+      ]);
+
+      const csvContent = [
+        'HISTÓRICO DE LOGIN',
+        loginHeaders.join(','),
+        ...loginRows.map(row => row.join(',')),
+        '',
+        'HISTÓRICO DE ALTERAÇÕES DE PAPÉIS',
+        roleHeaders.join(','),
+        ...roleRows.map(row => row.join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'registro_acessos_usuario.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
     },
 
     ...mapActions('admin', ['fetchInstitutionList']),
