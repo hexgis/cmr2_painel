@@ -1,6 +1,7 @@
 <template>
   <div class="user">
     <span class="d-flex align-center justify-space-between">
+
       <h1>{{ $t('manageUsers') }}</h1>
       <v-tooltip bottom>
         <template #activator="{ on, attrs }">
@@ -19,28 +20,24 @@
     </span>
     <v-row class="mt-4">
       <v-col>
-        <v-card
-          class="pa-5 pb-2"
-          style="max-width: 750px"
-        >
+
           <GraphicBar
             v-for="(category, index) in storeCategories"
             :key="index"
             :category="category"
             :max-value="totalValue"
           />
-        </v-card>
       </v-col>
       <v-col class="d-flex flex-column justify-space-between">
         <v-btn
-          color="#FFCE03"
-          width="100%"
-          class="pa-5"
+          color="error"
+          dark
+          rounded
+          class="px-4 py-2"
           @click="showModal = true"
         >
-          <strong>{{ $t('addNewUser') }}</strong>
-          <v-spacer />
-          <v-icon>mdi-plus</v-icon>
+          {{ $t('addNewUser') }}
+          <v-icon right>mdi-plus</v-icon>
         </v-btn>
         <CustomDialog
           v-model="showModal"
@@ -88,25 +85,23 @@
             </v-form>
           </v-card-text>
         </CustomDialog>
-        <div class="d-flex justify-space-between align-center">
-          <p class="text-uppercase">
-            <strong>{{ $t('export') }}</strong> {{ $t('as') }}
-          </p>
-          <div class="d-flex">
-            <div class="styled-btn">
-              <SavePdfUser :users="filteredUsers" />
-            </div>
-            <div class="line-separator" />
-            <div
-              class="styled-btn"
-              style="cursor: pointer"
+        <div class="export-container">
+          <div class="export-label text-uppercase font-weight-bold">
+            {{ $t('export') }} {{ $t('as') }}
+          </div>
+          <div class="export-actions">
+            <SavePdfUser :users="filteredUsers">
+              <template #activator="{ on, attrs }">
+                  <i class="fas fa-file-pdf fa-2x"></i>
+              </template>
+            </SavePdfUser>
+            <v-btn
+              x-large
+              dark
               @click="generateCSV"
             >
-              <v-img src="/img/icons/file-excel-box.svg" />
-              <p class="text-center">
-                CSV
-              </p>
-            </div>
+              <i class="fas fa-file-csv fa-2x"></i>
+            </v-btn>
           </div>
         </div>
         <CustomDialog
@@ -275,9 +270,10 @@
     >
       <SearchFiltersUser :filters="filters" />
     </div>
+
+
     <v-card class="mt-4 pa-4">
       <div class="d-flex justify-space-between align-center mb-2">
-        <span class="font-weight-bold">Usuários</span>
 
         <!-- botão para escolher colunas -->
         <v-menu offset-y>
@@ -324,6 +320,7 @@
         dense
         :search="search"
       >
+
         <!-- filtro Nome -->
 <template #header.username="{ header }">
   <v-menu
@@ -1006,4 +1003,64 @@ export default {
 .filter-list
     max-height: 200px
     overflow-y: auto
+
+.export-container
+    display: flex
+    flex-direction: column // Stack label and buttons vertically
+    align-items: flex-start // Align items to the start
+    margin-top: 1rem
+    margin-bottom: 1rem
+
+.export-label
+    // text-transform: uppercase // Already applied via class
+    // font-weight: bold // Already applied via class
+    letter-spacing: 0.5px // Adjusted for better visual
+    margin-bottom: 0.5rem // Space between label and buttons
+    font-size: 0.8rem // Slightly smaller label
+
+.export-actions
+    display: flex
+    gap: 0.5rem // Reduced gap for closer buttons
+
+.export-btn
+    min-width: 80px // Ensure buttons have a decent size
+    min-height: 80px // Ensure buttons have a decent size
+    padding: 0 !important // Remove default padding to center icon
+    display: flex
+    align-items: center
+    justify-content: center
+    border-radius: 8px // Rounded corners for buttons
+    i // Icon styling
+      font-size: 2rem // Ensure icons are large enough
+      line-height: 1 // Ensure icon is centered vertically
+
+.pdf-btn
+    background-color: #D9534F !important // Bootstrap's btn-danger color
+    color: #fff
+
+.csv-btn
+    background-color: #5CB85C !important // Bootstrap's btn-success color
+    color: #fff
+
+// Remove the old .export-btn styling if it's no longer needed globally
+// or adjust if it was meant for other elements.
+// For now, I'm assuming the new .export-btn styles are specific to these buttons.
+
+// .export-btn (old one, if it exists and is different)
+// display: inline-flex
+// align-items: center
+// padding: 0.5rem 1rem
+// border-radius: 4px
+// cursor: pointer
+
+//   v-icon
+//       margin-right: 0.5rem
+
+// .pdf-btn (old one)
+//   background-color: #E53935
+//   color: #fff
+
+// .csv-btn (old one)
+//   background-color: #43A047
+//   color: #fff
 </style>
