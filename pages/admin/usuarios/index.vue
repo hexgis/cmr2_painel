@@ -96,7 +96,7 @@
               Dados Cadastrais
             </v-tab>
             <v-tab class="text-capitalize">
-              Registro de Acessos do Usuário e seus Grupos de Acesso
+              Registro de Acessos do Usuário e seus Papéis de Acesso
             </v-tab>
           </v-tabs>
 
