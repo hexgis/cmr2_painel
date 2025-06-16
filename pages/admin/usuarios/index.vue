@@ -46,12 +46,14 @@
                 <v-text-field
                   v-model="newUser.username"
                   label="Nome"
+                  outlined
                   :rules="[requiredRule]"
                 />
                 <v-spacer />
                 <v-text-field
                   v-model="newUser.email"
                   label="E-mail"
+                  outlined
                   :rules="[requiredRule, emailRule]"
                 />
               </v-row>
@@ -60,6 +62,7 @@
                 :label="$t('institution')"
                 :items="institutionList"
                 item-text="name"
+                outlined
                 item-value="id"
                 :rules="[requiredRule]"
                 required
@@ -200,12 +203,14 @@
               <v-row class="pa-3">
                 <v-text-field
                   v-model="editUserData.username"
+                  outlined
                   label="Nome"
                   :rules="[requiredRule]"
                 />
                 <v-spacer />
                 <v-text-field
                   v-model="editUserData.email"
+                  outlined
                   label="E-mail"
                   :rules="[requiredRule, emailRule]"
                 />
@@ -214,6 +219,7 @@
                 v-model="editUserData.institution_id"
                 :label="$t('institution')"
                 :items="institutionList"
+                outlined
                 item-text="name"
                 item-value="id"
                 :rules="[requiredRule]"
