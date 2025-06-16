@@ -97,10 +97,13 @@
             </SavePdfUser>
             <v-btn
               x-large
-              dark
               @click="generateCSV"
             >
-              <i class="fas fa-file-csv fa-2x"></i>
+      <v-img
+      src="/img/icons/file-excel-box.png"
+      max-width="50"
+      max-height="50"
+    />
             </v-btn>
           </div>
         </div>
@@ -1007,8 +1010,8 @@ export default {
 
 .export-container
     display: flex
-    flex-direction: column // Stack label and buttons vertically
-    align-items: flex-start // Align items to the start
+    flex-direction: column
+    align-items: flex-end // Align items to the right
     margin-top: 1rem
     margin-bottom: 1rem
 
