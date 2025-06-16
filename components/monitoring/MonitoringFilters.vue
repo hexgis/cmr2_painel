@@ -11,9 +11,6 @@
       :loading="loadingMonitoring"
       @search="searchMonitoring"
     />
-    <!-- Filtros de Pesquisa -->
-
-    <!-- Resultados e Controles -->
     <div
       v-if="isLoadingFeatures"
       class="mt-1"
@@ -265,7 +262,7 @@ export default {
       filteredYears: [],
       checkNewFilters: false,
       isLoadingTotal: false,
-      isLoadingFeatures: false, // Adicionado para controlar o skeleton loader
+      isLoadingFeatures: false,
       flattened: [],
       dialog: false,
       tableDialogMonitoring: false,
@@ -378,7 +375,6 @@ export default {
     },
   },
   mounted() {
-    console.log('featuresMonitoring:', this.featuresMonitoring);
     this.getFilterOptions();
     this.getMonitoringStyleFromGeoserver();
   },

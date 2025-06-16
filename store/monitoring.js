@@ -6,10 +6,10 @@ export default {
   // Estado inicial do módulo
   state: () => ({
     features: null,
-    urlWmsMonitoring: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
-    geoserverLayerMonitoring: 'CMR-PUBLICO:img_monitoramento_terra_indigena_cr_a',
-    urlWmsMonitoringHeatmap: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
-    geoserverLayerMonitoringHeatmap: 'CMR-PUBLICO:vwm_heatmap_ti_cr_p',
+    urlWmsMonitoring: process.env.GEOSERVER_URL,
+    geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
+    urlWmsMonitoringHeatmap: process.env.GEOSERVER_URL,
+    geoserverLayerMonitoringHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
     resultsHeatmap: [],
     resultsHeatmapOptions: {
       minOpacity: 0.5,
@@ -384,44 +384,45 @@ export default {
     },
 
     // Gera URL para o WMS de monitoramento
- async generateUrlWmsMonitoring({ state, commit }) {
-  const visibleEstagios = Object.keys(state.legendVisibility).filter(
-    estagio => state.legendVisibility[estagio]
-  );
+    async generateUrlWmsMonitoring({ state, commit }) {
+      const visibleEstagios = Object.keys(state.legendVisibility).filter(
+        estagio => state.legendVisibility[estagio]
+      );
 
-  // Se todos os estágios estão desabilitados, configurar uma URL que não retorna dados
-  if (visibleEstagios.length === 0) {
-    commit('setUrlCurrentWmsMonitoring', '');
-    return;
-  }
+      // Se todos os estágios estão desabilitados, configurar uma URL que não retorna dados
+      if (visibleEstagios.length === 0) {
+        commit('setUrlCurrentWmsMonitoring', '');
+        return;
+      }
 
-  const params = {
-    layers: state.geoserverLayerMonitoring,
-    env: `fill-opacity:${state.opacity / 100}`,
-    CQL_FILTER: '',
-    format: 'image/png',
-    transparent: true,
-    version: '1.1.1'
-  };
+      const params = {
+        layers: state.geoserverLayerMonitoring,
 
-  const filters = [];
-  if (visibleEstagios.length) {
-    filters.push(`no_estagio IN ('${visibleEstagios.join("','")}')`);
-  }
+        env: `fill-opacity:${state.opacity / 100}`,
+        CQL_FILTER: '',
+        format: 'image/png',
+        transparent: true,
+        version: '1.1.1'
+      };
 
-  // Mantém os outros filtros existentes
-  if (state.intersectsWmsMonitoring) filters.push(state.intersectsWmsMonitoring);
-  if (state.filters.ti?.length) filters.push(`co_funai IN (${state.filters.ti.map(ti => ti.co_funai).join(',')})`);
-  if (state.filters.cr?.length) filters.push(`co_cr IN (${state.filters.cr.map(cr => cr.co_cr).join(',')})`);
-  if (state.filters.startDate && state.filters.endDate) {
-    filters.push(`dt_t_um BETWEEN '${state.filters.startDate}' AND '${state.filters.endDate}'`);
-  }
+      const filters = [];
+      if (visibleEstagios.length) {
+        filters.push(`no_estagio IN ('${visibleEstagios.join("','")}')`);
+      }
 
-  if (filters.length) params.CQL_FILTER = filters.join(' AND ');
+      // Mantém os outros filtros existentes
+      if (state.intersectsWmsMonitoring) filters.push(state.intersectsWmsMonitoring);
+      if (state.filters.ti?.length) filters.push(`co_funai IN (${state.filters.ti.map(ti => ti.co_funai).join(',')})`);
+      if (state.filters.cr?.length) filters.push(`co_cr IN (${state.filters.cr.map(cr => cr.co_cr).join(',')})`);
+      if (state.filters.startDate && state.filters.endDate) {
+        filters.push(`dt_t_um BETWEEN '${state.filters.startDate}' AND '${state.filters.endDate}'`);
+      }
 
-  const fullUrl = `${state.urlWmsMonitoring}${new URLSearchParams(params)}`;
-  commit('setUrlCurrentWmsMonitoring', fullUrl);
-},
+      if (filters.length) params.CQL_FILTER = filters.join(' AND ');
+
+      const fullUrl = `${state.urlWmsMonitoring}${new URLSearchParams(params)}`;
+      commit('setUrlCurrentWmsMonitoring', fullUrl);
+    },
 
     // Atualiza features no estado
     async updateFeatures({ state, commit }) {
