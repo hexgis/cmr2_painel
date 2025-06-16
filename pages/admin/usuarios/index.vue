@@ -299,6 +299,7 @@
             </v-list-item>
           </v-list>
         </v-menu>
+
          <!-- pesquisa geral -->
          <v-text-field
            v-model="searchAll"

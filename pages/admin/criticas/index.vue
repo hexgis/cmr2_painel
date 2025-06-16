@@ -156,10 +156,8 @@
             <div class="styled-btn">
               <SavePdf :activeCards="filteredCards" />
             </div>
-            <div class="line-separator"></div>
             <div class="styled-btn" @click="downloadCsv" style="cursor: pointer;">
-              <v-img src="/img/icons/file-excel-box.svg"/>
-              <p class="text-center">CSV</p>
+              <v-img src="/img/icons/file-excel-box.png" max-width="50" max-height="50" />
             </div>
           </div>
         </div>

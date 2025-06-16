@@ -1,7 +1,10 @@
 <template>
   <span @click="generatePDF">
-    <v-img src="/img/icons/file-pdf-box.svg" />
-    <p class="text-center">PDF</p>
+    <v-img
+      src="/img/icons/file-pdf-box.png"
+      max-width="50"
+      max-height="50"
+    />
   </span>
 </template>
 
