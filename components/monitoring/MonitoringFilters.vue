@@ -1,110 +1,17 @@
 <template>
-  <v-col class="px-4">
+  <v-col>
+    <BaseFilters
+      filter-type="date"
+      :filters.sync="filters"
+      :error="error"
+      :flattened="flattened"
+      :filter-options="filterOptions"
+      :current-url-wms="currentUrlWmsMonitoring"
+      :features-layer.sync="featuresMonitoring"
+      :loading="loadingMonitoring"
+      @search="searchMonitoring"
+    />
     <!-- Filtros de Pesquisa -->
-    <v-row>
-      <v-col cols="9">
-        <v-checkbox
-          v-model="filters.currentView"
-          :label="$t('current-view-label')"
-          :error="error"
-          hide-details
-        />
-      </v-col>
-      <v-col cols="3">
-        <v-tooltip bottom>
-          <template #activator="{ on }">
-            <div
-              class="d-flex justify-end align-center mt-1"
-              v-on="on"
-            >
-              <v-switch
-                v-if="currentUrlWmsMonitoring"
-                v-model="featuresMonitoring"
-                class="mt-3"
-                hide-details
-              />
-            </div>
-          </template>
-          <span>
-            {{
-              featuresMonitoring
-                ? $t('title-switch-disable-features')
-                : $t('title-switch-enable-features')
-            }}
-          </span>
-        </v-tooltip>
-      </v-col>
-      <v-col cols="12">
-        <v-combobox
-          v-model="filters.cr"
-          :label="$t('regional-coordination-label')"
-          :items="flattened"
-          item-value="co_cr"
-          item-text="ds_cr"
-          hide-details
-          clearable
-          multiple
-          :error="error"
-          class="pa-0"
-          outlined
-        />
-      </v-col>
-      <v-col cols="12">
-        <v-slide-y-transition>
-          <v-combobox
-            v-if="filters.cr && filterOptions.tiFilters"
-            v-model="filters.ti"
-            :label="$t('indigenous-lands-label')"
-            :items="filterOptions.tiFilters"
-            item-text="no_ti"
-            item-value="co_funai"
-            hide-details
-            multiple
-            clearable
-            class="pa-0 mt-n3"
-            outlined
-          />
-        </v-slide-y-transition>
-      </v-col>
-      <v-col
-        cols="6"
-        class="py-0"
-      >
-        <BaseDateField
-          v-model="filters.startDate"
-          :label="$t('start-date-label')"
-          :required="true"
-          outlined
-          :min-date="'2015-01-01'"
-        />
-      </v-col>
-      <v-col
-        cols="6"
-        class="py-0"
-      >
-        <BaseDateField
-          v-model="filters.endDate"
-          :label="$t('end-date-label')"
-          :required="true"
-          outlined
-          :error="error"
-          :min-date="'2015-01-01'"
-        />
-      </v-col>
-      <v-col cols="12">
-        <v-btn
-          block
-          small
-          color="primary"
-          outlined
-          :loading="loadingMonitoring"
-          class="pa-0 mt-n8"
-          @click="searchMonitoring"
-        >
-          {{ $t('search-label') }}
-        </v-btn>
-      </v-col>
-    </v-row>
 
     <!-- Resultados e Controles -->
     <div
@@ -203,14 +110,14 @@
         class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4"
       >
         <span>{{ $t('total-poligono-label') }}:</span>
-        {{ features.features.length }}
+        {{ totalVisiblePolygons }}
       </v-col>
       <v-col
         cols="12"
         class="grey--text text--darken-2 d-flex justify-space-between"
       >
         <span>{{ $t('total-area-label') }}:</span>
-        {{ totalArea }} ha
+        {{ totalVisibleArea }} ha
       </v-col>
       <v-col
         cols="12"
@@ -321,17 +228,17 @@
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';
 import TableDialog from '../table-dialog/TableDialog.vue';
-import BaseDateField from '../base/BaseDateField.vue';
 import DialogConfirmDownload from './DialogConfirmDownload.vue';
 import AnalyticalDialog from '../analytical-dialog/AnalyticalDialog.vue';
+import BaseFilters from '../base/BaseFilters.vue';
 
 export default {
   name: 'MonitoringFilters',
   components: {
     TableDialog,
-    BaseDateField,
     DialogConfirmDownload,
     AnalyticalDialog,
+    BaseFilters,
   },
   data() {
     return {
@@ -372,15 +279,27 @@ export default {
     hasFeatures() {
       return this.features.features.length > 0;
     },
-    totalArea() {
-      if (this.features.features.length) {
-        const total = this.features.features.reduce(
-          (sum, feature) => sum + ((feature.properties && feature.properties.nu_area_ha) || 0),
-          0,
-        );
-        return this.formatFieldValue(total, 'nu_area_ha');
+    totalVisiblePolygons() {
+      if (!this.features.features.length) return 0;
+      const visibleEstagios = Object.keys(this.$store.state.monitoring.legendVisibility)
+        .filter(estagio => this.$store.state.monitoring.legendVisibility[estagio]);
+      return this.features.features.filter(feature =>
+        visibleEstagios.includes(feature.properties.no_estagio)
+      ).length;
+    },
+    totalVisibleArea() {
+      if (!this.features.features.length) {
+        return this.formatFieldValue(0, 'nu_area_ha');
       }
-      return this.formatFieldValue(0, 'nu_area_ha');
+      const visibleEstagios = Object.keys(this.$store.state.monitoring.legendVisibility)
+        .filter(estagio => this.$store.state.monitoring.legendVisibility[estagio]);
+      const total = this.features.features
+        .filter(feature => visibleEstagios.includes(feature.properties.no_estagio))
+        .reduce((sum, feature) =>
+          sum + ((feature.properties && feature.properties.nu_area_ha) || 0),
+          0
+        );
+      return this.formatFieldValue(total, 'nu_area_ha');
     },
     formattedTableMonitoring() {
       if (!this.tableMonitoring || !this.tableMonitoring.length) {
@@ -437,19 +356,21 @@ export default {
     ]),
   },
   watch: {
-    'filters.currentView': function filtersCurrentViewWatcher(value) {
+    'filters.currentView': function (value) {
       if (value && this.filters.cr.length > 0) {
-        this.filters.cr = []; // Limpa o v-combobox se o checkbox for marcado
+        this.filters.cr = [];
+        this.emitFilters();
       }
     },
-    'filters.cr': function filtersCrWatcher(value) {
+    'filters.cr': function (value) {
       if (value.length > 0 && this.filters.currentView) {
-        this.filters.currentView = false; // Desmarca o checkbox se algo for selecionado no combobox
+        this.filters.currentView = false;
+        this.emitFilters();
       }
       const arrayCrPopulate = value.map((item) => item.co_cr);
       this.populateTiOptions(arrayCrPopulate);
     },
-    'filterOptions.regionalFilters': function filterOptionsRegionalFiltersWatcher() {
+    'filterOptions.regionalFilters': function () {
       this.populateCrOptions();
     },
     opacity() {
@@ -457,10 +378,14 @@ export default {
     },
   },
   mounted() {
+    console.log('featuresMonitoring:', this.featuresMonitoring);
     this.getFilterOptions();
     this.getMonitoringStyleFromGeoserver();
   },
   methods: {
+    emitFilters() {
+      this.$emit('update:filters', { ...this.filters });
+    },
     debounce(func, wait) {
       let timeout;
       return (...args) => {
@@ -595,46 +520,36 @@ export default {
     closeAnalyticalDialog(value) {
       this.dialog = value;
     },
-    toggleLegendItem(item) {
-      return this.debounce(async () => {
-        try {
-          // Tenta acessar a instância do mapa
-          const map = window.mapMain;
-          let currentZoom = null;
-          let currentCenter = null;
+    async toggleLegendItem(item) {
+      try {
+        this.$set(this.loadingEstagios, item.estagio, true);
 
-          // Verifica se o mapa está disponível
-          if (map && typeof map.getZoom === 'function' && typeof map.getCenter === 'function') {
-            currentZoom = map.getZoom();
-            currentCenter = map.getCenter();
-          } else {
-            console.warn('Instância do mapa não está disponível. O zoom não será preservado.');
-          }
+        // Salva o estado atual do mapa
+        const map = window.mapMain;
+        const currentZoom = map?.getZoom();
+        const currentCenter = map?.getCenter();
 
-          // Marca o item como carregando
-          this.$set(this.loadingEstagios, item.estagio, true);
+        // Alterna a visibilidade sem refazer toda a pesquisa
+        await this.$store.dispatch('monitoring/toggleLegendVisibility', {
+          estagio: item.estagio,
+          visible: item.visible
+        });
 
-          // Dispara a ação de alternar visibilidade no Vuex
-          await this.$store.dispatch('monitoring/toggleLegendVisibility', {
-            estagio: item.estagio,
-            visible: item.visible,
-          });
-
-          // Restaura o estado do mapa, se disponível
-          if (map && currentZoom !== null && currentCenter !== null) {
-            map.setView(currentCenter, currentZoom);
-          }
-        } catch (error) {
-          console.error('Erro ao alternar visibilidade do estágio:', error);
-          // Reverte a visibilidade em caso de erro
-          const revertedItem = { ...item, visible: !item.visible };
-          const idx = this.legendItems.findIndex((i) => i.estagio === item.estagio);
-          this.$set(this.legendItems, idx, revertedItem);
-        } finally {
-          // Remove o estado de carregamento
-          this.$set(this.loadingEstagios, item.estagio, false);
+        // Restaura a visualização do mapa
+        if (map && currentZoom && currentCenter) {
+          map.setView(currentCenter, currentZoom);
         }
-      }, 300)();
+
+      } catch (error) {
+        console.error('Erro ao alternar estágio:', error);
+        // Reverte a mudança em caso de erro
+        this.$store.commit('monitoring/setLegendVisibility', {
+          estagio: item.estagio,
+          visible: !item.visible
+        });
+      } finally {
+        this.$set(this.loadingEstagios, item.estagio, false);
+      }
     },
     ...mapMutations('monitoring', ['setFilters', 'setLoadingStatistic', 'setanalyticsMonitoringDialog']),
     ...mapActions('monitoring', [

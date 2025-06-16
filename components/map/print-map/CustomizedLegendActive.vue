@@ -178,10 +178,10 @@ p
       "village": "Vilarejo (VI)"
     },
      "monitoring-categories": {
-      "recovery-deforestation": "Desmatamento em Regeneração",
-      "forest-fire": "Fogo em Floresta",
-      "degradation": "Degradação",
-      "clear-cutting": "Corte Raso"
+      "recovery-deforestation": "Desmatamento Regeneração (DR)",
+      "forest-fire": "Fogo em Floresta (FF)",
+      "degradation": "Degradação (DR)",
+      "clear-cutting": "Corte Raso (CR)"
     }
   }
 }

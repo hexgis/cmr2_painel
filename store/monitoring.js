@@ -384,36 +384,44 @@ export default {
     },
 
     // Gera URL para o WMS de monitoramento
-    async generateUrlWmsMonitoring({ state, commit }) {
-      const params = {
-        layers: state.geoserverLayerMonitoring,
-        env: `fill-opacity:${state.opacity / 100}`,
-        CQL_FILTER: '',
-        format: 'image/png',
-        transparent: true,
-        version: '1.1.1',
-      };
+ async generateUrlWmsMonitoring({ state, commit }) {
+  const visibleEstagios = Object.keys(state.legendVisibility).filter(
+    estagio => state.legendVisibility[estagio]
+  );
 
-      const filters = [];
-      const visibleEstagios = Object.keys(state.legendVisibility).filter(
-        (estagio) => state.legendVisibility[estagio]
-      );
+  // Se todos os estágios estão desabilitados, configurar uma URL que não retorna dados
+  if (visibleEstagios.length === 0) {
+    commit('setUrlCurrentWmsMonitoring', '');
+    return;
+  }
 
-      if (visibleEstagios.length > 0) {
-        filters.push(`no_estagio IN ('${visibleEstagios.join("','")}')`);
-      }
-      if (state.intersectsWmsMonitoring) filters.push(state.intersectsWmsMonitoring);
-      if (state.filters.ti?.length) filters.push(`co_funai IN (${state.filters.ti.map(ti => ti.co_funai).join(',')})`);
-      if (state.filters.cr?.length) filters.push(`co_cr IN (${state.filters.cr.map(cr => cr.co_cr).join(',')})`);
-      if (state.filters.startDate && state.filters.endDate) {
-        filters.push(`dt_t_um BETWEEN '${state.filters.startDate}' AND '${state.filters.endDate}'`);
-      }
+  const params = {
+    layers: state.geoserverLayerMonitoring,
+    env: `fill-opacity:${state.opacity / 100}`,
+    CQL_FILTER: '',
+    format: 'image/png',
+    transparent: true,
+    version: '1.1.1'
+  };
 
-      if (filters.length) params.CQL_FILTER = filters.join(' AND ');
+  const filters = [];
+  if (visibleEstagios.length) {
+    filters.push(`no_estagio IN ('${visibleEstagios.join("','")}')`);
+  }
 
-      const fullUrl = `${state.urlWmsMonitoring}${new URLSearchParams(params)}`;
-      commit('setUrlCurrentWmsMonitoring', fullUrl);
-    },
+  // Mantém os outros filtros existentes
+  if (state.intersectsWmsMonitoring) filters.push(state.intersectsWmsMonitoring);
+  if (state.filters.ti?.length) filters.push(`co_funai IN (${state.filters.ti.map(ti => ti.co_funai).join(',')})`);
+  if (state.filters.cr?.length) filters.push(`co_cr IN (${state.filters.cr.map(cr => cr.co_cr).join(',')})`);
+  if (state.filters.startDate && state.filters.endDate) {
+    filters.push(`dt_t_um BETWEEN '${state.filters.startDate}' AND '${state.filters.endDate}'`);
+  }
+
+  if (filters.length) params.CQL_FILTER = filters.join(' AND ');
+
+  const fullUrl = `${state.urlWmsMonitoring}${new URLSearchParams(params)}`;
+  commit('setUrlCurrentWmsMonitoring', fullUrl);
+},
 
     // Atualiza features no estado
     async updateFeatures({ state, commit }) {
@@ -788,15 +796,23 @@ export default {
     },
 
     // Alterna visibilidade da legenda
-    async toggleLegendVisibility({ commit, dispatch, state }, { estagio, visible }) {
-      commit('setLegendVisibility', { estagio, visible });
-      await dispatch('generateUrlWmsMonitoring');
-      await dispatch('fetchMonitoringFeatures');
+  async toggleLegendVisibility({ commit, dispatch, state }, { estagio, visible }) {
+  try {
+    commit('setLegendVisibility', { estagio, visible });
 
-      if (state.heatMap) {
-        await dispatch('generateHeatmapMonitoring', true);
-      }
-    },
+    // Atualiza apenas a URL do WMS sem refazer toda a pesquisa
+    await dispatch('generateUrlWmsMonitoring');
+
+    // Se heatmap estiver ativo, atualiza apenas ele
+    if (state.heatMap) {
+      await dispatch('generateHeatmapMonitoring', true);
+    }
+
+  } catch (error) {
+    console.error('Erro ao alternar visibilidade:', error);
+    throw error;
+  }
+},
 
     // Função genérica para buscar dados analíticos
     async getDataAnalyticsMonitoring({ commit, state, rootGetters }, groupingKey) {

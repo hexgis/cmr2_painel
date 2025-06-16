@@ -40,7 +40,7 @@
               id="data-table"
               class="leaflet-bottom leaflet-right"
             >
-              <template v-if="teste >= 0 && teste <= 7">
+              <template v-if="hasActiveMonitoringStages && teste >= 0 && teste <= 7">
                 <!-- Bloco para Monitoramento -->
                 <div
                   v-for="(item, index) in filteredMonitoringData"
@@ -48,7 +48,7 @@
                   class="text-center bordered-red"
                 >
                   <p>
-                    <strong>TI {{ item.no_ti }} - Monitoramento</strong>
+                    <strong>TI {{ item.no_ti }}</strong>
                   </p>
                   <p v-if="parseFloat(item.nu_area_ha) > 0">
                     Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
@@ -66,7 +66,8 @@
                     FF: {{ formatNumber(item.monitoring.nu_area_ff_ha) }} ha
                   </p>
                 </div>
-
+              </template>
+              <template v-if="showFeaturesLandUse && teste >= 0 && teste <= 7">
                 <!-- Bloco para Uso e Ocupação do Solo -->
                 <div
                   v-for="(item, index) in filteredLandUseData"
@@ -74,7 +75,7 @@
                   class="text-center bordered-blue"
                 >
                   <p>
-                    <strong>TI {{ item.no_ti }} - Uso e Ocupação do Solo</strong>
+                    <strong>TI {{ item.no_ti }}</strong>
                   </p>
                   <p v-if="parseFloat(item.nu_area_ha) > 0">
                     Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
@@ -211,7 +212,7 @@
                           align-items: flex-start;
                           gap: 5px;"
                       >
-                        <div v-if="showFeaturesMonitoring && monitoringCount > 0">
+                        <div v-if="showFeaturesMonitoring && hasActiveMonitoringStages">
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>
@@ -650,6 +651,9 @@ export default {
   }),
 
   computed: {
+    hasActiveMonitoringStages() {
+      return Object.values(this.legendVisibility).some((visible) => visible);
+    },
     filteredMonitoringData() {
       return this.combinedTableData.filter(
         (item) => item.monitoring
@@ -828,6 +832,7 @@ export default {
       showFeaturesMonitoring: (state) => state.monitoring.showFeaturesMonitoring,
       monitoringFeatures: (state) => state.monitoring.features,
       tableMonitoring: (state) => state.monitoring.tableMonitoring,
+      legendVisibility: (state) => state.monitoring.legendVisibility,
       showFeaturesProdes: (state) => state.prodes.showFeaturesProdes,
       prodesFeatures: (state) => state.prodes.features,
       showFeaturesDeter: (state) => state.deter.showFeaturesDeter,
