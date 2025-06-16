@@ -29,16 +29,6 @@
           />
       </v-col>
       <v-col class="d-flex flex-column justify-space-between">
-        <v-btn
-          color="error"
-          dark
-          rounded
-          class="px-4 py-2"
-          @click="showModal = true"
-        >
-          {{ $t('addNewUser') }}
-          <v-icon right>mdi-plus</v-icon>
-        </v-btn>
         <CustomDialog
           v-model="showModal"
           title="Novo Usuário"
@@ -85,28 +75,7 @@
             </v-form>
           </v-card-text>
         </CustomDialog>
-        <div class="export-container">
-          <div class="export-label text-uppercase font-weight-bold">
-            {{ $t('export') }} {{ $t('as') }}
-          </div>
-          <div class="export-actions">
-            <SavePdfUser :users="filteredUsers">
-              <template #activator="{ on, attrs }">
-                  <i class="fas fa-file-pdf fa-2x"></i>
-              </template>
-            </SavePdfUser>
-            <v-btn
-              x-large
-              @click="generateCSV"
-            >
-      <v-img
-      src="/img/icons/file-excel-box.png"
-      max-width="50"
-      max-height="50"
-    />
-            </v-btn>
-          </div>
-        </div>
+
         <CustomDialog
           v-model="showLogsModal"
           title="Logs do Usuário"
@@ -276,44 +245,101 @@
 
 
       <div class="d-flex justify-space-between align-center mb-2">
+        <div class="d-flex align-center">
+          <!-- botão para escolher colunas -->
+          <v-menu offset-y>
+            <template #activator="{ on, attrs }">
+              <v-btn text small v-bind="attrs" v-on="on">
+                Selecionar colunas
+                <v-icon right>mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list dense>
+              <v-list-item v-for="h in headers" :key="h.value">
+                <v-list-item-action>
+                  <v-checkbox
+                    v-model="visibleColumns"
+                    :value="h.value"
+                    dense
+                    hide-details
+                  />
+                </v-list-item-action>
+                <v-list-item-content>
+                  <v-list-item-title>{{ h.text }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-menu>
 
-        <!-- botão para escolher colunas -->
-        <v-menu offset-y>
-          <template #activator="{ on, attrs }">
-            <v-btn text small v-bind="attrs" v-on="on">
-              Selecionar colunas
-              <v-icon right>mdi-chevron-down</v-icon>
-            </v-btn>
-          </template>
-          <v-list dense>
-            <v-list-item v-for="h in headers" :key="h.value">
-              <v-list-item-action>
-                <v-checkbox
-                  v-model="visibleColumns"
-                  :value="h.value"
-                  dense
-                  hide-details
-                />
-              </v-list-item-action>
-              <v-list-item-content>
-                <v-list-item-title>{{ h.text }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+          <!-- pesquisa geral -->
+          <v-text-field
+            v-model="searchAll"
+            placeholder="Pesquisar tudo"
+            append-icon="mdi-magnify"
+            clearable
+            dense
+            outlined
+            hide-details
+            class="ml-4"
+            style="width: 350px;"
+            @click.stop
+          />
 
-         <!-- pesquisa geral -->
-         <v-text-field
-           v-model="searchAll"
-           placeholder="Pesquisar tudo"
-           append-icon="mdi-magnify"
-           clearable
-           dense
-           outlined
-           hide-details
-           class="ml-4"
-           @click.stop
-         />
+          <!-- Export section -->
+          <div class="d-flex align-center ml-3">
+
+            <!-- Export icons -->
+            <div class="export-icons">
+               <div class="export-label text-uppercase mr-2">
+              {{ $t('export') }}
+            </div>
+              <SavePdfUser :users="filteredUsers">
+                <template #activator="{ on, attrs }">
+                  <v-btn
+                    icon
+                    color="#D92B3F"
+                    v-bind="attrs"
+                    v-on="on"
+                    class="mr-2"
+                  >
+                    <v-icon>mdi-file-pdf-box</v-icon>
+                  </v-btn>
+                </template>
+              </SavePdfUser>
+
+              <v-tooltip top>
+                <template #activator="{ on, attrs }">
+                  <v-btn
+                    icon
+                    color="#43A047"
+                    @click="generateCSV"
+                    class="mr-3"
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-icon size="40">mdi-file-excel-box</v-icon>
+                  </v-btn>
+                </template>
+                <span>CSV</span>
+              </v-tooltip>
+            </div>
+          </div>
+        </div>
+
+        <!-- botão adicionar novo usuário -->
+        <v-btn
+          color="error"
+          dark
+          rounded
+          class="add-user-btn"
+          :class="{ 'collapsed': isButtonCollapsed }"
+          @click="showModal = true"
+          @mouseenter="expandButton"
+          @mouseleave="collapseButtonIfNeeded"
+        >
+          <v-icon>mdi-plus</v-icon>
+          <span class="button-text ml-2">{{ $t('addNewUser') }}</span>
+        </v-btn>
       </div>
 
       <v-data-table
@@ -509,7 +535,7 @@
             </v-tooltip>
             <v-tooltip top>
               <template #activator="{ on, attrs }">
-                <v-btn icon small color="primary" v-bind="attrs" v-on="on" @click="openLogsDialog(item)">
+                <v-btn icon small color="grey darken-2" v-bind="attrs" v-on="on" @click="openLogsDialog(item)">
                   <v-icon>mdi-menu</v-icon>
                 </v-btn>
               </template>
@@ -541,8 +567,7 @@
         "en": {
         "manageUsers": "Manage Users",
         "addNewUser": "Add new user",
-        "export": "Export",
-        "as": "As",
+        "export": "Export:",
         "noFileSelected": "No file selected",
         "attachFile": "Attach File",
         "approveRequestCreation": "Approve request upon creation",
@@ -561,8 +586,7 @@
         "pt-br": {
         "manageUsers": "Gerenciar Usuários",
         "addNewUser": "Adicionar novo usuário",
-        "export": "Exportar",
-        "as": "Como",
+        "export": "Exportar:",
         "noFileSelected": "Nenhum arquivo selecionado",
         "attachFile": "Anexar Arquivo",
         "approveRequestCreation": "Deferir solicitação na criação",
@@ -665,6 +689,8 @@ export default {
       searchUsername: '',
       searchEmail: '',
       searchAll: '',
+      isButtonCollapsed: true,
+      buttonCollapseTimeout: null,
     };
   },
   watch: {
@@ -719,6 +745,12 @@ export default {
     await this.fetchInstitutionList();
     await this.fetchRoles();
     this.fetchUsers();
+
+    // Start with button expanded for 2 seconds, then collapse
+    this.isButtonCollapsed = false;
+    setTimeout(() => {
+      this.isButtonCollapsed = true;
+    }, 2000);
   },
 
   methods: {
@@ -985,6 +1017,20 @@ export default {
       URL.revokeObjectURL(link.href);
     },
 
+    expandButton() {
+      if (this.buttonCollapseTimeout) {
+        clearTimeout(this.buttonCollapseTimeout);
+        this.buttonCollapseTimeout = null;
+      }
+      this.isButtonCollapsed = false;
+    },
+
+    collapseButtonIfNeeded() {
+      this.buttonCollapseTimeout = setTimeout(() => {
+        this.isButtonCollapsed = true;
+      }, 500);
+    },
+
     ...mapActions('admin', ['fetchInstitutionList']),
   }
 };
@@ -1036,6 +1082,8 @@ export default {
     letter-spacing: 0.5px // Adjusted for better visual
     margin-bottom: 0.5rem // Space between label and buttons
     font-size: 0.8rem // Slightly smaller label
+    display: flex
+    align-items: center
 
 .export-actions
     display: flex
@@ -1060,4 +1108,32 @@ export default {
 .csv-btn
     background-color: #5CB85C !important // Bootstrap's btn-success color
     color: #fff
+
+.add-user-btn
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)
+  overflow: hidden
+  white-space: nowrap
+  min-width: 40px
+  padding: 8px 16px
+
+  .button-text
+    transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), margin 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)
+    opacity: 1
+    transform: translateX(0)
+    margin-left: 8px
+
+  &.collapsed
+    padding: 8px
+
+    .button-text
+      opacity: 0
+      width: 0
+      margin: 0
+      transform: translateX(-20px)
+      margin-left: 0
+
+.export-icons
+  display: flex
+  align-items: center
+  gap: 0.25rem
 </style>
