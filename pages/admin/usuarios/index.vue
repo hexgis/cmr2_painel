@@ -275,7 +275,6 @@
     </div>
 
 
-    <v-card class="mt-4 pa-4">
       <div class="d-flex justify-space-between align-center mb-2">
 
         <!-- botão para escolher colunas -->
@@ -310,6 +309,7 @@
            append-icon="mdi-magnify"
            clearable
            dense
+           outlined
            hide-details
            class="ml-4"
            @click.stop
@@ -516,8 +516,23 @@
               <span>Logs</span>
             </v-tooltip>
           </template>
+          <template #item.is_active="{ item }">
+            <div class="d-flex align-center">
+              <v-icon :color="item.is_active ? 'green' : 'red'" small>
+                {{ item.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
+              </v-icon>
+              <span class="ml-2">{{ item.is_active ? 'Ativo' : 'Inativo' }}</span>
+            </div>
+          </template>
+          <template #item.is_staff="{ item }">
+              <div class="d-flex align-center">
+                <v-icon :color="item.is_staff ? '#F58A1F' : 'grey'" small>
+                  {{ item.is_staff ? 'mdi-account-star' : 'mdi-account' }}
+                </v-icon>
+                <span class="ml-2">{{ item.is_staff ? 'Sim' : 'Não' }}</span>
+              </div>
+           </template>
       </v-data-table>
-    </v-card>
   </div>
 </template>
 
@@ -1045,26 +1060,4 @@ export default {
 .csv-btn
     background-color: #5CB85C !important // Bootstrap's btn-success color
     color: #fff
-
-// Remove the old .export-btn styling if it's no longer needed globally
-// or adjust if it was meant for other elements.
-// For now, I'm assuming the new .export-btn styles are specific to these buttons.
-
-// .export-btn (old one, if it exists and is different)
-// display: inline-flex
-// align-items: center
-// padding: 0.5rem 1rem
-// border-radius: 4px
-// cursor: pointer
-
-//   v-icon
-//       margin-right: 0.5rem
-
-// .pdf-btn (old one)
-//   background-color: #E53935
-//   color: #fff
-
-// .csv-btn (old one)
-//   background-color: #43A047
-//   color: #fff
 </style>
