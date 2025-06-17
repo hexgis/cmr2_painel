@@ -643,7 +643,7 @@
             <v-tooltip top>
               <template #activator="{ on, attrs }">
                 <v-btn icon small color="grey darken-2" v-bind="attrs" v-on="on" @click="openLogsDialog(item)">
-                  <v-icon>mdi-menu</v-icon>
+                  <v-icon>mdi-clock-outline</v-icon>
                 </v-btn>
               </template>
               <span>Logs</span>
