@@ -40,7 +40,10 @@
               id="data-table"
               class="leaflet-bottom leaflet-right"
             >
-              <template v-if="hasActiveMonitoringStages && teste >= 0 && teste <= 7">
+              <template
+                v-if="showFeaturesMonitoring
+                  && hasActiveMonitoringStages && teste >= 0 && teste <= 7"
+              >
                 <!-- Bloco para Monitoramento -->
                 <div
                   v-for="(item, index) in filteredMonitoringData"
