@@ -1,18 +1,53 @@
 <template>
-  <v-dialog v-model="dialog" :width="width" persistent>
+  <v-dialog
+    v-model="dialog"
+    :width="width"
+    persistent
+  >
     <v-card>
-      <v-card-title class="headline d-flex justify-space-between" color="#D92B3F">
-          <p class="mb-0 text-subtitle-1 font-weight-bold">{{ title }}</p>
-        <v-icon class="ml-auto" @click="closeDialog" color="white">mdi-close</v-icon>
+      <v-card-title
+        class="headline d-flex justify-space-between"
+        color="#D92B3F"
+      >
+        <p class="mb-0 text-subtitle-1 font-weight-bold">
+          {{ title }}
+        </p>
+        <v-icon
+          class="ml-auto"
+          color="white"
+          @click="closeDialog"
+        >
+          mdi-close
+        </v-icon>
       </v-card-title>
       <v-card-text>
-        <slot><p class="mt-5">{{ content }}</p></slot>
+        <slot>
+          <p class="mt-5">
+            {{ content }}
+          </p>
+        </slot>
       </v-card-text>
       <v-card-actions v-if="hasCta">
-          <v-spacer></v-spacer>
-          <v-btn color="#9A9997" plain @click="dialog = false">{{ $t('cancel') }}</v-btn>
-          <v-btn id="save-btn" color="#D92B3F" :disabled="!saveActive" style="color: #FFFFFF" elevated @click="$emit('save')">{{ $t('save') }}</v-btn>
-        </v-card-actions>
+        <v-spacer />
+
+        <v-btn
+          color="#9A9997"
+          plain
+          @click="dialog = false"
+        >
+          {{ $t('cancel') }}
+        </v-btn>
+        <v-btn
+          id="save-btn"
+          color="#D92B3F"
+          :disabled="!saveActive"
+          style="color: #FFFFFF"
+          elevated
+          @click="$emit('save')"
+        >
+          {{ $t('save') }}
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
@@ -37,7 +72,7 @@ export default {
       required: true,
     },
     content: {
-      type: [ Object, String ],
+      type: [Object, String],
       default: '',
     },
     width: {
@@ -49,15 +84,15 @@ export default {
     },
     hasCta: {
       type: Boolean,
-      required: true
+      required: true,
     },
-    saveBtn:{
+    saveBtn: {
       type: [Function, Promise],
     },
     saveActive: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   computed: {
     dialog: {

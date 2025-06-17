@@ -1,6 +1,7 @@
 <template>
   <div class="user">
     <span class="d-flex align-center justify-space-between">
+
       <h1>{{ $t('manageUsers') }}</h1>
       <v-tooltip bottom>
         <template #activator="{ on, attrs }">
@@ -19,29 +20,15 @@
     </span>
     <v-row class="mt-4">
       <v-col>
-        <v-card
-          class="pa-5 pb-2"
-          style="max-width: 750px"
-        >
+
           <GraphicBar
             v-for="(category, index) in storeCategories"
             :key="index"
             :category="category"
             :max-value="totalValue"
           />
-        </v-card>
       </v-col>
       <v-col class="d-flex flex-column justify-space-between">
-        <v-btn
-          color="#FFCE03"
-          width="100%"
-          class="pa-5"
-          @click="showModal = true"
-        >
-          <strong>{{ $t('addNewUser') }}</strong>
-          <v-spacer />
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>
         <CustomDialog
           v-model="showModal"
           title="Novo Usuário"
@@ -59,12 +46,14 @@
                 <v-text-field
                   v-model="newUser.username"
                   label="Nome"
+                  outlined
                   :rules="[requiredRule]"
                 />
                 <v-spacer />
                 <v-text-field
                   v-model="newUser.email"
                   label="E-mail"
+                  outlined
                   :rules="[requiredRule, emailRule]"
                 />
               </v-row>
@@ -73,6 +62,7 @@
                 :label="$t('institution')"
                 :items="institutionList"
                 item-text="name"
+                outlined
                 item-value="id"
                 :rules="[requiredRule]"
                 required
@@ -88,27 +78,216 @@
             </v-form>
           </v-card-text>
         </CustomDialog>
-        <div class="d-flex justify-space-between align-center">
-          <p class="text-uppercase">
-            <strong>{{ $t('export') }}</strong> {{ $t('as') }}
-          </p>
-          <div class="d-flex">
-            <div class="styled-btn">
-              <SavePdfUser :users="filteredUsers" />
-            </div>
-            <div class="line-separator" />
-            <div
-              class="styled-btn"
-              style="cursor: pointer"
-              @click="generateCSV"
-            >
-              <v-img src="/img/icons/file-excel-box.svg" />
-              <p class="text-center">
-                CSV
-              </p>
-            </div>
-          </div>
-        </div>
+
+        <CustomDialog
+          v-model="showLogsModal"
+          title="Logs do Usuário"
+          width="1400"
+          :has-cta="false"
+        >
+          <!-- Tabs navigation similar to the image -->
+          <v-tabs
+            v-model="activeTab"
+            color="primary"
+            background-color="grey lighten-4"
+            show-arrows
+          >
+            <v-tab class="text-capitalize">
+              Dados Cadastrais
+            </v-tab>
+            <v-tab class="text-capitalize">
+              Registro de Acessos do Usuário e seus Papéis de Acesso
+            </v-tab>
+          </v-tabs>
+
+          <v-tabs-items v-model="activeTab">
+            <!-- Tab 1: Dados Cadastrais -->
+            <v-tab-item>
+              <v-card-text>
+                <div class="d-flex justify-space-between align-center mb-2">
+                  <div class="d-flex align-center">
+                    <!-- Search field -->
+                    <v-text-field
+                      v-model="searchLogs"
+                      placeholder="Pesquisar nos dados cadastrais"
+                      append-icon="mdi-magnify"
+                      clearable
+                      dense
+                      outlined
+                      hide-details
+                      style="width: 300px;"
+                    />
+
+                    <!-- Export buttons -->
+                    <div class="d-flex align-center ml-3">
+                      <div class="export-label text-uppercase mr-2">
+                        Exportar:
+                      </div>
+                      <v-tooltip top>
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            color="#D92B3F"
+                            v-bind="attrs"
+                            v-on="on"
+                            class="mr-2"
+                            @click="generateLogsPDF"
+                          >
+                            <v-icon size="30">mdi-file-pdf-box</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>PDF</span>
+                      </v-tooltip>
+
+                      <v-tooltip top>
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            color="#43A047"
+                            @click="generateLogsCSV"
+                            v-bind="attrs"
+                            v-on="on"
+                          >
+                            <v-icon size="30">mdi-file-excel-box</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>CSV</span>
+                      </v-tooltip>
+                    </div>
+                  </div>
+                </div>
+
+                <v-data-table
+                  :headers="logsHeaders"
+                  :items="filteredUserLogs"
+                  class="elevation-1"
+                  dense
+                  :search="searchLogs"
+                  :items-per-page="10"
+                >
+                  <template #item.action_time="{ item }">
+                    {{ new Date(item.action_time).toLocaleString('pt-BR') }}
+                  </template>
+                  <template #item.is_active="{ item }">
+                    <div class="d-flex align-center">
+                      <v-icon
+                        :color="item.is_active ? 'green' : 'red'"
+                        small
+                      >
+                        {{ item.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                      </v-icon>
+                      <span class="ml-2">{{ item.is_active ? 'Ativo' : 'Inativo' }}</span>
+                    </div>
+                  </template>
+                </v-data-table>
+
+                <div
+                  v-if="!userLogs || !userLogs.length"
+                  class="text-center mt-4"
+                >
+                  Nenhum log encontrado para este usuário.
+                </div>
+              </v-card-text>
+            </v-tab-item>
+
+            <!-- Tab 2: Registro de Acessos -->
+            <v-tab-item>
+              <v-card-text>
+                <div class="d-flex justify-space-between align-center mb-2">
+                  <div class="d-flex align-center">
+                    <!-- Search field -->
+                    <v-text-field
+                      v-model="searchAccess"
+                      placeholder="Pesquisar nos registros de acesso"
+                      append-icon="mdi-magnify"
+                      clearable
+                      dense
+                      outlined
+                      hide-details
+                      style="width: 300px;"
+                    />
+
+                    <!-- Export buttons -->
+                    <div class="d-flex align-center ml-3">
+                      <div class="export-label text-uppercase mr-2">
+                        Exportar:
+                      </div>
+                      <v-tooltip top>
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            color="#D92B3F"
+                            v-bind="attrs"
+                            v-on="on"
+                            class="mr-2"
+                            @click="generateAccessPDF"
+                          >
+                            <v-icon size="30">mdi-file-pdf-box</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>PDF</span>
+                      </v-tooltip>
+
+                      <v-tooltip top>
+                        <template #activator="{ on, attrs }">
+                          <v-btn
+                            icon
+                            color="#43A047"
+                            @click="generateAccessCSV"
+                            v-bind="attrs"
+                            v-on="on"
+                          >
+                            <v-icon size="30">mdi-file-excel-box</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>CSV</span>
+                      </v-tooltip>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Login History Table -->
+                <h3 class="mb-3">Histórico de Login</h3>
+                <v-data-table
+                  :headers="loginHeaders"
+                  :items="filteredUserLoginHistory"
+                  class="elevation-1 mb-6"
+                  dense
+                  :search="searchAccess"
+                  :items-per-page="5"
+                >
+                  <template #item.last_date_login="{ item }">
+                    {{ item.last_date_login }}
+                  </template>
+                </v-data-table>
+
+                <div v-if="!userLoginHistory.length" class="text-center mb-4">
+                  Nenhum histórico de login encontrado.
+                </div>
+
+                <!-- Role Changes Table -->
+                <h3 class="mb-3">Histórico de Alterações de Papéis de Acesso</h3>
+                <v-data-table
+                  :headers="roleChangesHeaders"
+                  :items="filteredUserRoleChanges"
+                  class="elevation-1"
+                  dense
+                  :search="searchAccess"
+                  :items-per-page="5"
+                >
+                  <template #item.changed_at="{ item }">
+                    {{ item.changed_at }}
+                  </template>
+                </v-data-table>
+
+                <div v-if="!userRoleChanges.length" class="text-center mt-4">
+                  Nenhuma alteração de grupo encontrada para este usuário.
+                </div>
+              </v-card-text>
+            </v-tab-item>
+          </v-tabs-items>
+        </CustomDialog>
+
         <CustomDialog
           v-model="showModalEdit"
           title="Editar Usuário"
@@ -125,12 +304,14 @@
               <v-row class="pa-3">
                 <v-text-field
                   v-model="editUserData.username"
+                  outlined
                   label="Nome"
                   :rules="[requiredRule]"
                 />
                 <v-spacer />
                 <v-text-field
                   v-model="editUserData.email"
+                  outlined
                   label="E-mail"
                   :rules="[requiredRule, emailRule]"
                 />
@@ -139,6 +320,7 @@
                 v-model="editUserData.institution_id"
                 :label="$t('institution')"
                 :items="institutionList"
+                outlined
                 item-text="name"
                 item-value="id"
                 :rules="[requiredRule]"
@@ -161,76 +343,329 @@
         </CustomDialog>
       </v-col>
     </v-row>
-    <div class="filter mt-4 mb-4">
-      <StatusFilterUser
-        @toggle-filters="toggleFilters"
-        @filters-changed="applyFilters"
-      />
-    </div>
     <div
       v-if="showFilters"
       class="search mt-4"
     >
       <SearchFiltersUser :filters="filters" />
     </div>
-    <div class="card--wrapper">
-      <v-card>
-        <v-card-title>
-          Usuários
-          <v-spacer />
+
+
+      <div class="d-flex justify-space-between align-center mb-2">
+        <div class="d-flex align-center">
+          <!-- botão para escolher colunas -->
+          <v-menu offset-y>
+            <template #activator="{ on, attrs }">
+              <v-btn text small v-bind="attrs" v-on="on">
+                Selecionar colunas
+                <v-icon right>mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list dense>
+              <v-list-item v-for="h in headers" :key="h.value">
+                <v-list-item-action>
+                  <v-checkbox
+                    v-model="visibleColumns"
+                    :value="h.value"
+                    dense
+                    hide-details
+                  />
+                </v-list-item-action>
+                <v-list-item-content>
+                  <v-list-item-title>{{ h.text }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+
+          <!-- pesquisa geral -->
           <v-text-field
-            v-model="search"
+            v-model="searchAll"
+            placeholder="Pesquisar tudo"
             append-icon="mdi-magnify"
-            label="Search"
-            single-line
+            clearable
+            dense
+            outlined
             hide-details
+            class="ml-4"
+            style="width: 350px;"
+            @click.stop
           />
-        </v-card-title>
-        <v-data-table
-          v-if="filteredUsers.length"
-          :headers="headers"
-          :items="filteredUsers"
-          class="elevation-1 mt-4"
-          dense
-          :search="search"
+
+          <!-- Export section -->
+          <div class="d-flex align-center ml-3">
+
+            <!-- Export icons -->
+            <div class="export-icons">
+               <div class="export-label text-uppercase mr-2">
+              {{ $t('export') }}
+            </div>
+              <SavePdfUser :users="filteredUsers">
+                <template #activator="{ on, attrs }">
+                  <v-btn
+                    icon
+                    color="#D92B3F"
+                    v-bind="attrs"
+                    v-on="on"
+                    class="mr-2"
+                  >
+                    <v-icon>mdi-file-pdf-box</v-icon>
+                  </v-btn>
+                </template>
+              </SavePdfUser>
+
+              <v-tooltip top>
+                <template #activator="{ on, attrs }">
+                  <v-btn
+                    icon
+                    color="#43A047"
+                    @click="generateCSV"
+                    class="mr-3"
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-icon size="40">mdi-file-excel-box</v-icon>
+                  </v-btn>
+                </template>
+                <span>CSV</span>
+              </v-tooltip>
+            </div>
+          </div>
+        </div>
+
+        <!-- botão adicionar novo usuário -->
+        <v-btn
+          color="error"
+          dark
+          rounded
+          class="add-user-btn"
+          :class="{ 'collapsed': isButtonCollapsed }"
+          @click="showModal = true"
+          @mouseenter="expandButton"
+          @mouseleave="collapseButtonIfNeeded"
         >
-          <template #item.is_staff="{ item }">
-            <span>{{ item.is_staff ? 'Sim' : 'Não' }}</span>
+          <v-icon>mdi-plus</v-icon>
+          <span class="button-text ml-2">{{ $t('addNewUser') }}</span>
+        </v-btn>
+      </div>
+
+      <v-data-table
+        v-if="filteredUsers.length"
+        :headers="filteredHeaders"
+        :items="filteredByColumns"
+        class="elevation-1 mt-4"
+        dense
+        :search="search"
+      >
+
+        <!-- filtro Nome -->
+<template #header.username="{ header }">
+  <v-menu
+    v-model="usernameMenu"
+    offset-y
+    :close-on-content-click="false"
+  >
+    <template #activator="{ on, attrs }">
+      <v-btn text small v-bind="attrs" v-on="on">
+        {{ header.text }}<v-icon small>mdi-filter-variant</v-icon>
+      </v-btn>
+    </template>
+    <v-card style="width:250px">
+      <v-text-field
+        v-model="searchUsername"
+        placeholder="Pesquisar..."
+        outlined dense hide-details clearable
+        class="mx-3 mt-3" @click.stop
+      />
+      <v-divider/>
+      <v-list dense class="filter-list">
+        <v-list-item
+          v-for="name in filteredUsernameList" :key="name"
+        >
+          <v-checkbox
+            v-model="columnFilters.username"
+            :value="name" :label="name"
+            dense @change="usernameMenu = false"
+          />
+        </v-list-item>
+      </v-list>
+    </v-card>
+  </v-menu>
+</template>
+
+<!-- filtro Email -->
+<template #header.email="{ header }">
+  <v-menu
+    v-model="emailMenu"
+    offset-y
+    :close-on-content-click="false"
+  >
+    <template #activator="{ on, attrs }">
+      <v-btn text small v-bind="attrs" v-on="on">
+        {{ header.text }}<v-icon small>mdi-filter-variant</v-icon>
+      </v-btn>
+    </template>
+    <v-card style="width:250px">
+      <v-text-field
+        v-model="searchEmail"
+        placeholder="Pesquisar..."
+        outlined dense hide-details clearable
+        class="mx-3 mt-3" @click.stop
+      />
+      <v-divider/>
+      <v-list dense class="filter-list">
+        <v-list-item
+          v-for="mail in filteredEmailList" :key="mail"
+        >
+          <v-checkbox
+            v-model="columnFilters.email"
+            :value="mail" :label="mail"
+            dense @change="emailMenu = false"
+          />
+        </v-list-item>
+      </v-list>
+    </v-card>
+  </v-menu>
+</template>
+
+<!-- filtro Administrador -->
+<template #header.is_staff="{ header }">
+  <v-menu offset-y>
+    <template #activator="{ on, attrs }">
+      <v-btn text small v-bind="attrs" v-on="on">
+        {{ header.text }}
+        <v-icon small class="ml-1">mdi-filter-variant</v-icon>
+      </v-btn>
+    </template>
+    <v-list dense>
+      <v-list-item>
+        <v-checkbox
+          v-model="columnFilters.is_staff"
+          :value="true"
+          label="Sim"
+          dense
+        />
+      </v-list-item>
+      <v-list-item>
+        <v-checkbox
+          v-model="columnFilters.is_staff"
+          :value="false"
+          label="Não"
+          dense
+        />
+      </v-list-item>
+    </v-list>
+  </v-menu>
+</template>
+
+<!-- filtro Acesso Permitido -->
+<template #header.is_active="{ header }">
+  <v-menu offset-y>
+    <template #activator="{ on, attrs }">
+      <v-btn text small v-bind="attrs" v-on="on">
+        {{ header.text }}
+        <v-icon small class="ml-1">mdi-filter-variant</v-icon>
+      </v-btn>
+    </template>
+    <v-list dense>
+      <v-list-item>
+        <v-checkbox
+          v-model="columnFilters.is_active"
+          :value="true"
+          label="Ativo"
+          dense
+        />
+      </v-list-item>
+      <v-list-item>
+        <v-checkbox
+          v-model="columnFilters.is_active"
+          :value="false"
+          label="Inativo"
+          dense
+        />
+      </v-list-item>
+    </v-list>
+  </v-menu>
+</template>
+
+<!-- filtro Instituição -->
+<template #header.institution="{ header }">
+  <v-menu
+    v-model="institutionMenu"
+    offset-y
+    :close-on-content-click="false"
+  >
+    <template #activator="{ on, attrs }">
+      <v-btn text small v-bind="attrs" v-on="on">
+        {{ header.text }}
+        <v-icon small class="ml-1">mdi-filter-variant</v-icon>
+      </v-btn>
+    </template>
+    <v-card style="width:250px">
+      <v-text-field
+        v-model="searchInstitution"
+        placeholder="Pesquisar..."
+        outlined
+        dense
+        hide-details
+        clearable
+        class="mx-3 mt-3"
+        @click.stop
+      />
+      <v-divider/>
+      <v-list dense class="filter-list">
+        <v-list-item
+          v-for="inst in filteredInstitutionList"
+          :key="inst.id"
+        >
+          <v-checkbox
+            v-model="columnFilters.institution"
+            :value="inst.name"
+            :label="inst.name"
+            dense
+            @change="institutionMenu = false"
+          />
+        </v-list-item>
+      </v-list>
+    </v-card>
+  </v-menu>
+</template>
+
+        <template #item.actions="{ item }">
+            <v-tooltip top>
+              <template #activator="{ on, attrs }">
+                <v-btn icon small color="grey darken-2" v-bind="attrs" v-on="on" @click="openEditDialog(item)">
+                  <v-icon>mdi-pencil</v-icon>
+                </v-btn>
+              </template>
+              <span>Editar</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <template #activator="{ on, attrs }">
+                <v-btn icon small color="grey darken-2" v-bind="attrs" v-on="on" @click="openLogsDialog(item)">
+                  <v-icon>mdi-menu</v-icon>
+                </v-btn>
+              </template>
+              <span>Logs</span>
+            </v-tooltip>
           </template>
           <template #item.is_active="{ item }">
-            <div class="ml-8">
-              <v-icon
-                v-if="item.is_active"
-                color="green"
-              >
-                mdi-check-circle
+            <div class="d-flex align-center">
+              <v-icon :color="item.is_active ? 'green' : 'red'" small>
+                {{ item.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
               </v-icon>
-              <v-icon
-                v-else
-                color="red"
-              >
-                mdi-close-circle
-              </v-icon>
+              <span class="ml-2">{{ item.is_active ? 'Ativo' : 'Inativo' }}</span>
             </div>
           </template>
-
-          <template #item.editar="{ item }">
-            <v-icon
-              color="#000"
-              @click="openEditDialog(item)"
-            >
-              mdi-pencil
-            </v-icon>
-          </template>
-
-          <!-- <template v-slot:item.logs="{ item }">
-                        <v-icon color="#000" @click="openLogsDialog(item)">
-                            mdi-menu
-                        </v-icon>
-                    </template> -->
-        </v-data-table>
-      </v-card>
-    </div>
+          <template #item.is_staff="{ item }">
+              <div class="d-flex align-center">
+                <v-icon :color="item.is_staff ? '#F58A1F' : 'grey'" small>
+                  {{ item.is_staff ? 'mdi-account-star' : 'mdi-account' }}
+                </v-icon>
+                <span class="ml-2">{{ item.is_staff ? 'Sim' : 'Não' }}</span>
+              </div>
+           </template>
+      </v-data-table>
   </div>
 </template>
 
@@ -239,8 +674,7 @@
         "en": {
         "manageUsers": "Manage Users",
         "addNewUser": "Add new user",
-        "export": "Export",
-        "as": "As",
+        "export": "Export:",
         "noFileSelected": "No file selected",
         "attachFile": "Attach File",
         "approveRequestCreation": "Approve request upon creation",
@@ -259,8 +693,7 @@
         "pt-br": {
         "manageUsers": "Gerenciar Usuários",
         "addNewUser": "Adicionar novo usuário",
-        "export": "Exportar",
-        "as": "Como",
+        "export": "Exportar:",
         "noFileSelected": "Nenhum arquivo selecionado",
         "attachFile": "Anexar Arquivo",
         "approveRequestCreation": "Deferir solicitação na criação",
@@ -281,7 +714,6 @@
 <script>
 import { mapState, mapActions } from 'vuex';
 import GraphicBar from '/components/admin/GraphicBar.vue';
-import StatusFilterUser from '/components/admin/StatusFilterUser.vue';
 import SearchFiltersUser from '/components/admin/SearchFiltersUser.vue';
 import CustomDialog from '/components/admin/CustomDialog.vue';
 import SavePdfUser from '/components/admin/SavePdfUser.vue';
@@ -291,7 +723,6 @@ export default {
   name: 'Usuarios',
   components: {
     GraphicBar,
-    StatusFilterUser,
     SearchFiltersUser,
     CustomDialog,
     SavePdfUser,
@@ -301,19 +732,25 @@ export default {
 
   data() {
     return {
+          userLoginHistory: [], // novo array
+      showLogsModal: false,
+      userLogs: [],
+      selectedUserLogs: null,
       search: '',
       showModalEdit: false,
       selectedInstitution: null,
       users: [],
       filteredUsers: [],
+      showLogsModal: false,
+      userLogs: [],
+      selectedUserLogs: null,
       headers: [
         { text: 'Nome', value: 'username' },
         { text: 'Email', value: 'email' },
         { text: 'Administrador', value: 'is_staff' },
         { text: 'Acesso Permitido', value: 'is_active' },
         { text: 'Instituição', value: 'institution' },
-        { text: 'Editar', value: 'editar' },
-        // { text: 'Logs', value: 'logs' },
+        { text: 'Ações', value: 'actions', align: 'center' },
       ],
       filters: {
         active: false,
@@ -343,15 +780,111 @@ export default {
       ],
       requiredRule: (v) => !!v || 'Campo obrigatório',
       emailRule: (v) => /.+@.+\..+/.test(v) || 'E-mail inválido',
+      userRoleChanges: [],
+      visibleColumns: ['username','email','is_staff','is_active','institution','actions'],
+      columnFilters: {
+        is_staff: [],    // [true, false]
+        is_active: [],   // [true, false]
+        institution: [],
+        username: [],
+        email: [],
+      },
+      searchInstitution: '',
+      institutionMenu: false,
+      usernameMenu: false,
+      emailMenu: false,
+      searchUsername: '',
+      searchEmail: '',
+      searchAll: '',
+      isButtonCollapsed: true,
+      buttonCollapseTimeout: null,
+      activeTab: 0,
+      searchLogs: '',
+      searchAccess: '',
+
+      logsHeaders: [
+        { text: 'Alterado por', value: 'alterado_por' },
+        { text: 'Alterado em', value: 'action_time' },
+        { text: 'Nome', value: 'username' },
+        { text: 'Email', value: 'email' },
+        { text: 'Instituição', value: 'institution' },
+        { text: 'Status', value: 'is_active' },
+      ],
+
+      loginHeaders: [
+        { text: 'Data de Login', value: 'last_date_login' },
+        { text: 'IP', value: 'ip' },
+        { text: 'Localização', value: 'location' },
+        { text: 'Dispositivo', value: 'type_device' },
+        { text: 'Navegador', value: 'browser' },
+        { text: 'Latitude', value: 'latitude' },
+        { text: 'Longitude', value: 'longitude' },
+      ],
+
+      roleChangesHeaders: [
+        { text: 'Alterado Por', value: 'changed_by' },
+        { text: 'Data/Hora', value: 'changed_at' },
+        { text: 'Ação', value: 'action' },
+        { text: 'Papel', value: 'role' },
+      ],
     };
   },
 
+  watch: {
+    searchAll(val) {
+      this.search = val;
+    }
+  },
   computed: {
     totalValue() {
       return this.storeCategories.reduce(
         (acc, category) => acc + category.total,
         0,
       );
+    },
+
+    filteredHeaders() {
+      return this.headers.filter(h => this.visibleColumns.includes(h.value));
+    },
+
+    filteredByColumns() {
+      return this.filteredUsers.filter(user => {
+        // para cada filtro de coluna
+        return Object.entries(this.columnFilters).every(([col, vals]) => {
+          return !vals.length || vals.includes(user[col]);
+        });
+      });
+    },
+
+    filteredInstitutionList() {
+      const term = (this.searchInstitution || '').toLowerCase();
+      return this.institutionList.filter(inst =>
+        inst.name.toLowerCase().includes(term)
+      );
+    },
+
+    filteredUsernameList() {
+      const term = (this.searchUsername||'').toLowerCase();
+      return [...new Set(this.filteredUsers.map(u=>u.username))]
+        .filter(v => v.toLowerCase().includes(term));
+    },
+
+    filteredEmailList() {
+      const term = (this.searchEmail||'').toLowerCase();
+      return [...new Set(this.filteredUsers.map(u=>u.email))]
+        .filter(v => v.toLowerCase().includes(term));
+    },
+
+    filteredUserLogs() {
+      return this.userLogs || [];
+    },
+
+    filteredUserLoginHistory() {
+      return this.userLoginHistory || [];
+    },
+
+    filteredUserRoleChanges() {
+      return this.userRoleChanges || [];
     },
 
     ...mapState('admin', ['institutionList', 'rolesList']),
@@ -361,12 +894,50 @@ export default {
     await this.fetchInstitutionList();
     await this.fetchRoles();
     this.fetchUsers();
+
+    // Start with button expanded for 2 seconds, then collapse
+    this.isButtonCollapsed = false;
+    setTimeout(() => {
+      this.isButtonCollapsed = true;
+    }, 2000);
   },
 
   methods: {
+     parseChangedFields(changeMessage) {
+    try {
+      const parsed = JSON.parse(changeMessage);
+      if (Array.isArray(parsed) && parsed[0]?.changed?.fields) {
+        return parsed[0].changed.fields;
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  },
+    async openLogsDialog(user) {
+      this.selectedUserLogs = user;
+      this.showLogsModal = true;
 
-    async fetchRoles() {
       try {
+        const [logsResponse, loginResponse, roleChangesResponse] = await Promise.all([
+          this.$api.get(`/history/logs/?user_id=${user.id}`),
+          this.$api.get(`/dashboard/get-user-login/?user_id=${user.id}`),
+          this.$api.get(`/history/role-changes/?user_id=${user.id}`)
+        ]);
+
+        this.userLogs = logsResponse.data;
+        this.userLoginHistory = loginResponse.data;
+        this.userRoleChanges = roleChangesResponse.data;
+
+      } catch (e) {
+        this.userLogs = [];
+        this.userLoginHistory = [];
+        this.userRoleChanges = [];
+      }
+
+    },
+    async fetchRoles() {
+      try {s
         const response = await this.$api.get('/user/role/');
         this.$store.commit('admin/setRolesList', response.data);
       } catch (error) {
@@ -442,16 +1013,13 @@ export default {
     },
 
     addRoleToUser(role) {
-      if (!this.editUserData.roles) {
-        this.$set(this.editUserData, 'roles', []);
-      }
-      if (!this.editUserData.roles.some((r) => r.id === role.id)) {
-        this.editUserData.roles.push(role);
+      if (!this.editUserData.roles.some(r => r.id === role.id)) {
+        this.editUserData.roles = [...this.editUserData.roles, role];
       }
     },
 
     removeRoleFromUser(role) {
-      this.editUserData.roles = this.editUserData.roles.filter((r) => r.id !== role.id);
+      this.editUserData.roles = this.editUserData.roles.filter(r => r.id !== role.id);
     },
 
     async addUser() {
@@ -580,54 +1148,188 @@ export default {
       }
     },
 
-    addRoleToUser(role) {
-      if (!this.editUserData.roles.some((r) => r.id === role.id)) {
-        this.editUserData.roles = [...this.editUserData.roles, role];
-      }
-    },
-
-    removeRoleFromUser(role) {
-      this.editUserData.roles = this.editUserData.roles.filter((r) => r.id !== role.id);
-    },
-
-    toggleFilters() {
-      this.showFilters = !this.showFilters;
-    },
-
     generateCSV() {
-    // Cabeçalho do CSV
+      // Cabeçalho do CSV
       const headers = ['Nome', 'Email', 'Acesso Permitido', 'Instituição'];
-      const rows = this.filteredUsers.map((user) => [
+      const rows = this.filteredUsers.map(user => [
         user.username,
         user.email,
         user.is_active ? 'Ativo' : 'Inativo',
         user.institution,
       ]);
-
-      // Cria o conteúdo do CSV
-      const csvContent = [
-        headers.join(','), // Cabeçalho
-        ...rows.map((row) => row.join(',')), // Dados
-      ].join('\n');
-
-      // Cria um link para download
-      const blob = new Blob([csvContent], {
-        type: 'text/csv;charset=utf-8;',
-      });
+      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'usuarios.csv'; // Nome do arquivo
-      link.click(); // Dispara o download
-      URL.revokeObjectURL(link.href); // Limpa o objeto URL
+      link.download = 'usuarios.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    },
+
+    expandButton() {
+      if (this.buttonCollapseTimeout) {
+        clearTimeout(this.buttonCollapseTimeout);
+        this.buttonCollapseTimeout = null;
+      }
+      this.isButtonCollapsed = false;
+    },
+
+    collapseButtonIfNeeded() {
+      this.buttonCollapseTimeout = setTimeout(() => {
+        this.isButtonCollapsed = true;
+      }, 500);
+    },
+
+    generateLogsPDF() {
+      import('jspdf').then(({ default: jsPDF }) => {
+        import('jspdf-autotable').then(({ default: autoTable }) => {
+          const doc = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4',
+          });
+
+          doc.setFontSize(12);
+          doc.text('Dados Cadastrais do Usuário', 15, 20);
+
+          autoTable(doc, {
+            startY: 30,
+            head: [['Alterado por', 'Alterado em', 'Nome', 'Email', 'Instituição', 'Status']],
+            body: this.filteredUserLogs.map((log) => [
+              log.alterado_por,
+              new Date(log.action_time).toLocaleString('pt-BR'),
+              log.username,
+              log.email,
+              log.institution,
+              log.is_active ? 'Ativo' : 'Inativo',
+            ]),
+            headStyles: {
+              fillColor: '#D92B3F',
+              textColor: [255, 255, 255],
+            },
+          });
+
+          doc.save('dados_cadastrais_usuario.pdf');
+        });
+      });
+    },
+
+    generateLogsCSV() {
+      const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Instituição', 'Status'];
+      const rows = this.filteredUserLogs.map(log => [
+        log.alterado_por,
+        new Date(log.action_time).toLocaleString('pt-BR'),
+        log.username,
+        log.email,
+        log.institution,
+        log.is_active ? 'Ativo' : 'Inativo',
+      ]);
+      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'dados_cadastrais_usuario.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    },
+
+    generateAccessPDF() {
+      import('jspdf').then(({ default: jsPDF }) => {
+        import('jspdf-autotable').then(({ default: autoTable }) => {
+          const doc = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4',
+          });
+
+          doc.setFontSize(12);
+          doc.text('Registro de Acessos do Usuário', 15, 20);
+
+          // Login History
+          autoTable(doc, {
+            startY: 30,
+            head: [['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador']],
+            body: this.filteredUserLoginHistory.map((login) => [
+              login.last_date_login,
+              login.ip,
+              login.location,
+              login.type_device,
+              login.browser,
+            ]),
+            headStyles: {
+              fillColor: '#D92B3F',
+              textColor: [255, 255, 255],
+            },
+          });
+
+          // Role Changes
+          const finalY = doc.lastAutoTable.finalY + 20;
+          doc.text('Histórico de Alterações de Papéis', 15, finalY);
+
+          autoTable(doc, {
+            startY: finalY + 10,
+            head: [['Alterado Por', 'Data/Hora', 'Ação', 'Papel']],
+            body: this.filteredUserRoleChanges.map((change) => [
+              change.changed_by,
+              change.changed_at,
+              change.action,
+              change.role,
+            ]),
+            headStyles: {
+              fillColor: '#D92B3F',
+              textColor: [255, 255, 255],
+            },
+          });
+
+          doc.save('registro_acessos_usuario.pdf');
+        });
+      });
+    },
+
+    generateAccessCSV() {
+      const loginHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Latitude', 'Longitude'];
+      const loginRows = this.filteredUserLoginHistory.map(login => [
+        login.last_date_login,
+        login.ip,
+        login.location,
+        login.type_device,
+        login.browser,
+        login.latitude,
+        login.longitude,
+      ]);
+
+      const roleHeaders = ['Alterado Por', 'Data/Hora', 'Ação', 'Papel'];
+      const roleRows = this.filteredUserRoleChanges.map(change => [
+        change.changed_by,
+        change.changed_at,
+        change.action,
+        change.role,
+      ]);
+
+      const csvContent = [
+        'HISTÓRICO DE LOGIN',
+        loginHeaders.join(','),
+        ...loginRows.map(row => row.join(',')),
+        '',
+        'HISTÓRICO DE ALTERAÇÕES DE PAPÉIS',
+        roleHeaders.join(','),
+        ...roleRows.map(row => row.join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'registro_acessos_usuario.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
     },
 
     ...mapActions('admin', ['fetchInstitutionList']),
-  },
+  }
 };
 </script>
 
 <style lang="sass" scoped>
-
 .line-separator
     border: 1px solid #9A9997
     margin: 1rem 0
@@ -647,13 +1349,84 @@ export default {
 
 .card--wrapper
     display: grid
-    grid-template-columns: repeat(auto-fit, minmax(350px,1fr))
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr))
     gap: 1rem
 
 .wrapper
-    display: flexs
+    display: flex
     flex-direction: row
     align-items: center
     justify-content: space-between
 
+.filter-list
+    max-height: 200px
+    overflow-y: auto
+
+.export-container
+    display: flex
+    flex-direction: column
+    align-items: flex-end // Align items to the right
+    margin-top: 1rem
+    margin-bottom: 1rem
+
+.export-label
+    // text-transform: uppercase // Already applied via class
+    // font-weight: bold // Already applied via class
+    letter-spacing: 0.5px // Adjusted for better visual
+    margin-bottom: 0.5rem // Space between label and buttons
+    font-size: 0.8rem // Slightly smaller label
+    display: flex
+    align-items: center
+
+.export-actions
+    display: flex
+    gap: 0.5rem // Reduced gap for closer buttons
+
+.export-btn
+    min-width: 80px // Ensure buttons have a decent size
+    min-height: 80px // Ensure buttons have a decent size
+    padding: 0 !important // Remove default padding to center icon
+    display: flex
+    align-items: center
+    justify-content: center
+    border-radius: 8px // Rounded corners for buttons
+    i // Icon styling
+      font-size: 2rem // Ensure icons are large enough
+      line-height: 1 // Ensure icon is centered vertically
+
+.pdf-btn
+    background-color: #D9534F !important // Bootstrap's btn-danger color
+    color: #fff
+
+.csv-btn
+    background-color: #5CB85C !important // Bootstrap's btn-success color
+    color: #fff
+
+.add-user-btn
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)
+  overflow: hidden
+  white-space: nowrap
+  min-width: 40px
+  padding: 8px 16px
+
+  .button-text
+    transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), margin 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)
+    opacity: 1
+    transform: translateX(0)
+    margin-left: 8px
+
+  &.collapsed
+    padding: 8px
+
+    .button-text
+      opacity: 0
+      width: 0
+      margin: 0
+      transform: translateX(-20px)
+      margin-left: 0
+
+.export-icons
+  display: flex
+  align-items: center
+  gap: 0.25rem
 </style>
