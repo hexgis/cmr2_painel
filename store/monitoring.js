@@ -27,12 +27,7 @@ export default {
       maxNativeZoom: 19,
       queryable: true,
     },
-    MonitoringWmsOptionsHeatmap: {
-      name: 'monitoringHeatmap',
-      maxZoom: 21,
-      maxNativeZoom: 19,
-      queryable: true,
-    },
+   
     loadingMonitoring: false,
     analyticsMonitoringDialog: false,
     isLoadingFeatures: false,
@@ -52,12 +47,7 @@ export default {
       grouping_by_monthyear: 'monitoring_by_monthyear',
       csv: 'csv',
       json: 'json',
-    },
-    tableMonitoringTableOptions: {
-      itemsPerPage: 5,
-      page: 1,
-      totalItems: 0,
-    },
+    },    
     opacity: 100,
     heatMap: false,
     analyticsMonitoring: [],
@@ -134,33 +124,19 @@ export default {
     setLoadingMonitoring(state, payload) {
       state.loadingMonitoring = payload;
     },
-    resetLegendVisibility(state) {
-      state.legendVisibility = {};
-      state.availableEstagios.forEach((estagio) => {
-        Vue.set(state.legendVisibility, estagio, true);
-      });
-    },
+  
     setIntersectsWmsMonitoring(state, intersectsWmsMonitoring) {
       state.intersectsWmsMonitoring = intersectsWmsMonitoring;
     },
     setshowFeaturesMonitoring(state, showFeaturesMonitoring) {
       state.showFeaturesMonitoring = showFeaturesMonitoring;
     },
-    setLoadingGeoJson(state, payload) {
-      state.isLoadingGeoJson = payload;
-    },
     setLoadingStatistic(state, payload) {
       state.isLoadingStatistic = payload;
     },
-    setTableMonitoringTableOptions(state, tableMonitoringTableOptions) {
-      state.tableMonitoringTableOptions = tableMonitoringTableOptions;
-    },
-    setTablePropertiesPage(state, page) {
-      state.tableMonitoringTableOptions.page = page;
-    },
-    setTablePropertiesItemsPerPage(state, itemsPerPage) {
-      state.tableMonitoringTableOptions.itemsPerPage = itemsPerPage;
-    },
+   
+   
+  
     setAnalytics(state, analyticsMonitoring) {
       const formattedAnalytics = analyticsMonitoring.map(item => {
         const newItem = { ...item };
@@ -797,23 +773,23 @@ export default {
     },
 
     // Alterna visibilidade da legenda
-  async toggleLegendVisibility({ commit, dispatch, state }, { estagio, visible }) {
-  try {
-    commit('setLegendVisibility', { estagio, visible });
+    async toggleLegendVisibility({ commit, dispatch, state }, { estagio, visible }) {
+      try {
+        commit('setLegendVisibility', { estagio, visible });
 
-    // Atualiza apenas a URL do WMS sem refazer toda a pesquisa
-    await dispatch('generateUrlWmsMonitoring');
+        // Atualiza apenas a URL do WMS sem refazer toda a pesquisa
+        await dispatch('generateUrlWmsMonitoring');
 
-    // Se heatmap estiver ativo, atualiza apenas ele
-    if (state.heatMap) {
-      await dispatch('generateHeatmapMonitoring', true);
-    }
+        // Se heatmap estiver ativo, atualiza apenas ele
+        if (state.heatMap) {
+          await dispatch('generateHeatmapMonitoring', true);
+        }
 
-  } catch (error) {
-    console.error('Erro ao alternar visibilidade:', error);
-    throw error;
-  }
-},
+      } catch (error) {
+        console.error('Erro ao alternar visibilidade:', error);
+        throw error;
+      }
+    },
 
     // Função genérica para buscar dados analíticos
     async getDataAnalyticsMonitoring({ commit, state, rootGetters }, groupingKey) {
