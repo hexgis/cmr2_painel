@@ -235,7 +235,7 @@ export default {
           componentKey: 'analytics',
         },
 
-        
+
       ];
     },
     tabs() {

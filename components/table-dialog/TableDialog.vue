@@ -41,7 +41,7 @@
           </a>
           <v-data-table
             :headers="headers"
-            :items-per-page="15"
+            :items-per-page="5"
             :items="value"
             class="font-weight-regular"
             multi-sort
