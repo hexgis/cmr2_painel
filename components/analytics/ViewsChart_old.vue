@@ -52,7 +52,6 @@
     }
   }
 </i18n>
-
 <template>
   <div
     id="chart"
@@ -206,10 +205,7 @@
     </div>
 
     <!-- Conteúdo principal -->
-    <v-container
-      fluid
-      class="content-section pa-4"
-    >
+    <v-container fluid class="content-section pa-4">
       <!-- Modal de filtros -->
       <v-dialog
         v-model="showModal"
@@ -222,19 +218,14 @@
               icon
               @click="showModal = false"
             >
-              <v-icon>
-                mdi-close
-              </v-icon>
+              <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
-
+          
           <v-card-text>
             <v-container>
               <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
+                <v-col cols="12" md="6">
                   <BaseDateField
                     :key="startDateKey"
                     v-model="startDate"
@@ -243,10 +234,7 @@
                     outlined
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
+                <v-col cols="12" md="6">
                   <BaseDateField
                     :key="endDateKey"
                     v-model="endDate"
@@ -256,7 +244,7 @@
                   />
                 </v-col>
               </v-row>
-
+              
               <v-row>
                 <v-col cols="12">
                   <v-select
@@ -268,12 +256,9 @@
                   />
                 </v-col>
               </v-row>
-
+              
               <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
+                <v-col cols="12" md="6">
                   <v-select
                     v-model="selectedDevice"
                     :label="$t('searchingPerDevices')"
@@ -282,10 +267,7 @@
                     clearable
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
+                <v-col cols="12" md="6">
                   <v-select
                     v-model="selectedBrowser"
                     :label="$t('searchingPerBrowsers')"
@@ -297,18 +279,13 @@
               </v-row>
             </v-container>
           </v-card-text>
-
+          
           <v-card-actions class="px-6 pb-4">
             <v-btn
               color="primary"
               @click="newSearch"
             >
-              <v-icon
-                left
-                small
-              >
-                mdi-magnify
-              </v-icon>
+              <v-icon left small>mdi-magnify</v-icon>
               {{ $t('searchLabel') }}
             </v-btn>
             <v-spacer />
@@ -317,12 +294,7 @@
               text
               @click="clearFields"
             >
-              <v-icon
-                left
-                small
-              >
-                mdi-filter-remove
-              </v-icon>
+              <v-icon left small>mdi-filter-remove</v-icon>
               {{ $t('clearFieldsLabel') }}
             </v-btn>
           </v-card-actions>
@@ -332,21 +304,10 @@
       <!-- Grid principal com gráficos -->
       <v-row class="charts-grid">
         <!-- Gráfico de linha principal -->
-        <v-col
-          cols="12"
-          lg="8"
-        >
-          <v-card
-            class="chart-card"
-            elevation="2"
-          >
+        <v-col cols="12" lg="8">
+          <v-card class="chart-card" elevation="2">
             <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="primary"
-              >
-                mdi-chart-line
-              </v-icon>
+              <v-icon left color="primary">mdi-chart-line</v-icon>
               {{ $t('lastAccesses') }}
               <v-spacer />
               <v-chip
@@ -368,21 +329,10 @@
         </v-col>
 
         <!-- Mapa -->
-        <v-col
-          cols="12"
-          lg="4"
-        >
-          <v-card
-            class="chart-card map-card"
-            elevation="2"
-          >
+        <v-col cols="12" lg="4">
+          <v-card class="chart-card map-card" elevation="2">
             <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="success"
-              >
-                mdi-map-marker
-              </v-icon>
+              <v-icon left color="success">mdi-map-marker</v-icon>
               {{ $t('userAccessMap') }}
             </v-card-title>
             <v-card-text class="map-content">
@@ -394,21 +344,10 @@
 
       <!-- Segunda linha - Gráficos circulares -->
       <v-row class="charts-grid">
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <v-card
-            class="chart-card"
-            elevation="2"
-          >
+        <v-col cols="12" md="6">
+          <v-card class="chart-card" elevation="2">
             <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="info"
-              >
-                mdi-devices
-              </v-icon>
+              <v-icon left color="info">mdi-devices</v-icon>
               {{ $t('cmrAccessMode') }}
             </v-card-title>
             <v-card-text class="chart-content">
@@ -416,21 +355,10 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <v-card
-            class="chart-card"
-            elevation="2"
-          >
+        <v-col cols="12" md="6">
+          <v-card class="chart-card" elevation="2">
             <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="warning"
-              >
-                mdi-web
-              </v-icon>
+              <v-icon left color="warning">mdi-web</v-icon>
               {{ $t('browserTypeUsed') }}
             </v-card-title>
             <v-card-text class="chart-content">
@@ -442,21 +370,10 @@
 
       <!-- Terceira linha - Tabelas -->
       <v-row class="charts-grid">
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <v-card
-            class="chart-card table-card"
-            elevation="2"
-          >
+        <v-col cols="12" md="6">
+          <v-card class="chart-card table-card" elevation="2">
             <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="indigo"
-              >
-                mdi-table
-              </v-icon>
+              <v-icon left color="indigo">mdi-table</v-icon>
               {{ $t('dailyAccessData') }}
             </v-card-title>
             <v-card-text class="table-content">
@@ -467,21 +384,10 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <v-card
-            class="chart-card table-card"
-            elevation="2"
-          >
+        <v-col cols="12" md="6">
+          <v-card class="chart-card table-card" elevation="2">
             <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="purple"
-              >
-                mdi-chart-bar
-              </v-icon>
+              <v-icon left color="purple">mdi-chart-bar</v-icon>
               {{ $t('monthlyAccessData') }}
             </v-card-title>
             <v-card-text class="table-content">
@@ -504,10 +410,7 @@
     >
       <v-card>
         <v-card-text class="text-center py-6">
-          <div
-            v-if="downloadSuccess"
-            class="success-content"
-          >
+          <div v-if="downloadSuccess" class="success-content">
             <v-icon
               x-large
               color="success"
@@ -515,17 +418,10 @@
             >
               mdi-check-circle
             </v-icon>
-            <p class="text-h6 mb-2">
-              {{ $t('downloadSuccess') }}
-            </p>
-            <p class="text-body-2">
-              {{ $t('downloadSuccessMessage') }}
-            </p>
+            <p class="text-h6 mb-2">{{ $t('downloadSuccess') }}</p>
+            <p class="text-body-2">{{ $t('downloadSuccessMessage') }}</p>
           </div>
-          <div
-            v-else
-            class="error-content"
-          >
+          <div v-else class="error-content">
             <v-icon
               x-large
               color="error"
@@ -533,12 +429,8 @@
             >
               mdi-alert-circle
             </v-icon>
-            <p class="text-h6 mb-2">
-              {{ $t('downloadError') }}
-            </p>
-            <p class="text-body-2">
-              {{ $t('downloadErrorMessage') }}
-            </p>
+            <p class="text-h6 mb-2">{{ $t('downloadError') }}</p>
+            <p class="text-body-2">{{ $t('downloadErrorMessage') }}</p>
           </div>
         </v-card-text>
         <v-card-actions class="justify-center pb-4">
@@ -555,24 +447,29 @@
 </template>
 
 <script>
+import html2canvas from 'html2canvas';
 import domtoimage from 'dom-to-image';
 import { jsPDF } from 'jspdf';
 import { mapGetters, mapActions } from 'vuex';
 import { formatDate } from '@/store/charts';
+import BarChartDefault from '@/components/graphics/dashboard/BarChartDefault.vue';
 import DoughnutChartContainer from '@/components/graphics/dashboard/DoughnutChartContainer.vue';
 import LineChartViews from '@/components/graphics/dashboard/LineChartViews.vue';
 import PieChartView from '@/components/graphics/dashboard/PieChart.vue';
+import RadarChart from '@/components/graphics/RadarChart.vue';
 import BaseDateField from '@/components/base/BaseDateField.vue';
-import TableDefault from '@/components/graphics/dashboard/TableDefault.vue';
+import TableDefault from '@/components/graphics/dashboard/TableDefault';
 import MapUserViews from '@/components/map/MapUserViews.vue';
 
 export default {
   name: 'ViewsChartPage',
   components: {
     TableDefault,
+    BarChartDefault,
     DoughnutChartContainer,
     LineChartViews,
     PieChartView,
+    RadarChart,
     BaseDateField,
     MapUserViews,
   },
@@ -633,17 +530,9 @@ export default {
       const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
       const shadowBoxCards = document.querySelectorAll('.v-application , .elevation-2');
 
-      shareButtons.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = '';
-      });
-      mapZoomControlBtn.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = '';
-      });
-      shadowBoxCards.forEach((card) => {
-        card.setAttribute('style', 'box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12) !important;');
-      });
+      shareButtons.forEach((button) => (button.style.display = ''));
+      mapZoomControlBtn.forEach((button) => (button.style.display = ''));
+      shadowBoxCards.forEach((card) => (card.setAttribute('style', 'box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12) !important;')));
     },
 
     formatStartDate() {
@@ -691,17 +580,9 @@ export default {
       const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
       const shadowBoxCards = document.querySelectorAll('.v-application .elevation-2');
 
-      shareButtons.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = 'none';
-      });
-      mapZoomControlBtn.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = 'none';
-      });
-      shadowBoxCards.forEach((card) => {
-        card.setAttribute('style', 'box-shadow: none !important; border: 1px solid #EEEE;');
-      });
+      shareButtons.forEach((button) => (button.style.display = 'none'));
+      mapZoomControlBtn.forEach((button) => (button.style.display = 'none'));
+      shadowBoxCards.forEach((card) => (card.setAttribute('style', 'box-shadow: none !important; border: 1px solid #EEEE;')));
     },
     async downloadCSV() {
       this.downloading = 'csv';
@@ -724,7 +605,6 @@ export default {
         document.body.removeChild(link);
         this.downloadSuccess = true;
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error('Erro ao baixar o CSV:', error);
         this.downloadSuccess = false;
       } finally {
@@ -734,23 +614,19 @@ export default {
     },
     async downloadImg() {
       this.downloading = 'img';
+      const elementToPrint = document.getElementById('chart');
       this.prepareToExportData();
       try {
-        const elementToPrint = document.getElementById('chart');
-        const options = {
-          quality: 1,
-          bgcolor: 'white',
-        };
-
-        const dataUrl = await domtoimage.toPng(elementToPrint, options);
+        const canvas = await html2canvas(elementToPrint, {
+          useCORS: true,
+        });
+        const imgData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
-        link.href = dataUrl;
-        link.setAttribute('download', 'dashboard.png');
+        link.href = imgData;
+        link.setAttribute('download', 'data.png');
         link.click();
-
         this.downloadSuccess = true;
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error('Erro ao gerar imagem:', error);
         this.downloadSuccess = false;
       } finally {
@@ -769,16 +645,15 @@ export default {
           bgcolor: 'white',
         };
         const node = document.getElementById('chart');
-
-        const image = await domtoimage.toJpeg(node, options);
-        const doc = new jsPDF({
-          orientation: 'portrait',
-          format: 'A4',
-          compression: 'SLOW',
+        await domtoimage.toJpeg(node, options).then((image) => {
+          const doc = new jsPDF({
+            orientation: 'portrait',
+            format: 'A4',
+            compression: 'SLOW',
+          });
+          doc.addImage(image, 'JPEG', 0, 0, 210, 295);
+          doc.save(`${nameImageDownload}.pdf`);
         });
-        doc.addImage(image, 'JPEG', 0, 0, 210, 295);
-        doc.save(`${nameImageDownload}.pdf`);
-
         this.downloadSuccess = true;
       } catch (error) {
         this.$store.commit('alert/addAlert', {
@@ -808,7 +683,7 @@ export default {
     .back-btn
       background-color: rgba(255,255,255,0.1)
       color: white !important
-
+      
       &:hover
         background-color: rgba(255,255,255,0.2)
 

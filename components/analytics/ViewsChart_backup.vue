@@ -58,29 +58,17 @@
     id="chart"
     class="chart"
   >
-    <!-- Header moderno -->
+    <!-- Header principal -->
     <div class="chart-header">
-      <v-container
-        fluid
-        class="pa-4"
-      >
-        <v-row
-          align="center"
-          justify="space-between"
-        >
-          <v-col
-            cols="12"
-            md="6"
-            class="d-flex align-center"
-          >
+      <v-container fluid class="header-container">
+        <v-row align="center" justify="space-between" no-gutters>
+          <v-col cols="12" md="6" class="d-flex align-center">
             <v-btn
               icon
-              class="mr-3 back-btn"
+              class="back-btn mr-3"
               @click="$router.go(-1)"
             >
-              <v-icon>
-                mdi-arrow-left
-              </v-icon>
+              <v-icon>mdi-arrow-left</v-icon>
             </v-btn>
             <v-img
               :src="logo_funai"
@@ -89,11 +77,7 @@
               class="logo-img"
             />
           </v-col>
-          <v-col
-            cols="12"
-            md="6"
-            class="text-center text-md-right"
-          >
+          <v-col cols="12" md="6" class="text-center text-md-right">
             <h1 class="page-title">
               {{ $t('viewsControl') }}
             </h1>
@@ -102,40 +86,22 @@
       </v-container>
     </div>
 
-    <!-- Toolbar de ações -->
+    <!-- Barra de ações -->
     <div class="toolbar-section">
       <v-container fluid>
-        <v-row
-          align="center"
-          justify="space-between"
-          class="py-3"
-        >
-          <v-col
-            cols="12"
-            sm="6"
-            md="4"
-          >
+        <v-row align="center" justify="space-between" class="toolbar-row">
+          <v-col cols="12" sm="6" md="4">
             <v-btn
               color="primary"
               outlined
-              class="filter-btn"
               @click="showModal = true"
+              class="filter-btn"
             >
-              <v-icon
-                left
-                small
-              >
-                mdi-filter-variant
-              </v-icon>
+              <v-icon left small>mdi-filter-variant</v-icon>
               {{ $t('filter') }}
             </v-btn>
           </v-col>
-          <v-col
-            cols="12"
-            sm="6"
-            md="4"
-            class="text-right"
-          >
+          <v-col cols="12" sm="6" md="4" class="text-right">
             <div class="download-buttons">
               <v-tooltip bottom>
                 <template #activator="{ on, attrs }">
@@ -144,20 +110,18 @@
                     small
                     outlined
                     color="success"
-                    class="download-btn"
+                    @click="downloadCSV"
                     :loading="downloading === 'csv'"
                     v-bind="attrs"
                     v-on="on"
-                    @click="downloadCSV"
+                    class="download-btn"
                   >
-                    <v-icon small>
-                      mdi-microsoft-excel
-                    </v-icon>
+                    <v-icon small>mdi-microsoft-excel</v-icon>
                   </v-btn>
                 </template>
                 <span>Download Excel</span>
               </v-tooltip>
-
+              
               <v-tooltip bottom>
                 <template #activator="{ on, attrs }">
                   <v-btn
@@ -165,20 +129,18 @@
                     small
                     outlined
                     color="error"
-                    class="download-btn"
+                    @click="downloadPDF"
                     :loading="downloading === 'pdf'"
                     v-bind="attrs"
                     v-on="on"
-                    @click="downloadPDF"
+                    class="download-btn"
                   >
-                    <v-icon small>
-                      mdi-file-pdf-outline
-                    </v-icon>
+                    <v-icon small>mdi-file-pdf-outline</v-icon>
                   </v-btn>
                 </template>
                 <span>Download PDF</span>
               </v-tooltip>
-
+              
               <v-tooltip bottom>
                 <template #activator="{ on, attrs }">
                   <v-btn
@@ -186,15 +148,13 @@
                     small
                     outlined
                     color="info"
-                    class="download-btn"
+                    @click="downloadImg"
                     :loading="downloading === 'img'"
                     v-bind="attrs"
                     v-on="on"
-                    @click="downloadImg"
+                    class="download-btn"
                   >
-                    <v-icon small>
-                      mdi-image-outline
-                    </v-icon>
+                    <v-icon small>mdi-image-outline</v-icon>
                   </v-btn>
                 </template>
                 <span>Download Imagem</span>
@@ -206,147 +166,104 @@
     </div>
 
     <!-- Conteúdo principal -->
-    <v-container
-      fluid
-      class="content-section pa-4"
-    >
-      <!-- Modal de filtros -->
+    <v-container fluid class="content-section">
       <v-dialog
         v-model="showModal"
         max-width="600px"
       >
         <v-card>
-          <v-card-title class="d-flex justify-space-between align-center">
-            <span class="text-h6">{{ $t('filterOptions') }}</span>
+          <v-card-title class="justify-lg-space-between">
+            <span>{{ $t('filterOptions') }}</span>
+
             <v-btn
-              icon
+              flat
+              color="white"
+              text
               @click="showModal = false"
             >
-              <v-icon>
-                mdi-close
-              </v-icon>
+              <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
-
           <v-card-text>
-            <v-container>
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <BaseDateField
-                    :key="startDateKey"
-                    v-model="startDate"
-                    :label="$t('startDate')"
-                    :required="true"
-                    outlined
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <BaseDateField
-                    :key="endDateKey"
-                    v-model="endDate"
-                    :label="$t('endDate')"
-                    :required="true"
-                    outlined
-                  />
-                </v-col>
-              </v-row>
-
-              <v-row>
-                <v-col cols="12">
-                  <v-select
-                    v-model="selectedCity"
-                    :label="$t('searchingPerCities')"
-                    :items="citiesList"
-                    outlined
-                    clearable
-                  />
-                </v-col>
-              </v-row>
-
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-select
-                    v-model="selectedDevice"
-                    :label="$t('searchingPerDevices')"
-                    :items="devicesList"
-                    outlined
-                    clearable
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-select
-                    v-model="selectedBrowser"
-                    :label="$t('searchingPerBrowsers')"
-                    :items="browserList"
-                    outlined
-                    clearable
-                  />
+            <v-container fluid>
+              <v-row
+                align="center"
+                class="column"
+                justify="space-around"
+              >
+                <v-col class="mt-7">
+                  <v-row>
+                    <v-col>
+                      <BaseDateField
+                        :key="startDateKey"
+                        v-model="startDate"
+                        :label="$t('startDate')"
+                        :required="true"
+                        outlined
+                      />
+                    </v-col>
+                    <v-col>
+                      <BaseDateField
+                        :key="endDateKey"
+                        v-model="endDate"
+                        :label="$t('endDate')"
+                        :required="true"
+                        flex-row
+                        outlined
+                      />
+                    </v-col>
+                  </v-row>
+                  <v-col>
+                    <v-row>
+                      <v-select
+                        v-model="selectedCity"
+                        :label="$t('searchingPerCities')"
+                        :items="citiesList"
+                      />
+                    </v-row>
+                    <v-row class="input-row">
+                      <v-select
+                        v-model="selectedDevice"
+                        :label="$t('searchingPerDevices')"
+                        :items="devicesList"
+                      />
+                      <v-select
+                        v-model="selectedBrowser"
+                        :label="$t('searchingPerBrowsers')"
+                        :items="browserList"
+                      />
+                    </v-row>
+                  </v-col>
                 </v-col>
               </v-row>
             </v-container>
           </v-card-text>
-
-          <v-card-actions class="px-6 pb-4">
+          <v-card-actions>
             <v-btn
-              color="primary"
+              color="secondary"
               @click="newSearch"
             >
-              <v-icon
-                left
-                small
-              >
-                mdi-magnify
-              </v-icon>
               {{ $t('searchLabel') }}
             </v-btn>
             <v-spacer />
             <v-btn
-              color="grey"
-              text
+              width="fit-content"
+              color="gray"
+              plain
               @click="clearFields"
             >
-              <v-icon
-                left
-                small
-              >
-                mdi-filter-remove
-              </v-icon>
               {{ $t('clearFieldsLabel') }}
             </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
-
       <!-- Grid principal com gráficos -->
-      <v-row class="charts-grid">
+      <v-row>
         <!-- Gráfico de linha principal -->
-        <v-col
-          cols="12"
-          lg="8"
-        >
-          <v-card
-            class="chart-card"
-            elevation="2"
-          >
-            <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="primary"
-              >
-                mdi-chart-line
-              </v-icon>
+        <v-col cols="12" lg="8">
+          <v-card class="chart-card mb-4" elevation="2">
+            <v-card-title class="pb-2">
+              <v-icon left color="primary">mdi-chart-line</v-icon>
               {{ $t('lastAccesses') }}
               <v-spacer />
               <v-chip
@@ -357,7 +274,7 @@
                 {{ $t('dailyAccessData') }}
               </v-chip>
             </v-card-title>
-            <v-card-text class="chart-content">
+            <v-card-text>
               <LineChartViews
                 :start-date="formatStartDate()"
                 :end-date="formatEndDate()"
@@ -368,24 +285,13 @@
         </v-col>
 
         <!-- Mapa -->
-        <v-col
-          cols="12"
-          lg="4"
-        >
-          <v-card
-            class="chart-card map-card"
-            elevation="2"
-          >
-            <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="success"
-              >
-                mdi-map-marker
-              </v-icon>
+        <v-col cols="12" lg="4">
+          <v-card class="chart-card mb-4" elevation="2" height="450">
+            <v-card-title class="pb-2">
+              <v-icon left color="success">mdi-map-marker</v-icon>
               {{ $t('userAccessMap') }}
             </v-card-title>
-            <v-card-text class="map-content">
+            <v-card-text class="pa-0">
               <MapUserViews />
             </v-card-text>
           </v-card>
@@ -393,47 +299,25 @@
       </v-row>
 
       <!-- Segunda linha - Gráficos circulares -->
-      <v-row class="charts-grid">
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <v-card
-            class="chart-card"
-            elevation="2"
-          >
-            <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="info"
-              >
-                mdi-devices
-              </v-icon>
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-card class="chart-card mb-4" elevation="2">
+            <v-card-title class="pb-2">
+              <v-icon left color="info">mdi-devices</v-icon>
               {{ $t('cmrAccessMode') }}
             </v-card-title>
-            <v-card-text class="chart-content">
+            <v-card-text>
               <DoughnutChartContainer />
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <v-card
-            class="chart-card"
-            elevation="2"
-          >
-            <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="warning"
-              >
-                mdi-web
-              </v-icon>
+        <v-col cols="12" md="6">
+          <v-card class="chart-card mb-4" elevation="2">
+            <v-card-title class="pb-2">
+              <v-icon left color="warning">mdi-web</v-icon>
               {{ $t('browserTypeUsed') }}
             </v-card-title>
-            <v-card-text class="chart-content">
+            <v-card-text>
               <PieChartView />
             </v-card-text>
           </v-card>
@@ -441,25 +325,14 @@
       </v-row>
 
       <!-- Terceira linha - Tabelas -->
-      <v-row class="charts-grid">
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <v-card
-            class="chart-card table-card"
-            elevation="2"
-          >
-            <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="indigo"
-              >
-                mdi-table
-              </v-icon>
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-card class="chart-card mb-4" elevation="2">
+            <v-card-title class="pb-2">
+              <v-icon left color="indigo">mdi-table</v-icon>
               {{ $t('dailyAccessData') }}
             </v-card-title>
-            <v-card-text class="table-content">
+            <v-card-text>
               <TableDefault
                 :labels="viewLabelsTitle"
                 :daily-counts="getDateCounts"
@@ -467,24 +340,13 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <v-card
-            class="chart-card table-card"
-            elevation="2"
-          >
-            <v-card-title class="chart-title">
-              <v-icon
-                left
-                color="purple"
-              >
-                mdi-chart-bar
-              </v-icon>
+        <v-col cols="12" md="6">
+          <v-card class="chart-card mb-4" elevation="2">
+            <v-card-title class="pb-2">
+              <v-icon left color="purple">mdi-chart-bar</v-icon>
               {{ $t('monthlyAccessData') }}
             </v-card-title>
-            <v-card-text class="table-content">
+            <v-card-text>
               <TableDefault
                 :labels="viewLabelsTitle"
                 :monthly-counts="getDataChart.monthly_counts"
@@ -494,85 +356,82 @@
           </v-card>
         </v-col>
       </v-row>
-    </v-container>
-
-    <!-- Modal de download -->
+    </div>
     <v-dialog
       v-model="showDownloadModal"
       persistent
-      max-width="400px"
+      max-width="500px"
     >
       <v-card>
-        <v-card-text class="text-center py-6">
-          <div
+        <v-img
+          class="align-top bottom-0"
+          height="100"
+          src="/img/login.jpg"
+          cover
+        >
+          <v-card-title>
+            <v-spacer />
+            <v-btn
+              icon
+              @click="closeDownloadModal"
+            >
+              <v-icon color="white">
+                mdi-close
+              </v-icon>
+            </v-btn>
+          </v-card-title>
+        </v-img>
+        <v-card-text class="d-flex pt-4 justify-md-center">
+          <span
             v-if="downloadSuccess"
-            class="success-content"
+            class="d-flex flex-lg-column align-md-center"
           >
             <v-icon
               x-large
               color="success"
-              class="mb-3"
-            >
-              mdi-check-circle
-            </v-icon>
-            <p class="text-h6 mb-2">
-              {{ $t('downloadSuccess') }}
-            </p>
-            <p class="text-body-2">
-              {{ $t('downloadSuccessMessage') }}
-            </p>
-          </div>
-          <div
+            >mdi-check-circle</v-icon>
+            <p class="text-subtitle-1">{{ $t('downloadSuccessMessage') }}</p>
+          </span>
+          <span
             v-else
-            class="error-content"
+            class="d-flex flex-lg-column align-md-center"
           >
             <v-icon
               x-large
               color="error"
-              class="mb-3"
-            >
-              mdi-alert-circle
-            </v-icon>
-            <p class="text-h6 mb-2">
-              {{ $t('downloadError') }}
-            </p>
-            <p class="text-body-2">
-              {{ $t('downloadErrorMessage') }}
-            </p>
-          </div>
+            >mdi-cancel</v-icon>
+            <p>{{ $t('downloadErrorMessage') }}</p>
+          </span>
         </v-card-text>
-        <v-card-actions class="justify-center pb-4">
-          <v-btn
-            color="primary"
-            @click="closeDownloadModal"
-          >
-            {{ $t('close') }}
-          </v-btn>
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
 </template>
 
 <script>
+import html2canvas from 'html2canvas';
 import domtoimage from 'dom-to-image';
 import { jsPDF } from 'jspdf';
 import { mapGetters, mapActions } from 'vuex';
 import { formatDate } from '@/store/charts';
+import BarChartDefault from '@/components/graphics/dashboard/BarChartDefault.vue';
 import DoughnutChartContainer from '@/components/graphics/dashboard/DoughnutChartContainer.vue';
 import LineChartViews from '@/components/graphics/dashboard/LineChartViews.vue';
 import PieChartView from '@/components/graphics/dashboard/PieChart.vue';
+import RadarChart from '@/components/graphics/RadarChart.vue';
 import BaseDateField from '@/components/base/BaseDateField.vue';
-import TableDefault from '@/components/graphics/dashboard/TableDefault.vue';
+import TableDefault from '@/components/graphics/dashboard/TableDefault';
 import MapUserViews from '@/components/map/MapUserViews.vue';
 
 export default {
   name: 'ViewsChartPage',
   components: {
     TableDefault,
+    BarChartDefault,
     DoughnutChartContainer,
     LineChartViews,
     PieChartView,
+    RadarChart,
     BaseDateField,
     MapUserViews,
   },
@@ -619,7 +478,6 @@ export default {
     showModal: false,
     showDownloadModal: false,
     downloadSuccess: true,
-    downloading: null,
   }),
   methods: {
     ...mapActions('charts', ['dataChart']),
@@ -633,17 +491,9 @@ export default {
       const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
       const shadowBoxCards = document.querySelectorAll('.v-application , .elevation-2');
 
-      shareButtons.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = '';
-      });
-      mapZoomControlBtn.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = '';
-      });
-      shadowBoxCards.forEach((card) => {
-        card.setAttribute('style', 'box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12) !important;');
-      });
+      shareButtons.forEach((button) => (button.style.display = ''));
+      mapZoomControlBtn.forEach((button) => (button.style.display = ''));
+      shadowBoxCards.forEach((card) => (card.setAttribute('style', 'box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12) !important;')));
     },
 
     formatStartDate() {
@@ -691,20 +541,11 @@ export default {
       const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
       const shadowBoxCards = document.querySelectorAll('.v-application .elevation-2');
 
-      shareButtons.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = 'none';
-      });
-      mapZoomControlBtn.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = 'none';
-      });
-      shadowBoxCards.forEach((card) => {
-        card.setAttribute('style', 'box-shadow: none !important; border: 1px solid #EEEE;');
-      });
+      shareButtons.forEach((button) => (button.style.display = 'none'));
+      mapZoomControlBtn.forEach((button) => (button.style.display = 'none'));
+      shadowBoxCards.forEach((card) => (card.setAttribute('style', 'box-shadow: none !important; border: 1px solid #EEEE;')));
     },
     async downloadCSV() {
-      this.downloading = 'csv';
       try {
         const response = await this.$api.$get(
           `/dashboard/download-csv/?startDate=${this.startDate || ''}&endDate=${
@@ -724,43 +565,34 @@ export default {
         document.body.removeChild(link);
         this.downloadSuccess = true;
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error('Erro ao baixar o CSV:', error);
         this.downloadSuccess = false;
       } finally {
-        this.downloading = null;
         this.showDownloadModal = true;
       }
     },
     async downloadImg() {
-      this.downloading = 'img';
+      const elementToPrint = document.getElementById('chart');
       this.prepareToExportData();
       try {
-        const elementToPrint = document.getElementById('chart');
-        const options = {
-          quality: 1,
-          bgcolor: 'white',
-        };
-
-        const dataUrl = await domtoimage.toPng(elementToPrint, options);
+        const canvas = await html2canvas(elementToPrint, {
+          useCORS: true,
+        });
+        const imgData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
-        link.href = dataUrl;
-        link.setAttribute('download', 'dashboard.png');
+        link.href = imgData;
+        link.setAttribute('download', 'data.png');
         link.click();
-
         this.downloadSuccess = true;
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error('Erro ao gerar imagem:', error);
         this.downloadSuccess = false;
       } finally {
-        this.downloading = null;
         this.showDownloadModal = true;
       }
     },
 
     async downloadPDF() {
-      this.downloading = 'pdf';
       this.prepareToExportData();
       try {
         const nameImageDownload = `${this.$t('viewsControl')}|${this.startDate ? this.startDate : ''}|${this.endDate ? this.endDate : ''}`;
@@ -769,16 +601,16 @@ export default {
           bgcolor: 'white',
         };
         const node = document.getElementById('chart');
-
-        const image = await domtoimage.toJpeg(node, options);
-        const doc = new jsPDF({
-          orientation: 'portrait',
-          format: 'A4',
-          compression: 'SLOW',
+        await domtoimage.toJpeg(node, options).then((image) => {
+          const doc = new jsPDF({
+            orientation: 'portrait',
+            format: 'A4',
+            compression: 'SLOW',
+          });
+          doc.addImage(image, 'JPEG', 0, 0, 210, 295);
+          doc.save(`${nameImageDownload}.pdf`);
         });
-        doc.addImage(image, 'JPEG', 0, 0, 210, 295);
-        doc.save(`${nameImageDownload}.pdf`);
-
+        this.showDownloadModal = true;
         this.downloadSuccess = true;
       } catch (error) {
         this.$store.commit('alert/addAlert', {
@@ -786,7 +618,6 @@ export default {
         });
         this.downloadSuccess = false;
       } finally {
-        this.downloading = null;
         this.showDownloadModal = true;
       }
     },
@@ -795,141 +626,67 @@ export default {
 </script>
 
 <style scoped lang="sass">
+.v-image__image.v-image__image--cover
+  background-position: bottom !important
+
 .chart
-  background-color: #f5f5f5
-  min-height: 100vh
+  position: sticky
+  top: 0
+  z-index: 3
 
-  .chart-header
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
-    color: white
-    padding: 1rem 0
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1)
-
-    .back-btn
-      background-color: rgba(255,255,255,0.1)
-      color: white !important
-
-      &:hover
-        background-color: rgba(255,255,255,0.2)
-
-    .logo-img
-      filter: brightness(0) invert(1)
-
-    .page-title
-      font-size: 1.75rem
-      font-weight: 300
-      margin: 0
-      text-shadow: 0 1px 3px rgba(0,0,0,0.3)
-
-  .toolbar-section
-    background: white
-    border-bottom: 1px solid #e0e0e0
-    padding: 0.75rem 0
-
-    .filter-btn
-      border-radius: 25px
-      font-weight: 500
-      text-transform: none
-
-    .download-buttons
-      display: flex
-      gap: 0.5rem
-
-      .download-btn
-        border-radius: 50%
-        transition: all 0.3s ease
-
-        &:hover
-          transform: translateY(-2px)
-          box-shadow: 0 4px 8px rgba(0,0,0,0.2)
-
-  .content-section
-    max-width: 1200px
-    margin: 0 auto
-
-  .charts-grid
-    margin-bottom: 1.5rem
-
-    &:last-child
-      margin-bottom: 0
-
-  .chart-card
-    border-radius: 12px
-    overflow: hidden
-    transition: all 0.3s ease
-    height: 100%
-
-    &:hover
-      box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important
-      transform: translateY(-2px)
-
-    .chart-title
-      background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%)
-      border-bottom: 1px solid #dee2e6
-      padding: 1rem 1.5rem
-      font-size: 1.1rem
-      font-weight: 600
-
-    .chart-content, .table-content
-      padding: 1.5rem
-
-    &.map-card
-      min-height: 450px
-
-      .map-content
-        padding: 0
-        height: 400px
-
-    &.table-card
-      .table-content
-        padding: 1rem
-
-  // Modal styling
-  .v-dialog .v-card
-    border-radius: 12px
-
-    .v-card-title
-      background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%)
-      border-bottom: 1px solid #dee2e6
-
-  // Success/Error content
-  .success-content, .error-content
+  &--btn-wrapper
     display: flex
-    flex-direction: column
+    flex-wrap: wrap
     align-items: center
+    justify-content: flex-end
+    gap: 1rem
 
-// Responsive adjustments
-@media (max-width: 960px)
-  .chart
-    .chart-header
-      .page-title
-        font-size: 1.5rem
-        text-align: center
-        margin-top: 1rem
+    &-saves
+      border: 1px solid #d92b3f
+      border-radius: 8px
+      position: relative
 
-    .toolbar-section
-      .py-3
-        flex-direction: column
-        gap: 1rem
+      &::before
+       content: 'Download'
+       font-size: 12px
+       position: absolute
+       top: -20px
 
-      .download-buttons
-        justify-content: center
+  &--card
+    border-radius: 6px
+    padding: 1.5rem
+    background: #fff
+    margin: 0.5rem 0
 
-    .content-section
-      padding: 1rem 0.5rem
+    &-row
+      background: #fff
+      margin-top: 0
 
-    .chart-card
-      margin-bottom: 1rem
+      & + .chart--card-row
+        margin-left: 0.5rem
 
-@media (max-width: 600px)
-  .chart
-    .chart-header
-      padding: 1rem
+  &--column
+    border: 1px solid #EEEEEE !important
 
-      .page-title
-        font-size: 1.25rem
+  &-header
+    position: sticky
+    top: 0
+    padding: 0.5rem
+    background: #EEEEEE
+    z-index: 333
 
-    .download-buttons
-      flex-wrap: wrap
-      justify-content: center
+    &-logo
+      width: 15rem
+      margin: 0 auto
+
+.container-iframe
+    display: inline-block
+    width: 100%
+    height: 100vh
+    border: 0
+
+.input-row
+    display: flex
+    gap: 2rem
+    flex-wrap: wrap
 </style>
