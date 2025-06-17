@@ -140,16 +140,19 @@ export default {
       // Adiciona features ao mapa e ajusta os limites
       if (
         !this.map
-        || !this.features
-        || !this.features.features
-        || !this.features.features.length
+    || !this.features
+    || !this.features.features
+    || !this.features.features.length
       ) {
         return;
       }
       try {
-        const bounds = this.$L.geoJSON(this.features).getBounds();
-        if (bounds.isValid()) {
-          this.map.flyToBounds(bounds, { duration: 1 });
+        // Evita zoom se currentView estiver ativo
+        if (!this.$store.state.monitoring.filters.currentView) {
+          const bounds = this.$L.geoJSON(this.features).getBounds();
+          if (bounds.isValid()) {
+            this.map.flyToBounds(bounds, { duration: 1 });
+          }
         }
       } catch (error) {
         console.error('Erro ao ajustar bounds do mapa:', error);
