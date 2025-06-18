@@ -84,10 +84,10 @@
 <script>
 import { mapState, mapMutations } from 'vuex';
 import tmsLegend from '@/assets/tmsLegend.png';
-import SupportLayerFilters from '@/components/support/SupportLayerFilters';
+import SupportLayerFilters from '@/components/raster/SupportLayerFilters';
 
 export default {
-  name: 'SupportLayersGroupItemRaster',
+  name: 'LayersGroupItemRaster',
 
   components: { SupportLayerFilters },
 

@@ -181,10 +181,10 @@ export default {
         },
         {
           name: this.$t('high-resolution-mosaics-tab'),
-          icon: 'mdi-book-open-page-variant',
-          route: '/cmr/support-raster',
+           icon: 'mdi-book-open-page-variant',
+          route: '/cmr/raster',
           requiredLogin: true,
-          show: process.env.ROUTE_SUPPORT_RASTER === 'true',
+          show: process.env.ROUTE_RASTER === 'true',
           componentKey: 'layers_mosaics',
         },
 
@@ -209,7 +209,7 @@ export default {
           icon: 'mdi-satellite-variant',
           route: '/cmr/inpe',
           requiredLogin: true,
-          show: process.env.ROUTE_SUPPORT_PRODES === 'true',
+          show: process.env.ROUTE_INPE === 'true',
         },
         {
           name: this.$t('analytics-tab'),

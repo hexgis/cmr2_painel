@@ -24,34 +24,37 @@
         </v-list-item-title>
       </v-list-item-content>
 
-      <v-col cols="1" v-if="group.name === 'Alta Resolução' && !isPlanet">
-          <v-tooltip bottom>
-            <template #activator="{ on }">
-              <v-icon
-                class="pb-4"
-                v-on="on"
-              >
-                mdi-information
-              </v-icon>
-            </template>
-            <span>
-              {{ $t('mosaic-line-1') }}
-              <br>
-              {{ $t('mosaic-line-2') }}
-              <br>
-              {{ $t('mosaic-line-3') }}
-              <br>
-              {{ $t('mosaic-line-4') }}
-              <br>
-            </span>
-          </v-tooltip>
-       </v-col>
+      <v-col
+        v-if="group.name === 'Alta Resolução' && !isPlanet"
+        cols="1"
+      >
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <v-icon
+              class="pb-4"
+              v-on="on"
+            >
+              mdi-information
+            </v-icon>
+          </template>
+          <span>
+            {{ $t('mosaic-line-1') }}
+            <br>
+            {{ $t('mosaic-line-2') }}
+            <br>
+            {{ $t('mosaic-line-3') }}
+            <br>
+            {{ $t('mosaic-line-4') }}
+            <br>
+          </span>
+        </v-tooltip>
+      </v-col>
     </template>
 
     <template v-if="!searchLayer">
       <v-container class="py-0">
         <v-list expand>
-          <SupportLayersGroupItemRaster
+          <LayersGroupItemRaster
             v-for="layer in orderedSupportLayers"
             :key="layer"
             :layer-id="layer"
@@ -64,7 +67,7 @@
       <v-container class="py-0">
         <v-list expand>
           <template v-for="layer in orderedSupportLayers">
-            <SupportLayersGroupItemRaster
+            <LayersGroupItemRaster
               v-if="includesLayers(layer)"
               :key="layer"
               :layer-id="layer"
@@ -95,23 +98,23 @@
 <script>
 import { mapState, mapMutations } from 'vuex';
 import _ from 'lodash';
-import SupportLayersGroupItemRaster from '@/components/support/SupportLayersGroupItemRaster';
+import LayersGroupItemRaster from '@/components/raster/LayersGroupItemRaster';
 
 export default {
-  name: 'SupportLayersGroupRaster',
+  name: 'LayersGroupRaster',
 
-  components: { SupportLayersGroupItemRaster },
+  components: { LayersGroupItemRaster },
 
-    props: {
-        group: {
-            type: Object,
-            default: null,
-        },
-        isPlanet: {
-            type: Boolean,
-            default: false,
-        },
+  props: {
+    group: {
+      type: Object,
+      default: null,
     },
+    isPlanet: {
+      type: Boolean,
+      default: false,
+    },
+  },
 
   data: () => ({
     value: null,

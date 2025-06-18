@@ -186,7 +186,7 @@
 
         <SupportLayers />
 
-        <SupportLayersRaster />
+        <LayersRaster />
 
         <!-- <ImageryLayers v-if="showImagery" :map="map" /> -->
 
@@ -274,7 +274,7 @@ import MonitoringLayers from '@/components/monitoring/MonitoringLayers';
 // import MonitoringLayersGeoserver from '@/components/monitoring/MonitoringLayersGeoserver'
 import SupportLayers from '@/components/support/SupportLayers';
 
-import SupportLayersRaster from '@/components/support/SupportLayersRaster';
+import LayersRaster from '@/components/raster/LayersRaster';
 // import ChangeDetectionLayers from '@/components/change-detection/ChangeDetectionLayers'
 import BaseWmsMetadataPopup from '@/components/base/BaseWmsMetadataPopup';
 // import AlgorithmLayers from '@/components/algorithms/AlgorithmLayers'
@@ -324,7 +324,7 @@ export default {
     LandUseLayers,
     AlertLayers,
     DeterLayers,
-    SupportLayersRaster,
+    LayersRaster,
 
     SupportUserLayersMap,
     DrawingPanel,

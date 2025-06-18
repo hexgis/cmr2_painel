@@ -18,7 +18,7 @@ import { mapState } from 'vuex';
 import SupportLayerItem from './SupportLayerItem';
 
 export default {
-  name: 'SupportLayersRaster',
+  name: 'LayersRaster',
 
   components: {
     SupportLayerItem,
