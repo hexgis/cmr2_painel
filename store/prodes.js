@@ -2,8 +2,8 @@ const { stringify } = require('wkt');
 
 export const state = () => ({
   features: null,
-  urlWmsProdes: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
-  geoserverLayerProdes: 'CMR-PUBLICO:vw_prodes_com_terra_indigena_a',
+  urlWmsProdes: process.env.GEOSERVER_URL,
+  geoserverLayerProdes: process.env.GEOSERVER_PRODES,
   currentUrlWmsProdes: '',
   showFeaturesProdes: false,
   ProdesWmsOptions: {

@@ -401,7 +401,7 @@ export default {
         // DETER
         tb_download_deter_a_b_id: 'Download Deter AB',
         ds_mes: 'Mês',
-        dt_deteccao: 'Data de detecção',
+        view_date: 'Data de detecção',
         // FOCO CALOR
         sg_regiao: 'Região',
         no_satelite: 'Satélite',
