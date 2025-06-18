@@ -36,7 +36,7 @@
                     color="secondary"
                     @click="downloadCSV()"
                   >
-                    <v-icon> mdi-download</v-icon>
+                    <v-icon> mdi-download </v-icon>
                   </v-btn>
                 </a>
               </div>
@@ -83,7 +83,7 @@
                 </v-btn>
                 <v-btn
                   class="mx-1 my-2"
-                  :class="btn_ti_year ? 'button-pressed' : '' "
+                  :class="btn_ti_year ? 'button-pressed' : ''"
                   :disabled="isLoadingFeatures"
                   @click="groupByFunaiYear()"
                 >
@@ -162,30 +162,14 @@
   }
 }
 </i18n>
+
 <script>
 import { mapActions, mapMutations, mapState } from 'vuex';
-import AnalyticsFilter from '@/components/analytics/AnalyticsFilter';
-import AreaChart from '@/components/graphics/AreaChart.vue';
-import PieChart from '@/components/graphics/PieChart.vue';
-import BarChart from '@/components/graphics/BarChart.vue';
-import RadarChart from '@/components/graphics/RadarChart.vue';
-import LineChart from '@/components/graphics/LineChart.vue';
-import DoughnutChart from '~/components/graphics/DoughnutChart.vue';
 
 export default {
   name: 'AnalyticalDialog',
 
-  components: {
-    AnalyticsFilter,
-    AreaChart,
-    PieChart,
-    BarChart,
-    RadarChart,
-    LineChart,
-    DoughnutChart,
-  },
   props: {
-    // content: String,
     value: {
       type: Boolean,
       require: true,
@@ -228,8 +212,8 @@ export default {
       btn_ti_month_year: false,
       btn_month_year: false,
       btn_year: false,
-      btn_ti_year: true,
-      btn_day: false,
+      btn_ti_year: false,
+      btn_day: true,
     };
   },
 
@@ -245,15 +229,6 @@ export default {
       'isLoadingStatistic',
       'isLoadingCSVMonitoring',
     ]),
-
-    ...mapMutations('monitoring', [
-      'setanalyticsMonitoringDialog',
-      'setFilters',
-      'isLoadingGeoJson',
-    ]),
-
-    ...mapMutations('tableDialog', ['setshowTableDialog']),
-
   },
 
   created() {
@@ -265,95 +240,68 @@ export default {
   },
 
   methods: {
-    pressedBUtton(btn) {
-      this.btn_ti_month_year = false;
-      this.btn_month_year = false;
-      this.btn_year = false;
-      this.btn_ti_year = false;
-      this.btn_day = false;
-      this.btn_ti = false;
-      switch (btn) {
-        case 'btn_ti_year':
-          this.btn_ti_year = true;
-          break;
-        case 'btn_ti_month_year':
-          this.btn_ti_month_year = true;
-          break;
-        case 'btn_day':
-          this.btn_day = true;
-          break;
-        case 'btn_ti':
-          this.btn_ti = true;
-          break;
-        case 'btn_year':
-          this.btn_year = true;
-          break;
-        case 'btn_month_year':
-          this.btn_month_year = true;
-          break;
-        default:
-          break;
-      }
+    pressedButton(btn) {
+      const buttons = ['btn_ti_year', 'btn_ti_month_year', 'btn_day', 'btn_ti', 'btn_year', 'btn_month_year'];
+      buttons.forEach((button) => {
+        this[button] = button === btn;
+      });
     },
     groupByFunaiYear() {
-      this.pressedBUtton('btn_ti_year');
-      this.getDataAnalyticsMonitoringByFunaiYear();
+      this.pressedButton('btn_ti_year');
+      this.getDataAnalyticsMonitoring('grouping_by_co_funai_year');
     },
     groupByFunaiMonthYear() {
-      this.pressedBUtton('btn_ti_month_year');
-      this.getDataAnalyticsMonitoringByFunaiMonthYear();
+      this.pressedButton('btn_ti_month_year');
+      this.getDataAnalyticsMonitoring('grouping_by_co_funai_and_monthyear');
     },
     groupByDay() {
-      this.pressedBUtton('btn_day');
-      this.getDataAnalyticsMonitoringByDay();
+      this.pressedButton('btn_day');
+      this.getDataAnalyticsMonitoring('grouping_by_day');
     },
     groupByFunai() {
-      this.pressedBUtton('btn_ti');
-      this.getDataAnalyticsMonitoringByFunai();
+      this.pressedButton('btn_ti');
+      this.getDataAnalyticsMonitoring('grouping_by_funai');
     },
     groupByYear() {
-      this.pressedBUtton('btn_year');
-      this.getDataAnalyticsMonitoringByYear();
+      this.pressedButton('btn_year');
+      this.getDataAnalyticsMonitoring('grouping_by_year');
     },
     groupByMonthYear() {
-      this.pressedBUtton('btn_month_year');
-      this.getDataAnalyticsMonitoringByMonthYear();
+      this.pressedButton('btn_month_year');
+      this.getDataAnalyticsMonitoring('grouping_by_monthyear');
     },
 
     downloadCSV() {
-      if (this.btn_ti_year === true) {
-        this.downloadTableMonitoringAnalyticsByFunaiYear();
-      } else if (this.btn_ti_month_year === true) {
-        this.downloadTableMonitoringAnalyticsByFunaiMonthYear();
-      } else if (this.btn_day === true) {
-        this.downloadTableMonitoringAnalyticsByDay();
-      } else if (this.btn_ti === true) {
-        this.downloadTableMonitoringAnalyticsByFunai();
-      } else if (this.btn_year === true) {
-        this.downloadTableMonitoringAnalyticsByYear();
+      let type;
+      if (this.btn_ti_year) {
+        type = 'byFunaiYear';
+      } else if (this.btn_ti_month_year) {
+        type = 'byFunaiMonthYear';
+      } else if (this.btn_day) {
+        type = 'byDay';
+      } else if (this.btn_ti) {
+        type = 'byFunai';
+      } else if (this.btn_year) {
+        type = 'byYear';
       } else {
-        this.downloadTableMonitoringAnalyticsByMonthYear();
+        type = 'byMonthYear';
       }
+      this.downloadTableMonitoringAnalytics(type);
     },
 
+    ...mapMutations('monitoring', [
+      'setanalyticsMonitoringDialog',
+      'setFilters',
+      'isLoadingGeoJson',
+    ]),
+
+    ...mapMutations('tableDialog', ['setshowTableDialog']),
+
     ...mapActions('monitoring', [
-      'getDataAnalyticsMonitoringByFunaiYear',
-      'getDataAnalyticsMonitoringByDay',
-      'getDataAnalyticsMonitoringByFunai',
-      'getDataAnalyticsMonitoringByYear',
+      'getDataAnalyticsMonitoring',
       'downloadTableMonitoringAnalytics',
-      'getDataAnalyticsMonitoringByPercentage',
-      'getDataAnalyticsMonitoringByMonthYear',
-      'getDataAnalyticsMonitoringByFunaiMonthYear',
-      'downloadTableMonitoringAnalyticsByDay',
-      'downloadTableMonitoringAnalyticsByMonthYear',
-      'downloadTableMonitoringAnalyticsByFunai',
-      'downloadTableMonitoringAnalyticsByFunaiMonthYear',
-      'downloadTableMonitoringAnalyticsByFunaiYear',
-      'downloadTableMonitoringAnalyticsByYear',
     ]),
   },
-
 };
 </script>
 
@@ -364,49 +312,4 @@ export default {
   transform: translateY(4px);
 }
 
-.v-dialog__content {
-    /* justify-content: flex-start; */
-}
-
-/* @media (max-width: 900px) {
-    .v-dialog__content {
-        justify-content: center;
-    }
-}
-
-@media (min-width: 901px) {
-    .v-dialog__content {
-        width: 55%;
-    }
-}
-
-@media (min-width: 1000px) {
-    .v-dialog__content {
-        width: 60%;
-    }
-}
-
-@media (min-width: 1200px) {
-    .v-dialog__content {
-        width: 66%;
-    }
-}
-
-@media (min-width: 1264px) {
-    .v-dialog__content {
-        width: 68%;
-    }
-}
-
-@media (min-width: 1600px) {
-    .v-dialog__content {
-        width: 75%;
-    }
-}
-
-@media (min-width: 1920px) {
-    .v-dialog__content {
-        width: 100%;
-    }
-} */
 </style>

@@ -40,78 +40,80 @@
               id="data-table"
               class="leaflet-bottom leaflet-right"
             >
-              <!-- Primeira condição -->
-              <template v-if="teste >= 0 && teste <= 7">
-                <template v-if="showFeaturesMonitoring && !hasLongMonitoringInfo">
-                  <div
-                    v-for="(item, i) in analyticsMonitoring"
-                    :key="'monitoring-' + item.no_ti + i"
-                    class="text-center bordered-red"
-                  >
-                    <p>
-                      <strong>TI {{ item.no_ti }}</strong>
-                    </p>
-                    <p>
-                      Área da TI: {{ formatNumber(item.ti_nu_area_ha) }} ha
-                    </p>
-                    <p v-if="item.cr_nu_area_ha">
-                      CR: {{ formatNumber(item.cr_nu_area_ha) }} ha
-                    </p>
-                    <p v-if="item.dg_nu_area_ha">
-                      DG: {{ formatNumber(item.dg_nu_area_ha) }} ha
-                    </p>
-                    <p v-if="item.dr_nu_area_ha">
-                      DR: {{ formatNumber(item.dr_nu_area_ha) }} ha
-                    </p>
-                    <p v-if="item.ff_nu_area_ha">
-                      FF: {{ formatNumber(item.ff_nu_area_ha) }} ha
-                    </p>
-                  </div>
-                </template>
-                <template v-if="showFeaturesLandUse && tableLandUse.length <= 7">
-                  <div
-                    v-for="(item, index) in tableLandUse"
-                    :key="'landuse-' + index"
-                    class="text-center bordered-blue"
-                  >
-                    <p>
-                      <strong>TI {{ item.no_ti }}</strong>
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_ha) > 0">
-                      Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_ag_ha) > 0">
-                      AG: {{ formatNumber(item.nu_area_ag_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_cr_ha) > 0">
-                      CR: {{ formatNumber(item.nu_area_cr_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_dg_ha) > 0">
-                      DG: {{ formatNumber(item.nu_area_dg_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_ma_ha) > 0">
-                      MA: {{ formatNumber(item.nu_area_ma_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_mi_ha) > 0">
-                      MI: {{ formatNumber(item.nu_area_mi_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_no_ha) > 0">
-                      NO: {{ formatNumber(item.nu_area_no_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_rv_ha) > 0">
-                      RV: {{ formatNumber(item.nu_area_rv_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_sv_ha) > 0">
-                      SV: {{ formatNumber(item.nu_area_sv_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_vn_ha) > 0">
-                      VN: {{ formatNumber(item.nu_area_vn_ha) }} ha
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_vi_ha) > 0">
-                      VI: {{ formatNumber(item.nu_area_vi_ha) }} ha
-                    </p>
-                  </div>
-                </template>
+              <template
+                v-if="showFeaturesMonitoring
+                  && hasActiveMonitoringStages && teste >= 0 && teste <= 7"
+              >
+                <!-- Bloco para Monitoramento -->
+                <div
+                  v-for="(item, index) in filteredMonitoringData"
+                  :key="'monitoring-' + index"
+                  class="text-center bordered-red"
+                >
+                  <p>
+                    <strong>TI {{ item.no_ti }}</strong>
+                  </p>
+                  <p v-if="parseFloat(item.nu_area_ha) > 0">
+                    Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.monitoring.nu_area_cr_ha) > 0">
+                    CR: {{ formatNumber(item.monitoring.nu_area_cr_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.monitoring.nu_area_dg_ha) > 0">
+                    DG: {{ formatNumber(item.monitoring.nu_area_dg_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.monitoring.nu_area_dr_ha) > 0">
+                    DR: {{ formatNumber(item.monitoring.nu_area_dr_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.monitoring.nu_area_ff_ha) > 0">
+                    FF: {{ formatNumber(item.monitoring.nu_area_ff_ha) }} ha
+                  </p>
+                </div>
+              </template>
+              <template v-if="showFeaturesLandUse && teste >= 0 && teste <= 7">
+                <!-- Bloco para Uso e Ocupação do Solo -->
+                <div
+                  v-for="(item, index) in filteredLandUseData"
+                  :key="'landuse-' + index"
+                  class="text-center bordered-blue"
+                >
+                  <p>
+                    <strong>TI {{ item.no_ti }}</strong>
+                  </p>
+                  <p v-if="parseFloat(item.nu_area_ha) > 0">
+                    Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_ag_ha) > 0">
+                    AG: {{ formatNumber(item.landUse.nu_area_ag_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_cr_ha) > 0">
+                    CR: {{ formatNumber(item.landUse.nu_area_cr_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_dg_ha) > 0">
+                    DG: {{ formatNumber(item.landUse.nu_area_dg_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_ma_ha) > 0">
+                    MA: {{ formatNumber(item.landUse.nu_area_ma_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_mi_ha) > 0">
+                    MI: {{ formatNumber(item.landUse.nu_area_mi_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_no_ha) > 0">
+                    NO: {{ formatNumber(item.landUse.nu_area_no_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_rv_ha) > 0">
+                    RV: {{ formatNumber(item.landUse.nu_area_rv_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_sv_ha) > 0">
+                    SV: {{ formatNumber(item.landUse.nu_area_sv_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_vn_ha) > 0">
+                    VN: {{ formatNumber(item.landUse.nu_area_vn_ha) }} ha
+                  </p>
+                  <p v-if="parseFloat(item.landUse.nu_area_vi_ha) > 0">
+                    VI: {{ formatNumber(item.landUse.nu_area_vi_ha) }} ha
+                  </p>
+                </div>
               </template>
             </div>
             <v-card
@@ -213,20 +215,17 @@
                           align-items: flex-start;
                           gap: 5px;"
                       >
-                        <div v-if="showFeaturesMonitoring">
+                        <div v-if="showFeaturesMonitoring && hasActiveMonitoringStages">
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>
-                              {{ totalMonitoring }}
+                              {{ monitoringCount }}
                             </v-chip>
                           </p>
-                          <hr
-                            style="border: 1px solid red; margin: 0;"
-                          >
-                          <LayerList
-                            v-if="showFeaturesMonitoring"
-                            :layers="activeMonitoringLabel"
-                            :monitoring="true"
+                          <hr style="border: 1px solid red; margin: 0; margin-top: 0px;">
+                          <CustomizedLegend
+                            class="pt-1"
+                            :items="monitoringItems"
                           />
                         </div>
                         <div
@@ -388,9 +387,9 @@
                   <div v-if="showFeaturesMonitoring">
                     <p class="ml-1">
                       {{ $t('monitoring-print-label') }}
-                      {{ handleData(filters.startDate) }}
+                      {{ handleData(monitoringFilters.startDate) }}
                       {{ $t('and') }}
-                      {{ handleData(filters.endDate) }}
+                      {{ handleData(monitoringFilters.endDate) }}
                     </p>
                   </div>
                   <div v-if="showFeaturesLandUse && uniqueYears.length > 0">
@@ -414,9 +413,9 @@
                   <div v-if="showFeaturesDeter">
                     <p class="ml-1">
                       {{ $t('deter-print-label') }}
-                      {{ handleData(filters.startDate) }}
+                      {{ handleData(deterFilters.startDate) }}
                       {{ $t('and') }}
-                      {{ handleData(filters.endDate) }}
+                      {{ handleData(deterFilters.endDate) }}
                     </p>
                   </div>
                   <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
@@ -499,70 +498,70 @@
 
 <i18n>
 {
-    "en": {
-        "print-out": "Print Out",
-        "legend": "Legend:",
-        "text-address0": " | Print date: ",
-        "text-address": " | Print date: ",
-        "text-info": "The information may be distorted depending on the cartographic bases used.",
-        "text-format": "Format-adapted map template ",
-        "input-button-back-second-step": "Back",
-        "input-button-pdf-image": "Generate PDF",
-        "download-image": "Download Image",
-        "author-label": "Author: ",
-        "clear-cut": "Clear Cut",
-        "degradation": "Degradation",
-        "forest-fire": "Forest Fire",
-        "regeneration-deforestation": "Regeneration Deforestation",
-        "burnt-scar": "Burnt Scar",
-        "deforestation-veg": "Vegetation Deforestation",
-        "disorderly-cs": "Disorderly Cs",
-        "deforestation-cr": "Deforestation Cr",
-        "geometric-cs": "Geometric Cs",
-        "mining": "Mining",
-        "land-use-print-label": "Year usage and occupancy data",
-        "monitoring-print-label": "Daily Monitoring Data between",
-        "and": "and",
-        "warning-message": "The number of selected TIs exceeds the limit for display on the print map. Only deforestation polygons will be shown. To view the statistics, reduce the selected TIs or access the 'Statistics' menu.",
-        "agree": "I agree",
-        "prodes-print-label": "Prodes data between",
-        "deter-print-label": "Deter data between",
-        "heat-focus-print-label": "Heat focus data between",
-        "aqua-morning": "Aqua Modis Morning",
-        "aqua-afternoon": "Aqua Modis Afternoon"
-    },
-    "pt-br": {
-        "print-out": "Impressão",
-        "legend": "Legenda:",
-        "text-address0": " | CENTRO DE MONITORAMENTO REMOTO - https://cmr.funai.gov.br ",
-        "text-address": " | Data da impressão: ",
-        "text-info": "As informações podem apresentar distorções em função das bases cartográficas utilizadas.",
-        "text-format": "Modelo de mapa adaptado para formato ",
-        "input-button-back-second-step": "Voltar",
-        "input-button-pdf-image": "Gerar PDF",
-        "download-image": "Baixar Imagem",
-        "author-label": "Autor: ",
-        "clear-cut": "Corte Raso",
-        "degradation": "Degradação",
-        "forest-fire": "Fogo em Floresta",
-        "regeneration-deforestation": "Desmatamento em Regeneração",
-        "burnt-scar": "Cicatriz de Queimada",
-        "deforestation-veg": "Desmatamento Veg",
-        "disorderly-cs": "Cs Desordenado",
-        "deforestation-cr": "Desmatamento Cr",
-        "geometric-cs": "Cs Geométrico",
-        "mining": "Mineração",
-        "land-use-print-label": "Dados de Uso e Ocupação ano",
-        "monitoring-print-label": "Dados de Monitoramento Diário entre",
-        "and": "e",
-        "warning-message": "O número de TIs selecionadas excede o limite para visualização no mapa de impressão. Apenas os polígonos de desmatamento serão exibidos. Para ver as estatísticas, reduza as TIs selecionadas ou acesse o menu 'Estatísticas'.",
-        "agree": "Ciente",
-        "prodes-print-label": "Dados Prodes entre",
-        "deter-print-label": "Dados Deter entre",
-        "heat-focus-print-label": "Dados de Focos de Calor entre",
-        "aqua-morning": "Aqua Modis Manhã",
-        "aqua-afternoon": "Aqua Modis Tarde"
-    }
+  "en": {
+    "print-out": "Print Out",
+    "legend": "Legend:",
+    "text-address0": " | Print date: ",
+    "text-address": " | Print date: ",
+    "text-info": "The information may be distorted depending on the cartographic bases used.",
+    "text-format": "Format-adapted map template ",
+    "input-button-back-second-step": "Back",
+    "input-button-pdf-image": "Generate PDF",
+    "download-image": "Download Image",
+    "author-label": "Author: ",
+    "clear-cut": "Clear Cut",
+    "degradation": "Degradation",
+    "forest-fire": "Forest Fire",
+    "regeneration-deforestation": "Regeneration Deforestation",
+    "burnt-scar": "Burnt Scar",
+    "deforestation-veg": "Vegetation Deforestation",
+    "disorderly-cs": "Disorderly Cs",
+    "deforestation-cr": "Deforestation Cr",
+    "geometric-cs": "Geometric Cs",
+    "mining": "Mining",
+    "land-use-print-label": "Year usage and occupancy data",
+    "monitoring-print-label": "Daily Monitoring Data between",
+    "and": "and",
+    "warning-message": "The number of selected TIs exceeds the limit for display on the print map. Only deforestation polygons will be shown. To view the statistics, reduce the selected TIs or access the 'Statistics' menu.",
+    "agree": "I agree",
+    "prodes-print-label": "Prodes data between",
+    "deter-print-label": "Deter data between",
+    "heat-focus-print-label": "Heat focus data between",
+    "aqua-morning": "Aqua Modis Morning",
+    "aqua-afternoon": "Aqua Modis Afternoon"
+  },
+  "pt-br": {
+    "print-out": "Impressão",
+    "legend": "Legenda:",
+    "text-address0": " | CENTRO DE MONITORAMENTO REMOTO - https://cmr.funai.gov.br ",
+    "text-address": " | Data da impressão: ",
+    "text-info": "As informações podem apresentar distorções em função das bases cartográficas utilizadas.",
+    "text-format": "Modelo de mapa adaptado para formato ",
+    "input-button-back-second-step": "Voltar",
+    "input-button-pdf-image": "Gerar PDF",
+    "download-image": "Baixar Imagem",
+    "author-label": "Autor: ",
+    "clear-cut": "Corte Raso",
+    "degradation": "Degradação",
+    "forest-fire": "Fogo em Floresta",
+    "regeneration-deforestation": "Desmatamento em Regeneração",
+    "burnt-scar": "Cicatriz de Queimada",
+    "deforestation-veg": "Desmatamento Veg",
+    "disorderly-cs": "Cs Desordenado",
+    "deforestation-cr": "Desmatamento Cr",
+    "geometric-cs": "Cs Geométrico",
+    "mining": "Mineração",
+    "land-use-print-label": "Dados de Uso e Ocupação ano",
+    "monitoring-print-label": "Dados de Monitoramento Diário entre",
+    "and": "e",
+    "warning-message": "O número de TIs selecionadas excede o limite para visualização no mapa de impressão. Apenas os polígonos de desmatamento serão exibidos. Para ver as estatísticas, reduza as TIs selecionadas ou acesse o menu 'Estatísticas'.",
+    "agree": "Ciente",
+    "prodes-print-label": "Dados Prodes entre",
+    "deter-print-label": "Dados Deter entre",
+    "heat-focus-print-label": "Dados de Focos de Calor entre",
+    "aqua-morning": "Aqua Modis Manhã",
+    "aqua-afternoon": "Aqua Modis Tarde"
+  }
 }
 </i18n>
 
@@ -611,16 +610,15 @@ export default {
   },
 
   data: () => ({
-    hasLongMonitoringInfo: false,
     teste: 0,
     totalMonitoring: 0,
     totalLandUse: 0,
     headers: [
       { text: 'TI', value: 'no_ti' },
-      { text: 'Área CR (ha)', value: 'cr_nu_area_ha' },
-      { text: 'Área DG (ha)', value: 'dg_nu_area_ha' },
-      { text: 'Área DR (ha)', value: 'dr_nu_area_ha' },
-      { text: 'Área FF (ha)', value: 'ff_nu_area_ha' },
+      { text: 'Área CR (ha)', value: 'nu_area_cr_ha' },
+      { text: 'Área DG (ha)', value: 'nu_area_dg_ha' },
+      { text: 'Área DR (ha)', value: 'nu_area_dr_ha' },
+      { text: 'Área FF (ha)', value: 'nu_area_ff_ha' },
     ],
     map: null,
     miniMap: null,
@@ -638,7 +636,6 @@ export default {
       { label: 'degradation', color: '#ff8000' },
       { label: 'clear-cut', color: '#ff3333' },
     ],
-
     deterItems: [
       { label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' },
     ],
@@ -657,10 +654,102 @@ export default {
   }),
 
   computed: {
+    hasActiveMonitoringStages() {
+      return Object.values(this.legendVisibility).some((visible) => visible);
+    },
+    filteredMonitoringData() {
+      return this.combinedTableData.filter(
+        (item) => item.monitoring
+        && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0),
+      );
+    },
+
+    filteredLandUseData() {
+      return this.combinedTableData.filter(
+        (item) => item.landUse
+        && Object.keys(item.landUse).some((key) => item.landUse[key] > 0),
+      );
+    },
+
+    filteredCombinedTableData() {
+      return this.combinedTableData.filter((item) => {
+        const hasMonitoring = this.showFeaturesMonitoring
+                           && item.monitoring
+                           && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0);
+
+        const hasLandUse = this.showFeaturesLandUse
+                         && item.landUse
+                         && Object.keys(item.landUse).some((key) => item.landUse[key] > 0);
+
+        return hasMonitoring || hasLandUse;
+      });
+    },
+    combinedTableData() {
+      const keys = {
+        monitoring: ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'],
+        landUse: ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'],
+      };
+      const initializeObject = (keyList) => keyList.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
+      const initializeData = (noTi) => ({
+        no_ti: noTi,
+        nu_area_ha: 0,
+        monitoring: initializeObject(keys.monitoring),
+        landUse: initializeObject(keys.landUse),
+      });
+      const addValue = (target, key, value) => {
+        const updatedValue = (target[key] || 0) + (parseFloat(value) || 0);
+        // eslint-disable-next-line no-param-reassign
+        target[key] = updatedValue;
+      };
+      const combined = {};
+      const processTable = (table, type) => {
+        table.forEach((item) => {
+          if (!item.no_ti) return;
+          if (!combined[item.no_ti]) combined[item.no_ti] = initializeData(item.no_ti);
+          const data = combined[item.no_ti];
+          addValue(data, 'nu_area_ha', item.nu_area_ha);
+          keys[type].forEach((key) => addValue(data[type], `nu_area_${key}`, item[`nu_area_${key}`]));
+        });
+      };
+      if (!Array.isArray(this.tableMonitoring) || !Array.isArray(this.tableLandUse)) {
+        console.warn('tableMonitoring ou tableLandUse não são arrays válidos.');
+        return [];
+      }
+      processTable(this.tableMonitoring, 'monitoring');
+      processTable(this.tableLandUse, 'landUse');
+      return Object.values(combined);
+    },
+
+    totalAreas() {
+      const monitoringKeys = ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'];
+      const landUseKeys = ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'];
+      const initializeObject = (keys) => keys.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
+      const addValue = (target, key, value) => {
+        // eslint-disable-next-line no-param-reassign
+        target[key] += parseFloat(value) || 0;
+      };
+      if (!Array.isArray(this.combinedTableData)) {
+        console.warn('combinedTableData não é um array válido.');
+        return initializeObject(['ha', ...monitoringKeys, ...landUseKeys]);
+      }
+      return this.combinedTableData.reduce(
+        (acc, item) => {
+          addValue(acc, 'nu_area_ha', item.nu_area_ha);
+          monitoringKeys.forEach((key) => addValue(acc.monitoring, `nu_area_${key}`, item.monitoring[`nu_area_${key}`]));
+          landUseKeys.forEach((key) => addValue(acc.landUse, `nu_area_${key}`, item.landUse[`nu_area_${key}`]));
+          return acc;
+        },
+        {
+          nu_area_ha: 0,
+          monitoring: initializeObject(monitoringKeys),
+          landUse: initializeObject(landUseKeys),
+        },
+      );
+    },
+
     uniqueYears() {
-      // Cria um Set para garantir que os anos sejam únicos
       const years = this.tableLandUse.map((item) => item.nu_ano);
-      return [...new Set(years)]; // Converte de volta para um array
+      return [...new Set(years)];
     },
 
     showDialog() {
@@ -668,39 +757,24 @@ export default {
     },
 
     hasCartographicDatasets() {
-      return !!(
-        this.showFeaturesSupportLayers
-        || this.showFeaturesDeter
-        || this.showFeaturesProdes
-      );
+      return Object.keys(this)
+        .filter((key) => key.startsWith('showFeatures'))
+        .some((key) => this[key]);
     },
 
     hasLegend() {
-      return !!(
-        this.showFeaturesSupportLayers
-        || this.showFeaturesMonitoring
-        || this.showFearuesProdes
-        || this.showFeaturesDeter
-        || this.showFeaturesLandUse
-        || this.showFeaturesUrgentAlerts
-        || this.showFeaturesAquaMM
-        || this.showFeaturesAquaMT
-      );
+      return Object.keys(this)
+        .filter((key) => key.startsWith('showFeatures'))
+        .some((key) => this[key]);
     },
 
     layerCategories() {
       return [
-        {
-          name: 'Support Layers',
-          layers: this.supportLayers,
-          show: this.showFeaturesSupportLayers,
-        },
-        {
-          name: 'Fire Category Layers',
-          layers: this.supportLayersCategoryFire,
-          show: true,
-        },
-      ].filter((category) => category.show);
+        ['Support Layers', this.supportLayers, this.showFeaturesSupportLayers],
+        ['Fire Category Layers', this.supportLayersCategoryFire, true],
+      ]
+        .map(([name, layers, show]) => ({ name, layers, show }))
+        .filter(({ show }) => show);
     },
 
     activeRasterLayers() {
@@ -726,7 +800,6 @@ export default {
     },
 
     focoFilters() {
-      // Usamos os filters de qualquer layer pois são compartilhados
       return (
         this.layers
         && this.layers.aquaMM
@@ -738,139 +811,87 @@ export default {
       return this.$store.getters['prodes/getLegendItems'];
     },
 
+    monitoringItems() {
+      return this.$store.getters['monitoring/getActiveLegendItems'];
+    },
+
     landUseItems() {
       return this.$store.getters['land-use/getActiveLegendItems'];
     },
 
-    ...mapState('supportLayersUser', ['supportLayerUser']),
-    ...mapState('map', ['bounds']),
-    ...mapState('supportLayers', [
-      'showFeaturesSupportLayers',
-      'supportLayers',
-      'supportLayersCategoryFire',
-      'supportLayersCategoryBase',
-      'supportLayersCategoryRaster',
-      'supportLayersCategoryAntropismo',
-    ]),
+    monitoringCount() {
+      return this.combinedTableData.filter(
+        (item) => item.monitoring
+          && Object.keys(item.monitoring).some(
+            (key) => item.monitoring[key] > 0,
+          ),
+      ).length;
+    },
 
-    ...mapState('monitoring', [
-      'selectedStages',
-      'showFeaturesMonitoring',
-      'analyticsMonitoring',
-      'filters',
-      'lastSearchStatisticsByFunai',
-    ]),
-    ...mapState('urgent-alerts', ['showFeaturesUrgentAlerts']),
-    ...mapState('land-use', [
-      'showFeaturesLandUse',
-      'features',
-      'tableLandUse',
-    ]),
-
-    ...mapState('prodes', [
-      'showFeaturesProdes',
-      'filters',
-      'features',
-    ]),
-    ...mapState('deter', [
-      'showFeaturesDeter',
-      'features',
-      'filters',
-    ]),
-    ...mapState('foco', [
-      'layers',
-      'filterOptions',
-      'isLoadingFeatures',
-    ]),
+    ...mapState({
+      monitoringFilters: (state) => state.monitoring.filters,
+      prodesFilters: (state) => state.prodes.filters,
+      deterFilters: (state) => state.deter.filters,
+      showFeaturesMonitoring: (state) => state.monitoring.showFeaturesMonitoring,
+      monitoringFeatures: (state) => state.monitoring.features,
+      tableMonitoring: (state) => state.monitoring.tableMonitoring,
+      legendVisibility: (state) => state.monitoring.legendVisibility,
+      showFeaturesProdes: (state) => state.prodes.showFeaturesProdes,
+      prodesFeatures: (state) => state.prodes.features,
+      showFeaturesDeter: (state) => state.deter.showFeaturesDeter,
+      deterFeatures: (state) => state.deter.features,
+      showFeaturesLandUse: (state) => state['land-use'].showFeaturesLandUse,
+      landUseFeatures: (state) => state['land-use'].features,
+      tableLandUse: (state) => state['land-use'].tableLandUse,
+      supportLayerUser: (state) => state.supportLayersUser.supportLayerUser,
+      showFeaturesSupportLayers: (state) => state.supportLayers.showFeaturesSupportLayers,
+      supportLayers: (state) => state.supportLayers.supportLayers,
+      supportLayersCategoryFire: (state) => state.supportLayers.supportLayersCategoryFire,
+      supportLayersCategoryBase: (state) => state.supportLayers.supportLayersCategoryBase,
+      supportLayersCategoryRaster: (state) => state.supportLayers.supportLayersCategoryRaster,
+      supportLayersCategoryAntropismo: (state) => state.supportLayers.supportLayersCategoryAntropismo,
+      showFeaturesUrgentAlerts: (state) => state['urgent-alerts'].showFeaturesUrgentAlerts,
+      layers: (state) => state.foco.layers,
+      filterOptions: (state) => state.foco.filterOptions,
+      isLoadingFeatures: (state) => state.foco.isLoadingFeatures,
+      bounds: (state) => state.map.bounds,
+    }),
   },
 
   watch: {
-    features(newVal) {
+    monitoringFeatures(newVal) {
       if (newVal && newVal.features && newVal.features.length > 100) {
         this.showWarningMessage = true;
       }
     },
 
-    analyticsMonitoring(newVal) {
-      // Verificar se newVal é vazio, nulo ou 0
-      if (!newVal || newVal.length === 0) {
-        // this.showWarningMessage = false;
-        this.teste = 0; // Garantir que o valor de teste seja 0
-        return;
-      }
-      this.totalMonitoring = newVal.length;
-      this.totalLandUse = this.tableLandUse.length;
-      // Verificar se a informação de monitoramento é longa
-      this.hasLongMonitoringInfo = newVal.length > 7;
-      if (this.hasLongMonitoringInfo) {
-        this.showWarningMessage = true;
-        return;
-      }
-      // Calcular total, somando apenas quando a soma estiver entre 1 e 7
-      const total = newVal.length
-        + (this.tableLandUse.length <= 7 ? this.tableLandUse.length : 0);
-      if (total > 7) {
-        this.showWarningMessage = true;
-        this.teste = total; // Garantir que o total correto seja atribuído a 'teste'
-        return;
-      }
-      // this.showWarningMessage = false;
-      // Atualiza a variável 'teste' com a soma correta
-      this.teste = total;
-    },
-
-    tableLandUse() {
-      // Atualiza showWarningMessage quando o tamanho de tableLandUse mudar
-      this.showWarningMessage = this.tableLandUse.length > 7;
+    combinedTableData(newVal) {
+      this.teste = newVal.length;
+      this.showWarningMessage = newVal.length > 7;
     },
   },
 
   async mounted() {
     if (this.showFeaturesMonitoring) {
-      this.getDataAnalyticsMonitoringByFunai();
-      this.hasLongMonitoringInfo = true;
+      await this.getDataTableMonitoring();
     }
-    if (this.selectedStages) {
-      this.selectedStages.forEach((item) => {
-        if (item === 'CR') {
-          this.activeMonitoringLabel.push({
-            id: 'cr',
-            color: '#ff3333',
-            name: this.$t('clear-cut'),
-          });
-        } else if (item === 'DG') {
-          this.activeMonitoringLabel.push({
-            id: 'dg',
-            color: '#ff8000',
-            name: this.$t('degradation'),
-          });
-        } else if (item === 'FF') {
-          this.activeMonitoringLabel.push({
-            id: 'ff',
-            color: '#b35900',
-            name: this.$t('forest-fire'),
-          });
-        } else if (item === 'DR') {
-          this.activeMonitoringLabel.push({
-            id: 'dr',
-            color: '#990099',
-            name: this.$t('regeneration-deforestation'),
-          });
-        }
-      });
+    if (this.showFeaturesLandUse) {
+      await this.getDataTableLandUse();
+    }
+    this.teste = this.combinedTableData.length;
+    this.showWarningMessage = this.teste > 7;
 
-      if (this.showFeaturesLandUse) await this.getDataTableLandUse();
-
-      // if (this.filters.ti && this.filters.ti.length > 7) this.showWarningMessage = true;
-
-      const visibleLayersCount = Object.values(this.supportLayers)
-        .filter((l) => l.visible).length;
+    const visibleLayersCount = Object.values(this.supportLayers)
+      .filter((l) => l.visible).length;
+    if (visibleLayersCount > 0) {
       if (visibleLayersCount > 7) {
         this.showWarningMessage = true;
       }
+    }
 
-      const visibleUserLayers = Object.values(this.supportLayerUser)
-        .filter((l) => l.visible).length;
+    const visibleUserLayers = Object.values(this.supportLayerUser)
+      .filter((l) => l.visible).length;
+    if (visibleUserLayers > 0) {
       if (visibleUserLayers > 7) {
         this.showWarningMessage = true;
       }
@@ -881,7 +902,6 @@ export default {
     formatNumber(value) {
       let number;
       if (typeof value === 'string') {
-        // Remove os pontos de milhar e substitui vírgula decimal por ponto
         const cleanedValue = value.replace(/\./g, '').replace(',', '.');
         number = parseFloat(cleanedValue);
       } else {
@@ -892,7 +912,6 @@ export default {
         const rounded = number.toFixed(3);
         const [intPart, decimalPart] = rounded.split('.');
 
-        // Formata com ponto para milhar e vírgula para decimal
         return decimalPart !== '00'
           ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
           : String(parseInt(number, 10));
@@ -905,21 +924,21 @@ export default {
     },
 
     handleProdesYear() {
-      const prodesFilters = this.$store.state.prodes.filters;
-
+      const { prodesFilters } = this;
       if (!prodesFilters) return '-';
-
       if (prodesFilters.startYear === prodesFilters.endYear) {
         return prodesFilters.startYear;
       }
-
       return `${prodesFilters.startYear} ${this.$t('and')} ${prodesFilters.endYear}`;
     },
 
     handleData(data) {
-      if (!data) return '-';
+      if (!data || typeof data !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+        console.warn('Data inválida:', data);
+        return 'Data indisponível';
+      }
       const [year, month, day] = data.split('-');
-      return `${day}/${month}/${year}`;
+      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
     },
 
     todayDate() {
@@ -927,8 +946,7 @@ export default {
       const dd = date.getDate();
       const mm = date.getMonth() + 1;
       const yyyy = date.getFullYear();
-      return `${dd < 10 ? `0${dd}` : dd}/${mm < 10 ? `0${mm}` : mm
-      }/${yyyy}`;
+      return `${dd < 10 ? `0${dd}` : dd}/${mm < 10 ? `0${mm}` : mm}/${yyyy}`;
     },
 
     updateBounds(bounds) {
@@ -952,12 +970,11 @@ export default {
     getMapDimensions(tamanho) {
       switch (tamanho) {
         case 'A4':
-          return { width: 1105, height: 770 }; // in mm or appropriate units
+          return { width: 1105, height: 770 };
         case 'A3':
-          return { width: 1450, height: 860 };
-        // Add more cases as needed
+          return { width: 1450, height: 800 };
         default:
-          return { width: 210, height: 297 }; // Default to A4
+          return { width: 210, height: 297 };
       }
     },
 
@@ -976,7 +993,7 @@ export default {
       const infoControlRight = document.getElementsByClassName('leaflet-control-attribution')[1];
 
       try {
-        const nameImageDownload = this.titleMap;
+        const nameImageDownload = this.mapTitle;
 
         mapControlZoom.style.display = 'none';
         mapBounds.style.width = '250px';
@@ -1024,7 +1041,7 @@ export default {
       }
     },
 
-    ...mapActions('monitoring', ['getDataAnalyticsMonitoringByFunai']),
+    ...mapActions('monitoring', ['getDataTableMonitoring']),
     ...mapActions('land-use', ['getDataTableLandUse']),
   },
 };
@@ -1061,6 +1078,10 @@ export default {
   border: 2px solid blue;
 }
 
+.bordered-black {
+  border: 2px solid black;
+}
+
 #data-table > div {
   background: #fffbfb;
   opacity: 0.9;
@@ -1071,15 +1092,8 @@ export default {
   width: 100%;
 }
 
-.vue2leaflet-map
-map-wrapper
-leaflet-container
-leaflet-touch
-leaflet-fade-anim
-leaflet-grab
-leaflet-touch-drag
-leaflet-touch-zoom {
-  height: 30vh !important;
+.vue-leaflet-map {
+  height: 100% !important;
 }
 
 .legend-info-map {
@@ -1154,7 +1168,7 @@ p {
   font-family: 'Roboto', sans-serif;
   text-transform: uppercase;
   font-weight: 700;
-  color: #6c6c6c;
+  color: #6c757d;
 }
 
 .print-mini-map-text {

@@ -57,10 +57,12 @@ export default {
         'Não observado (NO)': 'land-use-categories.not-observed',
         'Rodovia (RD)': 'land-use-categories.highway',
         'Silvicultura (SI)': 'land-use-categories.forestry',
-        'Silvicultura (SV)': 'land-use-categories.forestry', // Added to handle SV suffix
+        'Silvicultura (SV)': 'land-use-categories.forestry',
         'Vegetação Natural (VN)': 'land-use-categories.natural-vegetation',
         'Vilarejo (VI)': 'land-use-categories.village',
-        // Mapeamento para rótulos sem sufixo
+        'Desmatamento em Regeneração (DR)': 'monitoring-categories.recovery-deforestation',
+        'Fogo em Floresta (FF)': 'monitoring-categories.forest-fire',
+        // Versões sem sufixo
         Agropecuária: 'land-use-categories.agriculture',
         'Corte Raso': 'land-use-categories.clear-cut',
         Degradação: 'land-use-categories.degradation',
@@ -71,6 +73,8 @@ export default {
         Silvicultura: 'land-use-categories.forestry',
         'Vegetação Natural': 'land-use-categories.natural-vegetation',
         Vilarejo: 'land-use-categories.village',
+        'Desmatamento em Regeneração': 'monitoring-categories.recovery-deforestation',
+        'Fogo em Floresta': 'monitoring-categories.forest-fire',
       },
     };
   },
@@ -80,11 +84,17 @@ export default {
       return /^\d{4}$/.test(label);
     },
     resolveLabel(label) {
-      const translationKey = this.labelMap[label];
-      if (!translationKey) {
-        console.warn(`Label "${label}" not found in labelMap. Using original label as fallback.`);
+      // Remove possíveis espaços extras
+      const trimmedLabel = label.trim();
+
+      // Verifica se a chave existe no mapeamento
+      if (this.labelMap[trimmedLabel]) {
+        return this.labelMap[trimmedLabel];
       }
-      return translationKey || label;
+
+      // Se não encontrar, loga um aviso e retorna o label original
+      console.warn(`Label "${trimmedLabel}" not found in labelMap. Using original label as fallback.`);
+      return trimmedLabel;
     },
   },
 };
@@ -146,6 +156,12 @@ p
       "forestry": "Forestry (SI)",
       "natural-vegetation": "Natural Vegetation (VN)",
       "village": "Village (VI)"
+    },
+     "monitoring-categories": {
+      "recovery-deforestation": "Regenerating Deforestation",
+      "forest-fire": "Forest Fire",
+      "degradation": "Degradation",
+      "clear-cutting": "Clear-Cutting"
     }
   },
   "pt-br": {
@@ -160,6 +176,12 @@ p
       "forestry": "Silvicultura (SI)",
       "natural-vegetation": "Vegetação Natural (VN)",
       "village": "Vilarejo (VI)"
+    },
+     "monitoring-categories": {
+      "recovery-deforestation": "Desmatamento Regeneração (DR)",
+      "forest-fire": "Fogo em Floresta (FF)",
+      "degradation": "Degradação (DR)",
+      "clear-cutting": "Corte Raso (CR)"
     }
   }
 }

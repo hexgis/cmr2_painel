@@ -86,7 +86,7 @@
     <div>
       <v-tabs-items v-model="tab">
         <v-tab-item value="tab-1">
-          <Monitoring />
+          <MonitoringFilters />
         </v-tab-item>
         <v-tab-item value="tab-2">
           <Alerts />
@@ -108,10 +108,12 @@
     "update-info": "Frequently updated by the CMR cartography team.",
     "data-source": "Data source: Database - FUNAI",
     "legend": "Legend:",
-    "recovery-deforestation": "Regenerating Deforestation",
-    "forest-fire": "Forest Fire",
-    "degradation": "Degradation",
-    "clear-cutting": "Clear-Cutting"
+    "monitoring-categories": {
+      "recovery-deforestation": "Regenerating Deforestation",
+      "forest-fire": "Forest Fire",
+      "degradation": "Degradation",
+      "clear-cutting": "Clear-Cutting"
+    }
   },
   "pt-br": {
     "title-monitoring": "Monitoramento Diário",
@@ -123,22 +125,24 @@
     "update-info": "Atualizado frequentemente pela equipe de cartografia do CMR.",
     "data-source": "Fonte de dados: Banco de dados - FUNAI",
     "legend": "Legenda:",
-    "recovery-deforestation": "Desmatamento em Regeneração",
-    "forest-fire": "Fogo em Floresta",
-    "degradation": "Degradação",
-    "clear-cutting": "Corte Raso"
+    "monitoring-categories": {
+      "recovery-deforestation": "Desmatamento em Regeneração",
+      "forest-fire": "Fogo em Floresta",
+      "degradation": "Degradação",
+      "clear-cutting": "Corte Raso"
+    }
   }
 }
 </i18n>
 
 <script>
 import Alerts from '~/components/monitoring/Alerts.vue';
-import Monitoring from '@/components/monitoring/Monitoring.vue';
+import MonitoringFilters from '@/components/monitoring/MonitoringFilters.vue';
 
 export default {
   components: {
     Alerts,
-    Monitoring,
+    MonitoringFilters,
   },
 
   data() {

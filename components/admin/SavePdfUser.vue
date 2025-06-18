@@ -1,8 +1,19 @@
 <template>
-  <span @click="generatePDF">
-    <v-img src="/img/icons/file-pdf-box.svg" />
-    <p class="text-center">PDF</p>
-  </span>
+  <v-tooltip top>
+    <template #activator="{ on, attrs }">
+      <span
+        v-bind="attrs"
+        @click="generatePDF"
+        v-on="on"
+      >
+        <v-icon
+          color="#D92B3F"
+          size="40"
+        >mdi-file-pdf-box</v-icon>
+      </span>
+    </template>
+    <span>PDF</span>
+  </v-tooltip>
 </template>
 
 <script>

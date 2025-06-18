@@ -4,7 +4,7 @@ export const state = () => ({
   layers: {
     aquaMM: {
       features: null,
-      geoserverLayer: 'CMR-FUNAI:vw_satelite_aqua_m_m_loc_focos_de_calor_p',
+      geoserverLayer: process.env.GEOSERVER_FOCO_MM,
       currentUrlWms: '',
       showFeatures: false,
       loading: false,
@@ -20,7 +20,7 @@ export const state = () => ({
     },
     aquaMT: {
       features: null,
-      geoserverLayer: 'CMR-FUNAI:vw_satelite_aqua_m_t_loc_focos_de_calor_p',
+      geoserverLayer: process.env.GEOSERVER_FOCO_MT,
       currentUrlWms: '',
       showFeatures: false,
       loading: false,
@@ -35,7 +35,7 @@ export const state = () => ({
       intersectsWms: '',
     }
   },
-  urlWmsBase: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
+  urlWmsBase: process.env.GEOSERVER_URL,
   wmsOptions: {
     maxZoom: 21,
     maxNativeZoom: 19,

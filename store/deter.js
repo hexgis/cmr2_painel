@@ -2,8 +2,8 @@ const { stringify } = require('wkt');
 
 export const state = () => ({
   features: null,
-  urlWmsDeter: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
-  geoserverLayerDeter: 'CMR-FUNAI:img_alerta_deter_a',
+  urlWmsDeter: process.env.GEOSERVER_URL,
+  geoserverLayerDeter: process.env.GEOSERVER_DETER,
   currentUrlWmsDeter: '',
   showFeaturesDeter: false,
   DeterWmsOptions: {
@@ -135,7 +135,7 @@ export const actions = {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
       }
-      params.CQL_FILTER += `(dt_deteccao >= (${state.filters.startDate}) AND dt_deteccao <= (${state.filters.endDate}))`;
+      params.CQL_FILTER += `(view_date >= (${state.filters.startDate}) AND view_date <= (${state.filters.endDate}))`;
     }
 
     const paramsUrl = new URLSearchParams(params);
@@ -194,7 +194,7 @@ export const actions = {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
       }
-      params.CQL_FILTER += `(dt_deteccao >= ${state.filters.startDate} AND dt_deteccao <= ${state.filters.endDate})`;
+      params.CQL_FILTER += `(view_date >= ${state.filters.startDate} AND view_date <= ${state.filters.endDate})`;
     }
 
     try {
@@ -417,7 +417,7 @@ export const actions = {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
       }
-      params.CQL_FILTER += `(dt_deteccao >= ${state.filters.startDate} AND dt_deteccao <= ${state.filters.endDate})`;
+      params.CQL_FILTER += `(view_date >= ${state.filters.startDate} AND view_date <= ${state.filters.endDate})`;
     }
 
     try {

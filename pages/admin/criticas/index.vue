@@ -20,21 +20,26 @@
 
     <v-row class="mt-4">
       <v-col>
-        <v-card class="pa-5 pb-2" style="max-width: 750px;">
           <GraphicBar
             v-for="(category, index) in storeCategories"
             :key="index"
             :category="category"
             :maxValue="totalValue"
           />
-        </v-card>
       </v-col>
       <v-col class="d-flex flex-column justify-space-between">
-        <v-btn color="#FFCE03" width="100%" class="pa-5" @click="showModal = true">
-          <strong>{{ $t('addNewRequest') }}</strong>
-          <v-spacer></v-spacer>
-          <v-icon>mdi-plus</v-icon>
+           <v-btn
+          color="error"
+          dark
+          rounded
+          class="px-4 py-2"
+          @click="showModal = true"
+        >
+                   <strong>{{ $t('addNewRequest') }}</strong>
+
+          <v-icon right>mdi-plus</v-icon>
         </v-btn>
+
 
         <CustomDialog
           @save="saveTicket"
@@ -156,10 +161,8 @@
             <div class="styled-btn">
               <SavePdf :activeCards="filteredCards" />
             </div>
-            <div class="line-separator"></div>
             <div class="styled-btn" @click="downloadCsv" style="cursor: pointer;">
-              <v-img src="/img/icons/file-excel-box.svg"/>
-              <p class="text-center">CSV</p>
+              <v-img src="/img/icons/file-excel-box.png" max-width="50" max-height="50" />
             </div>
           </div>
         </div>
