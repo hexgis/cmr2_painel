@@ -12,20 +12,6 @@
     "
   >
     <template #activator>
-      <v-list-item-avatar
-        v-if="
-          !hidePreview &&
-            ((layer.layer_type == 'wms' && layer.wms.has_preview) ||
-              layer.layer_type == 'tms')
-        "
-        tile
-        size="40"
-      >
-        <v-img
-          :src="layerPreview"
-          :lazy-src="layerPreview"
-        />
-      </v-list-item-avatar>
       <v-list-item-content>
         <v-list-item-title class="text-wrap">
           <span class="text-cursor">
@@ -33,6 +19,7 @@
           </span>
         </v-list-item-title>
       </v-list-item-content>
+
       <v-list-item-action @click.stop="">
         <v-switch
           :input-value="layer.visible"
@@ -43,7 +30,30 @@
     </template>
 
     <v-container class="py-0">
-      <SupportLayerFiltersHazard :layer="layer" />
+      <SupportLayerFilters :layer="layer" />
+
+      <v-row
+        v-if="
+          layer.layer_type === 'wms' &&
+            layer.visible &&
+            layer.wms.has_opacity
+        "
+        class="black--text text--lighten-2"
+        align="center"
+      >
+        <v-col cols="4">
+          Opacidade
+        </v-col>
+        <v-col cols="8">
+          <v-slider
+            :value="layer.opacity"
+            class="mb-n4"
+            thumb-label
+            @input="updateLayerOpacity($event)"
+          />
+        </v-col>
+      </v-row>
+
       <v-row
         v-if="layer.layer_type === 'wms' && layer.wms.has_detail"
         justify="center"
@@ -60,19 +70,26 @@
         </v-col>
       </v-row>
     </v-container>
+
+    <v-divider
+      v-if="
+        layer.layer_type === 'wms' &&
+          layer.visible &&
+          layer.wms.has_opacity
+      "
+    />
   </v-list-group>
 </template>
 
 <script>
 import { mapState, mapMutations } from 'vuex';
 import tmsLegend from '@/assets/tmsLegend.png';
-
-import SupportLayerFiltersHazard from '@/components/support/SupportLayerFiltersHazard';
+import SupportLayerFilters from '@/components/raster/SupportLayerFilters';
 
 export default {
-  name: 'SupportLayersGroupItemHazard',
+  name: 'LayersGroupItemRaster',
 
-  components: { SupportLayerFiltersHazard },
+  components: { SupportLayerFilters },
 
   props: {
     layerId: {
@@ -91,10 +108,10 @@ export default {
   }),
 
   computed: {
-    ...mapState('supportLayers', ['supportLayersCategoryFire']),
+    ...mapState('supportLayers', ['supportLayersCategoryRaster']),
 
     layer() {
-      return this.supportLayersCategoryFire[this.layerId] || null;
+      return this.supportLayersCategoryRaster[this.layerId] || null;
     },
 
     layerPreview() {
@@ -118,24 +135,33 @@ export default {
 
   methods: {
     toggleLayer() {
-      this.toggleLayerVisibilityFire({
+      this.toggleLayerVisibilityRaster({
         id: this.layerId,
         visible: !this.layer.visible,
       });
 
       this.isOpen = this.layer.visible;
+      this.setshowFeaturesSupportLayers(false);
+      setTimeout(() => {
+        this.setshowFeaturesSupportLayers(true);
+      }, 1);
+
+      const activeLayers = Object.values(
+        this.supportLayersCategoryRaster,
+      ).filter((layer) => layer.visible);
     },
 
     updateLayerOpacity(opacity) {
-      this.setLayerOpacityFire({
+      this.setLayerOpacityRaster({
         id: this.layerId,
         opacity,
       });
     },
 
     ...mapMutations('supportLayers', [
-      'toggleLayerVisibilityFire',
-      'setLayerOpacityFire',
+      'toggleLayerVisibilityRaster',
+      'setshowFeaturesSupportLayers',
+      'setLayerOpacityRaster',
     ]),
   },
 };
@@ -143,6 +169,6 @@ export default {
 
 <style lang="sass">
 .v-list-group--active
-    border-bottom: solid 0px black !important
-    border-top: solid 0px black !important
+  border-bottom: solid 0px black !important
+  border-top: solid 0px black !important
 </style>

@@ -46,13 +46,6 @@
           :selected-layers="selectedLayers"
         />
       </template>
-      <template v-for="group in orderedSupportLayersGroupsAntropismo">
-        <SupportLayersGroupAntropismo
-          :key="'group_antropismo_' + group.id"
-          :group="group"
-          :selected-layers="selectedLayers"
-        />
-      </template>
     </v-list>
     <div v-if="$fetchState.pending">
       <template v-for="i in 6">
@@ -86,7 +79,7 @@ import { mapState, mapMutations } from 'vuex';
 import _ from 'lodash';
 
 import SupportLayersGroupBase from '@/components/support/SupportLayersGroupBase';
-import SupportLayersGroupAntropismo from '@/components/support/SupportLayersGroupAntropismo';
+
 import SupportLayersActive from '@/components/support/SupportLayersActive';
 import SupportUser from '@/components/support/SupportUser';
 
@@ -95,7 +88,7 @@ export default {
 
   components: {
     SupportLayersGroupBase,
-    SupportLayersGroupAntropismo,
+
     SupportUser,
     SupportLayersActive,
   },

@@ -186,9 +186,7 @@
 
         <SupportLayers />
 
-        <SupportLayersRaster />
-
-        <SupportLayersHazard />
+        <LayersRaster />
 
         <!-- <ImageryLayers v-if="showImagery" :map="map" /> -->
 
@@ -275,9 +273,8 @@ import CatalogLayers from '@/components/catalog/CatalogLayers';
 import MonitoringLayers from '@/components/monitoring-alerts/monitoring/MonitoringLayers';
 // import MonitoringLayersGeoserver from '@/components/monitoring/MonitoringLayersGeoserver'
 import SupportLayers from '@/components/support/SupportLayers';
-import SupportLayersHazard from '@/components/support/SupportLayersHazard';
-import SupportLayersProdes from '@/components/support/SupportLayersProdes';
-import SupportLayersRaster from '@/components/support/SupportLayersRaster';
+
+import LayersRaster from '@/components/raster/LayersRaster';
 // import ChangeDetectionLayers from '@/components/change-detection/ChangeDetectionLayers'
 import BaseWmsMetadataPopup from '@/components/base/BaseWmsMetadataPopup';
 // import AlgorithmLayers from '@/components/algorithms/AlgorithmLayers'
@@ -327,9 +324,8 @@ export default {
     LandUseLayers,
     AlertLayers,
     DeterLayers,
-    SupportLayersRaster,
-    SupportLayersProdes,
-    SupportLayersHazard,
+    LayersRaster,
+
     SupportUserLayersMap,
     DrawingPanel,
     MapIndigenousLand,

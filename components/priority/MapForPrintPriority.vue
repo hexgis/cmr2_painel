@@ -36,11 +36,7 @@
           </l-control>
           <PriorityIndividualLayer :map="map" />
           <SupportLayers />
-          <SupportLayersRaster />
-
-          <SupportLayersProdes />
-
-          <SupportLayersHazard />
+          <LayersRaster />
         </l-map>
       </client-only>
     </v-col>
@@ -429,9 +425,8 @@ import PriorityIndividualLayer from '@/components/priority/PriorityIndividualLay
 import MonitoringLayers from '@/components/monitoring-alerts/monitoring/MonitoringLayers';
 import SupportLayers from '@/components/support/SupportLayers';
 import AlertLayers from '@/components/monitoring-alerts/urgent-alerts/AlertLayers';
-import SupportLayersHazard from '@/components/support/SupportLayersHazard';
-import SupportLayersProdes from '@/components/support/SupportLayersProdes';
-import SupportLayersRaster from '@/components/support/SupportLayersRaster';
+
+import LayersRaster from '@/components/raster/LayersRaster';
 
 const intervalZooms = require('@/utils/zoomIntervalsGraticule');
 
@@ -442,9 +437,8 @@ export default {
     MonitoringLayers,
     SupportLayers,
     AlertLayers,
-    SupportLayersRaster,
-    SupportLayersProdes,
-    SupportLayersHazard,
+    LayersRaster,
+
   },
   props: {
     titleMap: {
