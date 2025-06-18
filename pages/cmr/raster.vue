@@ -79,7 +79,7 @@
           <div>
             <v-list v-if="!$fetchState.pending" expand class="pt-0">
               <template v-for="group in filteredGroups">
-                <SupportLayersGroupRaster
+                <LayersGroupRaster
                   :key="group.id"
                   :group="group"
                   :open-group="searchLayer"
@@ -126,7 +126,7 @@
               expand
             >
               <template v-for="group in filteredGroups">
-                <SupportLayersGroupRaster
+                <LayersGroupRaster
                   :key="group.id"
                   :group="group"
                   :open-group="searchLayer"
@@ -171,11 +171,11 @@
 <script>
 import { mapState, mapMutations } from 'vuex'
 import _ from 'lodash'
-import SupportLayersGroupRaster from '@/components/support/SupportLayersGroupRaster'
+import LayersGroupRaster from '@/components/raster/LayersGroupRaster'
 
 export default {
     name: 'SupportRaster',
-    components: { SupportLayersGroupRaster },
+    components: { LayersGroupRaster },
 
     data: () => ({
         showFooter: process.env.SHOW_FOOTER === 'true',
