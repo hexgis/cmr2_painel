@@ -81,7 +81,7 @@ import _ from 'lodash';
 import SupportLayersGroupBase from '@/components/support/SupportLayersGroupBase';
 
 import SupportLayersActive from '@/components/support/SupportLayersActive';
-import SupportUser from '@/components/support/SupportUser';
+import SupportUser from '@/components/userLayer/SupportUser';
 
 export default {
   name: 'Support',

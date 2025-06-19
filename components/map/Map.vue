@@ -283,7 +283,7 @@ import PriorityLayers from '@/components/priority/PriorityLayers';
 import DeterLayers from '@/components/inpe/deter/DeterLayers.vue';
 import AlertLayers from '@/components/monitoring/AlertLayers';
 import LandUseLayers from '@/components/land-use/LandUseLayers';
-import SupportUserLayersMap from '@/components/support/SupportUserLayersMap';
+import SupportUserLayersMap from '@/components/userLayer/SupportUserLayersMap';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-basemaps/L.Control.Basemaps.css';
 import 'leaflet-minimap/dist/Control.MiniMap.min.css';
