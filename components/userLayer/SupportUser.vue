@@ -75,8 +75,8 @@ export default {
       },
     },
   },
-  created(){
-    this.getInfo()
+  created() {
+    this.getInfo();
   },
   methods: {
     async getInfo() {
