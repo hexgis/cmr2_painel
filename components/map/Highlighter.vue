@@ -521,8 +521,6 @@ export default {
     },
   },
 
-
-
   methods: {
     updateColor(color) {
       this.selectedColor = color;
@@ -578,11 +576,9 @@ export default {
       let longitude;
       let hasError = false;
 
-      const normalizeCoordinate = (value) => {
-        return this.$i18n.locale === 'pt-br'
+      const normalizeCoordinate = (value) => (this.$i18n.locale === 'pt-br'
         ? value.replace(',', '.')
-        : value
-      }
+        : value);
 
       const validateDMSInput = () => {
         const fields = ['degN', 'minN', 'secN', 'degW', 'minW', 'secW'];
@@ -617,18 +613,18 @@ export default {
         if (this.coordType === this.$i18n.t('decimal-label')) {
           validateDecimalInput();
           if (!hasError) {
-            latitude = parseFloat(normalizeCoordinate(this.lat))
-            longitude = parseFloat(normalizeCoordinate(this.lng))
+            latitude = parseFloat(normalizeCoordinate(this.lat));
+            longitude = parseFloat(normalizeCoordinate(this.lng));
           }
         } else {
           validateDMSInput();
           if (!hasError) {
             latitude = this.north
               ? calculateDecimal(this.degN, this.minN, this.secN)
-              : calculateNegativeDecimal(this.degN, this.minN, this.secN)
+              : calculateNegativeDecimal(this.degN, this.minN, this.secN);
             longitude = this.east
               ? calculateDecimal(this.degW, this.minW, this.secW)
-              : calculateNegativeDecimal(this.degW, this.minW, this.secW)
+              : calculateNegativeDecimal(this.degW, this.minW, this.secW);
           }
         }
       };
@@ -649,12 +645,12 @@ export default {
             </svg>`,
         iconSize: [54, 54],
         iconAnchor: [28, 45],
-      })
+      });
       const novoMarcador = L.marker([latitude, longitude], {
         icon: svgIcon,
-      })
-      novoMarcador.addTo(this.map)
-      this.drawnItems.addLayer(novoMarcador)
+      });
+      novoMarcador.addTo(this.map);
+      this.drawnItems.addLayer(novoMarcador);
 
       novoMarcador.on('click', () => {
         if (this.isDeleteButtonActive) {
