@@ -23,6 +23,10 @@ export const state = () => ({
   filteredLayers: [],
   filteredLayersId: [],
   orderedLayers: [],
+  showTableDialog: false,
+  tableData: { features: [] },
+  tableHeaders: [],
+  loadingTable: false,
 });
 
 export const getters = {
@@ -33,16 +37,6 @@ export const getters = {
         activeLayerIds.push(layer.id);
       }
     });
-    return activeLayerIds;
-  },
-
-  activeLayerIds(state) {
-    const activeLayerIds = [];
-    for (const layer of Object.values(state.supportLayersCategoryRaster)) {
-      if (layer.visible) {
-        activeLayerIds.push(layer.id);
-      }
-    }
     return activeLayerIds;
   },
 };
@@ -254,6 +248,15 @@ export const mutations = {
 
     Vue.set(layer, 'cql', cql ? cql.slice(0, -4) : '1=2');
   },
+
+  setTableDialog(state, {
+    show, data, headers, loading,
+  }) {
+    state.showTableDialog = show;
+    state.tableData = data || { features: [] };
+    state.tableHeaders = headers || [];
+    state.loadingTable = loading || false;
+  },
 };
 
 export const actions = {
@@ -280,6 +283,7 @@ export const actions = {
       commit('setLoading', false);
     }
   },
+
   async getTiOptions({ commit, state }, cr) {
     const params = {
       co_cr: cr.toString(),
@@ -294,6 +298,7 @@ export const actions = {
       });
     }
   },
+
   async getCategoryGroupsRasters({ commit }) {
     commit('setLoading', true);
     const params = {
@@ -380,6 +385,7 @@ export const actions = {
       );
     }
   },
+
   async getHeatMapLayerRaster({ state, commit }, { id, filters }) {
     const heatLayer = state.supportLayersCategoryRaster[id];
     const params = {
@@ -447,5 +453,73 @@ export const actions = {
       }, 100);
     }
     commit('setOrderedLayers', layers);
+  },
+
+  async openTableDialog({ commit, state }, { layerId }) {
+    commit('setTableDialog', {
+      show: false, data: { features: [] }, headers: [], loading: true,
+    });
+    try {
+      const layer = state.supportLayers[layerId];
+      if (!layer || !layer.wms || !layer.wms.geoserver_layer_name) {
+        throw new Error('Informações da camada indisponíveis.');
+      }
+      const layerName = `CMR-FUNAI:${layer.wms.geoserver_layer_name}`;
+      const baseUrl = 'https://cmr.funai.gov.br/geoserver/wfs';
+      const params = new URLSearchParams({
+        authkey: '7030a99e-3bec-4c3c-a748-bf9ae0b21591',
+        service: 'WFS',
+        version: '1.1.0',
+        request: 'GetFeature',
+        typeName: layerName,
+        outputFormat: 'application/json',
+      });
+      const map = window.mapMain;
+      const bounds = map.getBounds();
+      const bbox = [
+        bounds.getSouth(),
+        bounds.getWest(),
+        bounds.getNorth(),
+        bounds.getEast(),
+      ].join();
+
+      const url = `${baseUrl}?${params.toString()}&bbox=${bbox}`;
+      const response = await this.$api.$get(url);
+      const tableData = response;
+
+      // Log para depuração
+      console.log('Dados recebidos da API:', JSON.stringify(tableData, null, 2));
+
+      let tableHeaders = [];
+      if (tableData.features && tableData.features.length > 0) {
+        tableHeaders = Object.keys(tableData.features[0].properties).map((key) => ({
+          text: key.replace(/_/g, ' ').toUpperCase(),
+          value: key,
+          sortable: true,
+        }));
+      }
+
+      // Log para verificar cabeçalhos
+      console.log('Cabeçalhos gerados:', tableHeaders);
+
+      commit('setTableDialog', {
+        show: true, data: tableData, headers: tableHeaders, loading: false,
+      });
+    } catch (error) {
+      console.error('Erro ao abrir tabela:', error);
+      commit('setTableDialog', {
+        show: false, data: { features: [] }, headers: [], loading: false,
+      });
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('table-label'),
+          }),
+        },
+        { root: true },
+      );
+    }
   },
 };

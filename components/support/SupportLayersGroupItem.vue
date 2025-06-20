@@ -75,6 +75,28 @@
           v-if="layer.filters && showFilters"
           :layer="layer"
         />
+        <v-col
+          v-if="layer.wms.has_metadata"
+          cols="12"
+        >
+          <v-btn
+            :loading="isLoadingTable"
+            icon
+            fab
+            small
+            color="accent"
+            @click="dispatchOpenTableDialog"
+          >
+            <v-tooltip left>
+              <template #activator="{ on }">
+                <v-icon v-on="on">
+                  mdi-table
+                </v-icon>
+              </template>
+              <span>{{ $t('table-label') }}</span>
+            </v-tooltip>
+          </v-btn>
+        </v-col>
         <v-row
           v-if="
             layer.layer_type === 'wms' &&
@@ -121,30 +143,40 @@
         </v-row>
       </v-container>
     </v-list-group>
-    <v-divider
-      v-if="
-        (layer.layer_type === 'wms' &&
-          layer.visible &&
-          layer.wms.has_opacity) ||
-          showMetadata
-      "
+
+    <TableDialog
+      v-if="showTableDialog"
+      :table="showTableDialog"
+      :headers="tableHeaders"
+      :value="transformTableData"
+      :loading-table="isLoadingTable"
+      :loading-csv="false"
+      :f-download-csv="downloadCSV"
+      :f-close-table="closeTableDialog"
+      :table-name="layer.name"
     />
   </div>
 </template>
 
 <script>
-import { mapState, mapMutations } from 'vuex';
+import { mapState, mapMutations, mapActions } from 'vuex';
 import tmsLegend from '@/assets/tmsLegend.png';
 import ti from '@/assets/ti.png';
 
 import SupportLayerFilters from '@/components/support/SupportLayerFilters';
 import SupportLayerMetadata from '@/components/support/SupportLayerMetadata';
 import SubLayers from './SubLayers.vue';
+import TableDialog from '../table-dialog/TableDialog.vue';
 
 export default {
   name: 'SupportLayersGroupItem',
 
-  components: { SupportLayerFilters, SupportLayerMetadata, SubLayers },
+  components: {
+    SupportLayerFilters,
+    SupportLayerMetadata,
+    SubLayers,
+    TableDialog,
+  },
 
   props: {
     layerId: {
@@ -163,10 +195,17 @@ export default {
     showMetadata: false,
     showFilter: false,
     showFilters: true,
+    isLoadingTable: false,
   }),
 
   computed: {
-    ...mapState('supportLayers', ['supportLayers']),
+    ...mapState('supportLayers', [
+      'supportLayers',
+      'showTableDialog',
+      'tableData',
+      'tableHeaders',
+      'loadingTable',
+    ]),
 
     icon() {
       return this.showMetadata
@@ -181,6 +220,8 @@ export default {
     },
 
     layer() {
+      console.log(this.supportLayers, this.layerId);
+
       return this.supportLayers[this.layerId] || null;
     },
 
@@ -193,21 +234,54 @@ export default {
 
       return (
         this.layer.wms.geoserver.preview_url
-                + this.layer.wms.geoserver_layer_name
+        + this.layer.wms.geoserver_layer_name
       );
     },
 
     disabledHeatmap() {
       return (
         this.layer.filters.length > 0
-                && this.layer.layer_type === 'heatmap'
-                && Object.keys(this.layer.filters).length === 0
-                && !this.layer.loading
+        && this.layer.layer_type === 'heatmap'
+        && Object.keys(this.layer.filters).length === 0
+        && !this.layer.loading
       );
+    },
+
+    transformTableData() {
+      const transformed = (this.tableData.features || []).map((feature) => ({
+        ...feature.properties,
+        properties: feature.properties,
+      }));
+      console.log('Dados transformados para TableDialog:', transformed);
+      return transformed;
     },
   },
 
   methods: {
+    ...mapMutations('supportLayers', [
+      'toggleLayerVisibility',
+      'setLayerOpacity',
+      'setTableDialog',
+    ]),
+
+    ...mapActions('supportLayers', ['openTableDialog']),
+
+    dispatchOpenTableDialog() {
+      console.log('Despachando openTableDialog para layerId:', this.layerId);
+      this.openTableDialog({ layerId: this.layerId });
+    },
+
+    closeTableDialog() {
+      console.log('Fechando diálogo da tabela');
+      this.setTableDialog({
+        show: false, data: { features: [] }, headers: [], loading: false,
+      });
+    },
+
+    downloadCSV() {
+      console.log('Download CSV não implementado');
+    },
+
     toggleMetadata() {
       this.showMetadata = !this.showMetadata;
       this.isOpen = this.layer.visible;
@@ -233,17 +307,17 @@ export default {
         opacity,
       });
     },
-
-    ...mapMutations('supportLayers', [
-      'toggleLayerVisibility',
-      'setLayerOpacity',
-    ]),
   },
 };
 </script>
 
-<style lang="sass">
-.v-list-group--active
-  border-bottom: solid 0px black !important
-  border-top: solid 0px black !important
-</style>
+<i18n>
+{
+  "en": {
+    "table-label": "Table"
+  },
+  "pt-br": {
+    "table-label": "Tabela"
+  }
+}
+</i18n>
