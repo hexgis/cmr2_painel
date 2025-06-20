@@ -62,11 +62,12 @@
     <div class="chart-header">
       <v-container
         fluid
-        class="pa-4"
+        class="header-container"
       >
         <v-row
           align="center"
           justify="space-between"
+          no-gutters
         >
           <v-col
             cols="12"
@@ -75,12 +76,10 @@
           >
             <v-btn
               icon
-              class="mr-3 back-btn"
+              class="back-btn mr-3"
               @click="$router.go(-1)"
             >
-              <v-icon>
-                mdi-arrow-left
-              </v-icon>
+              <v-icon>mdi-arrow-left</v-icon>
             </v-btn>
             <v-img
               :src="logo_funai"
@@ -92,123 +91,97 @@
           <v-col
             cols="12"
             md="6"
-            class="text-center text-md-right"
+            class="d-flex align-center justify-end"
           >
-            <h1 class="page-title">
-              {{ $t('viewsControl') }}
-            </h1>
-          </v-col>
-        </v-row>
-      </v-container>
-    </div>
-
-    <!-- Toolbar de ações -->
-    <div class="toolbar-section">
-      <v-container fluid>
-        <v-row
-          align="center"
-          justify="space-between"
-          class="py-3"
-        >
-          <v-col
-            cols="12"
-            sm="6"
-            md="4"
-          >
-            <v-btn
-              color="primary"
-              outlined
-              class="filter-btn"
-              @click="showModal = true"
-            >
-              <v-icon
-                left
-                small
+            <div class="header-actions d-flex align-center ga-3">
+              <v-btn
+                color="primary"
+                outlined
+                class="filter-btn"
+                @click="showModal = true"
               >
-                mdi-filter-variant
-              </v-icon>
-              {{ $t('filter') }}
-            </v-btn>
-          </v-col>
-          <v-col
-            cols="12"
-            sm="6"
-            md="4"
-            class="text-right"
-          >
-            <div class="download-buttons">
-              <v-tooltip bottom>
-                <template #activator="{ on, attrs }">
-                  <v-btn
-                    icon
-                    small
-                    outlined
-                    color="success"
-                    class="download-btn"
-                    :loading="downloading === 'csv'"
-                    v-bind="attrs"
-                    v-on="on"
-                    @click="downloadCSV"
-                  >
-                    <v-icon small>
-                      mdi-microsoft-excel
-                    </v-icon>
-                  </v-btn>
-                </template>
-                <span>Download Excel</span>
-              </v-tooltip>
+                <v-icon
+                  left
+                  small
+                >
+                  mdi-filter-variant
+                </v-icon>
+                {{ $t('filter') }}
+              </v-btn>
 
-              <v-tooltip bottom>
-                <template #activator="{ on, attrs }">
-                  <v-btn
-                    icon
-                    small
-                    outlined
-                    color="error"
-                    class="download-btn"
-                    :loading="downloading === 'pdf'"
-                    v-bind="attrs"
-                    v-on="on"
-                    @click="downloadPDF"
-                  >
-                    <v-icon small>
-                      mdi-file-pdf-outline
-                    </v-icon>
-                  </v-btn>
-                </template>
-                <span>Download PDF</span>
-              </v-tooltip>
+              <div class="download-buttons d-flex ga-2">
+                <v-tooltip bottom>
+                  <template #activator="{ on, attrs }">
+                    <v-btn
+                      icon
+                      small
+                      outlined
+                      color="grey"
+                      class="download-btn"
+                      :loading="downloading === 'csv'"
+                      v-bind="attrs"
+                      v-on="on"
+                      @click="downloadCSV"
+                    >
+                      <v-icon small>
+                        mdi-microsoft-excel
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Download Excel</span>
+                </v-tooltip>
 
-              <v-tooltip bottom>
-                <template #activator="{ on, attrs }">
-                  <v-btn
-                    icon
-                    small
-                    outlined
-                    color="info"
-                    class="download-btn"
-                    :loading="downloading === 'img'"
-                    v-bind="attrs"
-                    v-on="on"
-                    @click="downloadImg"
-                  >
-                    <v-icon small>
-                      mdi-image-outline
-                    </v-icon>
-                  </v-btn>
-                </template>
-                <span>Download Imagem</span>
-              </v-tooltip>
+                <v-tooltip bottom>
+                  <template #activator="{ on, attrs }">
+                    <v-btn
+                      icon
+                      small
+                      outlined
+                      color="grey"
+                      class="download-btn"
+                      :loading="downloading === 'pdf'"
+                      v-bind="attrs"
+                      v-on="on"
+                      @click="downloadPDF"
+                    >
+                      <v-icon small>
+                        mdi-file-pdf-outline
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Download PDF</span>
+                </v-tooltip>
+
+                <v-tooltip bottom>
+                  <template #activator="{ on, attrs }">
+                    <v-btn
+                      icon
+                      small
+                      outlined
+                      color="grey"
+                      class="download-btn"
+                      :loading="downloading === 'img'"
+                      v-bind="attrs"
+                      v-on="on"
+                      @click="downloadImg"
+                    >
+                      <v-icon small>
+                        mdi-image-outline
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Download Imagem</span>
+                </v-tooltip>
+              </div>
             </div>
           </v-col>
         </v-row>
       </v-container>
     </div>
-
     <!-- Conteúdo principal -->
     <v-container
       fluid
-      class="content-section pa-4"
+      class="content-section pa-0"
     >
       <!-- Modal de filtros -->
       <v-dialog
@@ -330,11 +303,12 @@
       </v-dialog>
 
       <!-- Grid principal com gráficos -->
-      <v-row class="charts-grid">
+      <v-row class="charts-grid ma-0">
         <!-- Gráfico de linha principal -->
         <v-col
           cols="12"
-          lg="8"
+          lg="6"
+          class="pa-2"
         >
           <v-card
             class="chart-card"
@@ -370,7 +344,8 @@
         <!-- Mapa -->
         <v-col
           cols="12"
-          lg="4"
+          lg="6"
+          class="pa-2"
         >
           <v-card
             class="chart-card map-card"
@@ -392,99 +367,100 @@
         </v-col>
       </v-row>
 
-      <!-- Segunda linha - Gráficos circulares -->
-      <v-row class="charts-grid">
+      <!-- Segunda linha - Gráficos circulares e dados -->
+      <v-row class="charts-grid ma-0">
         <v-col
           cols="12"
-          md="6"
+          md="4"
+          class="pa-2"
         >
           <v-card
-            class="chart-card"
+            class="chart-card compact-chart"
             elevation="2"
           >
-            <v-card-title class="chart-title">
+            <v-card-title class="chart-title compact-title">
               <v-icon
                 left
-                color="info"
-              >
-                mdi-devices
-              </v-icon>
-              {{ $t('cmrAccessMode') }}
-            </v-card-title>
-            <v-card-text class="chart-content">
-              <DoughnutChartContainer />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <v-card
-            class="chart-card"
-            elevation="2"
-          >
-            <v-card-title class="chart-title">
-              <v-icon
-                left
+                small
                 color="warning"
               >
                 mdi-web
               </v-icon>
               {{ $t('browserTypeUsed') }}
             </v-card-title>
-            <v-card-text class="chart-content">
+            <v-card-text class="chart-content compact-chart-content">
               <PieChartView />
             </v-card-text>
           </v-card>
         </v-col>
-      </v-row>
-
-      <!-- Terceira linha - Tabelas -->
-      <v-row class="charts-grid">
         <v-col
           cols="12"
-          md="6"
+          md="4"
+          class="pa-2"
         >
           <v-card
-            class="chart-card table-card"
+            class="chart-card compact-chart"
             elevation="2"
           >
-            <v-card-title class="chart-title">
+            <v-card-title class="chart-title compact-title">
               <v-icon
                 left
+                small
+                color="info"
+              >
+                mdi-devices
+              </v-icon>
+              {{ $t('cmrAccessMode') }}
+            </v-card-title>
+            <v-card-text class="chart-content compact-chart-content">
+              <DoughnutChartContainer />
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col
+          cols="12"
+          md="4"
+          class="pa-2"
+        >
+          <!-- Dados diários -->
+          <v-card
+            class="chart-card table-card mb-2 compact-table"
+            elevation="2"
+          >
+            <v-card-title class="chart-title compact-title">
+              <v-icon
+                left
+                small
                 color="indigo"
               >
                 mdi-table
               </v-icon>
               {{ $t('dailyAccessData') }}
             </v-card-title>
-            <v-card-text class="table-content">
+            <v-card-text class="table-content compact-content">
               <TableDefault
                 :labels="viewLabelsTitle"
                 :daily-counts="getDateCounts"
               />
             </v-card-text>
           </v-card>
-        </v-col>
-        <v-col
-          cols="12"
-          md="6"
-        >
+
+          <!-- Dados mensais -->
           <v-card
-            class="chart-card table-card"
+            class="chart-card table-card compact-table"
             elevation="2"
           >
-            <v-card-title class="chart-title">
+            <v-card-title class="chart-title compact-title">
               <v-icon
                 left
+                small
                 color="purple"
               >
                 mdi-chart-bar
               </v-icon>
               {{ $t('monthlyAccessData') }}
             </v-card-title>
-            <v-card-text class="table-content">
+            <v-card-text class="table-content compact-content">
               <TableDefault
                 :labels="viewLabelsTitle"
                 :monthly-counts="getDataChart.monthly_counts"
@@ -795,63 +771,82 @@ export default {
 </script>
 
 <style scoped lang="sass">
+.position-relative
+  position: relative
+
+.position-absolute
+  position: absolute
+
+.left-btn
+  left: 1rem
+
 .chart
   background-color: #f5f5f5
   min-height: 100vh
 
   .chart-header
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
-    color: white
+    background: white
+    color: #333
     padding: 1rem 0
     box-shadow: 0 2px 12px rgba(0,0,0,0.1)
 
     .back-btn
-      background-color: rgba(255,255,255,0.1)
-      color: white !important
+      background-color: rgba(0,0,0,0.05)
+      color: #333 !important
 
       &:hover
-        background-color: rgba(255,255,255,0.2)
+        background-color: rgba(0,0,0,0.1)
 
     .logo-img
-      filter: brightness(0) invert(1)
+      filter: none
 
-    .page-title
-      font-size: 1.75rem
-      font-weight: 300
-      margin: 0
-      text-shadow: 0 1px 3px rgba(0,0,0,0.3)
-
-  .toolbar-section
-    background: white
-    border-bottom: 1px solid #e0e0e0
-    padding: 0.75rem 0
-
-    .filter-btn
-      border-radius: 25px
-      font-weight: 500
-      text-transform: none
-
-    .download-buttons
-      display: flex
-      gap: 0.5rem
-
-      .download-btn
-        border-radius: 50%
-        transition: all 0.3s ease
+    .header-actions
+      .filter-btn
+        border-color: #D92B3F
+        color: #D92B3F
+        border-radius: 25px
+        font-weight: 500
+        text-transform: none
 
         &:hover
-          transform: translateY(-2px)
-          box-shadow: 0 4px 8px rgba(0,0,0,0.2)
+          background-color: rgba(217, 43, 63, 0.1)
+
+      .download-buttons
+        .download-btn
+          border-color: #666
+          color: #666
+          transition: all 0.3s ease
+
+          &:hover
+            background-color: rgba(0,0,0,0.05)
+            transform: translateY(-2px)
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2)
 
   .content-section
-    max-width: 1200px
-    margin: 0 auto
+    margin: 0
+    padding: 0
 
   .charts-grid
-    margin-bottom: 1.5rem
+    margin: 0
+
+    .pa-2
+      padding: 8px
 
     &:last-child
       margin-bottom: 0
+
+  .compact-table
+    height: auto
+    max-height: 180px
+
+    .compact-title
+      padding: 8px 16px !important
+      font-size: 0.9rem !important
+
+    .compact-content
+      padding: 8px 16px !important
+      max-height: 120px
+      overflow-y: auto
 
   .chart-card
     border-radius: 12px
@@ -897,6 +892,26 @@ export default {
     display: flex
     flex-direction: column
     align-items: center
+
+  .compact-table
+    height: auto
+    max-height: 180px
+
+    .compact-title
+      padding: 8px 16px
+      font-size: 0.9rem
+
+    .compact-content
+      padding: 8px 16px
+      max-height: 120px
+      overflow-y: auto
+
+      .v-data-table
+        font-size: 0.8rem
+
+        .v-data-table__wrapper
+          max-height: 100px
+          overflow-y: auto
 
 // Responsive adjustments
 @media (max-width: 960px)
