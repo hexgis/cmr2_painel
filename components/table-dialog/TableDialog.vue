@@ -1,7 +1,7 @@
 <template>
   <v-row>
     <v-dialog
-      v-model="table"
+      v-model="localTable"
       transition="dialog-bottom-transition"
       persistent
       no-click-animation
@@ -81,15 +81,14 @@
 </template>
 
 <script>
-import { mapActions, mapMutations, mapState } from 'vuex';
+import { mapMutations } from 'vuex';
 
-import PdfReport from '@/components/priority/PdfReport';
-import MapPrinterPriority from '@/components/priority/MapPrinterPriority.vue';
+import MapPrinterPriority from '../priority/MapPrinterPriority.vue';
 
 export default {
   name: 'TableDialog',
 
-  components: { PdfReport, MapPrinterPriority },
+  components: { MapPrinterPriority },
 
   props: {
     table: {
@@ -99,10 +98,12 @@ export default {
     headers: {
       type: Array,
       require: true,
+      default: () => [],
     },
     value: {
       type: Array,
       require: true,
+      default: () => [],
     },
     loadingTable: {
       type: Boolean,
@@ -115,14 +116,17 @@ export default {
     fDownloadCSV: {
       type: Function,
       require: true,
+      default: () => () => {},
     },
     fCloseTable: {
       type: Function,
       require: true,
+      default: () => () => {},
     },
     tableName: {
       type: String,
       require: true,
+      default: '',
     },
   },
 
@@ -136,6 +140,16 @@ export default {
       geometry: true,
     };
   },
+  computed: {
+    localTable: {
+      get() {
+        return this.table;
+      },
+      set(value) {
+        this.fCloseTable(value);
+      },
+    },
+  },
 
   methods: {
 
@@ -143,21 +157,16 @@ export default {
       switch (prioridade) {
         case 'Muito Alta':
           return '#9400D3';
-          break;
         case 'Alta':
           return 'red';
-          break;
         case 'Media':
           return 'orange';
-          break;
         case 'Baixa':
           return 'yellow';
-          break;
         case 'Muito Baixa':
           return 'green';
-          break;
         default:
-          break;
+          return 'gray';
       }
     },
     closeAnalyticalDialog(value) {
@@ -166,7 +175,6 @@ export default {
     ...mapMutations('priority', [
       'setDetail',
       'setfeaturesIndividual',
-
     ]),
   },
 };
