@@ -85,7 +85,7 @@
             fab
             small
             color="accent"
-            @click="dispatchOpenTableDialog"
+            @click="openTableDialogLocal"
           >
             <v-tooltip left>
               <template #activator="{ on }">
@@ -145,14 +145,14 @@
     </v-list-group>
 
     <TableDialog
-      v-if="showTableDialog"
-      :table="showTableDialog"
-      :headers="tableHeaders"
+      v-if="localShowTableDialog"
+      :table="localShowTableDialog"
+      :headers="localTableHeaders"
       :value="transformTableData"
       :loading-table="isLoadingTable"
       :loading-csv="false"
       :f-download-csv="downloadCSV"
-      :f-close-table="closeTableDialog"
+      :f-close-table="closeTableDialogLocal"
       :table-name="layer.name"
     />
   </div>
@@ -196,16 +196,13 @@ export default {
     showFilter: false,
     showFilters: true,
     isLoadingTable: false,
+    localShowTableDialog: false,
+    localTableData: { features: [] },
+    localTableHeaders: [],
   }),
 
   computed: {
-    ...mapState('supportLayers', [
-      'supportLayers',
-      'showTableDialog',
-      'tableData',
-      'tableHeaders',
-      'loadingTable',
-    ]),
+    ...mapState('supportLayers', ['supportLayers']),
 
     icon() {
       return this.showMetadata
@@ -220,8 +217,6 @@ export default {
     },
 
     layer() {
-      console.log(this.supportLayers, this.layerId);
-
       return this.supportLayers[this.layerId] || null;
     },
 
@@ -248,34 +243,37 @@ export default {
     },
 
     transformTableData() {
-      const transformed = (this.tableData.features || []).map((feature) => ({
+      const transformed = (this.localTableData.features || []).map((feature) => ({
         ...feature.properties,
         properties: feature.properties,
       }));
-      console.log('Dados transformados para TableDialog:', transformed);
       return transformed;
     },
   },
 
   methods: {
-    ...mapMutations('supportLayers', [
-      'toggleLayerVisibility',
-      'setLayerOpacity',
-      'setTableDialog',
-    ]),
-
+    ...mapMutations('supportLayers', ['toggleLayerVisibility', 'setLayerOpacity']),
     ...mapActions('supportLayers', ['openTableDialog']),
 
-    dispatchOpenTableDialog() {
-      console.log('Despachando openTableDialog para layerId:', this.layerId);
-      this.openTableDialog({ layerId: this.layerId });
+    async openTableDialogLocal() {
+      this.isLoadingTable = true;
+      this.localShowTableDialog = false;
+      try {
+        const { data, headers } = await this.openTableDialog({ layerId: this.layerId });
+        this.localTableData = data;
+        this.localTableHeaders = headers;
+        this.localShowTableDialog = true;
+        this.isLoadingTable = false;
+      } catch (error) {
+        this.isLoadingTable = false;
+        this.localShowTableDialog = false;
+      }
     },
 
-    closeTableDialog() {
-      console.log('Fechando diálogo da tabela');
-      this.setTableDialog({
-        show: false, data: { features: [] }, headers: [], loading: false,
-      });
+    closeTableDialogLocal() {
+      this.localShowTableDialog = false;
+      this.localTableData = { features: [] };
+      this.localTableHeaders = [];
     },
 
     downloadCSV() {
