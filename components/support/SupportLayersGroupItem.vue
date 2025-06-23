@@ -75,28 +75,7 @@
           v-if="layer.filters && showFilters"
           :layer="layer"
         />
-        <v-col
-          v-if="layer.wms.has_metadata"
-          cols="12"
-        >
-          <v-btn
-            :loading="isLoadingTable"
-            icon
-            fab
-            small
-            color="accent"
-            @click="openTableDialogLocal"
-          >
-            <v-tooltip left>
-              <template #activator="{ on }">
-                <v-icon v-on="on">
-                  mdi-table
-                </v-icon>
-              </template>
-              <span>{{ $t('table-label') }}</span>
-            </v-tooltip>
-          </v-btn>
-        </v-col>
+        <v-divider />
         <v-row
           v-if="
             layer.layer_type === 'wms' &&
@@ -107,15 +86,42 @@
           align="center"
         >
           <v-col
-            cols="4"
+            v-if="layer.wms.has_metadata"
+            cols="1"
+            class="ml-n3 mr-4"
+          >
+            <v-btn
+              :loading="isLoadingTable"
+              icon
+              fab
+              small
+              color="accent"
+              @click="openTableDialogLocal"
+            >
+              <v-tooltip left>
+                <template #activator="{ on }">
+                  <v-icon v-on="on">
+                    mdi-table
+                  </v-icon>
+                </template>
+                <span>{{ $t('table-label') }}</span>
+              </v-tooltip>
+            </v-btn>
+          </v-col>
+
+          <v-col
+            cols="3"
             class="grey--text text--darken-2"
           >
             Opacidade
           </v-col>
-          <v-col cols="8">
+          <v-col
+            cols="7"
+            class="mt-2 pr-0"
+          >
             <v-slider
               :value="layer.opacity"
-              class="mb-n4"
+              class="mb-n4 mr-0"
               thumb-label
               @input="updateLayerOpacity($event)"
             />
@@ -150,8 +156,7 @@
       :headers="localTableHeaders"
       :value="transformTableData"
       :loading-table="isLoadingTable"
-      :loading-csv="false"
-      :f-download-csv="downloadCSV"
+      :loading-csv="isLoadingCSV"
       :f-close-table="closeTableDialogLocal"
       :table-name="layer.name"
     />
@@ -200,6 +205,7 @@ export default {
     localShowTableDialog: false,
     localTableData: { features: [] },
     localTableHeaders: [],
+    isLoadingCSV: false,
     // Configuração de campos para o popup e tabela
     fieldConfig: {
       excludedFields: [
@@ -375,15 +381,6 @@ export default {
       );
     },
 
-    disabledHeatmap() {
-      return (
-        this.layer.filters.length > 0
-        && this.layer.layer_type === 'heatmap'
-        && Object.keys(this.layer.filters).length === 0
-        && !this.layer.loading
-      );
-    },
-
     transformTableData() {
       const transformed = (this.localTableData.features || []).map((feature) => {
         const formattedProperties = {};
@@ -454,10 +451,6 @@ export default {
       this.localShowTableDialog = false;
       this.localTableData = { features: [] };
       this.localTableHeaders = [];
-    },
-
-    downloadCSV() {
-      console.log('Download CSV não implementado');
     },
 
     toggleMetadata() {

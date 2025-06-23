@@ -34,7 +34,7 @@
               class="mx-2 my-2"
               color="secondary"
               :loading="loadingCSV"
-              @click="fDownloadCSV()"
+              @click="handleDownloadCSV"
             >
               <v-icon>mdi-download</v-icon>
             </v-btn>
@@ -82,7 +82,6 @@
 
 <script>
 import { mapMutations } from 'vuex';
-
 import MapPrinterPriority from '../priority/MapPrinterPriority.vue';
 
 export default {
@@ -93,39 +92,34 @@ export default {
   props: {
     table: {
       type: Boolean,
-      require: true,
+      required: true,
     },
     headers: {
       type: Array,
-      require: true,
+      required: true,
       default: () => [],
     },
     value: {
       type: Array,
-      require: true,
+      required: true,
       default: () => [],
     },
     loadingTable: {
       type: Boolean,
-      require: true,
+      required: true,
     },
     loadingCSV: {
       type: Boolean,
-      require: true,
-    },
-    fDownloadCSV: {
-      type: Function,
-      require: true,
-      default: () => () => {},
+      required: false,
     },
     fCloseTable: {
       type: Function,
-      require: true,
+      required: true,
       default: () => () => {},
     },
     tableName: {
       type: String,
-      require: true,
+      required: true,
       default: '',
     },
   },
@@ -140,6 +134,7 @@ export default {
       geometry: true,
     };
   },
+
   computed: {
     localTable: {
       get() {
@@ -152,6 +147,10 @@ export default {
   },
 
   methods: {
+    ...mapMutations('priority', [
+      'setDetail',
+      'setfeaturesIndividual',
+    ]),
 
     getColor(prioridade) {
       switch (prioridade) {
@@ -169,13 +168,39 @@ export default {
           return 'gray';
       }
     },
+
     closeAnalyticalDialog(value) {
       this.dialog = value;
     },
-    ...mapMutations('priority', [
-      'setDetail',
-      'setfeaturesIndividual',
-    ]),
+
+    escapeCSVValue(value) {
+      if (value === null || value === undefined) return '';
+      const stringValue = value.toString();
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    },
+
+    handleDownloadCSV() {
+      const headers = this.headers.map((header) => this.escapeCSVValue(header.text));
+      const headerRow = headers.join(',');
+
+      const dataRows = this.value.map((item) => this.headers.map((header) => this.escapeCSVValue(item[header.value])).join(','));
+
+      const csvContent = [headerRow, ...dataRows].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${this.tableName || 'tabela'}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    },
   },
 };
 </script>
