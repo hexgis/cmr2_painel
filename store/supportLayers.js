@@ -65,8 +65,10 @@ export const mutations = {
             layer_filters: layer.filters,
             visible: false,
             sublayers: false,
-            opacity: (layer.wms && layer.wms.default_opacity)
-                     || (layer.vector && layer.vector.default_opacity) || 100,
+            opacity:
+              (layer.wms && layer.wms.default_opacity)
+              || (layer.vector && layer.vector.default_opacity)
+              || 100,
             loading: false,
             data: [],
             cql: null,
@@ -110,16 +112,18 @@ export const mutations = {
   },
 
   setLayerFilters(state, { id, filters }) {
-    state.supportLayers[id].filters = state.supportLayers[id].filters.map((item) => {
-      const filterKey = item.type;
-      if (filters.hasOwnProperty(filterKey)) {
-        return {
-          ...item,
-          [filterKey]: filters[filterKey],
-        };
-      }
-      return item;
-    });
+    state.supportLayers[id].filters = state.supportLayers[id].filters.map(
+      (item) => {
+        const filterKey = item.type;
+        if (filters.hasOwnProperty(filterKey)) {
+          return {
+            ...item,
+            [filterKey]: filters[filterKey],
+          };
+        }
+        return item;
+      },
+    );
   },
 
   setFilterOptions(state, data) {
@@ -293,7 +297,11 @@ export const actions = {
   removeSupportLayers({ commit }, { concatenatedLayers }) {
     concatenatedLayers.forEach((layer) => {
       if (layer.date_created) {
-        commit('supportLayersUser/toggleLayerVisibility', { id: layer.id, visible: false }, { root: true });
+        commit(
+          'supportLayersUser/toggleLayerVisibility',
+          { id: layer.id, visible: false },
+          { root: true },
+        );
         return;
       }
       commit('toggleLayerVisibility', { id: layer.id, visible: false });
@@ -305,7 +313,11 @@ export const actions = {
       const layer = layers[index];
       setTimeout(() => {
         if (layer.date_created) {
-          commit('supportLayersUser/toggleLayerVisibility', { id: layer.id, visible: true }, { root: true });
+          commit(
+            'supportLayersUser/toggleLayerVisibility',
+            { id: layer.id, visible: true },
+            { root: true },
+          );
           return;
         }
         commit('toggleLayerVisibility', { id: layer.id, visible: true });
@@ -314,11 +326,11 @@ export const actions = {
     commit('setOrderedLayers', layers);
   },
 
-  async openTableDialog({ state }, { layerId }) {
+  async openTableDialog({ state }, { layerId, fieldConfig }) {
     try {
       const layer = state.supportLayers[layerId];
       if (!layer || !layer.wms || !layer.wms.geoserver_layer_name) {
-        throw new Error('Informações da camada indisponíveis.');
+        throw new Error('Informações da camada inválidas.');
       }
       const layerName = `CMR-FUNAI:${layer.wms.geoserver_layer_name}`;
       const baseUrl = 'https://cmr.funai.gov.br/geoserver/wfs';
@@ -345,11 +357,16 @@ export const actions = {
 
       let tableHeaders = [];
       if (tableData.features && tableData.features.length > 0) {
-        tableHeaders = Object.keys(tableData.features[0].properties).map((key) => ({
-          text: key.replace(/_/g, ' ').toUpperCase(),
-          value: key,
-          sortable: true,
-        }));
+        const properties = Object.keys(tableData.features[0].properties);
+        tableHeaders = properties
+          .filter((key) => !fieldConfig.excludedFields.includes(key))
+          .map((key) => ({
+            text:
+              fieldConfig.fieldNames[key]
+              || key.replace(/_/g, ' ').toUpperCase(),
+            value: key,
+            sortable: true,
+          }));
       }
 
       return { data: tableData, headers: tableHeaders, loading: false };
