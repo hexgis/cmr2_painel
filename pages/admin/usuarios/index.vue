@@ -529,7 +529,7 @@
 </template>
 
 <!-- filtro Administrador -->
-<template #header.is_staff="{ header }">
+<template #header.is_admin="{ header }">
   <v-menu offset-y>
     <template #activator="{ on, attrs }">
       <v-btn text small v-bind="attrs" v-on="on">
@@ -540,7 +540,7 @@
     <v-list dense>
       <v-list-item>
         <v-checkbox
-          v-model="columnFilters.is_staff"
+          v-model="columnFilters.is_admin"
           :value="true"
           label="Sim"
           dense
@@ -548,7 +548,7 @@
       </v-list-item>
       <v-list-item>
         <v-checkbox
-          v-model="columnFilters.is_staff"
+          v-model="columnFilters.is_admin"
           :value="false"
           label="Não"
           dense
@@ -657,12 +657,12 @@
               <span class="ml-2">{{ item.is_active ? 'Ativo' : 'Inativo' }}</span>
             </div>
           </template>
-          <template #item.is_staff="{ item }">
+          <template #item.is_admin="{ item }">
               <div class="d-flex align-center">
-                <v-icon :color="item.is_staff ? '#F58A1F' : 'grey'" small>
-                  {{ item.is_staff ? 'mdi-account-star' : 'mdi-account' }}
+                <v-icon :color="item.is_admin ? '#F58A1F' : 'grey'" small>
+                  {{ item.is_admin ? 'mdi-account-star' : 'mdi-account' }}
                 </v-icon>
-                <span class="ml-2">{{ item.is_staff ? 'Sim' : 'Não' }}</span>
+                <span class="ml-2">{{ item.is_admin ? 'Sim' : 'Não' }}</span>
               </div>
            </template>
       </v-data-table>
@@ -747,7 +747,7 @@ export default {
       headers: [
         { text: 'Nome', value: 'username' },
         { text: 'Email', value: 'email' },
-        { text: 'Administrador', value: 'is_staff' },
+        { text: 'Administrador', value: 'is_admin' },
         { text: 'Acesso Permitido', value: 'is_active' },
         { text: 'Instituição', value: 'institution' },
         { text: 'Ações', value: 'actions', align: 'center' },
@@ -781,9 +781,9 @@ export default {
       requiredRule: (v) => !!v || 'Campo obrigatório',
       emailRule: (v) => /.+@.+\..+/.test(v) || 'E-mail inválido',
       userRoleChanges: [],
-      visibleColumns: ['username','email','is_staff','is_active','institution','actions'],
+      visibleColumns: ['username','email','is_admin','is_active','institution','actions'],
       columnFilters: {
-        is_staff: [],    // [true, false]
+        is_admin: [],    // [true, false]
         is_active: [],   // [true, false]
         institution: [],
         username: [],
@@ -958,9 +958,9 @@ export default {
         const matchesInactive = this.filters.inactive
           ? !user.is_active
           : true;
-        const matchesAdm = this.filters.adm ? user.is_staff : true;
+        const matchesAdm = this.filters.adm ? user.is_admin : true;
         const matchesCommon = this.filters.common
-          ? !user.is_staff
+          ? !user.is_admin
           : true;
         return (
           matchesActive
@@ -993,7 +993,7 @@ export default {
       const inactiveUsers = this.users.filter(
         (user) => !user.is_active,
       ).length;
-      const adminUser = this.users.filter((user) => user.is_staff).length;
+      const adminUser = this.users.filter((user) => user.is_admin).length;
       this.storeCategories[0].total = activeUsers;
       this.storeCategories[1].total = inactiveUsers;
       this.storeCategories[2].total = adminUser;
@@ -1150,10 +1150,11 @@ export default {
 
     generateCSV() {
       // Cabeçalho do CSV
-      const headers = ['Nome', 'Email', 'Acesso Permitido', 'Instituição'];
+      const headers = ['Nome', 'Email', 'Administrador', 'Acesso Permitido', 'Instituição'];
       const rows = this.filteredUsers.map(user => [
         user.username,
         user.email,
+        user.is_admin ? 'Sim' : 'Não',
         user.is_active ? 'Ativo' : 'Inativo',
         user.institution,
       ]);

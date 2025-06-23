@@ -52,7 +52,7 @@ export default {
         body: this.users.map((user) => [
           user.username,
           user.email,
-          user.is_staff ? 'Sim' : 'Não',
+          user.is_admin ? 'Sim' : 'Não',
           user.is_active ? 'Sim' : 'Não',
           user.institution,
         ]),
