@@ -77,11 +77,9 @@
         />
         <v-divider />
         <v-row
-          v-if="
-            layer.layer_type === 'wms' &&
-              layer.visible &&
-              layer.wms.has_opacity
-          "
+          v-if="layer.layer_type === 'wms'
+            && layer.visible
+            && (layer.wms.has_opacity || layer.wms.has_metadata)"
           class="black--text text--lighten-2"
           align="center"
         >
@@ -109,23 +107,25 @@
             </v-btn>
           </v-col>
 
-          <v-col
-            cols="3"
-            class="grey--text text--darken-2"
-          >
-            Opacidade
-          </v-col>
-          <v-col
-            cols="7"
-            class="mt-2 pr-0"
-          >
-            <v-slider
-              :value="layer.opacity"
-              class="mb-n4 mr-0"
-              thumb-label
-              @input="updateLayerOpacity($event)"
-            />
-          </v-col>
+          <template v-if="layer.wms.has_opacity">
+            <v-col
+              cols="3"
+              class="grey--text text--darken-2"
+            >
+              Opacidade
+            </v-col>
+            <v-col
+              cols="7"
+              class="mt-2 pr-0"
+            >
+              <v-slider
+                :value="layer.opacity"
+                class="mb-n4 mr-0"
+                thumb-label
+                @input="updateLayerOpacity($event)"
+              />
+            </v-col>
+          </template>
         </v-row>
         <v-row
           v-if="layer.layer_type === 'wms' && layer.wms.has_detail"
@@ -345,6 +345,7 @@ export default {
         nu_pibuf: 'PIB Estado',
         nu_popurb2019: 'População Urbana (2019)',
         nu_poprur2019: 'População Rural (2019)',
+        no_bioma: 'Bioma',
       },
     },
   }),

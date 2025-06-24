@@ -62,6 +62,12 @@ export const mutations = {
         layers.forEach((layer) => {
           const currentLayer = {
             ...layer,
+            wms: {
+              ...layer.wms,
+              geoserver_layer_name: layer.wms.geoserver_layer_name.includes(':')
+                ? layer.wms.geoserver_layer_name
+                : `CMR-FUNAI:${layer.wms.geoserver_layer_name}`,
+            },
             layer_filters: layer.filters,
             visible: false,
             sublayers: false,
@@ -332,7 +338,7 @@ export const actions = {
       if (!layer || !layer.wms || !layer.wms.geoserver_layer_name) {
         throw new Error('Informações da camada inválidas.');
       }
-      const layerName = `CMR-FUNAI:${layer.wms.geoserver_layer_name}`;
+      const layerName = layer.wms.geoserver_layer_name;
       const baseUrl = 'https://cmr.funai.gov.br/geoserver/wfs';
       const params = new URLSearchParams({
         authkey: '7030a99e-3bec-4c3c-a748-bf9ae0b21591',
