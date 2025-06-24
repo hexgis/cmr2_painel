@@ -1,14 +1,24 @@
 <template>
   <v-container class="pa-2">
-    <v-row class="align-sm-center">
-      <v-col cols="8">
-        <doughnut-chart
-          v-if="chartData"
-          :chart-data="chartData"
-          :chart-options="chartOptions"
-        />
+    <v-row class="justify-center">
+      <v-col
+        cols="12"
+        class="d-flex justify-center"
+      >
+        <div class="chart-wrapper">
+          <doughnut-chart
+            v-if="chartData"
+            :chart-data="chartData"
+            :chart-options="chartOptions"
+          />
+        </div>
       </v-col>
-      <v-col cols="4">
+    </v-row>
+    <v-row class="justify-center mt-2">
+      <v-col
+        cols="12"
+        class="d-flex justify-center"
+      >
         <legend-list :legend-items="legendItems" />
       </v-col>
     </v-row>
@@ -30,10 +40,11 @@ export default {
       chartData: null,
       chartOptions: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
         legend: {
           display: false,
         },
+        cutout: '60%',
       },
       legendItems: [],
     };
@@ -78,7 +89,15 @@ export default {
   },
 };
 </script>
+
 <style lang="sass" scoped>
-  .col-8
-    height: 200px !important
+.chart-wrapper
+  width: 300px
+  height: 300px
+
+.v-container
+  text-align: center
+
+.mt-2
+  margin-top: 8px !important
 </style>

@@ -1,20 +1,19 @@
 <template>
-  <v-list>
-    <v-list-item
+  <div class="legend-container">
+    <div
       v-for="(item, index) in legendItems"
       :key="index"
+      class="legend-item"
     >
-      <v-list-item-content>
-        <v-list-item-title>
-          <v-icon
-            medium
-            :style="{ color: item.color }"
-          >mdi-square</v-icon>
-          {{ item.label }}: {{ item.count }}%
-        </v-list-item-title>
-      </v-list-item-content>
-    </v-list-item>
-  </v-list>
+      <v-icon
+        small
+        :style="{ color: item.color }"
+      >
+        mdi-square
+      </v-icon>
+      <span class="legend-text">{{ item.label }}: {{ item.count }}%</span>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -22,19 +21,26 @@ export default {
   props: {
     legendItems: {
       type: Array,
-      required: true
-    }
-  }
+      required: true,
+    },
+  },
 };
 </script>
+
 <style lang="sass" scoped>
-  .theme--light.v-list
-    background: transparent
+.legend-container
+  display: flex
+  flex-wrap: wrap
+  justify-content: center
+  gap: 16px
+  padding: 8px 0
 
-  .v-list-item__title
-    margin-bottom: 0 !important
+.legend-item
+  display: flex
+  align-items: center
+  font-size: 0.875rem
 
-  .chartjs-render-monitor
-    height: 400px
+.legend-text
+  margin-left: 4px
+  white-space: nowrap
 </style>
-
