@@ -371,7 +371,7 @@
       <v-row class="charts-grid ma-0">
         <v-col
           cols="12"
-          md="4"
+          md="3"
           class="pa-2"
         >
           <v-card
@@ -395,7 +395,7 @@
         </v-col>
         <v-col
           cols="12"
-          md="4"
+          md="3"
           class="pa-2"
         >
           <v-card
@@ -419,12 +419,12 @@
         </v-col>
         <v-col
           cols="12"
-          md="4"
+          md="3"
           class="pa-2"
         >
           <!-- Dados diários -->
           <v-card
-            class="chart-card table-card mb-2 compact-table"
+            class="chart-card table-card"
             elevation="2"
           >
             <v-card-title class="chart-title compact-title">
@@ -437,17 +437,22 @@
               </v-icon>
               {{ $t('dailyAccessData') }}
             </v-card-title>
-            <v-card-text class="table-content compact-content">
+            <v-card-text class="table-content">
               <TableDefault
                 :labels="viewLabelsTitle"
                 :daily-counts="getDateCounts"
               />
             </v-card-text>
           </v-card>
-
+        </v-col>
+        <v-col
+          cols="12"
+          md="3"
+          class="pa-2"
+        >
           <!-- Dados mensais -->
           <v-card
-            class="chart-card table-card compact-table"
+            class="chart-card table-card"
             elevation="2"
           >
             <v-card-title class="chart-title compact-title">
@@ -460,7 +465,7 @@
               </v-icon>
               {{ $t('monthlyAccessData') }}
             </v-card-title>
-            <v-card-text class="table-content compact-content">
+            <v-card-text class="table-content">
               <TableDefault
                 :labels="viewLabelsTitle"
                 :monthly-counts="getDataChart.monthly_counts"

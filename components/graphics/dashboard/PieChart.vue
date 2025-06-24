@@ -112,6 +112,8 @@ export default {
 .chart-wrapper
   width: 300px
   height: 300px
+  margin-top: -3rem
+  margin-bottom: 3rem
 
 .v-container
   text-align: center
