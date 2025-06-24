@@ -78,7 +78,7 @@
 
             <div class="div-spacer" />
 
-            <template >
+            <template>
               <FileLoaderControl
                 v-if="isLoggedIn"
                 :map="map"
@@ -188,8 +188,6 @@
 
         <SupportLayersRaster />
 
-        
-
         <SupportLayersHazard />
 
         <!-- <ImageryLayers v-if="showImagery" :map="map" /> -->
@@ -274,7 +272,7 @@ import FileLoaderControl from '@/components/map/file-loader/FileLoaderControl.vu
 import FileLoaderLayers from '@/components/map/file-loader/FileLoaderLayers.vue';
 // import ImageryLayers from '@/components/imagery/ImageryLayers'
 import CatalogLayers from '@/components/catalog/CatalogLayers';
-import MonitoringLayers from '@/components/monitoring/MonitoringLayers';
+import MonitoringLayers from '@/components/monitoring-alerts/monitoring/MonitoringLayers';
 // import MonitoringLayersGeoserver from '@/components/monitoring/MonitoringLayersGeoserver'
 import SupportLayers from '@/components/support/SupportLayers';
 import SupportLayersHazard from '@/components/support/SupportLayersHazard';
@@ -286,7 +284,7 @@ import BaseWmsMetadataPopup from '@/components/base/BaseWmsMetadataPopup';
 // import WebhooksLayers from '@/components/webhooks/WebhooksLayers'
 import PriorityLayers from '@/components/priority/PriorityLayers';
 import DeterLayers from '@/components/inpe/deter/DeterLayers.vue';
-import AlertLayers from '@/components/monitoring/AlertLayers';
+import AlertLayers from '@/components/monitoring-alerts/urgent-alerts/AlertLayers';
 import LandUseLayers from '@/components/land-use/LandUseLayers';
 import SupportUserLayersMap from '@/components/support/SupportUserLayersMap';
 import 'leaflet/dist/leaflet.css';
@@ -296,7 +294,7 @@ import DrawingPanel from '@/components/map/drawing-tool/DrawingPanel.vue';
 import BaseTiMetadata from '../base/BaseTiMetadata.vue';
 import Highlighter from '@/components/map/Highlighter.vue';
 import MapIndigenousLand from '@/components/map/MapIndigenousLand';
-import ProdesLayers from '@/components/inpe/prodes/ProdesLayers.vue'
+import ProdesLayers from '@/components/inpe/prodes/ProdesLayers.vue';
 import FocoLayers from '../inpe/foco/FocoLayers.vue';
 
 if (typeof window !== 'undefined') {
@@ -338,7 +336,7 @@ export default {
     Highlighter,
     BaseTiMetadata,
     ProdesLayers,
-    FocoLayers
+    FocoLayers,
   },
 
   props: {
@@ -347,12 +345,6 @@ export default {
       default: null,
     },
   },
-
-  mounted() {
-  window.mapMain.on('click', (e) => {
-    this.$store.dispatch('getWmsFeatureInfo', e.latlng);
-  });
-},
 
   data: () => ({
     selectedItems: [],
@@ -394,7 +386,7 @@ export default {
     monitoringGeoserver: process.env.MONITORING_GEOSERVER === 'true',
 
     baseLayers: [
-    {
+      {
         url: '//mt0.google.com/vt/lyrs=y&hl=pt&x={x}&y={y}&z={z}',
         options: {
           label: 'Google Hybrid',
@@ -445,7 +437,7 @@ export default {
       //     zIndex: 1,
       //   },
       // },
-     
+
       // {
       //     url:
       //         '//securewatch.digitalglobe.com/earthservice/wmtsaccess?connectId=
@@ -543,6 +535,12 @@ export default {
     },
     localBounds: [],
   }),
+
+  mounted() {
+    window.mapMain.on('click', (e) => {
+      this.$store.dispatch('getWmsFeatureInfo', e.latlng);
+    });
+  },
 
   computed: {
     initialExtentCoords() {

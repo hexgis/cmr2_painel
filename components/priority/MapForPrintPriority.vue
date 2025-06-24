@@ -426,9 +426,9 @@
 import { mapState } from 'vuex';
 import MiniMapForPrintPriority from '@/components/priority/MiniMapForPrintPriority.vue';
 import PriorityIndividualLayer from '@/components/priority/PriorityIndividualLayer';
-import MonitoringLayers from '@/components/monitoring/MonitoringLayers';
+import MonitoringLayers from '@/components/monitoring-alerts/monitoring/MonitoringLayers';
 import SupportLayers from '@/components/support/SupportLayers';
-import AlertLayers from '@/components/monitoring/AlertLayers';
+import AlertLayers from '@/components/monitoring-alerts/urgent-alerts/AlertLayers';
 import SupportLayersHazard from '@/components/support/SupportLayersHazard';
 import SupportLayersProdes from '@/components/support/SupportLayersProdes';
 import SupportLayersRaster from '@/components/support/SupportLayersRaster';

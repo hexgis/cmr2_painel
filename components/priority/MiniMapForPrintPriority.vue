@@ -91,7 +91,7 @@ import FileLoaderControl from '@/components/map/file-loader/FileLoaderControl.vu
 import FileLoaderLayers from '@/components/map/file-loader/FileLoaderLayers.vue';
 // import ImageryLayers from '@/components/imagery/ImageryLayers'
 // import CatalogLayers from '@/components/catalog/CatalogLayers'
-import MonitoringLayers from '@/components/monitoring/MonitoringLayers';
+import MonitoringLayers from '@/components/monitoring-alerts/monitoring/MonitoringLayers';
 // import MonitoringLayersGeoserver from '@/components/monitoring/MonitoringLayersGeoserver'
 import SupportLayers from '@/components/support/SupportLayers';
 // import ChangeDetectionLayers from '@/components/change-detection/ChangeDetectionLayers'

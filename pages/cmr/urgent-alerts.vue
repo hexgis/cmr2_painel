@@ -117,7 +117,7 @@
 
 <script>
 import { mapActions, mapMutations, mapState } from 'vuex';
-import AlertFilter from '@/components/monitoring/AlertFilter.vue';
+import AlertFilter from '@/components/monitoring-alerts/urgent-alerts/AlertFilter.vue';
 import ShowDialog from '@/components/show-dialog/ShowDialog';
 
 export default {

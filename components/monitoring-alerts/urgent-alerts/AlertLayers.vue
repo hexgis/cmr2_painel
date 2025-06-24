@@ -2,16 +2,16 @@
   <div class="map-container">
     <!-- Camada WMS de Monitoramento -->
     <l-lwms-tile-layer
-      v-if="currentUrlWmsMonitoring && showFeaturesMonitoring"
+      v-if="currentUrlWmsAlerts && showFeaturesAlerts"
       ref="wmsLayer"
-      :base-url="currentUrlWmsMonitoring"
-      :layers="geoserverLayerMonitoring"
+      :base-url="currentUrlWmsAlerts"
+      :layers="geoserverLayerAlerts"
       format="image/png"
       :transparent="true"
       :z-index="3"
       :pane="'monitoring-layers-map'"
       :opacity="opacity / 100"
-      :visible="showFeaturesMonitoring"
+      :visible="showFeaturesAlerts"
       :options="{ Legend: false, name: $t('legend-name') }"
     />
     <!-- Componente de Alerta -->
@@ -21,10 +21,10 @@
 
 <script>
 import { mapState } from 'vuex';
-import BaseAlert from '../base/BaseAlert.vue';
+import BaseAlert from '../../base/BaseAlert.vue';
 
 export default {
-  name: 'MonitoringLayers',
+  name: 'UrgentAlerts',
   components: { BaseAlert },
   props: {
     map: {
@@ -33,16 +33,16 @@ export default {
     },
   },
   data: () => ({
-    selectedMonitoringFeature: null, // Feature selecionada no monitoramento
+    selectedAlertsFeature: null, // Feature selecionada no monitoramento
     heatmapLayer: null, // Camada de mapa de calor
   }),
 
   computed: {
-    ...mapState('monitoring', [
-      'MonitoringWmsOptions', // Opções da camada WMS
-      'currentUrlWmsMonitoring', // URL atual do WMS
-      'showFeaturesMonitoring', // Controla exibição das features
-      'geoserverLayerMonitoring', // Camada do GeoServer para monitoramento
+    ...mapState('urgent-alerts', [
+      'AlertsWmsOptions', // Opções da camada WMS
+      'currentUrlWmsAlerts', // URL atual do WMS
+      'showFeaturesAlerts', // Controla exibição das features
+      'geoserverLayerAlerts', // Camada do GeoServer para monitoramento
       'resultsHeatmap', // Dados do mapa de calor
       'resultsHeatmapOptions', // Opções de configuração do heatmap
       'features', // Features GeoJSON
@@ -60,7 +60,7 @@ export default {
         // Processa features se existirem
         if (newFeatures && newFeatures.features && newFeatures.features.length > 0) {
           this.addFeatures();
-        } else if (this.showFeaturesMonitoring) {
+        } else if (this.showFeaturesAlerts) {
           this.$store.commit('alert/addAlert', {
             message: this.$t('no-data-message'),
             type: 'info',
@@ -78,16 +78,16 @@ export default {
         this.addFeatures();
       }
     },
-    currentUrlWmsMonitoring(newUrl) {
+    currentUrlWmsAlerts(newUrl) {
       // Atualiza a URL da camada WMS
       if (this.$refs.wmsLayer && newUrl) {
         this.$refs.wmsLayer.mapObject.setUrl(newUrl);
       }
-      if (this.$refs.wmsLayerMonitoringHeatmap) {
-        this.$refs.wmsLayerMonitoringHeatmap.mapObject.setUrl(newUrl);
+      if (this.$refs.wmsLayerAlertsHeatmap) {
+        this.$refs.wmsLayerAlertsHeatmap.mapObject.setUrl(newUrl);
       }
     },
-    showFeaturesMonitoring(newValue) {
+    showFeaturesAlerts(newValue) {
       // Gerencia visibilidade da camada WMS e heatmap
       if (newValue && this.heatMap) this.createMonitoramentoHeatLayer();
       else if (!newValue && this.heatmapLayer) this.map.removeLayer(this.heatmapLayer);
@@ -148,7 +148,7 @@ export default {
       }
       try {
         // Evita zoom se currentView estiver ativo
-        if (!this.$store.state.monitoring.filters.currentView) {
+        if (!this.$store.state['urgent-alerts'].filters.currentView) {
           const bounds = this.$L.geoJSON(this.features).getBounds();
           if (bounds.isValid()) {
             this.map.flyToBounds(bounds, { duration: 1 });
@@ -178,9 +178,9 @@ export default {
 {
   "en": {
     "detail-api-error": "Error while retrieving polygon data, contact a system administrator if it persists.",
-    "legend-name": "Monitoring",
+    "legend-name": "Urgent Alerts",
     "no-data-message": "No data available for the selected filters.",
-    "name-layer-heatmap": "Daily Monitoring - Heatmap"
+    "name-layer-heatmap": "Daily Alerts - Heatmap"
   },
   "pt-br": {
     "detail-api-error": "Não foi possível obter os dados do polígono, entre em contato com um administrador se persistir.",

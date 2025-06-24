@@ -136,8 +136,8 @@
 </i18n>
 
 <script>
-import Alerts from '~/components/monitoring/Alerts.vue';
-import MonitoringFilters from '@/components/monitoring/MonitoringFilters.vue';
+import Alerts from '~/components/monitoring-alerts/Alerts.vue';
+import MonitoringFilters from '@/components/monitoring-alerts/monitoring/MonitoringFilters.vue';
 
 export default {
   components: {

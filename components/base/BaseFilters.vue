@@ -22,6 +22,7 @@
         <v-tooltip bottom>
           <template #activator="{ on }">
             <div
+              v-if="features && features.features && features.features.length > 0"
               class="d-flex justify-end align-center mt-1"
               v-on="on"
             >
@@ -171,6 +172,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import BaseDateField from './BaseDateField.vue';
 
 export default {
@@ -230,6 +232,12 @@ export default {
       localFilters: { ...this.filters }, // Cópia local para evitar mutação direta
     };
   },
+  computed: {
+
+    ...mapState('urgent-alerts', [
+      'features',
+    ]),
+  },
   watch: {
     filters: {
       handler(newFilters) {
@@ -244,6 +252,7 @@ export default {
       }
     },
   },
+
   methods: {
     emitFilters() {
       this.$emit('update:filters', { ...this.localFilters });

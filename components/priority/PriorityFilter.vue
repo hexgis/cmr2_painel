@@ -5,6 +5,7 @@
         v-model="filters.currentView"
         :label="$t('current-view-label')"
       />
+      afsdfasdf
     </v-row>
 
     <v-row class="px-3 pb-1">

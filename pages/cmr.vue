@@ -190,10 +190,10 @@ export default {
         {
           name: this.$t('search-tab'),
           icon: 'mdi-map-search',
-          route: '/cmr/monitoring',
+          route: '/cmr/monitoring-alerts',
           requiredLogin: true,
           show: process.env.ROUTE_MONITORING === 'true',
-          componentKey: 'monitoring',
+          componentKey: 'monitoring-alerts',
         },
         {
           name: this.$t('high-resolution-mosaics-tab'),
