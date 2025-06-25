@@ -22,7 +22,7 @@
                         class="fill-height"
                     >
                         <v-tab>
-                            {{ layer.name }} POPUP CAMADAS USUARIOS
+                            {{ layer.name }}
                         </v-tab>
                         <v-tab-item>
                             <v-card-text>
