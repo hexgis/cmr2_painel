@@ -340,7 +340,7 @@ export const actions = {
       }
       const layerName = layer.wms.geoserver_layer_name;
       const baseUrl = process.env.GEOSERVER_URL_WFS;
-      const authkey = process.env.AUTHKEY_WFS;
+      const authkey = process.env.AUTHKEY;
       const params = new URLSearchParams({
         authkey,
         service: 'WFS',
