@@ -1,15 +1,25 @@
 <template>
-  <v-container>
-    <v-row class="align-sm-center">
-      <v-col cols="8">
-        <pie-chart
-          ref="pieChart"
-          :chartData="chartData"
-          :chartOptions="chartOptions"
-        ></pie-chart>
+  <v-container class="pa-2">
+    <v-row class="justify-center">
+      <v-col
+        cols="12"
+        class="d-flex justify-center"
+      >
+        <div class="chart-wrapper">
+          <pie-chart
+            ref="pieChart"
+            :chart-data="chartData"
+            :chart-options="chartOptions"
+          />
+        </div>
       </v-col>
-      <v-col cols="4">
-        <legend-list :legendItems="legendItems"></legend-list>
+    </v-row>
+    <v-row class="justify-center mt-2">
+      <v-col
+        cols="12"
+        class="d-flex justify-center"
+      >
+        <legend-list :legend-items="legendItems" />
       </v-col>
     </v-row>
   </v-container>
@@ -33,23 +43,16 @@ export default {
   },
   data() {
     return {
-      legendItems: [],
       chartData: null,
       chartOptions: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
         legend: {
-          display: false
-        }
+          display: false,
+        },
       },
+      legendItems: [],
     };
-  },
-  watch:{
-    getBrowserCounts: {
-      async handler(){
-        await this.prepareChartData()
-      }
-    }
   },
   computed: {
     ...mapGetters('charts', [
@@ -60,46 +63,67 @@ export default {
       'getBrowserCounts',
     ]),
   },
+  watch: {
+    getBrowserCounts: {
+      async handler() {
+        await this.prepareChartData();
+      },
+    },
+  },
+  mounted() {
+    this.prepareChartData();
+  },
   methods: {
     async prepareChartData() {
       const labels = Object.keys(await this.getBrowserCounts);
       const data = Object.values(await this.getBrowserCounts);
-      const backgroundColors = ['#D92B3F','#C5C3C6','#FFCE03','#91AEC1','#F58A1F','#1985A1'];
+      const backgroundColors = ['#D92B3F', '#C5C3C6', '#FFCE03', '#91AEC1', '#F58A1F', '#1985A1'];
 
       const total = data.reduce((sum, value) => sum + value, 0);
 
       this.legendItems = labels.map((label, index) => ({
         label,
-        count: (data[index] / total * 100).toFixed(0),
-        color: backgroundColors[index]
+        count: ((data[index] / total) * 100).toFixed(0),
+        color: backgroundColors[index],
       }));
-         this.$refs.pieChart.renderChart(
-      {
-        labels: labels,
-        datasets: [
-          {
-            backgroundColor: backgroundColors,
-            data: data,
-          },
-        ],
-      },
-      {
-        responsive: true,
-        maintainAspectRatio: false,
-        legend: {
-          display: false,
+      this.$refs.pieChart.renderChart(
+        {
+          labels,
+          datasets: [
+            {
+              backgroundColor: backgroundColors,
+              data,
+            },
+          ],
         },
-      },
-    );
+        {
+          responsive: true,
+          maintainAspectRatio: false,
+          legend: {
+            display: false,
+          },
+        },
+      );
+    },
   },
-  }
 };
 </script>
 <style lang="sass" scoped>
+.chart-wrapper
+  width: 300px
+  height: 300px
+  margin-top: -3rem
+  margin-bottom: 3rem
+
+.v-container
+  text-align: center
+
   .theme--light.v-list
     background: transparent
 
-  .v-list-item__title
-    margin-bottom: 0 !important
+.mt-2
+  margin-top: 8px !important
 
+.v-list-item__title
+  margin-bottom: 0 !important
 </style>
