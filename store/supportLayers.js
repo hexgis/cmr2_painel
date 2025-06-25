@@ -339,9 +339,10 @@ export const actions = {
         throw new Error('Informações da camada inválidas.');
       }
       const layerName = layer.wms.geoserver_layer_name;
-      const baseUrl = 'https://cmr.funai.gov.br/geoserver/wfs';
+      const baseUrl = process.env.GEOSERVER_URL_WFS;
+      const authkey = process.env.AUTHKEY_WFS;
       const params = new URLSearchParams({
-        authkey: '7030a99e-3bec-4c3c-a748-bf9ae0b21591',
+        authkey,
         service: 'WFS',
         version: '1.1.0',
         request: 'GetFeature',
