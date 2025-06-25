@@ -2,7 +2,7 @@ const { stringify } = require('wkt');
 
 export const state = () => ({
   features: null,
-  urlWmsDeter: process.env.GEOSERVER_URL,
+  urlWmsDeter: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
   geoserverLayerDeter: process.env.GEOSERVER_DETER,
   currentUrlWmsDeter: '',
   showFeaturesDeter: false,
@@ -34,14 +34,12 @@ export const state = () => ({
 export const getters = {
   featuresLoaded(state) {
     return (
-      state.features &&
-      state.features.features &&
-      state.features.features.length > 0
+      state.features
+      && state.features.features
+      && state.features.features.length > 0
     );
   },
-  getShowFeaturesDeter: (state) => {
-    return state.showFeaturesDeter;
-  },
+  getShowFeaturesDeter: (state) => state.showFeaturesDeter,
 };
 
 export const mutations = {
@@ -99,7 +97,7 @@ export const actions = {
       opacity: state.opacity,
     };
 
-    let url = state.urlWmsDeter;
+    const url = state.urlWmsDeter;
 
     // Apply intersects filter
     if (state.intersectsWmsDeter) {
@@ -130,7 +128,6 @@ export const actions = {
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
 
-
     if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
         params.CQL_FILTER += ' AND ';
@@ -140,8 +137,6 @@ export const actions = {
 
     const paramsUrl = new URLSearchParams(params);
     const fullUrl = `${url}${paramsUrl}`;
-
-
 
     commit('setUrlCurrentWmsDeter', fullUrl);
   },
@@ -188,7 +183,6 @@ export const actions = {
       }
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
-
 
     if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {
@@ -271,8 +265,8 @@ export const actions = {
         if (!state.filters.currentView) {
           let bbox;
           if (
-            (state.filters.cr && state.filters.cr.length) ||
-            (state.filters.ti && state.filters.ti.length)
+            (state.filters.cr && state.filters.cr.length)
+            || (state.filters.ti && state.filters.ti.length)
           ) {
             bbox = await this.$api.$post('monitoring/consolidated/bbox/', {
               co_cr: [...arrayCR],
@@ -299,7 +293,6 @@ export const actions = {
 
       await dispatch('generateUrlWmsDeter');
       await dispatch('fetchDeterFeatures'); // Fetch GeoJSON features
-
     } catch (exception) {
       commit(
         'alert/addAlert',
@@ -411,7 +404,6 @@ export const actions = {
       }
       params.CQL_FILTER += `co_cr IN (${arrayCR.toString()})`;
     }
-
 
     if (state.filters.startDate && state.filters.endDate) {
       if (params.CQL_FILTER.length) {

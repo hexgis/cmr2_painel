@@ -6,9 +6,9 @@ export default {
   // Estado inicial do módulo
   state: () => ({
     features: null,
-    urlWmsMonitoring: process.env.GEOSERVER_URL,
+   urlWmsMonitoring: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
     geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
-    urlWmsMonitoringHeatmap: process.env.GEOSERVER_URL,
+    urlWmsMonitoringHeatmap: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
     geoserverLayerMonitoringHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
     resultsHeatmap: [],
     resultsHeatmapOptions: {
@@ -27,7 +27,7 @@ export default {
       maxNativeZoom: 19,
       queryable: true,
     },
-   
+
     loadingMonitoring: false,
     analyticsMonitoringDialog: false,
     isLoadingFeatures: false,
@@ -47,7 +47,7 @@ export default {
       grouping_by_monthyear: 'monitoring_by_monthyear',
       csv: 'csv',
       json: 'json',
-    },    
+    },
     opacity: 100,
     heatMap: false,
     analyticsMonitoring: [],
@@ -124,7 +124,7 @@ export default {
     setLoadingMonitoring(state, payload) {
       state.loadingMonitoring = payload;
     },
-  
+
     setIntersectsWmsMonitoring(state, intersectsWmsMonitoring) {
       state.intersectsWmsMonitoring = intersectsWmsMonitoring;
     },
@@ -134,9 +134,9 @@ export default {
     setLoadingStatistic(state, payload) {
       state.isLoadingStatistic = payload;
     },
-   
-   
-  
+
+
+
     setAnalytics(state, analyticsMonitoring) {
       const formattedAnalytics = analyticsMonitoring.map(item => {
         const newItem = { ...item };
