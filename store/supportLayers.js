@@ -2,17 +2,13 @@ import Vue from 'vue';
 
 export const state = () => ({
   showFeaturesSupportLayers: false,
-  showFeaturesSupportLayersRaster: false,
   supportLayersGroups: {},
   supportLayers: {},
-  supportCategoryGroupsRaster: {},
   supportCategoryGroupsBase: {},
   loading: false,
   supportLayersCategoryBase: {},
-  supportLayersCategoryRaster: {},
   filters: {
     categoryBase: 1,
-    categoryRaster: 3,
     co_cr: [],
     co_funai: [],
   },
@@ -23,6 +19,9 @@ export const state = () => ({
   filteredLayers: [],
   filteredLayersId: [],
   orderedLayers: [],
+  tableData: { features: [] },
+  tableHeaders: [],
+  loadingTable: false,
 });
 
 export const getters = {
@@ -35,31 +34,11 @@ export const getters = {
     });
     return activeLayerIds;
   },
-
-  activeLayerIds(state) {
-    const activeLayerIds = [];
-    for (const layer of Object.values(state.supportLayersCategoryRaster)) {
-      if (layer.visible) {
-        activeLayerIds.push(layer.id);
-      }
-    }
-    return activeLayerIds;
-  },
 };
 
 export const mutations = {
   setretractAllLayers(state, value) {
     state.retractAllLayers = value;
-  },
-
-  toggleLayerActive(state, layerId) {
-    for (const group of Object.values(state.supportCategoryGroupsRaster)) {
-      const foundLayer = group.layers.find((l) => l.id === layerId);
-      if (foundLayer) {
-        foundLayer.active = !foundLayer.active;
-        break;
-      }
-    }
   },
 
   setFilteredLayers(state, layers) {
@@ -68,10 +47,6 @@ export const mutations = {
 
   setshowFeaturesSupportLayers(state, showFeaturesSupportLayers) {
     state.showFeaturesSupportLayers = showFeaturesSupportLayers;
-  },
-
-  setshowFeaturesSupportLayersRaster(state, showFeaturesSupportLayersRaster) {
-    state.showFeaturesSupportLayersRaster = showFeaturesSupportLayersRaster;
   },
 
   setSupportLayersGroups(state, layersGroups) {
@@ -87,11 +62,19 @@ export const mutations = {
         layers.forEach((layer) => {
           const currentLayer = {
             ...layer,
+            wms: {
+              ...layer.wms,
+              geoserver_layer_name: layer.wms.geoserver_layer_name.includes(':')
+                ? layer.wms.geoserver_layer_name
+                : `CMR-FUNAI:${layer.wms.geoserver_layer_name}`,
+            },
             layer_filters: layer.filters,
             visible: false,
             sublayers: false,
-            opacity: (layer.wms && layer.wms.default_opacity)
-                            || (layer.vector && layer.vector.default_opacity) || 100,
+            opacity:
+              (layer.wms && layer.wms.default_opacity)
+              || (layer.vector && layer.vector.default_opacity)
+              || 100,
             loading: false,
             data: [],
             cql: null,
@@ -103,35 +86,6 @@ export const mutations = {
 
         Vue.set(state.supportLayersGroups, group.id, currentGroup);
       }
-    });
-  },
-
-  setSupportCategoryGroupsRaster(state, categoryGroups) {
-    state.supportCategoryGroupsRaster = {};
-    state.supportLayersCategoryRaster = {};
-
-    categoryGroups.forEach((group) => {
-      const { layers } = group;
-      group.layers = [];
-
-      layers.forEach((layer) => {
-        layer.visible = false;
-
-        if (layer.layer_type === 'wms' && layer.wms.default_opacity) {
-          layer.opacity = layer.wms.default_opacity;
-        } else {
-          layer.opacity = 100;
-        }
-
-        layer.loading = false;
-        layer.filters = [];
-        layer.data = [];
-
-        group.layers.push(layer.id);
-        Vue.set(state.supportLayersCategoryRaster, layer.id, layer);
-      });
-
-      Vue.set(state.supportCategoryGroupsRaster, group.id, group);
     });
   },
 
@@ -164,23 +118,18 @@ export const mutations = {
   },
 
   setLayerFilters(state, { id, filters }) {
-    state.supportLayers[id].filters = state.supportLayers[id].filters.map((item) => {
-      const filterKey = item.type;
-      if (filters.hasOwnProperty(filterKey)) {
-        return {
-          ...item,
-          [filterKey]: filters[filterKey],
-        };
-      }
-      return item;
-    });
-  },
-
-  setLayerFiltersRaster(state, { id, filters }) {
-    state.supportLayersCategoryRaster[id].filters = {
-      ...state.supportLayersCategoryRaster[id].filters,
-      ...filters,
-    };
+    state.supportLayers[id].filters = state.supportLayers[id].filters.map(
+      (item) => {
+        const filterKey = item.type;
+        if (filters.hasOwnProperty(filterKey)) {
+          return {
+            ...item,
+            [filterKey]: filters[filterKey],
+          };
+        }
+        return item;
+      },
+    );
   },
 
   setFilterOptions(state, data) {
@@ -191,34 +140,17 @@ export const mutations = {
     state.supportLayers[id].visible = visible;
   },
 
-  toggleLayerVisibilityRaster(state, { id, visible }) {
-    state.supportLayersCategoryRaster[id].visible = visible;
-  },
-
   setLayerOpacity(state, { id, opacity }) {
     state.supportLayers[id].opacity = opacity;
-  },
-
-  setLayerOpacityRaster(state, { id, opacity }) {
-    state.supportLayersCategoryRaster[id].opacity = opacity;
   },
 
   setLayerLoading(state, { id, loading }) {
     state.supportLayers[id].loading = loading;
   },
 
-  setLayerLoadingRaster(state, { id, loading }) {
-    state.supportLayersCategoryRaster[id].loading = loading;
-  },
-
   setHeatLayerData(state, { id, data }) {
     state.supportLayers[id].data = data;
     state.supportLayers[id].visible = true;
-  },
-
-  setHeatLayerDataRaster(state, { id, data }) {
-    state.supportLayersCategoryRaster[id].data = data;
-    state.supportLayersCategoryRaster[id].visible = true;
   },
 
   setLoading(state, loading) {
@@ -262,7 +194,6 @@ export const actions = {
 
     try {
       const response = await this.$api.$get('layer/layers-groups/');
-
       commit('setSupportLayersGroups', response);
       commit('setshowFeaturesSupportLayers', true);
     } catch (exception) {
@@ -280,6 +211,7 @@ export const actions = {
       commit('setLoading', false);
     }
   },
+
   async getTiOptions({ commit, state }, cr) {
     const params = {
       co_cr: cr.toString(),
@@ -292,33 +224,6 @@ export const actions = {
         ...state.filterOptions,
         tiFilters: tis.sort((a, b) => a.no_ti > b.no_ti),
       });
-    }
-  },
-  async getCategoryGroupsRasters({ commit }) {
-    commit('setLoading', true);
-    const params = {
-      category: 3,
-    };
-    try {
-      const response = await this.$api.$get('layer/layers-groups/', {
-        params,
-      });
-
-      commit('setSupportCategoryGroupsRaster', response);
-      commit('setshowFeaturesSupportLayersRaster', true);
-    } catch (exception) {
-      commit(
-        'alert/addAlert',
-        {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('retrieve'),
-            resource: this.$i18n.tc('layer', 2),
-          }),
-        },
-        { root: true },
-      );
-    } finally {
-      commit('setLoading', false);
     }
   },
 
@@ -380,36 +285,6 @@ export const actions = {
       );
     }
   },
-  async getHeatMapLayerRaster({ state, commit }, { id, filters }) {
-    const heatLayer = state.supportLayersCategoryRaster[id];
-    const params = {
-      ...filters,
-      type: heatLayer.heatmap.heatmap_type.identifier,
-    };
-
-    commit('setLayerLoadingRaster', { id, loading: true });
-
-    try {
-      const data = await this.$api.$get('monitoring/heatmap/', {
-        params,
-      });
-
-      commit('setHeatLayerDataRaster', { id, data });
-      commit('setLayerLoadingRaster', { id, loading: false });
-      commit('setshowFeaturesSupportLayersRaster', true);
-    } catch (exception) {
-      commit(
-        'alert/addAlert',
-        {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('retrieve'),
-            resource: this.$i18n.tc('layer', 1),
-          }),
-        },
-        { root: true },
-      );
-    }
-  },
 
   async getFilterOptions({ commit }) {
     const regionalCoordinators = await this.$api.$get('funai/cr/');
@@ -428,7 +303,11 @@ export const actions = {
   removeSupportLayers({ commit }, { concatenatedLayers }) {
     concatenatedLayers.forEach((layer) => {
       if (layer.date_created) {
-        commit('supportLayersUser/toggleLayerVisibility', { id: layer.id, visible: false }, { root: true });
+        commit(
+          'supportLayersUser/toggleLayerVisibility',
+          { id: layer.id, visible: false },
+          { root: true },
+        );
         return;
       }
       commit('toggleLayerVisibility', { id: layer.id, visible: false });
@@ -440,12 +319,77 @@ export const actions = {
       const layer = layers[index];
       setTimeout(() => {
         if (layer.date_created) {
-          commit('supportLayersUser/toggleLayerVisibility', { id: layer.id, visible: true }, { root: true });
+          commit(
+            'supportLayersUser/toggleLayerVisibility',
+            { id: layer.id, visible: true },
+            { root: true },
+          );
           return;
         }
         commit('toggleLayerVisibility', { id: layer.id, visible: true });
       }, 100);
     }
     commit('setOrderedLayers', layers);
+  },
+
+  async openTableDialog({ state }, { layerId, fieldConfig }) {
+    try {
+      const layer = state.supportLayers[layerId];
+      if (!layer || !layer.wms || !layer.wms.geoserver_layer_name) {
+        throw new Error('Informações da camada inválidas.');
+      }
+      const layerName = layer.wms.geoserver_layer_name;
+      const baseUrl = process.env.GEOSERVER_URL_WFS;
+      const authkey = process.env.AUTHKEY_WFS;
+      const params = new URLSearchParams({
+        authkey,
+        service: 'WFS',
+        version: '1.1.0',
+        request: 'GetFeature',
+        typeName: layerName,
+        outputFormat: 'application/json',
+      });
+      const map = window.mapMain;
+      const bounds = map.getBounds();
+      const bbox = [
+        bounds.getSouth(),
+        bounds.getWest(),
+        bounds.getNorth(),
+        bounds.getEast(),
+      ].join();
+
+      const url = `${baseUrl}?${params.toString()}&bbox=${bbox}`;
+      const response = await this.$api.$get(url);
+      const tableData = response;
+
+      let tableHeaders = [];
+      if (tableData.features && tableData.features.length > 0) {
+        const properties = Object.keys(tableData.features[0].properties);
+        tableHeaders = properties
+          .filter((key) => !fieldConfig.excludedFields.includes(key))
+          .map((key) => ({
+            text:
+              fieldConfig.fieldNames[key]
+              || key.replace(/_/g, ' ').toUpperCase(),
+            value: key,
+            sortable: true,
+          }));
+      }
+
+      return { data: tableData, headers: tableHeaders, loading: false };
+    } catch (error) {
+      console.error('Erro ao abrir tabela:', error);
+      this.$store.commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('table-label'),
+          }),
+        },
+        { root: true },
+      );
+      throw error;
+    }
   },
 };

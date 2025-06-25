@@ -12,7 +12,7 @@
 <script>
 import { mapState } from 'vuex';
 
-import SupportUserLayersItem from '@/components/support/SupportUserLayersItem';
+import SupportUserLayersItem from '@/components/userLayer/SupportUserLayersItem';
 
 export default {
   name: 'SupportUserLayersMap',

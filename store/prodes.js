@@ -2,7 +2,7 @@ const { stringify } = require('wkt');
 
 export const state = () => ({
   features: null,
-  urlWmsProdes: process.env.GEOSERVER_URL,
+  urlWmsProdes: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
   geoserverLayerProdes: process.env.GEOSERVER_PRODES,
   currentUrlWmsProdes: '',
   showFeaturesProdes: false,

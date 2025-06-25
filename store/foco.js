@@ -33,9 +33,9 @@ export const state = () => ({
       },
       opacity: 100,
       intersectsWms: '',
-    }
+    },
   },
-  urlWmsBase: process.env.GEOSERVER_URL,
+  urlWmsBase: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
   wmsOptions: {
     maxZoom: 21,
     maxNativeZoom: 19,
@@ -49,16 +49,12 @@ export const state = () => ({
 });
 
 export const getters = {
-  featuresLoaded: (state) => (layer) => {
-    return (
-      state.layers[layer].features &&
-      state.layers[layer].features.features &&
-      state.layers[layer].features.features.length > 0
-    );
-  },
-  getShowFeatures: (state) => (layer) => {
-    return state.layers[layer].showFeatures;
-  },
+  featuresLoaded: (state) => (layer) => (
+    state.layers[layer].features
+      && state.layers[layer].features.features
+      && state.layers[layer].features.features.length > 0
+  ),
+  getShowFeatures: (state) => (layer) => state.layers[layer].showFeatures,
 };
 
 export const mutations = {
@@ -118,7 +114,7 @@ export const actions = {
       opacity: state.layers[layer].opacity,
     };
 
-    let url = state.urlWmsBase;
+    const url = state.urlWmsBase;
 
     // Apply intersects filter
     if (state.layers[layer].intersectsWms) {
@@ -205,8 +201,8 @@ export const actions = {
         if (!state.layers[layer].filters.currentView) {
           let bbox;
           if (
-            (state.layers[layer].filters.cr && state.layers[layer].filters.cr.length) ||
-            (state.layers[layer].filters.ti && state.layers[layer].filters.ti.length)
+            (state.layers[layer].filters.cr && state.layers[layer].filters.cr.length)
+            || (state.layers[layer].filters.ti && state.layers[layer].filters.ti.length)
           ) {
             bbox = await this.$api.$post('monitoring/consolidated/bbox/', {
               co_cr: [...arrayCR],
@@ -232,7 +228,6 @@ export const actions = {
       }
 
       await dispatch('generateUrlWms', layer);
-
     } catch (exception) {
       commit(
         'alert/addAlert',

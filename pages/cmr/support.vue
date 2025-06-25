@@ -79,16 +79,14 @@ import { mapState, mapMutations } from 'vuex';
 import _ from 'lodash';
 
 import SupportLayersGroupBase from '@/components/support/SupportLayersGroupBase';
-
 import SupportLayersActive from '@/components/support/SupportLayersActive';
-import SupportUser from '@/components/support/SupportUser';
+import SupportUser from '@/components/userLayer/SupportUser';
 
 export default {
   name: 'Support',
 
   components: {
     SupportLayersGroupBase,
-
     SupportUser,
     SupportLayersActive,
   },
@@ -101,19 +99,19 @@ export default {
   }),
 
   async fetch() {
-    if (!Object.keys(this.supportCategoryGroupsBase).length) {
+    if (this.supportCategoryGroupsBase
+      && Object.keys(this.supportCategoryGroupsBase).length === 0) {
       await this.$store.dispatch('supportLayers/getCategoryGroupsBase');
     }
-    if (!Object.keys(this.supportCategoryGroupsAntropismo).length) {
-      await this.$store.dispatch(
-        'supportLayers/getCategoryGroupsAntropismo',
-      );
+    if (this.supportCategoryGroupsAntropismo
+      && Object.keys(this.supportCategoryGroupsAntropismo).length === 0) {
+      await this.$store.dispatch('supportLayers/getCategoryGroupsAntropismo');
     }
   },
 
   computed: {
     layersList() {
-      return Object.values(this.supportCategoryGroupsBase).flatMap(
+      return Object.values(this.supportCategoryGroupsBase || {}).flatMap(
         (group) => group.layers.map((layer) => ({
           name: layer.name,
           id: layer.layer,
@@ -136,13 +134,12 @@ export default {
     },
 
     orderedSupportLayersGroupsAntropismo() {
-      return _.sortBy(this.supportCategoryGroupsAntropismo, 'order');
+      return _.sortBy(this.supportCategoryGroupsAntropismo || [], 'order');
     },
 
     showFeaturesAntropismo: {
       get() {
-        return this.$store.state.supportLayers
-          .showFeaturesSupportLayersAntropismo;
+        return this.$store.state.supportLayers.showFeaturesSupportLayersAntropismo;
       },
       set(value) {
         this.$store.commit(
@@ -191,6 +188,7 @@ export default {
     clearInput() {
       this.retractAllGroups();
     },
+
     ...mapMutations('supportLayers', [
       'changeDisplayLayer',
       'setSearchLayer',
@@ -205,7 +203,7 @@ export default {
 
 <style scoped>
 .options_buttons {
-    margin-left: 50% !important;
+  margin-left: 50% !important;
 }
 .layers-tab {
   height: calc(100vh - 124px);
