@@ -846,10 +846,10 @@ export default {
       supportLayerUser: (state) => state.supportLayersUser.supportLayerUser,
       showFeaturesSupportLayers: (state) => state.supportLayers.showFeaturesSupportLayers,
       supportLayers: (state) => state.supportLayers.supportLayers,
-      supportLayersCategoryFire: (state) => state.supportLayers.supportLayersCategoryFire,
+
       supportLayersCategoryBase: (state) => state.supportLayers.supportLayersCategoryBase,
       supportLayersCategoryRaster: (state) => state.supportLayers.supportLayersCategoryRaster,
-      supportLayersCategoryAntropismo: (state) => state.supportLayers.supportLayersCategoryAntropismo,
+
       showFeaturesUrgentAlerts: (state) => state['urgent-alerts'].showFeaturesUrgentAlerts,
       layers: (state) => state.foco.layers,
       filterOptions: (state) => state.foco.filterOptions,
