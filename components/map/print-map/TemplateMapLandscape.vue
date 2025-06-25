@@ -42,7 +42,7 @@
             >
               <template
                 v-if="showFeaturesMonitoring
-                  && hasActiveMonitoringStages && teste >= 0 && teste <= 7"
+                  && hasActiveMonitoringStages && selectedItemsCount >= 0 && selectedItemsCount <= 7"
               >
                 <!-- Bloco para Monitoramento -->
                 <div
@@ -70,7 +70,10 @@
                   </p>
                 </div>
               </template>
-              <template v-if="showFeaturesLandUse && teste >= 0 && teste <= 7">
+              <template
+                v-if="showFeaturesLandUse
+                  && selectedItemsCount >= 0 && selectedItemsCount <= 7"
+              >
                 <!-- Bloco para Uso e Ocupação do Solo -->
                 <div
                   v-for="(item, index) in filteredLandUseData"
@@ -206,7 +209,6 @@
                           gap: 5px;
                         "
                       />
-                      <LayerList :layers="supportLayersCategoryFire" />
 
                       <div
                         style="
@@ -215,7 +217,10 @@
                           align-items: flex-start;
                           gap: 5px;"
                       >
-                        <div v-if="showFeaturesMonitoring && hasActiveMonitoringStages">
+                        <div
+                          v-if="showFeaturesMonitoring
+                            && hasActiveMonitoringStages && selectedItemsCount > 0"
+                        >
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>
@@ -335,30 +340,7 @@
                     >
                       Bases Cartográficas:
                     </p>
-                    <div
-                      v-if="activeRasterLayers.length"
-                      class="ml-1"
-                    >
-                      <span
-                        v-for="item in activeRasterLayers"
-                        :key="item.id"
-                      >
-                        <p v-if="item.wms">
-                          {{ item.name }}, fonte:
-                          {{ item.wms?.geoserver?.name }}.
-                        </p>
-                        <p v-else-if="item.tms">
-                          {{ item.name }}, fonte:
-                          {{ item.tms?.url
-                            ? 'SCCON. Atualizado em: ' +
-                            handleData(
-                              item.tms?.date
-                            )
-                            : ''
-                          }}.
-                        </p>
-                      </span>
-                    </div>
+
                     <div
                       v-for="layerCategory in layerCategories"
                       :key="layerCategory.name"
@@ -610,7 +592,7 @@ export default {
   },
 
   data: () => ({
-    teste: 0,
+    selectedItemsCount: 0,
     totalMonitoring: 0,
     totalLandUse: 0,
     headers: [
@@ -771,16 +753,10 @@ export default {
     layerCategories() {
       return [
         ['Support Layers', this.supportLayers, this.showFeaturesSupportLayers],
-        ['Fire Category Layers', this.supportLayersCategoryFire, true],
+
       ]
         .map(([name, layers, show]) => ({ name, layers, show }))
         .filter(({ show }) => show);
-    },
-
-    activeRasterLayers() {
-      return Object.values(this.supportLayersCategoryRaster).filter(
-        (layer) => layer.visible,
-      );
     },
 
     showFeaturesAquaMM() {
@@ -848,7 +824,6 @@ export default {
       supportLayers: (state) => state.supportLayers.supportLayers,
 
       supportLayersCategoryBase: (state) => state.supportLayers.supportLayersCategoryBase,
-      supportLayersCategoryRaster: (state) => state.supportLayers.supportLayersCategoryRaster,
 
       showFeaturesUrgentAlerts: (state) => state['urgent-alerts'].showFeaturesUrgentAlerts,
       layers: (state) => state.foco.layers,
@@ -866,7 +841,7 @@ export default {
     },
 
     combinedTableData(newVal) {
-      this.teste = newVal.length;
+      this.selectedItemsCount = newVal.length;
       this.showWarningMessage = newVal.length > 7;
     },
   },
@@ -878,8 +853,8 @@ export default {
     if (this.showFeaturesLandUse) {
       await this.getDataTableLandUse();
     }
-    this.teste = this.combinedTableData.length;
-    this.showWarningMessage = this.teste > 7;
+    this.selectedItemsCount = this.combinedTableData.length;
+    this.showWarningMessage = this.selectedItemsCount > 7;
 
     const visibleLayersCount = Object.values(this.supportLayers)
       .filter((l) => l.visible).length;

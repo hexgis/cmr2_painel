@@ -212,58 +212,8 @@
                 </v-row>
               </div>
             </div>
-            <div v-if="showFeaturesSupportLayers">
-              <div
-                v-for="layer in supportLayersCategoryFire"
-                :key="layer.id"
-              >
-                <v-row
-                  v-if="layer.visible"
-                  no-gutters
-                  align="center"
-                >
-                  <img
-                    :src="
-                      layer.wms.geoserver.preview_url +
-                        layer.wms.geoserver_layer_name
-                    "
-                    width="13vw"
-                    alt="CorLayer"
-                  >
-                  <v-col>
-                    <p class="ml-1">
-                      {{ $t('support-layer-label', { layer: layer.name }) }}
-                    </p>
-                  </v-col>
-                </v-row>
-              </div>
-            </div>
-            <div v-if="showFeaturesSupportLayers">
-              <div
-                v-for="layer in supportLayersCategoryRaster"
-                :key="layer.id"
-              >
-                <v-row
-                  v-if="layer.visible"
-                  no-gutters
-                  align="center"
-                >
-                  <img
-                    :src="
-                      layer.wms.geoserver.preview_url +
-                        layer.wms.geoserver_layer_name
-                    "
-                    width="13vw"
-                    alt="CorLayer"
-                  >
-                  <v-col>
-                    <p class="ml-1">
-                      {{ $t('support-layer-label', { layer: layer.name }) }}
-                    </p>
-                  </v-col>
-                </v-row>
-              </div>
-            </div>
+            <div v-if="showFeaturesSupportLayers" />
+            <div v-if="showFeaturesSupportLayers" />
             <div v-if="showFeaturesSupportLayers">
               <div
                 v-for="layer in supportLayers"
@@ -322,23 +272,6 @@
               <div
                 v-for="layer in supportLayersCategoryAntropismo"
                 :key="layer.name"
-              >
-                <v-row
-                  v-if="layer.visible"
-                  no-gutters
-                >
-                  <v-col>
-                    <p>
-                      {{ $t('support-layer-label', { layer: layer.name }) }}
-                    </p>
-                  </v-col>
-                </v-row>
-              </div>
-            </div>
-            <div v-if="supportLayersCategoryFire">
-              <div
-                v-for="layer in supportLayersCategoryFire"
-                :key="layer.id"
               >
                 <v-row
                   v-if="layer.visible"
@@ -503,8 +436,7 @@ export default {
       'showFeaturesSupportLayers',
       'supportLayers',
       'supportLayersCategoryAntropismo',
-      'supportLayersCategoryFire',
-      'supportLayersCategoryRaster',
+
     ]),
   },
 
