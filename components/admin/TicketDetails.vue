@@ -396,11 +396,20 @@ export default {
             return this.ticketDetail.ticket_status?.due_on
         },
         statusLabelOptions() {
+            const availableTransitions = this.ticketDetail?.ticket_status?.formated_info?.available_status_transitions || [];
+            
+            if (availableTransitions.length > 0) {
+                return availableTransitions.map((transition) => ({
+                    text: transition.label,
+                    value: transition.value,
+                }));
+            }
+            
             return this.labels?.status_category?.map((label) => ({
                 text: label.label,
                 value: label.value,
                 disabled: label.label === 'Não Analisado',
-            }))
+            })) || [];
         },
 
         complexityLabelOptions() {

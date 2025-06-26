@@ -14,7 +14,8 @@
       {{ status }}{{
         status !== 'Em Andamento' &&
           status !== 'Em Desenvolvimento' &&
-          status !== 'Aguardando Gestor' ? 's' : ''
+          status !== 'Aguardando Gestor' &&
+          status !== 'Indeferido' ? 's' : ''
       }}
     </v-btn>
     <v-btn
