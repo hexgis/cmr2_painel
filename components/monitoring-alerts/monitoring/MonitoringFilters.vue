@@ -1,24 +1,110 @@
 <template>
   <v-col>
-    <BaseFilters
-      filter-type="date"
-      :filters.sync="filters"
-      :error="error"
-      :flattened="flattened"
-      :filter-options="filterOptions"
-      :current-url-wms="currentUrlWmsMonitoring"
-      :features-layer.sync="featuresMonitoring"
-      :loading="loadingMonitoring"
-      @search="searchMonitoring"
-    />
-    <div
-      v-if="isLoadingFeatures"
-      class="mt-1"
-    >
-      <v-row
-        no-gutters
-        justify="center"
-      >
+      <v-row>
+           <v-col cols="9" class="pt-0 mt-0">
+        <v-checkbox
+          v-model="filters.currentView"
+          :label="$t('current-view-label')"
+          :error="error"
+          hide-details
+        />
+      </v-col>
+        <v-col cols="3" class="pt-0 mt-0" >
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <div
+              class="d-flex justify-end align-center mt-1"
+            >
+              <v-switch
+                v-if="currentUrlWmsMonitoring"
+                v-model="featuresMonitoring"
+                class="mt-3"
+                hide-details
+              />
+            </div>
+          </template>
+          <span>
+            {{
+              showFeaturesMonitoring
+                ? $t('title-switch-disable-features')
+                : $t('title-switch-enable-features')
+            }}
+          </span>
+        </v-tooltip>
+      </v-col>
+         <v-col cols="12">
+        <v-combobox
+          v-model="filters.cr"
+          :label="$t('regional-coordination-label')"
+          :items="flattened"
+          item-value="co_cr"
+          item-text="ds_cr"
+          hide-details
+          clearable
+          multiple
+          :error="error"
+          class="pa-0"
+          outlined
+          @change="emitFilters"
+        />
+      </v-col>
+
+      <v-col cols="12">
+        <v-slide-y-transition>
+          <v-combobox
+            v-if="filters.cr && filterOptions.tiFilters"
+            v-model="filters.ti"
+            :label="$t('indigenous-lands-label')"
+            :items="filterOptions.tiFilters"
+            item-text="no_ti"
+            item-value="co_funai"
+            hide-details
+            multiple
+            clearable
+            class="pa-0 mt-n3"
+            outlined
+            @change="emitFilters"
+          />
+        </v-slide-y-transition>
+      </v-col>
+
+      <v-col cols="6" class="py-0">
+        <BaseDateField
+          v-model="filters.startDate"
+          :label="$t('start-date-label')"
+          :required="true"
+          outlined
+          :min-date="'2015-01-01'"
+        />
+      </v-col>
+      <v-col cols="6" class="py-0">
+        <BaseDateField
+          v-model="filters.endDate"
+          :label="$t('end-date-label')"
+          :required="true"
+          outlined
+          :min-date="'2015-01-01'"
+        />
+      </v-col>
+
+      <v-col cols="12">
+        <v-btn
+          block
+          small
+          color="primary"
+          outlined
+          :loading="loadingMonitoring"
+          class="pa-0 mt-n6"
+          @click="searchMonitoring"
+        >
+          {{ $t('search-label') }}
+        </v-btn>
+      </v-col>
+    </v-row>
+
+
+    <div v-if="isLoadingFeatures" class="mt-1">
+      <v-row no-gutters justify="center">
         <v-col cols="6">
           <v-skeleton-loader type="table-cell@4" />
         </v-col>
@@ -31,20 +117,9 @@
       <v-divider class="mt-1" />
       <div>
         <v-skeleton-loader type="table-cell" />
-        <v-row
-          v-for="n in 4"
-          :key="n"
-          no-gutters
-          align="center"
-          class="mb-4"
-        >
+        <v-row v-for="n in 4" :key="n" no-gutters align="center" class="mb-4">
           <v-col cols="1">
-            <v-skeleton-loader
-              width="20"
-              height="20"
-              tile
-              type="avatar"
-            />
+            <v-skeleton-loader width="20" height="20" tile type="avatar" />
           </v-col>
           <v-col cols="10">
             <v-skeleton-loader type="text" />
@@ -52,18 +127,15 @@
         </v-row>
       </div>
     </div>
+
+
     <v-row
-      v-else-if="
-        showFeaturesMonitoring
-          && features.features.length > 0"
+      v-else-if="showFeaturesMonitoring && features.features.length > 0"
       no-gutters
       align="center"
       class="mt-3"
     >
-      <v-col
-        cols="12"
-        class="mt-n3 mb-1"
-      >
+      <v-col cols="12" class="mt-n3 mb-1">
         <DialogConfirmDownload />
         <v-btn
           :loading="isLoadingStatistic"
@@ -74,9 +146,7 @@
         >
           <v-tooltip bottom>
             <template #activator="{ on }">
-              <v-icon v-on="on">
-                mdi-chart-box
-              </v-icon>
+              <v-icon v-on="on">mdi-chart-box</v-icon>
             </template>
             <span>{{ $t('statistics-label') }}</span>
           </v-tooltip>
@@ -91,9 +161,7 @@
         >
           <v-tooltip bottom>
             <template #activator="{ on }">
-              <v-icon v-on="on">
-                mdi-table
-              </v-icon>
+              <v-icon v-on="on">mdi-table</v-icon>
             </template>
             <span>{{ $t('table-label') }}</span>
           </v-tooltip>
@@ -102,31 +170,19 @@
       <v-col cols="12">
         <v-divider />
       </v-col>
-      <v-col
-        cols="12"
-        class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4"
-      >
+      <v-col cols="12" class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4">
         <span>{{ $t('total-poligono-label') }}:</span>
         {{ totalVisiblePolygons }}
       </v-col>
-      <v-col
-        cols="12"
-        class="grey--text text--darken-2 d-flex justify-space-between"
-      >
+      <v-col cols="12" class="grey--text text--darken-2 d-flex justify-space-between">
         <span>{{ $t('total-area-label') }}:</span>
         {{ totalVisibleArea }} ha
       </v-col>
-      <v-col
-        cols="12"
-        class="mt-2"
-      >
+      <v-col cols="12" class="mt-2">
         <v-divider />
       </v-col>
       <v-row class="mt-0">
-        <v-col
-          cols="4"
-          class="grey--text text--darken-2"
-        >
+        <v-col cols="4" class="grey--text text--darken-2">
           {{ $t('opacity-label') }}
         </v-col>
         <v-col cols="8">
@@ -141,10 +197,7 @@
         <v-col class="mt-n6">
           <span class="grey--text text--darken-2">{{ $t('heat-map-label') }}</span>
         </v-col>
-        <v-col
-          cols="3"
-          class="d-flex justify-end mt-n7 pr-1"
-        >
+        <v-col cols="3" class="d-flex justify-end mt-n7 pr-1">
           <v-switch
             v-model="heatMap"
             class="mt-0 pt-0"
@@ -162,15 +215,9 @@
           {{ $t('legend') }}
         </p>
       </v-col>
-      <v-row
-        v-if="legendItems.length"
-        class="mt-2"
-      >
+      <v-row v-if="legendItems.length" class="mt-2">
         <v-col>
-          <v-list
-            dense
-            flat
-          >
+          <v-list dense flat>
             <v-list-item
               v-for="item in legendItems"
               :key="item.estagio"
@@ -178,10 +225,7 @@
               :class="{ 'active-legend-item': item.active }"
             >
               <v-list-item-icon class="my-0">
-                <span
-                  class="legend-color"
-                  :style="{ backgroundColor: item.color }"
-                />
+                <span class="legend-color" :style="{ backgroundColor: item.color }" />
               </v-list-item-icon>
               <v-list-item-content class="py-0">
                 <span class="grey--text text--darken-2 compact-text">{{ item.label }}</span>
@@ -199,7 +243,6 @@
       </v-row>
     </v-row>
 
-    <!-- Diálogos -->
     <TableDialog
       :table="tableDialogMonitoring"
       :headers="headers"
@@ -210,10 +253,7 @@
       :f-download-c-s-v="downloadTableMonitoring"
       :f-close-table="closeTable"
     />
-    <div
-      v-if="dialog"
-      class="d-none"
-    >
+    <div v-if="dialog" class="d-none">
       <AnalyticalDialog
         :value="analyticsMonitoringDialog"
         :close-dialog="closeAnalyticalDialog"
@@ -227,15 +267,17 @@ import { mapMutations, mapState, mapActions } from 'vuex';
 import TableDialog from '../../table-dialog/TableDialog.vue';
 import DialogConfirmDownload from '../DialogConfirmDownload.vue';
 import AnalyticalDialog from '../../analytical-dialog/AnalyticalDialog.vue';
-import BaseFilters from '../../base/BaseFilters.vue';
+import BaseDateField from '@/components/base/BaseDateField';
 
 export default {
   name: 'MonitoringFilters',
+
+
   components: {
     TableDialog,
     DialogConfirmDownload,
     AnalyticalDialog,
-    BaseFilters,
+    BaseDateField
   },
   data() {
     return {
@@ -327,7 +369,7 @@ export default {
         this.$store.dispatch('monitoring/generateHeatmapMonitoring', value);
       },
     },
-    featuresMonitoring: {
+    showFeaturesMonitoring: {
       get() {
         return this.$store.state.monitoring.showFeaturesMonitoring;
       },
@@ -340,6 +382,14 @@ export default {
     },
     tableMonitoring() {
       return this.$store.state.monitoring.tableMonitoring;
+    },
+    featuresMonitoring: {
+      get() {
+        return this.$store.state.monitoring.showFeaturesMonitoring;
+      },
+      set(value) {
+        this.$store.commit('monitoring/setshowFeaturesMonitoring', value);
+      },
     },
     ...mapState('monitoring', [
       'currentUrlWmsMonitoring',
@@ -371,7 +421,7 @@ export default {
       this.populateCrOptions();
     },
     opacity() {
-      this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
+      this.$store.dispatch('monitoring/GENERATE_URL_WMS_MONITORING');
     },
   },
   mounted() {
@@ -381,6 +431,9 @@ export default {
   methods: {
     emitFilters() {
       this.$emit('update:filters', { ...this.filters });
+    },
+    emitFeaturesLayer(value) {
+      this.$store.commit('monitoring/setshowFeaturesMonitoring', value);
     },
     debounce(func, wait) {
       let timeout;
@@ -448,9 +501,7 @@ export default {
     },
     searchMonitoring() {
       const { filters } = this;
-      const {
-        currentView, cr, startDate, endDate,
-      } = filters;
+      const { currentView, cr, startDate, endDate } = filters;
 
       if (
         (currentView || cr.length)
@@ -483,7 +534,6 @@ export default {
         );
 
         if (allEstagiosDisabled) {
-          this.$store.commit('monitoring/resetLegendVisibility');
           this.$store.commit('monitoring/clearFeatures');
           this.$store.commit('monitoring/setTableMonitoring', []);
         }
@@ -520,25 +570,21 @@ export default {
       try {
         this.$set(this.loadingEstagios, item.estagio, true);
 
-        // Salva o estado atual do mapa
         const map = window.mapMain;
         const currentZoom = map?.getZoom();
         const currentCenter = map?.getCenter();
 
-        // Alterna a visibilidade sem refazer toda a pesquisa
         await this.$store.dispatch('monitoring/toggleLegendVisibility', {
           estagio: item.estagio,
           visible: item.visible
         });
 
-        // Restaura a visualização do mapa
         if (map && currentZoom && currentCenter) {
           map.setView(currentCenter, currentZoom);
         }
 
       } catch (error) {
         console.error('Erro ao alternar estágio:', error);
-        // Reverte a mudança em caso de erro
         this.$store.commit('monitoring/setLegendVisibility', {
           estagio: item.estagio,
           visible: !item.visible
@@ -547,7 +593,7 @@ export default {
         this.$set(this.loadingEstagios, item.estagio, false);
       }
     },
-    ...mapMutations('monitoring', ['setFilters', 'setLoadingStatistic', 'setanalyticsMonitoringDialog']),
+    ...mapMutations('monitoring', ['setFilters', 'setLoadingStatistic', 'setanalyticsMonitoringDialog', 'resetLegendVisibility']),
     ...mapActions('monitoring', [
       'getFilterOptions',
       'getFeatures',

@@ -6,9 +6,9 @@ export default {
   // Estado inicial do módulo
   state: () => ({
     features: null,
-    urlWmsAlerts: process.env.GEOSERVER_URL,
+    urlWmsAlerts: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
     geoserverLayerAlerts: process.env.GEOSERVER_URGENT_ALERT,
-    urlWmsAlertsHeatmap: process.env.GEOSERVER_URL,
+    urlWmsAlertsHeatmap: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
     geoserverLayerAlertsHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
     resultsHeatmap: [],
     resultsHeatmapOptions: {
@@ -27,7 +27,7 @@ export default {
       maxNativeZoom: 19,
       queryable: true,
     },
-   
+
     loadingAlerts: false,
     analyticsAlertsDialog: false,
     isLoadingFeatures: false,
@@ -39,20 +39,20 @@ export default {
       startDate: null,
       endDate: null,
       currentView: false,
-      grouping_by_year: 'monitoring_by_year',
-      grouping_by_funai: 'monitoring_by_co_funai',
-      grouping_by_co_funai_year: 'monitoring_by_co_funai_and_year',
-      grouping_by_day: 'monitoring_by_day',
-      grouping_by_co_funai_and_monthyear: 'monitoring_by_co_funai_and_monthyear',
-      grouping_by_monthyear: 'monitoring_by_monthyear',
+      grouping_by_year: 'alarts_by_year',
+      grouping_by_funai: 'alarts_by_co_funai',
+      grouping_by_co_funai_year: 'alarts_by_co_funai_and_year',
+      grouping_by_day: 'alarts_by_day',
+      grouping_by_co_funai_and_monthyear: 'alarts_by_co_funai_and_monthyear',
+      grouping_by_monthyear: 'alarts_by_monthyear',
       csv: 'csv',
       json: 'json',
-    },    
+    },
     opacity: 100,
     heatMap: false,
     analyticsAlerts: [],
     intersectsWmsAlerts: '',
-    monitoringStyles: {},
+    alartsStyles: {},
     tableAlerts: [],
     isLoadingTable: false,
     isLoadingCSV: false,
@@ -102,7 +102,7 @@ export default {
           const label = mapped.acronym ? `${mapped.name} (${mapped.acronym})` : mapped.name;
           return {
             label,
-            color: state.monitoringStyles[estagio] || '#000000',
+            color: state.alartsStyles[estagio] || '#000000',
             count: tiCountMap.get(estagio)?.size || 0,
             estagio,
             visible: state.legendVisibility[estagio] !== false,
@@ -124,7 +124,7 @@ export default {
     setLoadingAlerts(state, payload) {
       state.loadingAlerts = payload;
     },
-  
+
     setIntersectsWmsAlerts(state, intersectsWmsAlerts) {
       state.intersectsWmsAlerts = intersectsWmsAlerts;
     },
@@ -134,9 +134,9 @@ export default {
     setLoadingStatistic(state, payload) {
       state.isLoadingStatistic = payload;
     },
-   
-   
-  
+
+
+
     setAnalytics(state, analyticsAlerts) {
       const formattedAnalytics = analyticsAlerts.map(item => {
         const newItem = { ...item };
@@ -180,7 +180,7 @@ export default {
       state.features = null;
     },
     setAlertsStyles(state, styles) {
-      state.monitoringStyles = styles;
+      state.alartsStyles = styles;
       state.availableEstagios.forEach((estagio) => {
         if (!(estagio in state.legendVisibility)) {
           Vue.set(state.legendVisibility, estagio, true);
@@ -704,7 +704,7 @@ export default {
 
         const downloadLink = document.createElement('a');
         downloadLink.href = URL.createObjectURL(blob);
-        downloadLink.download = 'monitoring_dados.geojson';
+        downloadLink.download = 'alarts_dados.geojson';
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -753,7 +753,7 @@ export default {
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = 'monitoring_table.csv';
+        link.download = 'alarts_table.csv';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

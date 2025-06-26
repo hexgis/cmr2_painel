@@ -357,7 +357,7 @@ import MiniMapForPrintPriority from '@/components/priority/MiniMapForPrintPriori
 import PriorityIndividualLayer from '@/components/priority/PriorityIndividualLayer';
 import MonitoringLayers from '@/components/monitoring-alerts/monitoring/MonitoringLayers';
 import SupportLayers from '@/components/support/SupportLayers';
-import AlertLayers from '@/components/monitoring-alerts/urgent-alerts/AlertLayers';
+import AlertsLayers from '@/components/monitoring-alerts/urgent-alerts/AlertsLayers';
 
 import LayersRaster from '@/components/raster/LayersRaster';
 
@@ -369,7 +369,7 @@ export default {
     PriorityIndividualLayer,
     MonitoringLayers,
     SupportLayers,
-    AlertLayers,
+    AlertsLayers,
     LayersRaster,
 
   },

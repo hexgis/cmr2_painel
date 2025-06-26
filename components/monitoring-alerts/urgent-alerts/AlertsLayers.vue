@@ -1,6 +1,5 @@
 <template>
   <div class="map-container">
-    <!-- Camada WMS de Monitoramento -->
     <l-lwms-tile-layer
       v-if="currentUrlWmsAlerts && showFeaturesAlerts"
       ref="wmsLayer"
@@ -12,9 +11,8 @@
       :pane="'monitoring-layers-map'"
       :opacity="opacity / 100"
       :visible="showFeaturesAlerts"
-      :options="{ Legend: false, name: $t('legend-name') }"
+      :options="{ ...AlertsWmsOptions, name: $t('legend-name') }"
     />
-    <!-- Componente de Alerta -->
     <BaseAlert />
   </div>
 </template>
@@ -184,9 +182,9 @@ export default {
   },
   "pt-br": {
     "detail-api-error": "Não foi possível obter os dados do polígono, entre em contato com um administrador se persistir.",
-    "legend-name": "Monitoramento Diário",
+    "legend-name": "Alertas Urgente",
     "no-data-message": "Nenhum dado disponível para a(s) selecionada(s).",
-    "name-layer-heatmap": "Monitoramento Diário - Heatmap"
+    "name-layer-heatmap": "Alertas Urgente - Heatmap"
   }
 }
 </i18n>

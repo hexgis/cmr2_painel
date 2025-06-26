@@ -120,7 +120,8 @@
               </template>
             </div>
             <v-card
-              v-if="showWarningMessage"
+              v-if="showWarningMessage && !(showFeaturesAlerts
+                && !showFeaturesMonitoring && !showFeaturesLandUse)"
               class="warning-message"
               elevated
             >
@@ -234,19 +235,21 @@
                           />
                         </div>
                         <div
-                          v-if="showFeaturesUrgentAlerts &&
-                            (!showFeaturesLandUse || !showFeaturesSupportLayers)"
+                          v-if="showFeaturesAlerts
+                            && hasActiveAlertsStages && selectedItemsCount > 0"
                         >
                           <p>
                             <strong>Alerta Urgente</strong>
+                            <v-chip x-small>
+                              {{ alertsCount }}
+                            </v-chip>
                           </p>
                           <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
                           <CustomizedLegend
-                            v-if="showFeaturesUrgentAlerts"
-                            :items="urgentAlertItems"
+                            class="pt-1"
+                            :items="alertsItems"
                           />
                         </div>
-
                         <div
                           v-if="showFeaturesSupportLayers
                             && (Object.values(supportLayers).filter(l => l.visible).length)
@@ -316,20 +319,6 @@
                           />
                         </div>
                       </div>
-
-                      <div
-                        v-if="showFeaturesUrgentAlerts && showFeaturesMonitoring &&
-                          showFeaturesLandUse && showFeaturesSupportLayers"
-                      >
-                        <p>
-                          <strong>Alerta Urgente</strong>
-                        </p>
-                        <hr style="border: 1px solid blue;margin: 0;">
-                        <CustomizedLegend
-                          v-if="showFeaturesUrgentAlerts"
-                          :items="urgentAlertItems"
-                        />
-                      </div>
                     </div>
                   </div>
                   <div>
@@ -372,6 +361,14 @@
                       {{ handleData(monitoringFilters.startDate) }}
                       {{ $t('and') }}
                       {{ handleData(monitoringFilters.endDate) }}
+                    </p>
+                  </div>
+                  <div v-if="showFeaturesAlerts">
+                    <p class="ml-1">
+                      {{ $t('alerts-print-label') }}
+                      {{ handleData(alertsFilters.startDate) }}
+                      {{ $t('and') }}
+                      {{ handleData(alertsFilters.endDate) }}
                     </p>
                   </div>
                   <div v-if="showFeaturesLandUse && uniqueYears.length > 0">
@@ -503,6 +500,7 @@
     "mining": "Mining",
     "land-use-print-label": "Year usage and occupancy data",
     "monitoring-print-label": "Daily Monitoring Data between",
+    "alerts-print-label": "Daily Urgent Alerts Data between",
     "and": "and",
     "warning-message": "The number of selected TIs exceeds the limit for display on the print map. Only deforestation polygons will be shown. To view the statistics, reduce the selected TIs or access the 'Statistics' menu.",
     "agree": "I agree",
@@ -535,6 +533,7 @@
     "mining": "Mineração",
     "land-use-print-label": "Dados de Uso e Ocupação ano",
     "monitoring-print-label": "Dados de Monitoramento Diário entre",
+    "alerts-print-label": "Dados de Alertas Urgente entre",
     "and": "e",
     "warning-message": "O número de TIs selecionadas excede o limite para visualização no mapa de impressão. Apenas os polígonos de desmatamento serão exibidos. Para ver as estatísticas, reduza as TIs selecionadas ou acesse o menu 'Estatísticas'.",
     "agree": "Ciente",
@@ -613,11 +612,7 @@ export default {
     showWarningMessage: false,
     activeMonitoringLabel: [],
     loadingPrintImage: false,
-    urgentAlertItems: [
-      { label: 'regeneration-deforestation', color: '#990099' },
-      { label: 'degradation', color: '#ff8000' },
-      { label: 'clear-cut', color: '#ff3333' },
-    ],
+
     deterItems: [
       { label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' },
     ],
@@ -639,37 +634,46 @@ export default {
     hasActiveMonitoringStages() {
       return Object.values(this.legendVisibility).some((visible) => visible);
     },
+    hasActiveAlertsStages() {
+      return Object.values(this.legendVisibilityalerts).some((visible) => visible);
+    },
     filteredMonitoringData() {
       return this.combinedTableData.filter(
         (item) => item.monitoring
         && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0),
       );
     },
-
+    filteredAlertsData() {
+      return this.combinedTableData.filter(
+        (item) => item.alerts
+        && Object.keys(item.alerts).some((key) => item.alerts[key] > 0),
+      );
+    },
     filteredLandUseData() {
       return this.combinedTableData.filter(
         (item) => item.landUse
         && Object.keys(item.landUse).some((key) => item.landUse[key] > 0),
       );
     },
-
     filteredCombinedTableData() {
       return this.combinedTableData.filter((item) => {
         const hasMonitoring = this.showFeaturesMonitoring
                            && item.monitoring
                            && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0);
-
         const hasLandUse = this.showFeaturesLandUse
                          && item.landUse
                          && Object.keys(item.landUse).some((key) => item.landUse[key] > 0);
-
-        return hasMonitoring || hasLandUse;
+        const hasAlerts = this.showFeaturesAlerts
+                         && item.alerts
+                         && Object.keys(item.alerts).some((key) => item.alerts[key] > 0);
+        return hasMonitoring || hasLandUse || hasAlerts;
       });
     },
     combinedTableData() {
       const keys = {
         monitoring: ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'],
         landUse: ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'],
+        alerts: ['cr_ha', 'dg_ha', 'dr_ha'],
       };
       const initializeObject = (keyList) => keyList.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
       const initializeData = (noTi) => ({
@@ -677,10 +681,10 @@ export default {
         nu_area_ha: 0,
         monitoring: initializeObject(keys.monitoring),
         landUse: initializeObject(keys.landUse),
+        alerts: initializeObject(keys.alerts),
       });
       const addValue = (target, key, value) => {
         const updatedValue = (target[key] || 0) + (parseFloat(value) || 0);
-        // eslint-disable-next-line no-param-reassign
         target[key] = updatedValue;
       };
       const combined = {};
@@ -693,88 +697,79 @@ export default {
           keys[type].forEach((key) => addValue(data[type], `nu_area_${key}`, item[`nu_area_${key}`]));
         });
       };
-      if (!Array.isArray(this.tableMonitoring) || !Array.isArray(this.tableLandUse)) {
-        console.warn('tableMonitoring ou tableLandUse não são arrays válidos.');
+      if (!Array.isArray(this.tableMonitoring) || !Array.isArray(this.tableLandUse) || !Array.isArray(this.tableAlerts)) {
+        console.warn('tableMonitoring, tableLandUse ou tableAlerts não são arrays válidos.');
         return [];
       }
       processTable(this.tableMonitoring, 'monitoring');
       processTable(this.tableLandUse, 'landUse');
+      processTable(this.tableAlerts, 'alerts');
       return Object.values(combined);
     },
-
     totalAreas() {
       const monitoringKeys = ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'];
       const landUseKeys = ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'];
+      const alertsKeys = ['cr_ha', 'dg_ha', 'dr_ha'];
       const initializeObject = (keys) => keys.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
       const addValue = (target, key, value) => {
-        // eslint-disable-next-line no-param-reassign
         target[key] += parseFloat(value) || 0;
       };
       if (!Array.isArray(this.combinedTableData)) {
         console.warn('combinedTableData não é um array válido.');
-        return initializeObject(['ha', ...monitoringKeys, ...landUseKeys]);
+        return initializeObject(['ha', ...monitoringKeys, ...landUseKeys, ...alertsKeys]);
       }
       return this.combinedTableData.reduce(
         (acc, item) => {
           addValue(acc, 'nu_area_ha', item.nu_area_ha);
           monitoringKeys.forEach((key) => addValue(acc.monitoring, `nu_area_${key}`, item.monitoring[`nu_area_${key}`]));
           landUseKeys.forEach((key) => addValue(acc.landUse, `nu_area_${key}`, item.landUse[`nu_area_${key}`]));
+          alertsKeys.forEach((key) => addValue(acc.alerts, `nu_area_${key}`, item.alerts[`nu_area_${key}`]));
           return acc;
         },
         {
           nu_area_ha: 0,
           monitoring: initializeObject(monitoringKeys),
           landUse: initializeObject(landUseKeys),
+          alerts: initializeObject(alertsKeys),
         },
       );
     },
-
     uniqueYears() {
       const years = this.tableLandUse.map((item) => item.nu_ano);
       return [...new Set(years)];
     },
-
     showDialog() {
       return this.showDialogLandscape;
     },
-
     hasCartographicDatasets() {
       return Object.keys(this)
         .filter((key) => key.startsWith('showFeatures'))
         .some((key) => this[key]);
     },
-
     hasLegend() {
       return Object.keys(this)
         .filter((key) => key.startsWith('showFeatures'))
         .some((key) => this[key]);
     },
-
     layerCategories() {
       return [
         ['Support Layers', this.supportLayers, this.showFeaturesSupportLayers],
-
       ]
         .map(([name, layers, show]) => ({ name, layers, show }))
         .filter(({ show }) => show);
     },
-
     showFeaturesAquaMM() {
       return (this.layers && this.layers.aquaMM && this.layers.aquaMM.showFeatures) || false;
     },
-
     showFeaturesAquaMT() {
       return (this.layers && this.layers.aquaMT && this.layers.aquaMT.showFeatures) || false;
     },
-
     featuresAquaMM() {
       return (this.layers && this.layers.aquaMM && this.layers.aquaMM.features) || null;
     },
-
     featuresAquaMT() {
       return (this.layers && this.layers.aquaMT && this.layers.aquaMT.features) || null;
     },
-
     focoFilters() {
       return (
         this.layers
@@ -782,36 +777,36 @@ export default {
         && this.layers.aquaMM.filters
       ) || {};
     },
-
     prodesItems() {
       return this.$store.getters['prodes/getLegendItems'];
     },
-
     monitoringItems() {
       return this.$store.getters['monitoring/getActiveLegendItems'];
     },
-
+    alertsItems() {
+      return this.$store.getters['urgent-alerts/getLegendItems'];
+    },
     landUseItems() {
       return this.$store.getters['land-use/getActiveLegendItems'];
     },
-
     monitoringCount() {
-      return this.combinedTableData.filter(
-        (item) => item.monitoring
-          && Object.keys(item.monitoring).some(
-            (key) => item.monitoring[key] > 0,
-          ),
-      ).length;
+      return this.filteredMonitoringData.length;
     },
-
+    alertsCount() {
+      return this.filteredAlertsData.length;
+    },
     ...mapState({
       monitoringFilters: (state) => state.monitoring.filters,
+      alertsFilters: (state) => state['urgent-alerts'].filters,
       prodesFilters: (state) => state.prodes.filters,
       deterFilters: (state) => state.deter.filters,
       showFeaturesMonitoring: (state) => state.monitoring.showFeaturesMonitoring,
       monitoringFeatures: (state) => state.monitoring.features,
+      showFeaturesAlerts: (state) => state['urgent-alerts'].showFeaturesAlerts,
       tableMonitoring: (state) => state.monitoring.tableMonitoring,
+      tableAlerts: (state) => state['urgent-alerts'].tableAlerts,
       legendVisibility: (state) => state.monitoring.legendVisibility,
+      legendVisibilityalerts: (state) => state['urgent-alerts'].legendVisibility,
       showFeaturesProdes: (state) => state.prodes.showFeaturesProdes,
       prodesFeatures: (state) => state.prodes.features,
       showFeaturesDeter: (state) => state.deter.showFeaturesDeter,
@@ -822,9 +817,7 @@ export default {
       supportLayerUser: (state) => state.supportLayersUser.supportLayerUser,
       showFeaturesSupportLayers: (state) => state.supportLayers.showFeaturesSupportLayers,
       supportLayers: (state) => state.supportLayers.supportLayers,
-
       supportLayersCategoryBase: (state) => state.supportLayers.supportLayersCategoryBase,
-
       showFeaturesUrgentAlerts: (state) => state['urgent-alerts'].showFeaturesUrgentAlerts,
       layers: (state) => state.foco.layers,
       filterOptions: (state) => state.foco.filterOptions,
@@ -839,10 +832,10 @@ export default {
         this.showWarningMessage = true;
       }
     },
-
     combinedTableData(newVal) {
       this.selectedItemsCount = newVal.length;
-      this.showWarningMessage = newVal.length > 7;
+      this.showWarningMessage = (this.showFeaturesMonitoring
+       || this.showFeaturesLandUse) && newVal.length > 7;
     },
   },
 
@@ -853,8 +846,12 @@ export default {
     if (this.showFeaturesLandUse) {
       await this.getDataTableLandUse();
     }
+    if (this.showFeaturesAlerts) {
+      await this.getDataTableAlerts();
+    }
     this.selectedItemsCount = this.combinedTableData.length;
-    this.showWarningMessage = this.selectedItemsCount > 7;
+    this.showWarningMessage = (this.showFeaturesMonitoring
+     || this.showFeaturesLandUse) && this.selectedItemsCount > 7;
 
     const visibleLayersCount = Object.values(this.supportLayers)
       .filter((l) => l.visible).length;
@@ -1018,6 +1015,7 @@ export default {
 
     ...mapActions('monitoring', ['getDataTableMonitoring']),
     ...mapActions('land-use', ['getDataTableLandUse']),
+    ...mapActions('urgent-alerts', ['getDataTableAlerts']),
   },
 };
 </script>

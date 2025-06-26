@@ -1,16 +1,106 @@
 <template>
   <v-col>
-    <BaseFilters
-      filter-type="date"
-      :filters.sync="filters"
-      :error="error"
-      :flattened="flattened"
-      :filter-options="filterOptions"
-      :current-url-wms="currentUrlWmsAlerts"
-      :features-layer.sync="featuresAlerts"
-      :loading="loadingAlerts"
-      @search="searchAlerts"
-    />
+     <v-row>
+           <v-col cols="9" class="pt-0 mt-0">
+        <v-checkbox
+          v-model="filters.currentView"
+          :label="$t('current-view-label')"
+          :error="error"
+          hide-details
+        />
+      </v-col>
+        <v-col cols="3" class="pt-0 mt-0" >
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <div
+              class="d-flex justify-end align-center mt-1"
+            >
+              <v-switch
+                v-if="currentUrlWmsAlerts"
+                v-model="featuresAlerts"
+                class="mt-3"
+                hide-details
+              />
+            </div>
+          </template>
+          <span>
+            {{
+              showFeaturesAlerts
+                ? $t('title-switch-disable-features')
+                : $t('title-switch-enable-features')
+            }}
+          </span>
+        </v-tooltip>
+      </v-col>
+         <v-col cols="12">
+        <v-combobox
+          v-model="filters.cr"
+          :label="$t('regional-coordination-label')"
+          :items="flattened"
+          item-value="co_cr"
+          item-text="ds_cr"
+          hide-details
+          clearable
+          multiple
+          :error="error"
+          class="pa-0"
+          outlined
+          @change="emitFilters"
+        />
+      </v-col>
+
+      <v-col cols="12">
+        <v-slide-y-transition>
+          <v-combobox
+            v-if="filters.cr && filterOptions.tiFilters"
+            v-model="filters.ti"
+            :label="$t('indigenous-lands-label')"
+            :items="filterOptions.tiFilters"
+            item-text="no_ti"
+            item-value="co_funai"
+            hide-details
+            multiple
+            clearable
+            class="pa-0 mt-n3"
+            outlined
+            @change="emitFilters"
+          />
+        </v-slide-y-transition>
+      </v-col>
+
+      <v-col cols="6" class="py-0">
+        <BaseDateField
+          v-model="filters.startDate"
+          :label="$t('start-date-label')"
+          :required="true"
+          outlined
+          :min-date="'2015-01-01'"
+        />
+      </v-col>
+      <v-col cols="6" class="py-0">
+        <BaseDateField
+          v-model="filters.endDate"
+          :label="$t('end-date-label')"
+          :required="true"
+          outlined
+          :min-date="'2015-01-01'"
+        />
+      </v-col>
+
+      <v-col cols="12">
+        <v-btn
+          block
+          small
+          color="primary"
+          outlined
+          :loading="loadingAlerts"
+          class="pa-0 mt-n6"
+          @click="searchAlerts"
+        >
+          {{ $t('search-label') }}
+        </v-btn>
+      </v-col>
+    </v-row>
     <div
       v-if="isLoadingFeatures"
       class="mt-1"
@@ -227,7 +317,7 @@ import { mapMutations, mapState, mapActions } from 'vuex';
 import TableDialog from '../../table-dialog/TableDialog.vue';
 import DialogConfirmDownload from '../DialogConfirmDownload.vue';
 import AnalyticalDialog from '../../analytical-dialog/AnalyticalDialog.vue';
-import BaseFilters from '../../base/BaseFilters.vue';
+import BaseDateField from '@/components/base/BaseDateField';
 
 export default {
   name: 'UrgentAlertsFilters',
@@ -235,7 +325,7 @@ export default {
     TableDialog,
     DialogConfirmDownload,
     AnalyticalDialog,
-    BaseFilters,
+    BaseDateField
   },
   data() {
     return {
