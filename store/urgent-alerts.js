@@ -9,7 +9,7 @@ export default {
     urlWmsAlerts: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
     geoserverLayerAlerts: process.env.GEOSERVER_URGENT_ALERT,
     urlWmsAlertsHeatmap: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
-    geoserverLayerAlertsHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
+    geoserverLayerAlertsHeatmap: process.env.GEOSERVER_URGENT_ALERT_HEATMAP,
     resultsHeatmap: [],
     resultsHeatmapOptions: {
       minOpacity: 0.5,
