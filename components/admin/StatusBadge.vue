@@ -1,5 +1,9 @@
 <template>
-  <span v-if="status" class="card--status" :style="{ background: statusBackground }">{{ status }}</span>
+  <span
+    v-if="status"
+    class="card--status"
+    :style="{ background: statusBackground }"
+  >{{ status }}</span>
 </template>
 
 <script>
@@ -13,16 +17,15 @@ export default {
   computed: {
     statusBackground() {
       const statusColors = {
-        'Concedida': '#12A844',
-        'Concluído': '#12A844',
-        'Aguardando Gestor': '#FFCE03',
-        'Deferido': '#FFCE03',
-        'Pendente': '#F58A1F',
+        Concluído: '#12A844',
+        Desenvolvido: '#1A535C',
+        'Aguardando Gestor': '#D66A00',
+        Deferido: '#FFCE03',
         'Em Andamento': '#F58A1F',
         'Em Desenvolvimento': '#F58A1F',
-        'Recusada': '#D92B3F',
-        'Recusado': '#D92B3F',
-        'Inviável': '#D92B3F',
+        Recusada: '#D92B3F',
+        Recusado: '#D92B3F',
+        Inviável: '#D92B3F',
         true: '#12A844',
         false: '#D92B3F',
       };

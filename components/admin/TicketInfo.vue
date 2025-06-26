@@ -6,7 +6,7 @@
       <p class="light--text">{{info.solicitation_name}}</p>
     </div>
     <v-container fluid class="d-flex align-start pa-0">
-      <StatusBadge class="badge" :status="info.ticket_status?.formated_info.sub_status_display" />
+      <StatusBadge class="badge" :status="info.ticket_status?.formated_info.status_category_display" />
     </v-container>
     <div class="d-flex align-start flex-lg-row mt-2">
       <PriorityBadge :priority="info.ticket_status?.formated_info.priority_display"/>
