@@ -1,7 +1,7 @@
 <template>
+
   <div v-if="isRestrictedAreaCard">
     <span v-if="isRestrictedAreaCard === 'Pendente'" class="center">
-      <a class="link" @click="viewFileDetails">{{ $t('viewForm') }}</a>
       <p class="light--text text-center">{{ $t('requestedOn') }} {{ requestData.created_at_formatted || '-'}}.</p>
     </span>
     <span v-else-if="isRestrictedAreaCard" class="light--text">

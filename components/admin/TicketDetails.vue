@@ -42,7 +42,7 @@
                             </h2>
                             <p class="text-highlighted-lightgray">
                               <strong> {{ $t('functionality') }} </strong>{{ ticketDetail.functionality?.func_name }} -
-                              <strong>{{ticketDetail.ticket_status?.formated_info?.sub_status_display }}</strong> </br>
+                              <strong>{{ticketDetail.ticket_status?.formated_info?.status_category_display }}</strong> </br>
                             </p>
                         </span>
                         <p class="text-highlighted-red">
@@ -100,15 +100,15 @@
                         <a :href="`${this.$api}//adm-panel/tickets/download/`" target="_blank"> {{ file.name_file }}</a>
                         <br />
                     </span>
-                    <v-text-field
+                    <v-textarea
                         v-if="this.ticketDetail?.ticket_analysis_history?.length"
                         :class="ticketDetail?.attachments?.length ? 'mt-6' : ''"
                         :value="lastComment"
                         :label="$t('analysisComment')"
                         outlined
-                        multi-line
                         readonly
-                    ></v-text-field>
+                        rows="3"
+                    ></v-textarea>
                 </v-col>
             </v-row>
             <div class="mt-4" v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev">
@@ -131,15 +131,6 @@
                             v-model="priority"
                             :items="priorityLabelOptions"
                             :label="$t('priority')"
-                            outlined
-                        ></v-select>
-                    </v-col>
-
-                    <v-col v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev" cols="12" md="6">
-                        <v-select
-                            v-model="substatus"
-                            :items="substatusLabelOptions"
-                            label="Substatus"
                             outlined
                         ></v-select>
                     </v-col>
@@ -171,7 +162,7 @@
                     </v-col>
 
                     <v-col v-if="showAnalysisFieldsAdmin || (showAnalysisFieldsDev ||
-                                this.substatus == 'EM_DESENVOLVIMENTO')"
+                                this.status == 'EM_DESENVOLVIMENTO')"
                         cols="12"
                         md="6"
                     >
@@ -233,13 +224,13 @@
                     <v-col v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev"
                         cols="12"
                     >
-                        <v-text-field
+                        <v-textarea
                             v-model="text"
                             :label="$t('comment')"
                             outlined
-                            multi-line
                             required
-                        ></v-text-field>
+                            rows="3"
+                        ></v-textarea>
                     </v-col>
                 </v-row>
                 <span class="d-flex justify-end">
@@ -358,7 +349,6 @@ export default {
             status: null,
             complexity: null,
             functionality: null,
-            substatus: null,
             priority: null,
             file: null,
             checkbox: false,
@@ -388,7 +378,7 @@ export default {
 
 
         isSaveEnabled() {
-  return this.text.trim().length > 0 && this.status && this.substatus;
+  return this.text.trim().length > 0 && this.status
 },
 
         isCompletedCard() {
@@ -406,29 +396,22 @@ export default {
             return this.ticketDetail.ticket_status?.due_on
         },
         statusLabelOptions() {
+            const availableTransitions = this.ticketDetail?.ticket_status?.formated_info?.available_status_transitions || [];
+            
+            if (availableTransitions.length > 0) {
+                return availableTransitions.map((transition) => ({
+                    text: transition.label,
+                    value: transition.value,
+                }));
+            }
+            
             return this.labels?.status_category?.map((label) => ({
                 text: label.label,
                 value: label.value,
                 disabled: label.label === 'Não Analisado',
-            }))
+            })) || [];
         },
-        substatusLabelOptions() {
-            const substatusMapping = {
-                EM_ANDAMENTO: ['Aguardando Gestor', 'Em Desenvolvimento'],
-                CONCLUIDO: ['Concluído', 'Em Teste'],
-                RECUSADO: ['Inviável', 'Indeferido'],
-                DEFERIDO: ['Deferido'],
-                DESENVOLVIDO: ['Desenvolvido'],
-            }
-            const allowedSubstatus = substatusMapping[this.status] || []
-            return this.labels?.sub_status
-                ?.filter((label) => allowedSubstatus.includes(label.label))
-                ?.map((label) => ({
-                    text: label.label,
-                    value: label.value,
-                    disabled: label.value === 'Não Analisado',
-                }))
-        },
+
         complexityLabelOptions() {
             return this.labels?.complexity?.map((label) => ({
                 text: label.label,
@@ -459,7 +442,7 @@ export default {
             return status === 'Recusado' || status === 'Inviável'
         },
         isReviewed() {
-            return (this.ticketDetail.ticket_status?.formated_info?.sub_status_display !== 'Não Analisado')
+            return (this.ticketDetail.ticket_status?.formated_info?.status_category_display !== 'Não Analisado')
         },
     },
     methods: {
@@ -493,7 +476,6 @@ export default {
                         due_on: this.date,
                         formated_info: {
                             status_category_display: this.status,
-                            sub_status_display: this.substatus,
                             priority_display: this.priority,
                         },
                     },
@@ -558,7 +540,6 @@ export default {
                     ticket_status: {
                         formated_info: {
                             status_category_display: 'NAO_ANALISADO',
-                            sub_status_display: 'NAO_ANALISADO',
                         },
                     },
                     comment: 'A solicitação foi reaberta para nova análise.',

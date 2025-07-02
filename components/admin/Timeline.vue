@@ -16,12 +16,12 @@
         <v-timeline-item
           v-for="(history, index) in ticket.ticket_analysis_history"
           :key="history.id"
-          :color="getTimelineItemColor(history.sub_status_name)"
+          :color="getTimelineItemColor(history.status_category_display)"
           :icon="index === ticket.ticket_analysis_history.length - 1 ? 'mdi-flag-checkered' : ''"
         >
-          <div v-if="history.sub_status_name">
+          <div v-if="history.status_category_display">
             <h4 class="text-uppercase">
-              {{ history.sub_status_name || $t('noStatusDefined') }}
+              {{ history.status_category_display || $t('noStatusDefined') }}
             </h4>
             <v-divider />
           </div>
@@ -93,19 +93,21 @@ export default {
 
     getTimelineItemColor(status) {
       switch (status) {
+        case 'Aguardando Gestor':
+          return '#D66A00'; // Laranja
         case 'Em Desenvolvimento':
           return '#F58A1F';
+        case 'Desenvolvido':
+          return '#1A535C'; // Verde específico para desenvolvido
         case 'Concluído':
           return '#12A844';
-        case 'Desenvolvido':
-          return '#12A844';
         case 'Em Teste':
-          return '#FFCE03';
-        case 'Aguardando Gestor':
           return '#FFCE03';
         case 'Inviável':
           return '#D92B3F';
         case 'Indeferido':
+          return '#D92B3F';
+        case 'Recusado':
           return '#D92B3F';
         default:
           return 'grey';

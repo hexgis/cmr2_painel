@@ -3,7 +3,7 @@
     <span class="d-flex align-center justify-space-between">
       <h1>{{ $t('criticismsSuggestions') }}</h1>
       <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
+        <template #activator="{ on, attrs }">
           <v-btn
             color="primary"
             text
@@ -20,50 +20,54 @@
 
     <v-row class="mt-4">
       <v-col>
-          <GraphicBar
-            v-for="(category, index) in storeCategories"
-            :key="index"
-            :category="category"
-            :maxValue="totalValue"
-          />
+        <GraphicBar
+          v-for="(category, index) in storeCategories"
+          :key="index"
+          :category="category"
+          :max-value="totalValue"
+        />
       </v-col>
       <v-col class="d-flex flex-column justify-space-between">
-           <v-btn
+        <v-btn
           color="error"
           dark
           rounded
           class="px-4 py-2"
           @click="showModal = true"
         >
-                   <strong>{{ $t('addNewRequest') }}</strong>
+          <strong>{{ $t('addNewRequest') }}</strong>
 
-          <v-icon right>mdi-plus</v-icon>
+          <v-icon right>
+            mdi-plus
+          </v-icon>
         </v-btn>
 
-
         <CustomDialog
-          @save="saveTicket"
-          title="Nova Solicitação"
           v-model="showModal"
+          title="Nova Solicitação"
           max-width="600px"
-          :hasCta="true"
-          :saveBtn="saveTicket"
-          :saveActive="formValid"
+          :has-cta="true"
+          :save-btn="saveTicket"
+          :save-active="formValid"
+          @save="saveTicket"
         >
           <v-card-text>
-            <v-form ref="form" v-model="formValid">
+            <v-form
+              ref="form"
+              v-model="formValid"
+            >
               <v-row dense>
                 <v-col cols="6">
                   <v-text-field
-                    label="Solicitante"
                     v-model="user.username"
+                    label="Solicitante"
                     disabled
                   />
                 </v-col>
                 <v-col cols="6">
                   <v-text-field
-                    label="E-mail"
                     v-model="user.email"
+                    label="E-mail"
                     disabled
                   />
                 </v-col>
@@ -72,8 +76,8 @@
               <v-row dense>
                 <v-col cols="6">
                   <v-select
-                    :label="$t('requestType')"
                     v-model="newTicketData.solicitation_type"
+                    :label="$t('requestType')"
                     :items="solicitationInputTypeList"
                     item-text="solicitation_name"
                     item-value="solicitation_type"
@@ -84,8 +88,8 @@
                 </v-col>
                 <v-col cols="6">
                   <v-select
-                    :label="$t('functionality')"
                     v-model="newTicketData.functionality"
+                    :label="$t('functionality')"
                     :items="functionalityInputList"
                     item-text="functionality_name"
                     item-value="functionality_id"
@@ -99,8 +103,8 @@
               <v-row dense>
                 <v-col cols="12">
                   <v-text-field
-                    :label="$t('subject')"
                     v-model="newTicketData.subject"
+                    :label="$t('subject')"
                     :rules="[
                       v => !!v || $t('field-required'),
                       v => (v && v.length <= 100) || $t('max-characters', { max: 100 })
@@ -114,23 +118,27 @@
               <v-row dense>
                 <v-col cols="12">
                   <v-textarea
-                    :label="$t('description')"
                     v-model="newTicketData.description"
+                    :label="$t('description')"
                     :rules="[
                       v => !!v || $t('field-required'),
                       v => (v && v.length <= 500) || $t('max-characters', { max: 500 })
                     ]"
                     outlined
                     required
+                    rows="3"
                   />
                 </v-col>
               </v-row>
 
-              <v-row dense v-if="userData?.components?.feedback_admin === true">
+              <v-row
+                v-if="userData?.components?.feedback_admin === true"
+                dense
+              >
                 <v-col cols="12">
                   <v-checkbox
-                    :label="$t('approveRequestCreation')"
                     v-model="checkbox"
+                    :label="$t('approveRequestCreation')"
                   />
                 </v-col>
               </v-row>
@@ -138,8 +146,8 @@
               <v-row dense>
                 <v-col cols="12">
                   <v-file-input
-                    :label="$t('attachFile')"
                     v-model="newTicketData.attachments"
+                    :label="$t('attachFile')"
                     accept=".pdf,.png,.jpg,.jpeg"
                     :placeholder="$t('noFileSelected')"
                     prepend-icon="mdi-paperclip"
@@ -156,25 +164,45 @@
         </CustomDialog>
 
         <div class="d-flex justify-space-between align-center">
-          <p class="text-uppercase"><strong>{{ $t('export') }}</strong> {{ $t('as') }}</p>
+          <p class="text-uppercase">
+            <strong>{{ $t('export') }}</strong> {{ $t('as') }}
+          </p>
           <div class="d-flex">
             <div class="styled-btn">
-              <SavePdf :activeCards="filteredCards" />
+              <SavePdf :active-cards="filteredCards" />
             </div>
-            <div class="styled-btn" @click="downloadCsv" style="cursor: pointer;">
-              <v-img src="/img/icons/file-excel-box.png" max-width="50" max-height="50" />
+            <div
+              class="styled-btn"
+              style="cursor: pointer;"
+              @click="downloadCsv"
+            >
+              <v-img
+                src="/img/icons/file-excel-box.png"
+                max-width="50"
+                max-height="50"
+              />
             </div>
           </div>
         </div>
       </v-col>
-      <CustomDialog :title="$t('success-request-title')" v-model="sucessModal" width="350px" :hasCta="false">
+      <CustomDialog
+        v-model="sucessModal"
+        :title="$t('success-request-title')"
+        width="350px"
+        :has-cta="false"
+      >
         <span class="d-flex mt-2">
           <v-icon color="#12A844">mdi-check</v-icon>
           <h3 class="ml-2">{{ $t('success-request-message') }}</h3>
         </span>
       </CustomDialog>
 
-      <CustomDialog :title="$t('error-request-title')" v-model="errorModal" width="350px" :hasCta="false">
+      <CustomDialog
+        v-model="errorModal"
+        :title="$t('error-request-title')"
+        width="350px"
+        :has-cta="false"
+      >
         <span class="d-flex mt-2">
           <v-icon color="#D92B3F">mdi-alert-circle</v-icon>
           <h3 class="ml-2">{{ $t('error-request-message') }}</h3>
@@ -184,30 +212,33 @@
 
     <div class="filter mt-4 mb-4">
       <StatusFilter
-        :requestStatus="cardStatusList"
-        :selectedStatus="selectedStatus"
-        :showFilters="showFilters"
+        :request-status="cardStatusList"
+        :selected-status="selectedStatus"
+        :show-filters="showFilters"
         @status-changed="toggleStatus"
         @toggle-filters="toggleFilters"
       />
     </div>
 
-    <div v-if="showFilters" class="search mt-4">
+    <div
+      v-if="showFilters"
+      class="search mt-4"
+    >
       <SearchFilters
         :filters="filters"
-        :reviewersList="reviewersList"
-        :isNewAccessRequest="false"
-        :solicitationTypes="solicitationTypeList"
-        :statusList="cardStatusList"
-        :priorityList="priorityList"
+        :reviewers-list="reviewersList"
+        :is-new-access-request="false"
+        :solicitation-types="solicitationTypeList"
+        :status-list="cardStatusList"
+        :priority-list="priorityList"
       />
     </div>
 
     <div class="card--wrapper mt-6">
       <SuggestionsCard
         v-for="card in orderedCards"
-        :cards="card"
         :key="card.code"
+        :cards="card"
         @click.native="goToCardDetails(card.code)"
       />
     </div>
@@ -256,23 +287,28 @@
   }
 </i18n>
 <script>
-import SuggestionsCard from '/components/admin/SuggestionsCard.vue'
-import GraphicBar from '/components/admin/GraphicBar.vue'
-import StatusFilter from '/components/admin/StatusFilter.vue'
-import SearchFilters from '/components/admin/SearchFilters.vue'
-import CustomDialog from '/components/admin/CustomDialog.vue'
-import SavePdf from '/components/admin/SavePdf.vue'
+import SuggestionsCard from '/components/admin/SuggestionsCard.vue';
+import GraphicBar from '/components/admin/GraphicBar.vue';
+import StatusFilter from '/components/admin/StatusFilter.vue';
+import SearchFilters from '/components/admin/SearchFilters.vue';
+import CustomDialog from '/components/admin/CustomDialog.vue';
+import SavePdf from '/components/admin/SavePdf.vue';
 
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
 export default {
-  components: { GraphicBar, SuggestionsCard, StatusFilter, SearchFilters, CustomDialog, SavePdf },
   name: 'CriticasSugestoes',
+  components: {
+    GraphicBar, SuggestionsCard, StatusFilter, SearchFilters, CustomDialog, SavePdf,
+  },
   layout: 'admin',
-  data(){
+  props: {
+    category: {},
+  },
+  data() {
     return {
       progress: 0,
-      selectedStatus: null,
+      selectedStatus: [],
       showFilters: false,
       showModal: false,
       formValid: false,
@@ -285,11 +321,11 @@ export default {
         subject: '',
         description: '',
         attachments: [],
-        status_category: this.isAlreadyDeferred
+        status_category: this.isAlreadyDeferred,
       },
-      user:{
+      user: {
         username: '',
-        email: ''
+        email: '',
       },
       filters: {
         code: '',
@@ -303,161 +339,173 @@ export default {
         dataFinal: '',
       },
       storeCategories: [
-        {label: "solicitações realizadas", total: 0, color: "#F58A1F" },
-        {label: "solicitações em andamento", total: 0, color: "#D92B3F" },
-        {label: "solicitações atendidas", total: 0, color: "#12A844" },
-    ]
+        { label: 'solicitações realizadas', total: 0, color: '#F58A1F' },
+        { label: 'solicitações em andamento', total: 0, color: '#D92B3F' },
+        { label: 'solicitações atendidas', total: 0, color: '#12A844' },
+      ],
     };
   },
-  props: {
-    category: {},
-  },
   async mounted() {
-    await this.$store.dispatch('userProfile/getUserData')
-    await this.$store.dispatch('admin/fetchTickets')
-    await this.$store.dispatch('admin/fetchAllLabelOptions')
+    await this.$store.dispatch('userProfile/getUserData');
+    await this.$store.dispatch('admin/fetchTickets');
+    await this.$store.dispatch('admin/fetchAllLabelOptions');
 
-    this.updateStoreCategories()
+    this.updateStoreCategories();
     if (this.userData) {
-      this.user = { ...this.user, username: this.userData.username, email: this.userData.email}
+      this.user = { ...this.user, username: this.userData.username, email: this.userData.email };
     }
+
+    // Automatically select default statuses for administrators
+    this.setDefaultStatusFiltersForAdmin();
   },
 
-  computed:{
+  computed: {
     ...mapGetters('admin', ['tickets', 'labels']),
     ...mapGetters('userProfile', ['userData']),
 
     showAnalysisFieldsAdmin() {
-            return this.userData?.components?.feedback_admin === true
-        },
+      return this.userData && this.userData.components && this.userData.components.feedback_admin === true;
+    },
 
-        showAnalysisFieldsDev() {
-            return this.userData?.components?.feedback_dev === true
-        },
+    showAnalysisFieldsDev() {
+      return this.userData && this.userData.components && this.userData.components.feedback_dev === true;
+    },
 
     orderedCards() {
-    return [...this.filteredCards]
+      return [...this.filteredCards]
         .sort((a, b) => {
-            const priorityOrder = { "Não analisado": 2, "Deferido": 1 };
+          const priorityOrder = { 'Não analisado': 2, Deferido: 1 };
 
-            const statusA = a.ticket_status?.formated_info?.status_category_display || '';
-            const statusB = b.ticket_status?.formated_info?.status_category_display || '';
+          const statusA = a.ticket_status && a.ticket_status.formated_info && a.ticket_status.formated_info.status_category_display || '';
+          const statusB = b.ticket_status && b.ticket_status.formated_info && b.ticket_status.formated_info.status_category_display || '';
 
-            const priorityA = priorityOrder[statusA] || 3;
-            const priorityB = priorityOrder[statusB] || 3;
+          const priorityA = priorityOrder[statusA] || 3;
+          const priorityB = priorityOrder[statusB] || 3;
 
-            if (priorityA !== priorityB) {
-                return priorityA - priorityB;
-            }
+          if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+          }
 
-            return b.code - a.code;
+          return b.code - a.code;
         });
     },
 
-
-    isAlreadyDeferred(){
-      return this.checkbox ? 'DEFERIDO' : "NAO_ANALISADO"
+    isAlreadyDeferred() {
+      return this.checkbox ? 'DEFERIDO' : 'NAO_ANALISADO';
     },
 
     cardStatusList() {
       return [...new Set(this.tickets
-        .map(card => card.ticket_status?.formated_info?.status_category_display)
-        .filter(Boolean))
-      ];
+        .map((card) => card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.status_category_display)
+        .filter(Boolean)),
+      ].sort();
     },
 
     solicitationTypeList() {
-      return this.labels?.solicitation_type ?
-      [...new Set(this.labels?.solicitation_type
-        .map(card => card.label)
-        .filter(Boolean))
-      ]
-      : []
+      return this.labels && this.labels.solicitation_type
+        ? [...new Set(this.labels.solicitation_type
+          .map((card) => card.label)
+          .filter(Boolean)),
+        ]
+        : [];
     },
 
     solicitationInputTypeList() {
-      return this.labels?.solicitation_type ?
-       [...new Set(this.labels?.solicitation_type
-        .map(card => ({
-          solicitation_name: card.label,
-          solicitation_type: card.value
-        }))
-        .filter(Boolean))
-      ]
-      : [];
+      return this.labels && this.labels.solicitation_type
+        ? [...new Set(this.labels.solicitation_type
+          .map((card) => ({
+            solicitation_name: card.label,
+            solicitation_type: card.value,
+          }))
+          .filter(Boolean)),
+        ]
+        : [];
     },
 
     functionalityInputList() {
-      if (Array.isArray(this.labels?.functionality)) {
+      if (this.labels && this.labels.functionality && Array.isArray(this.labels.functionality)) {
         return [...new Set(
           this.labels.functionality
-            .map(card => ({
+            .map((card) => ({
               functionality_name: card.func_name,
-              functionality_id: card.id
-          }))
-            .filter(Boolean)
+              functionality_id: card.id,
+            }))
+            .filter(Boolean),
         )];
       }
       return [];
     },
     priorityList() {
       return [...new Set(this.tickets
-        .map(card => card.ticket_status?.formated_info?.priority_display)
-        .filter(Boolean))
+        .map((card) => card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.priority_display)
+        .filter(Boolean)),
       ];
     },
 
     reviewersList() {
       return [...new Set(this.tickets
-        .map(card => card.ticket_status?.user_info.analyzer)
-        .filter(Boolean))
+        .map((card) => card.ticket_status && card.ticket_status.user_info && card.ticket_status.user_info.analyzer)
+        .filter(Boolean)),
       ];
     },
 
-    totalValue(){
-      return this.storeCategories[0].total
+    totalValue() {
+      return this.storeCategories[0].total;
     },
 
     filteredCards() {
-  const { code, subject, requesting, status, type, priority, analyzedBy, dataInicial, dataFinal } = this.filters;
+      const {
+        code,
+        subject,
+        requesting,
+        type,
+        priority,
+        analyzedBy,
+        dataInicial,
+        dataFinal,
+      } = this.filters;
 
-  // Utility function to compare text
-  const matchesText = (text, filterValue) => !filterValue || text.toLowerCase().includes(filterValue.toLowerCase());
+      // Utility function to compare text
+      const matchesText = (text, filterValue) => !filterValue || text.toLowerCase().includes(filterValue.toLowerCase());
 
-  // Utility function to compare dates
-  const matchesDate = (dateStr, dateFilter, isEndDate = false) => {
-    const cardDate = new Date(dateStr);
-    const filterDate = new Date(dateFilter);
-    return !dateFilter || (isEndDate ? cardDate <= filterDate : cardDate >= filterDate);
-  };
+      // Utility function to compare dates
+      const matchesDate = (dateStr, dateFilter, isEndDate = false) => {
+        const cardDate = new Date(dateStr);
+        const filterDate = new Date(dateFilter);
+        return !dateFilter || (isEndDate ? cardDate <= filterDate : cardDate >= filterDate);
+      }; return this.tickets.filter((card) => {
+        const statusCategory = card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.status_category_display || '';
+        const analyzedByName = card.ticket_status && card.ticket_status.analyzed_by || '';
+        const cardPriority = card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.priority_display || '';
 
-  return this.tickets.filter(card => {
-    const statusCategory = card.ticket_status?.formated_info?.status_category_display || '';
-    const analyzedByName = card.ticket_status?.analyzed_by || '';
-    const cardPriority = card.ticket_status?.formated_info?.priority_display || '';
+        // If ticket_status is not present, return false to not include the card
+        if (!card.ticket_status) return false;
 
-    // If ticket_status is not present, return false to not include the card
-    if (!card.ticket_status) return false;
+        const cardCode = card.code.toString();
 
-    const cardCode = card.code.toString();
+        // Check if status matches selected statuses (support both array and single value)
+        // If no status is selected (empty array or null), show all cards
+        const statusMatches = !this.selectedStatus
+      || (Array.isArray(this.selectedStatus)
+        ? this.selectedStatus.length === 0 || this.selectedStatus.includes(statusCategory)
+        : statusCategory === this.selectedStatus);
 
-    return (
-      (!code || cardCode.includes(code.toString())) &&
-      (!subject || matchesText(card.subject, subject)) &&
-      (!requesting || matchesText(card.requesting, requesting)) &&
-      (!type || matchesText(card.solicitation_name, type)) &&
-      (!status || statusCategory === status) &&
-      (!this.selectedStatus || statusCategory === this.selectedStatus) &&
-      (!priority || cardPriority === priority) &&
-      (!analyzedBy || matchesText(analyzedByName, analyzedBy)) &&
-      matchesDate(card.opened_in_formatted, dataInicial) &&
-      matchesDate(card.ticket_status.analyzed_in_formatted, dataFinal, true)
-    );
-  });
-}
+        return (
+          (!code || cardCode.includes(code.toString()))
+      && (!subject || matchesText(card.subject, subject))
+      && (!requesting || matchesText(card.requesting, requesting))
+      && (!type || matchesText(card.solicitation_name, type))
+      && statusMatches
+      && (!priority || cardPriority === priority)
+      && (!analyzedBy || matchesText(analyzedByName, analyzedBy))
+      && matchesDate(card.opened_in_formatted, dataInicial)
+      && matchesDate(card.ticket_status.analyzed_in_formatted, dataFinal, true)
+        );
+      });
+    },
 
   },
-  methods:{
+  methods: {
     getStatusButtonStyle(status) {
       return {
         backgroundColor: status === this.selectedStatus ? '#9A9997' : '',
@@ -465,19 +513,31 @@ export default {
       };
     },
     toggleStatus(status) {
-      this.selectedStatus = this.selectedStatus === status ? null : status;
+      if (Array.isArray(this.selectedStatus)) {
+        const index = this.selectedStatus.indexOf(status);
+        if (index > -1) {
+          // Remove status if already selected
+          this.selectedStatus.splice(index, 1);
+        } else {
+          // Add status if not selected
+          this.selectedStatus.push(status);
+        }
+      } else {
+        // Legacy single selection mode
+        this.selectedStatus = this.selectedStatus === status ? [] : [status];
+      }
       this.applySearch();
     },
-    updateStoreCategories(){
-      this.tickets.forEach((ticket)=> {
-        if (ticket.ticket_status?.formated_info?.status_category_display === 'Concluído'){
-          this.storeCategories[2].total += 1
+    updateStoreCategories() {
+      this.tickets.forEach((ticket) => {
+        if (ticket.ticket_status && ticket.ticket_status.formated_info && ticket.ticket_status.formated_info.status_category_display === 'Concluído') {
+          this.storeCategories[2].total += 1;
         }
-        if (ticket.ticket_status?.formated_info?.status_category_display === 'Em Andamento'){
-          this.storeCategories[1].total += 1
+        if (ticket.ticket_status && ticket.ticket_status.formated_info && ticket.ticket_status.formated_info.status_category_display === 'Em Andamento') {
+          this.storeCategories[1].total += 1;
         }
-        this.storeCategories[0].total += 1
-      })
+        this.storeCategories[0].total += 1;
+      });
     },
     applySearch() {
       this.filteredCards;
@@ -485,36 +545,49 @@ export default {
     toggleFilters() {
       this.showFilters = !this.showFilters;
     },
-    async downloadCsv(){
-      await this.$store.dispatch('admin/sendCsvData', {filteredData: this.filteredCards});
+    async downloadCsv() {
+      await this.$store.dispatch('admin/sendCsvData', { filteredData: this.filteredCards });
     },
     goToCardDetails(cardId) {
-    this.$router.push(`/admin/criticas/${cardId}`);
-  },
-  async saveTicket() {
-    try {
+      this.$router.push(`/admin/criticas/${cardId}`);
+    },
+    async saveTicket() {
+      try {
+        this.newTicketData.status_category = this.isAlreadyDeferred;
+        await this.$store.dispatch('admin/createTicket', { ticketData: this.newTicketData });
+        this.sucessModal = true;
+      } catch (error) {
+        this.errorModal = true;
+      } finally {
+        this.showModal = !this.showModal;
+        this.resetForm();
+      }
+    },
+    resetForm() {
+      this.newTicketData = {
+        solicitation_type: '',
+        functionality: '',
+        subject: '',
+        description: '',
+        attachments: [],
+      };
+    },
 
-      this.newTicketData.status_category = this.isAlreadyDeferred;
-      await this.$store.dispatch('admin/createTicket',  {ticketData: this.newTicketData});
-      this.sucessModal = true
-    } catch (error) {
-      this.errorModal = true
-    } finally {
-      this.showModal = !this.showModal
-      this.resetForm();
-    }
-  },
-  resetForm() {
-    this.newTicketData = {
-      solicitation_type: '',
-      functionality: '',
-      subject: '',
-      description: '',
-      attachments: []
-    };
-  }
+    setDefaultStatusFiltersForAdmin() {
+    // Check if user is administrator based on role or is_admin flag
+      const isAdmin = (this.userData && this.userData.is_admin)
+                   || (this.userData && this.userData.roles && this.userData.roles.some((role) => role.name === 'Administrador'));
 
-  }
+      if (isAdmin) {
+      // Set default selected statuses for administrators
+        this.selectedStatus = ['Aguardando Gestor', 'Não Analisado', 'Desenvolvido'];
+      } else {
+      // For non-admin users, start with empty filter (show all cards)
+        this.selectedStatus = [];
+      }
+    },
+
+  },
 };
 
 </script>
@@ -529,7 +602,6 @@ export default {
   overflow-y: auto
   width: 100%
   padding: 2rem
-
 
 .styled-btn
   padding: 1rem 1rem 0
