@@ -82,14 +82,15 @@
                   cols="12"
                   md="6"
                 >
-                  <v-select
+                  <v-autocomplete
                     v-model="formData.department"
                     :label="$t('department')"
-                    :items="institutionList"
-                    item-text="name"
-                    item-value="name"
+                    :items="departmentOptions"
+                    item-text="text"
+                    item-value="value"
                     :rules="[v => !!v || $t('department-required')]"
                     required
+                    clearable
                     @input="validateStep1"
                   />
                 </v-col>
@@ -169,14 +170,15 @@
                   cols="12"
                   md="6"
                 >
-                  <v-select
+                  <v-autocomplete
                     v-model="formData.coordinator_department"
                     :label="$t('coordinator-department')"
-                    :items="institutionList"
-                    item-text="name"
-                    item-value="name"
+                    :items="coordinatorDepartmentOptions"
+                    item-text="text"
+                    item-value="value"
                     :rules="[v => !!v || $t('coordinator-department-required')]"
                     required
+                    clearable
                     @input="validateStep2"
                   />
                 </v-col>
@@ -485,6 +487,30 @@ export default {
   },
   computed: {
     ...mapGetters('admin', ['institutionList']),
+
+    // Computed property to filter institutions for department field
+    departmentOptions() {
+      return this.institutionList
+        .filter((institution) => institution.institution_type === 'Coordenação Regional')
+        .map((institution) => ({
+          text: institution.acronym ? `${institution.acronym} - ${institution.name}` : institution.name,
+          value: institution.name,
+          ...institution,
+        }))
+        .sort((a, b) => a.text.localeCompare(b.text));
+    },
+
+    // Computed property to filter institutions for coordinator department field
+    coordinatorDepartmentOptions() {
+      return this.institutionList
+        .filter((institution) => institution.institution_type === 'Coordenação Regional')
+        .map((institution) => ({
+          text: institution.acronym ? `${institution.acronym} - ${institution.name}` : institution.name,
+          value: institution.name,
+          ...institution,
+        }))
+        .sort((a, b) => a.text.localeCompare(b.text));
+    },
   },
   watch: {
     formData: {
