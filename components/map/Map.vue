@@ -218,7 +218,7 @@
 
         <PriorityLayers :map="map" />
 
-        <AlertLayers :map="map" />
+        <AlertsLayers :map="map" />
       </l-map>
 
       <div
@@ -270,7 +270,7 @@ import FileLoaderControl from '@/components/map/file-loader/FileLoaderControl.vu
 import FileLoaderLayers from '@/components/map/file-loader/FileLoaderLayers.vue';
 // import ImageryLayers from '@/components/imagery/ImageryLayers'
 import CatalogLayers from '@/components/catalog/CatalogLayers';
-import MonitoringLayers from '@/components/monitoring/MonitoringLayers';
+import MonitoringLayers from '@/components/monitoring-alerts/monitoring/MonitoringLayers';
 // import MonitoringLayersGeoserver from '@/components/monitoring/MonitoringLayersGeoserver'
 import SupportLayers from '@/components/support/SupportLayers';
 
@@ -281,7 +281,7 @@ import BaseWmsMetadataPopup from '@/components/base/BaseWmsMetadataPopup';
 // import WebhooksLayers from '@/components/webhooks/WebhooksLayers'
 import PriorityLayers from '@/components/priority/PriorityLayers';
 import DeterLayers from '@/components/inpe/deter/DeterLayers.vue';
-import AlertLayers from '@/components/monitoring/AlertLayers';
+import AlertsLayers from '@/components/monitoring-alerts/urgent-alerts/AlertsLayers';
 import LandUseLayers from '@/components/land-use/LandUseLayers';
 import SupportUserLayersMap from '@/components/userLayer/SupportUserLayersMap';
 import 'leaflet/dist/leaflet.css';
@@ -322,7 +322,7 @@ export default {
     // WebhooksLayers,
     MapPrinter,
     LandUseLayers,
-    AlertLayers,
+    AlertsLayers,
     DeterLayers,
     LayersRaster,
 
@@ -330,7 +330,6 @@ export default {
     DrawingPanel,
     MapIndigenousLand,
     Highlighter,
-    BaseTiMetadata,
     ProdesLayers,
     FocoLayers,
   },

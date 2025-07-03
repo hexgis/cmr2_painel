@@ -4,27 +4,27 @@
       v-if="tab === 'tab-1'"
       class="tab-header justify-space-between"
     >
-      <div class="d-flex align-center">
-        <h4
-          class="subtitle-2 text-uppercase font-weight-regular"
+      <v-row>
+        <h6
+          class="subtitle-2 text-uppercase font-weight-regular header-title"
         >
-          {{ $t('title-monitoring') }}
-        </h4>
+          {{ $t('title') }}
+        </h6>
 
         <v-tooltip
           bottom
-          max-width="400"
+          max-width="600"
           color="grey darken-4"
         >
           <template #activator="{ on }">
             <v-icon
-              class="ml-2"
+              class="infoIconMargin"
               v-on="on"
             >
               mdi-information
             </v-icon>
           </template>
-          <span>
+          <span class="mt-10">
             {{ $t('monitoring-info-part1') }}
             <br>
             {{ $t('monitoring-info-part2') }}
@@ -34,32 +34,38 @@
             {{ $t('monitoring-info-part4') }}
           </span>
         </v-tooltip>
-      </div>
+      </v-row>
     </div>
     <div
       v-else-if="tab === 'tab-2'"
-      class="tab-header align-center"
+      class="tab-header justify-space-between"
     >
-      <h4
-        class="subtitle-2 text-uppercase font-weight-regular"
-      >
-        {{ $t('title-alerts') }}
-      </h4>
-      <v-tooltip bottom>
-        <template #activator="{ on }">
-          <v-icon
-            class="ml-2"
-            v-on="on"
-          >
-            mdi-information
-          </v-icon>
-        </template>
-        <span>
-          {{ $t('update-info') }}
-          <br>
-          {{ $t('data-source') }}
-        </span>
-      </v-tooltip>
+      <v-row>
+        <h4
+          class="subtitle-2 text-uppercase font-weight-regular header-title"
+        >
+          {{ $t('title-alerts') }}
+        </h4>
+        <v-tooltip
+          bottom
+          max-width="600px"
+          color="grey darken-4"
+        >
+          <template #activator="{ on }">
+            <v-icon
+              class="infoIconMargin"
+              v-on="on"
+            >
+              mdi-information
+            </v-icon>
+          </template>
+          <span>
+            {{ $t('update-info') }}
+            <br>
+            {{ $t('data-source') }}
+          </span>
+        </v-tooltip>
+      </v-row>
     </div>
 
     <v-tabs
@@ -70,26 +76,32 @@
       icons-and-text
     >
       <v-tabs-slider />
-      <v-tab href="#tab-1">
+      <v-tab
+        href="#tab-1"
+        class="tab-item"
+      >
         Monitoramento<br>
         Diário
         <v-icon>mdi-map-search</v-icon>
       </v-tab>
 
-      <v-tab href="#tab-2">
+      <v-tab
+        href="#tab-2"
+        class="tab-item"
+      >
         Alerta <br>
         Urgente
         <v-icon>mdi-alarm-light</v-icon>
       </v-tab>
     </v-tabs>
 
-    <div>
+    <div class="list-container">
       <v-tabs-items v-model="tab">
         <v-tab-item value="tab-1">
           <MonitoringFilters />
         </v-tab-item>
         <v-tab-item value="tab-2">
-          <Alerts />
+          <AlertsFilters />
         </v-tab-item>
       </v-tabs-items>
     </div>
@@ -99,7 +111,7 @@
 <i18n>
 {
   "en": {
-    "title-monitoring": "Daily Monitoring",
+    "title": "Daily Monitoring",
     "title-alerts": "Urgent Alerts",
     "monitoring-info-part1": "Monitoring is based on visual interpretation",
     "monitoring-info-part2": "of Landsat-8 with a 32-day interval.",
@@ -116,8 +128,8 @@
     }
   },
   "pt-br": {
-    "title-monitoring": "Monitoramento Diário",
-    "title-alerts": "Alerta urgente",
+    "title": "Monitoramento Diário",
+    "title-alerts": "Alertas Urgente",
     "monitoring-info-part1": "O Monitoramento é baseado na interpretação",
     "monitoring-info-part2": "visual do Landsat-8 com intervalo de 32 dias.",
     "monitoring-info-part3": "As detecções do monitoramento são contempladas",
@@ -136,14 +148,18 @@
 </i18n>
 
 <script>
-import Alerts from '~/components/monitoring/Alerts.vue';
-import MonitoringFilters from '@/components/monitoring/MonitoringFilters.vue';
+
+import AlertsFilters from '~/components/monitoring-alerts/urgent-alerts/AlertsFilters.vue';
+import MonitoringFilters from '@/components/monitoring-alerts/monitoring/MonitoringFilters.vue';
 
 export default {
+  name: 'MonitoringAlerts',
+
   components: {
-    Alerts,
+    AlertsFilters,
     MonitoringFilters,
   },
+  transition: 'scroll-y-transition',
 
   data() {
     return {
@@ -153,3 +169,13 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.tab-item {
+  flex: 1; /* Distribui o espaço igualmente */
+  text-align: center;
+  white-space: nowrap; /* Evita que o texto quebre */
+  min-width: 100px; /* Define um tamanho mínimo */
+  max-width: 150px; /* Limita o tamanho */
+}
+</style>

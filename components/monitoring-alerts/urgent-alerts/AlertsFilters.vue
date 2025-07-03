@@ -1,16 +1,106 @@
 <template>
   <v-col>
-    <BaseFilters
-      filter-type="date"
-      :filters.sync="filters"
-      :error="error"
-      :flattened="flattened"
-      :filter-options="filterOptions"
-      :current-url-wms="currentUrlWmsMonitoring"
-      :features-layer.sync="featuresMonitoring"
-      :loading="loadingMonitoring"
-      @search="searchMonitoring"
-    />
+     <v-row>
+           <v-col cols="9" class="pt-0 mt-0">
+        <v-checkbox
+          v-model="filters.currentView"
+          :label="$t('current-view-label')"
+          :error="error"
+          hide-details
+        />
+      </v-col>
+        <v-col cols="3" class="pt-0 mt-0" >
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <div
+              class="d-flex justify-end align-center mt-1"
+            >
+              <v-switch
+                v-if="currentUrlWmsAlerts"
+                v-model="featuresAlerts"
+                class="mt-3"
+                hide-details
+              />
+            </div>
+          </template>
+          <span>
+            {{
+              showFeaturesAlerts
+                ? $t('title-switch-disable-features')
+                : $t('title-switch-enable-features')
+            }}
+          </span>
+        </v-tooltip>
+      </v-col>
+         <v-col cols="12">
+        <v-combobox
+          v-model="filters.cr"
+          :label="$t('regional-coordination-label')"
+          :items="flattened"
+          item-value="co_cr"
+          item-text="ds_cr"
+          hide-details
+          clearable
+          multiple
+          :error="error"
+          class="pa-0"
+          outlined
+          @change="emitFilters"
+        />
+      </v-col>
+
+      <v-col cols="12">
+        <v-slide-y-transition>
+          <v-combobox
+            v-if="filters.cr && filterOptions.tiFilters"
+            v-model="filters.ti"
+            :label="$t('indigenous-lands-label')"
+            :items="filterOptions.tiFilters"
+            item-text="no_ti"
+            item-value="co_funai"
+            hide-details
+            multiple
+            clearable
+            class="pa-0 mt-n3"
+            outlined
+            @change="emitFilters"
+          />
+        </v-slide-y-transition>
+      </v-col>
+
+      <v-col cols="6" class="py-0">
+        <BaseDateField
+          v-model="filters.startDate"
+          :label="$t('start-date-label')"
+          :required="true"
+          outlined
+          :min-date="'2015-01-01'"
+        />
+      </v-col>
+      <v-col cols="6" class="py-0">
+        <BaseDateField
+          v-model="filters.endDate"
+          :label="$t('end-date-label')"
+          :required="true"
+          outlined
+          :min-date="'2015-01-01'"
+        />
+      </v-col>
+
+      <v-col cols="12">
+        <v-btn
+          block
+          small
+          color="primary"
+          outlined
+          :loading="loadingAlerts"
+          class="pa-0 mt-n6"
+          @click="searchAlerts"
+        >
+          {{ $t('search-label') }}
+        </v-btn>
+      </v-col>
+    </v-row>
     <div
       v-if="isLoadingFeatures"
       class="mt-1"
@@ -54,7 +144,7 @@
     </div>
     <v-row
       v-else-if="
-        showFeaturesMonitoring
+        showFeaturesAlerts
           && features.features.length > 0"
       no-gutters
       align="center"
@@ -201,13 +291,13 @@
 
     <!-- Diálogos -->
     <TableDialog
-      :table="tableDialogMonitoring"
+      :table="tableDialogAlerts"
       :headers="headers"
-      :value="formattedTableMonitoring"
+      :value="formattedTableAlerts"
       :loading-table="isLoadingTable"
       :loading-c-s-v="isLoadingCSV"
       :table-name="$t('table-name')"
-      :f-download-c-s-v="downloadTableMonitoring"
+      :f-download-c-s-v="downloadTableAlerts"
       :f-close-table="closeTable"
     />
     <div
@@ -215,7 +305,7 @@
       class="d-none"
     >
       <AnalyticalDialog
-        :value="analyticsMonitoringDialog"
+        :value="analyticsAlertsDialog"
         :close-dialog="closeAnalyticalDialog"
       />
     </div>
@@ -224,18 +314,18 @@
 
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';
-import TableDialog from '../table-dialog/TableDialog.vue';
-import DialogConfirmDownload from './DialogConfirmDownload.vue';
-import AnalyticalDialog from '../analytical-dialog/AnalyticalDialog.vue';
-import BaseFilters from '../base/BaseFilters.vue';
+import TableDialog from '../../table-dialog/TableDialog.vue';
+import DialogConfirmDownload from '../DialogConfirmDownload.vue';
+import AnalyticalDialog from '../../analytical-dialog/AnalyticalDialog.vue';
+import BaseDateField from '@/components/base/BaseDateField';
 
 export default {
-  name: 'MonitoringFilters',
+  name: 'UrgentAlertsFilters',
   components: {
     TableDialog,
     DialogConfirmDownload,
     AnalyticalDialog,
-    BaseFilters,
+    BaseDateField
   },
   data() {
     return {
@@ -265,7 +355,7 @@ export default {
       isLoadingFeatures: false,
       flattened: [],
       dialog: false,
-      tableDialogMonitoring: false,
+      tableDialogAlerts: false,
       isLoadingTable: false,
       isLoadingCSV: false,
       isLoadingGeoJson: false,
@@ -278,8 +368,8 @@ export default {
     },
     totalVisiblePolygons() {
       if (!this.features.features.length) return 0;
-      const visibleEstagios = Object.keys(this.$store.state.monitoring.legendVisibility)
-        .filter(estagio => this.$store.state.monitoring.legendVisibility[estagio]);
+      const visibleEstagios = Object.keys(this.$store.state['urgent-alerts'].legendVisibility)
+        .filter(estagio => this.$store.state['urgent-alerts'].legendVisibility[estagio]);
       return this.features.features.filter(feature =>
         visibleEstagios.includes(feature.properties.no_estagio)
       ).length;
@@ -288,8 +378,8 @@ export default {
       if (!this.features.features.length) {
         return this.formatFieldValue(0, 'nu_area_ha');
       }
-      const visibleEstagios = Object.keys(this.$store.state.monitoring.legendVisibility)
-        .filter(estagio => this.$store.state.monitoring.legendVisibility[estagio]);
+      const visibleEstagios = Object.keys(this.$store.state['urgent-alerts'].legendVisibility)
+        .filter(estagio => this.$store.state['urgent-alerts'].legendVisibility[estagio]);
       const total = this.features.features
         .filter(feature => visibleEstagios.includes(feature.properties.no_estagio))
         .reduce((sum, feature) =>
@@ -298,11 +388,11 @@ export default {
         );
       return this.formatFieldValue(total, 'nu_area_ha');
     },
-    formattedTableMonitoring() {
-      if (!this.tableMonitoring || !this.tableMonitoring.length) {
+    formattedTableAlerts() {
+      if (!this.tableAlerts || !this.tableAlerts.length) {
         return [];
       }
-      return this.tableMonitoring.map((item) => {
+      return this.tableAlerts.map((item) => {
         const formattedItem = { ...item };
         this.headers.forEach((header) => {
           const field = header.value;
@@ -313,42 +403,42 @@ export default {
     },
     opacity: {
       get() {
-        return this.$store.state.monitoring.opacity;
+        return this.$store.state['urgent-alerts'].opacity;
       },
       set(value) {
-        this.$store.commit('monitoring/setOpacity', value);
+        this.$store.commit('urgent-alerts/setOpacity', value);
       },
     },
     heatMap: {
       get() {
-        return this.$store.state.monitoring.heatMap;
+        return this.$store.state['urgent-alerts'].heatMap;
       },
       set(value) {
-        this.$store.dispatch('monitoring/generateHeatmapMonitoring', value);
+        this.$store.dispatch('urgent-alerts/generateHeatmapAlerts', value);
       },
     },
-    featuresMonitoring: {
+    featuresAlerts: {
       get() {
-        return this.$store.state.monitoring.showFeaturesMonitoring;
+        return this.$store.state['urgent-alerts'].showFeaturesAlerts;
       },
       set(value) {
-        this.$store.commit('monitoring/setshowFeaturesMonitoring', value);
+        this.$store.commit('urgent-alerts/setshowFeaturesAlerts', value);
       },
     },
     legendItems() {
-      return this.$store.getters['monitoring/getLegendItems'];
+      return this.$store.getters['urgent-alerts/getLegendItems'];
     },
-    tableMonitoring() {
-      return this.$store.state.monitoring.tableMonitoring;
+    tableAlerts() {
+      return this.$store.state['urgent-alerts'].tableAlerts;
     },
-    ...mapState('monitoring', [
-      'currentUrlWmsMonitoring',
-      'loadingMonitoring',
+    ...mapState('urgent-alerts', [
+      'currentUrlWmsAlerts',
+      'loadingAlerts',
       'filterOptions',
       'features',
-      'analyticsMonitoringDialog',
+      'analyticsAlertsDialog',
       'isLoadingStatistic',
-      'showFeaturesMonitoring',
+      'showFeaturesAlerts',
       'loadingHeatmap',
     ]),
   },
@@ -371,12 +461,12 @@ export default {
       this.populateCrOptions();
     },
     opacity() {
-      this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
+      this.$store.dispatch('urgent-alerts/generateUrlWmsAlerts');
     },
   },
   mounted() {
     this.getFilterOptions();
-    this.getMonitoringStyleFromGeoserver();
+    this.getAlertsStyleFromGeoserver();
   },
   methods: {
     emitFilters() {
@@ -435,18 +525,18 @@ export default {
     },
     populateTiOptions(cr) {
       if (cr && cr.length) {
-        this.$store.dispatch('monitoring/getTiOptions', cr);
+        this.$store.dispatch('urgent-alerts/getTiOptions', cr);
       } else {
         this.filters.ti = [];
       }
     },
     showTableDialogAnalytics(value) {
-      if (this.currentUrlWmsMonitoring) {
-        this.setanalyticsMonitoringDialog(value);
-        this.getDataAnalyticsMonitoring();
+      if (this.currentUrlWmsAlerts) {
+        this.setanalyticsAlertsDialog(value);
+        this.getDataAnalyticsAlerts();
       }
     },
-    searchMonitoring() {
+    searchAlerts() {
       const { filters } = this;
       const {
         currentView, cr, startDate, endDate,
@@ -477,21 +567,21 @@ export default {
         }
 
         const allEstagiosDisabled = Object.values(
-          this.$store.state.monitoring.legendVisibility,
+          this.$store.state['urgent-alerts'].legendVisibility,
         ).every(
           (visible) => !visible,
         );
 
         if (allEstagiosDisabled) {
-          this.$store.commit('monitoring/resetLegendVisibility');
-          this.$store.commit('monitoring/clearFeatures');
-          this.$store.commit('monitoring/setTableMonitoring', []);
+          this.$store.commit('urgent-alerts/resetLegendVisibility');
+          this.$store.commit('urgent-alerts/clearFeatures');
+          this.$store.commit('urgent-alerts/setTableAlerts', []);
         }
 
         this.setFilters(filtersForStore);
         this.isLoadingFeatures = true;
         this.getFeatures().then(() => {
-          this.getDataTableMonitoring();
+          this.getDataTableAlerts();
           this.isLoadingFeatures = false;
         }).catch(() => {
           this.isLoadingFeatures = false;
@@ -502,12 +592,12 @@ export default {
     },
     showTableDialog(value) {
       if (this.features) {
-        this.tableDialogMonitoring = value;
-        this.getDataTableMonitoring();
+        this.tableDialogAlerts = value;
+        this.getDataTableAlerts();
       }
     },
     closeTable(value) {
-      this.tableDialogMonitoring = value;
+      this.tableDialogAlerts = value;
       if (this.checkNewFilters) {
         this.getFeatures();
         this.checkNewFilters = false;
@@ -526,7 +616,7 @@ export default {
         const currentCenter = map?.getCenter();
 
         // Alterna a visibilidade sem refazer toda a pesquisa
-        await this.$store.dispatch('monitoring/toggleLegendVisibility', {
+        await this.$store.dispatch('urgent-alerts/toggleLegendVisibility', {
           estagio: item.estagio,
           visible: item.visible
         });
@@ -539,7 +629,7 @@ export default {
       } catch (error) {
         console.error('Erro ao alternar estágio:', error);
         // Reverte a mudança em caso de erro
-        this.$store.commit('monitoring/setLegendVisibility', {
+        this.$store.commit('urgent-alerts/setLegendVisibility', {
           estagio: item.estagio,
           visible: !item.visible
         });
@@ -547,15 +637,15 @@ export default {
         this.$set(this.loadingEstagios, item.estagio, false);
       }
     },
-    ...mapMutations('monitoring', ['setFilters', 'setLoadingStatistic', 'setanalyticsMonitoringDialog']),
-    ...mapActions('monitoring', [
+    ...mapMutations('urgent-alerts', ['setFilters', 'setLoadingStatistic', 'setanalyticsAlertsDialog']),
+    ...mapActions('urgent-alerts', [
       'getFilterOptions',
       'getFeatures',
-      'getMonitoringStyleFromGeoserver',
-      'downloadGeoJsonMonitoring',
-      'getDataTableMonitoring',
-      'downloadTableMonitoring',
-      'getDataAnalyticsMonitoring',
+      'getAlertsStyleFromGeoserver',
+      'downloadGeoJsonAlerts',
+      'getDataTableAlerts',
+      'downloadTableAlerts',
+      'getDataAnalyticsAlerts',
     ]),
   },
 };
@@ -606,8 +696,8 @@ export default {
     "total-poligono-label": "Total polygons",
     "regional-coordination-label": "Regional Coordination (All)",
     "indigenous-lands-label": "Indigenous Lands",
-    "title-switch-disable-features": "Disable Monitoring Layer",
-    "title-switch-enable-features": "Enable Monitoring Layer",
+    "title-switch-disable-features": "Disable Alerts Layer",
+    "title-switch-enable-features": "Enable Alerts Layer",
     "download-label": "Download",
     "statistics-label": "Statistics",
     "table-label": "Table",

@@ -206,8 +206,6 @@
 </i18n>
 
 <script>
-import { mapState } from 'vuex';
-import _ from 'lodash';
 
 import DeterFilters from '../../components/inpe/deter/DeterFilters.vue';
 import ProdesFilters from '../../components/inpe/prodes/ProdesFilters.vue';
