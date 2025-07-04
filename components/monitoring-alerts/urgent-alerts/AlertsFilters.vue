@@ -154,7 +154,7 @@
         cols="12"
         class="mt-n3 mb-1"
       >
-        <DialogConfirmDownload />
+        <DialogConfirmDownload module="urgent-alerts" />
         <v-btn
           :loading="isLoadingStatistic"
           small
@@ -315,9 +315,9 @@
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';
 import TableDialog from '../../table-dialog/TableDialog.vue';
-import DialogConfirmDownload from '../DialogConfirmDownload.vue';
 import AnalyticalDialog from '../../analytical-dialog/AnalyticalDialog.vue';
 import BaseDateField from '@/components/base/BaseDateField';
+import DialogConfirmDownload from '../DialogConfirmDownload.vue';
 
 export default {
   name: 'UrgentAlertsFilters',

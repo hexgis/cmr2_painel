@@ -6,16 +6,14 @@
   >
     <template #activator="{ on, attrs }">
       <v-tooltip bottom>
-        <template
-          #activator="{ on: onTooltip, attrs: attrsTooltip }"
-        >
+        <template #activator="{ on: onTooltip, attrs: attrsTooltip }">
           <v-btn
             v-if="table"
             small
             fab
             class="mx-2 my-2"
             color="secondary"
-            :loading="isLoadingGeoJson || isLoadingDownloadTableMonitoring"
+            :loading="isLoadingGeoJson || isLoadingDownloadTable"
             @click="startDownload"
           >
             <v-icon>mdi-download</v-icon>
@@ -55,9 +53,7 @@
         class="mt-4"
         style="text-align: justify"
       >
-        <p>
-          {{ $t('description-label-1') }}
-        </p>
+        <p>{{ $t('description-label-1') }}</p>
         <p>
           {{ $t('description-label-2') }}
           <a href="mailto:cmr@funai.gov.br">cmr@funai.gov.br</a>.
@@ -89,20 +85,20 @@
 
 <i18n>
 {
-    "en": {
-        "attention-label": "Attention",
-        "download-label": "Download",
-        "cancel-label": "Cancel",
-        "description-label-1": "Due to technical limitations, the generated file has a maximum limit of 10,000 features. The query made generated a number of polygons greater than that, so it is possible that not all polygons will be available in the generated file.",
-        "description-label-2": "If you need to download the complete data, please contact the CMR team via Contact Us on the platform or by email "
-    },
-    "pt-br": {
-        "attention-label": "Atenção",
-        "download-label": "Baixar",
-        "cancel-label": "Cancelar",
-        "description-label-1": "Devido a limitações técnicas, os arquivo gerado possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
-        "description-label-2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail "
-    }
+  "en": {
+    "attention-label": "Attention",
+    "download-label": "Download",
+    "cancel-label": "Cancel",
+    "description-label-1": "Due to technical limitations, the generated file has a maximum limit of 10,000 features. The query made generated a number of polygons greater than that, so it is possible that not all polygons will be available in the generated file.",
+    "description-label-2": "If you need to download the complete data, please contact the CMR team via Contact Us on the platform or by email "
+  },
+  "pt-br": {
+    "attention-label": "Atenção",
+    "download-label": "Baixar",
+    "cancel-label": "Cancelar",
+    "description-label-1": "Devido a limitações técnicas, os arquivo gerado possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
+    "description-label-2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail "
+  }
 }
 </i18n>
 
@@ -117,6 +113,11 @@ export default {
       type: Boolean,
       default: false,
     },
+    module: {
+      type: String,
+      required: true,
+      validator: (value) => ['monitoring', 'urgent-alerts'].includes(value),
+    },
   },
 
   data() {
@@ -126,16 +127,24 @@ export default {
   },
 
   computed: {
-    ...mapState('monitoring', ['isLoadingGeoJson', 'isLoadingDownloadTableMonitoring']),
+    ...mapState({
+      isLoadingGeoJson(state) {
+        return state[this.module].isLoadingGeoJson;
+      },
+      isLoadingDownloadTable(state) {
+        return state[this.module].isLoadingDownloadTableMonitoring
+         || state[this.module].isLoadingDownloadTableAlerts || false;
+      },
+    }),
   },
 
   methods: {
     async startDownload() {
       try {
-        this.$store.commit('monitoring/setLoadingGeoJson', true);
+        this.$store.commit(`${this.module}/setLoadingGeoJson`, true);
 
         const numberOfFeatures = await this.$store.dispatch(
-          'monitoring/checkHitsDownloadGeojsonMonitoring',
+          `${this.module}/checkHitsDownloadGeojson${this.module === 'monitoring' ? 'Monitoring' : 'Alerts'}`,
         );
 
         if (numberOfFeatures && numberOfFeatures > 10000) {
@@ -146,13 +155,16 @@ export default {
       } catch (error) {
         console.error('Error downloading GeoJSON:', error);
       } finally {
-        this.$store.commit('monitoring/setLoadingGeoJson', false);
+        this.$store.commit(`${this.module}/setLoadingGeoJson`, false);
       }
     },
 
     download() {
-      if (this.table) this.$store.dispatch('monitoring/downloadTableMonitoring');
-      else this.$store.dispatch('monitoring/downloadGeoJsonMonitoring');
+      if (this.table) {
+        this.$store.dispatch(`${this.module}/downloadTable${this.module === 'monitoring' ? 'Monitoring' : 'Alerts'}`);
+      } else {
+        this.$store.dispatch(`${this.module}/downloadGeoJson${this.module === 'monitoring' ? 'Monitoring' : 'Alerts'}`);
+      }
       this.dialog = false;
     },
   },
