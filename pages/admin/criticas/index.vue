@@ -145,18 +145,58 @@
 
               <v-row dense>
                 <v-col cols="12">
-                  <v-file-input
-                    v-model="newTicketData.attachments"
-                    :label="$t('attachFile')"
-                    accept=".pdf,.png,.jpg,.jpeg"
-                    :placeholder="$t('noFileSelected')"
-                    prepend-icon="mdi-paperclip"
-                    multiple
-                    outlined
-                  />
-                  <p class="ml-4 caption grey--text">
-                    Selecione seu arquivo (PDF, JPG, JPEG, PNG)
-                  </p>
+                  <div class="file-upload-section">
+                    <v-file-input
+                      ref="fileInput"
+                      v-model="tempFile"
+                      :label="$t('attachFile')"
+                      accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt,.xls,.xlsx,.csv"
+                      :placeholder="$t('noFileSelected')"
+                      prepend-icon="mdi-paperclip"
+                      outlined
+                      show-size
+                      @change="addFiles"
+                      hide-details
+                    />
+                    
+                    <v-btn
+                      v-if="newTicketData.attachments && newTicketData.attachments.length < 10"
+                      icon
+                      color="primary"
+                      class="mt-2"
+                      @click="triggerFileInput"
+                    >
+                      <v-icon>mdi-plus</v-icon>
+                    </v-btn>
+                    
+                    <div v-if="newTicketData.attachments && newTicketData.attachments.length > 0" class="mt-3">
+                      <v-subheader class="pl-0">{{ $t('attachedFiles') }} ({{ newTicketData.attachments.length }}/10)</v-subheader>
+                      <v-chip
+                        v-for="(fileItem, index) in newTicketData.attachments"
+                        :key="index"
+                        class="ma-1"
+                        close
+                        @click:close="removeFile(index)"
+                      >
+                        <v-icon left small>mdi-file</v-icon>
+                        {{ fileItem.name }}
+                        <span class="ml-1 caption">({{ formatFileSize(fileItem.size) }})</span>
+                      </v-chip>
+                    </div>
+                    
+                    <p class="ml-4 caption grey--text">
+                      Selecione seus arquivos (PDF, JPG, JPEG, PNG, DOC, DOCX, TXT, XLS, XLSX, CSV) - Máximo 10 arquivos de 10MB cada
+                    </p>
+                    <v-alert
+                      v-if="fileErrorMessages.length > 0"
+                      type="error"
+                      dense
+                      outlined
+                      class="mt-2"
+                    >
+                      {{ fileErrorMessages.join(', ') }}
+                    </v-alert>
+                  </div>
                 </v-col>
               </v-row>
             </v-form>
@@ -342,6 +382,40 @@ export default {
         { label: 'solicitações realizadas', total: 0, color: '#F58A1F' },
         { label: 'solicitações em andamento', total: 0, color: '#D92B3F' },
         { label: 'solicitações atendidas', total: 0, color: '#12A844' },
+      ],
+      fileErrorMessages: [],
+      fileRules: [
+        (files) => {
+          if (!files || files.length === 0) return true;
+          
+          // Check maximum number of files
+          if (files.length > 10) {
+            this.fileErrorMessages = ['Máximo de 10 arquivos permitidos'];
+            return false;
+          }
+          
+          // Check file size (10MB limit)
+          const maxSize = 10 * 1024 * 1024; // 10MB
+          const oversizedFiles = files.filter(file => file.size > maxSize);
+          if (oversizedFiles.length > 0) {
+            this.fileErrorMessages = [`Arquivos muito grandes: ${oversizedFiles.map(f => f.name).join(', ')} (máximo 10MB)`];
+            return false;
+          }
+          
+          // Check file extensions
+          const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
+          const invalidFiles = files.filter(file => {
+            const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            return !validExtensions.includes(ext);
+          });
+          if (invalidFiles.length > 0) {
+            this.fileErrorMessages = [`Extensões inválidas: ${invalidFiles.map(f => f.name).join(', ')}`];
+            return false;
+          }
+          
+          this.fileErrorMessages = [];
+          return true;
+        }
       ],
     };
   },
@@ -571,6 +645,64 @@ export default {
         description: '',
         attachments: [],
       };
+    },
+
+    // Métodos para manipulação de arquivos
+    addFiles(files) {
+      if (!files) return;
+      
+      // Convert to array if single file
+      const fileArray = Array.isArray(files) ? files : [files];
+      
+      // Add files to existing array
+      fileArray.forEach(file => {
+        if (this.newTicketData.attachments.length < 10) {
+          // Validate file
+          if (this.validateSingleFile(file)) {
+            this.newTicketData.attachments.push(file);
+          }
+        }
+      });
+      
+      // Clear the temp input
+      this.tempFile = null;
+      this.$refs.fileInput.reset();
+    },
+    
+    removeFile(index) {
+      this.newTicketData.attachments.splice(index, 1);
+      this.fileErrorMessages = [];
+    },
+    
+    triggerFileInput() {
+      this.$refs.fileInput.$refs.input.click();
+    },
+    
+    validateSingleFile(file) {
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
+      const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+      
+      if (file.size > maxSize) {
+        this.fileErrorMessages = [`Arquivo muito grande: ${file.name} (máximo 10MB)`];
+        return false;
+      }
+      
+      if (!validExtensions.includes(ext)) {
+        this.fileErrorMessages = [`Extensão inválida: ${file.name}`];
+        return false;
+      }
+      
+      this.fileErrorMessages = [];
+      return true;
+    },
+    
+    formatFileSize(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     },
 
     setDefaultStatusFiltersForAdmin() {

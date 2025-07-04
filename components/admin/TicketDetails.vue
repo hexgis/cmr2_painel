@@ -140,14 +140,88 @@
                         md="6"
                         class="relative-input"
                     >
-                        <v-file-input
-                            v-model="file"
-                            :label="$t('chooseFile')"
-                            multiple
-                            outlined
-                            prepend-icon="mdi-paperclip"
-                        ></v-file-input>
-                        <p class="absolute-input">{{ $t('selectYourFile') }}</p>
+                        <div class="file-upload-section">
+                            <!-- Hidden file input -->
+                            <v-file-input
+                                ref="fileInput"
+                                v-model="tempFile"
+                                style="display: none"
+                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.xls,.xlsx,.csv"
+                                @change="addFiles"
+                            ></v-file-input>
+                            
+                            <!-- Main upload area -->
+                            <v-card
+                                outlined
+                                class="upload-card pa-4"
+                                @click="triggerFileInput"
+                                :class="{ 'upload-card--active': file && file.length < 10 }"
+                            >
+                                <div class="text-center">
+                                    <v-icon size="32" color="primary" class="mb-2">mdi-cloud-upload</v-icon>
+                                    <p class="mb-1">{{ $t('chooseFile') }}</p>
+                                    <p class="caption grey--text mb-0">{{ $t('selectYourFile') }}</p>
+                                </div>
+                            </v-card>
+                            
+                            <!-- Add more files button -->
+                            <v-btn
+                                v-if="file && file.length > 0 && file.length < 10"
+                                icon
+                                color="primary"
+                                class="mt-2"
+                                @click="triggerFileInput"
+                            >
+                                <v-icon>mdi-plus</v-icon>
+                            </v-btn>
+                            
+                            <!-- Files list -->
+                            <div v-if="file && file.length > 0" class="mt-3">
+                                <v-subheader class="pl-0 font-weight-medium">
+                                    {{ $t('attachedFiles') }} ({{ file.length }}/10)
+                                </v-subheader>
+                                <v-list dense class="py-0">
+                                    <v-list-item
+                                        v-for="(fileItem, index) in file"
+                                        :key="index"
+                                        class="px-0"
+                                    >
+                                        <v-list-item-avatar>
+                                            <v-icon color="primary">{{ getFileIcon(fileItem.name) }}</v-icon>
+                                        </v-list-item-avatar>
+                                        <v-list-item-content>
+                                            <v-list-item-title class="text-body-2">
+                                                {{ fileItem.name }}
+                                            </v-list-item-title>
+                                            <v-list-item-subtitle class="caption">
+                                                {{ formatFileSize(fileItem.size) }}
+                                            </v-list-item-subtitle>
+                                        </v-list-item-content>
+                                        <v-list-item-action>
+                                            <v-btn
+                                                icon
+                                                small
+                                                color="error"
+                                                @click="removeFile(index)"
+                                            >
+                                                <v-icon small>mdi-close</v-icon>
+                                            </v-btn>
+                                        </v-list-item-action>
+                                    </v-list-item>
+                                </v-list>
+                            </div>
+                            
+                            <!-- Error messages -->
+                            <v-alert
+                                v-if="fileErrorMessages.length > 0"
+                                type="error"
+                                dense
+                                outlined
+                                class="mt-2"
+                            >
+                                {{ fileErrorMessages.join(', ') }}
+                            </v-alert>
+                        </div>
                     </v-col>
                     <v-col v-if="showAnalysisFieldsDev"
                         cols="12"
@@ -287,7 +361,7 @@
           "chooseFile": "Choose file",
           "sendEmailToUser": "Send email to user",
           "comment": "Comment",
-          "selectYourFile": "Select your file (PDF, JPG, JPEG, PNG, XLS, XLSX, CSV)",
+          "selectYourFile": "Select your file (PDF, JPG, JPEG, PNG, XLS, XLSX, CSV, DOC, DOCX, TXT)",
           "back": "Back",
           "description": "Description:",
           "error-request-title": "Request error",
@@ -317,7 +391,7 @@
           "chooseFile": "Escolher Arquivo",
           "sendEmailToUser": "Enviar e-mail ao usuário",
           "comment": "Comentário",
-          "selectYourFile": "Selecione seu arquivo (PDF, JPG, JPEG, PNG, XLS, XLSX, CSV)",
+          "selectYourFile": "Selecione seu arquivo (PDF, JPG, JPEG, PNG, XLS, XLSX, CSV, DOC, DOCX, TXT)",
           "back": "Voltar",
           "description": "Descrição:",
           "error-request-title": "Erro na solicitação",
@@ -350,12 +424,47 @@ export default {
             complexity: null,
             functionality: null,
             priority: null,
-            file: null,
+            file: [],
+            tempFile: null,
             checkbox: false,
             teste: null,
             text: '',
             isLoading: false,
-            errorModal: false
+            errorModal: false,
+            fileErrorMessages: [],
+            fileRules: [
+                (files) => {
+                    if (!files || files.length === 0) return true;
+                    
+                    // Check maximum number of files
+                    if (files.length > 10) {
+                        this.fileErrorMessages = ['Máximo de 10 arquivos permitidos'];
+                        return false;
+                    }
+                    
+                    // Check file size (10MB limit)
+                    const maxSize = 10 * 1024 * 1024; // 10MB
+                    const oversizedFiles = files.filter(file => file.size > maxSize);
+                    if (oversizedFiles.length > 0) {
+                        this.fileErrorMessages = [`Arquivos muito grandes: ${oversizedFiles.map(f => f.name).join(', ')} (máximo 10MB)`];
+                        return false;
+                    }
+                    
+                    // Check file extensions
+                    const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
+                    const invalidFiles = files.filter(file => {
+                        const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                        return !validExtensions.includes(ext);
+                    });
+                    if (invalidFiles.length > 0) {
+                        this.fileErrorMessages = [`Extensões inválidas: ${invalidFiles.map(f => f.name).join(', ')}`];
+                        return false;
+                    }
+                    
+                    this.fileErrorMessages = [];
+                    return true;
+                }
+            ]
         }
     },
     async mounted() {
@@ -369,11 +478,11 @@ export default {
         ...mapState('userProfile', ['user']),
 
         showAnalysisFieldsAdmin() {
-            return this.user?.components?.feedback_admin === true
+            return this.user && this.user.components && this.user.components.feedback_admin === true
         },
 
         showAnalysisFieldsDev() {
-            return this.user?.components?.feedback_dev === true
+            return this.user && this.user.components && this.user.components.feedback_dev === true
         },
 
 
@@ -383,8 +492,9 @@ export default {
 
         isCompletedCard() {
             return (
-                this.ticketDetail.ticket_status?.formated_info
-                    ?.status_category_display === 'Concluído'
+                this.ticketDetail.ticket_status && 
+                this.ticketDetail.ticket_status.formated_info &&
+                this.ticketDetail.ticket_status.formated_info.status_category_display === 'Concluído'
             )
         },
         dueDate() {
@@ -393,10 +503,13 @@ export default {
                 : this.ticketDetail.opened_in_formatted
         },
         dueOn() {
-            return this.ticketDetail.ticket_status?.due_on
+            return this.ticketDetail.ticket_status && this.ticketDetail.ticket_status.due_on
         },
         statusLabelOptions() {
-            const availableTransitions = this.ticketDetail?.ticket_status?.formated_info?.available_status_transitions || [];
+            const availableTransitions = this.ticketDetail && 
+                this.ticketDetail.ticket_status && 
+                this.ticketDetail.ticket_status.formated_info && 
+                this.ticketDetail.ticket_status.formated_info.available_status_transitions || [];
             
             if (availableTransitions.length > 0) {
                 return availableTransitions.map((transition) => ({
@@ -405,7 +518,7 @@ export default {
                 }));
             }
             
-            return this.labels?.status_category?.map((label) => ({
+            return this.labels && this.labels.status_category && this.labels.status_category.map((label) => ({
                 text: label.label,
                 value: label.value,
                 disabled: label.label === 'Não Analisado',
@@ -413,36 +526,38 @@ export default {
         },
 
         complexityLabelOptions() {
-            return this.labels?.complexity?.map((label) => ({
+            return this.labels && this.labels.complexity && this.labels.complexity.map((label) => ({
                 text: label.label,
                 value: label.value,
             }))
         },
         solicitationTypeLabelOptions() {
-            return this.labels?.solicitation_type?.map((label) => ({
+            return this.labels && this.labels.solicitation_type && this.labels.solicitation_type.map((label) => ({
                 text: label.label,
                 value: label.value,
             }))
         },
         priorityLabelOptions() {
-            return this.labels?.priority_code?.map((label) => ({
+            return this.labels && this.labels.priority_code && this.labels.priority_code.map((label) => ({
                 text: label.label,
                 value: label.value,
             }))
         },
         lastComment() {
-            return this.ticketDetail?.ticket_analysis_history?.length
-                ? this.ticketDetail?.ticket_analysis_history[0]?.comment
+            return this.ticketDetail && this.ticketDetail.ticket_analysis_history && this.ticketDetail.ticket_analysis_history.length
+                ? this.ticketDetail.ticket_analysis_history[0].comment
                 : 'Nenhum comentário disponível.'
         },
         closedSolicitation() {
-            const status =
-                this.ticketDetail.ticket_status?.formated_info
-                    ?.status_category_display
+            const status = this.ticketDetail.ticket_status &&
+                this.ticketDetail.ticket_status.formated_info &&
+                this.ticketDetail.ticket_status.formated_info.status_category_display
             return status === 'Recusado' || status === 'Inviável'
         },
         isReviewed() {
-            return (this.ticketDetail.ticket_status?.formated_info?.status_category_display !== 'Não Analisado')
+            return (this.ticketDetail.ticket_status && 
+                this.ticketDetail.ticket_status.formated_info && 
+                this.ticketDetail.ticket_status.formated_info.status_category_display !== 'Não Analisado')
         },
     },
     methods: {
@@ -459,7 +574,7 @@ export default {
                     await this.$api.post(`/adm-panel/tickets/send-email/`, {
                         requesting: this.ticketDetail.requesting,
                         ticket_id: this.ticketDetail.code,
-                        status: this.status || this.ticketDetail?.ticket_status?.formated_info?.status_category_display,
+                        status: this.status || (this.ticketDetail.ticket_status && this.ticketDetail.ticket_status.formated_info && this.ticketDetail.ticket_status.formated_info.status_category_display),
                         comment: this.text,
                     })
                 }
@@ -509,7 +624,7 @@ export default {
                 this.errorModal = true
                 console.error(
                     'Erro ao salvar informações:',
-                    error.response?.data || error.message
+                    error.response && error.response.data || error.message
                 )
             } finally {
               this.isLoading = false
@@ -570,10 +685,91 @@ export default {
                 })
 
                 this.text = ''
-            } catch {
-                console.error('Erro ao solicitar')
+            } catch (error) {
+                console.error('Erro ao solicitar', error)
             } finally {
               this.isLoading = false
+            }
+        },
+        
+        addFiles(files) {
+            if (!files) return;
+            
+            // Convert to array if single file
+            const fileArray = Array.isArray(files) ? files : [files];
+            
+            // Add files to existing array
+            fileArray.forEach(file => {
+                if (this.file.length < 10) {
+                    // Validate file
+                    if (this.validateSingleFile(file)) {
+                        this.file.push(file);
+                    }
+                }
+            });
+            
+            // Clear the temp input
+            this.tempFile = null;
+            this.$refs.fileInput.reset();
+        },
+        
+        removeFile(index) {
+            this.file.splice(index, 1);
+            this.fileErrorMessages = [];
+        },
+        
+        triggerFileInput() {
+            this.$refs.fileInput.$refs.input.click();
+        },
+        
+        validateSingleFile(file) {
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
+            const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            
+            if (file.size > maxSize) {
+                this.fileErrorMessages = [`Arquivo muito grande: ${file.name} (máximo 10MB)`];
+                return false;
+            }
+            
+            if (!validExtensions.includes(ext)) {
+                this.fileErrorMessages = [`Extensão inválida: ${file.name}`];
+                return false;
+            }
+            
+            this.fileErrorMessages = [];
+            return true;
+        },
+        
+        formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        },
+        
+        getFileIcon(fileName) {
+            const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+            switch (ext) {
+                case '.pdf':
+                    return 'mdi-file-pdf-box';
+                case '.doc':
+                case '.docx':
+                    return 'mdi-file-word-box';
+                case '.xls':
+                case '.xlsx':
+                    return 'mdi-file-excel-box';
+                case '.jpg':
+                case '.jpeg':
+                case '.png':
+                    return 'mdi-file-image-box';
+                case '.txt':
+                    return 'mdi-file-document-box';
+                case '.csv':
+                    return 'mdi-file-delimited-box';
+                default:
+                    return 'mdi-file-box';
             }
         },
     },
