@@ -114,6 +114,7 @@ export default {
         },
         ...mapState('map', ['bounds', 'tmsToPrint']),
         ...mapState('monitoring', ['heatMap', 'resultsHeatmap', 'resultsHeatmapOptions']),
+        ...mapState('urgent-alerts', ['heatMap', 'resultsHeatmap', 'resultsHeatmapOptions']),
         ...mapState('supportLayers', ['supportLayers']),
         ...mapState('land-use', ['showFeaturesLandUse', 'features']),
     },
