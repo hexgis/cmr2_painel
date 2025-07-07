@@ -107,19 +107,64 @@
           </p>
         </v-col>
         <v-col>
-          <p v-if="ticketDetail?.attachments?.length">
-            <strong>{{ $t('attachedFiles') }}</strong>
-          </p>
-          <span
-            v-for="(file, index) in ticketDetail.attachments"
-            :key="index"
-          >
-            <a
-              :href="`${$api}//adm-panel/tickets/download/`"
-              target="_blank"
-            > {{ file.name_file }}</a>
-            <br>
-          </span>
+          <div v-if="ticketDetail?.attachments?.length">
+            <div class="attachments-header mb-3">
+              <v-icon
+                small
+                color="primary"
+                class="mr-2"
+              >
+                mdi-paperclip
+              </v-icon>
+              <strong class="text-primary">
+                {{ $t('attachedFiles') }} ({{ ticketDetail.attachments.length }})
+              </strong>
+            </div>
+
+            <!-- Files grid for better visualization -->
+            <div class="attachments-grid">
+              <v-card
+                v-for="(attachedFile, index) in ticketDetail.attachments"
+                :key="index"
+                outlined
+                class="attachment-card ma-1 pa-2"
+                hover
+                @click="downloadAttachedFile(attachedFile)"
+              >
+                <div class="d-flex align-center">
+                  <v-icon
+                    :color="getFileIconColor(attachedFile.name_file)"
+                    class="mr-3"
+                    size="24"
+                  >
+                    {{ getFileIcon(attachedFile.name_file) }}
+                  </v-icon>
+                  <div class="attachment-info flex-grow-1">
+                    <div
+                      class="attachment-name text-body-2 font-weight-medium"
+                      :title="attachedFile.name_file"
+                    >
+                      {{ truncateFileName(attachedFile.name_file, 30) }}
+                    </div>
+                    <div class="attachment-type caption grey--text">
+                      {{ getFileType(attachedFile.name_file) }}
+                    </div>
+                  </div>
+                  <v-btn
+                    icon
+                    small
+                    color="primary"
+                    @click.stop="downloadAttachedFile(attachedFile)"
+                  >
+                    <v-icon small>
+                      mdi-download
+                    </v-icon>
+                  </v-btn>
+                </div>
+              </v-card>
+            </div>
+          </div>
+
           <v-textarea
             v-if="this.ticketDetail?.ticket_analysis_history?.length"
             :class="ticketDetail?.attachments?.length ? 'mt-6' : ''"
@@ -628,11 +673,23 @@ export default {
       ],
     };
   },
+  watch: {
+    // Watch for changes in ticketDetail to set priority
+    ticketDetail: {
+      handler() {
+        this.setInitialPriority();
+      },
+      deep: true,
+    },
+  },
   async mounted() {
     await this.$store.dispatch('admin/fetchTicketDetail', {
       ticketId: this.cardId,
     });
     await this.$store.dispatch('admin/fetchAllLabelOptions');
+
+    // Set initial priority if it exists
+    this.setInitialPriority();
   },
   computed: {
     ...mapGetters('admin', ['ticketDetail', 'labels']),
@@ -745,6 +802,24 @@ export default {
     },
   },
   methods: {
+    setInitialPriority() {
+      if (this.ticketDetail
+          && this.ticketDetail.ticket_status
+          && this.ticketDetail.ticket_status.formated_info
+          && this.ticketDetail.ticket_status.formated_info.priority_display
+          && !this.priority) {
+        const currentPriority = this.ticketDetail.ticket_status.formated_info.priority_display;
+
+        const priorityOption = this.priorityLabelOptions.find(
+          (option) => option.text === currentPriority,
+        );
+
+        if (priorityOption) {
+          this.priority = priorityOption.value;
+        }
+      }
+    },
+
     formattedDate(date) {
       if (date) {
         const [year, month, day] = date.split('-');
@@ -1022,6 +1097,11 @@ export default {
       target.style.display = 'none';
     },
 
+    downloadAttachedFile(file) {
+      const downloadUrl = `${this.$api}/adm-panel/tickets/download/${file.id || file.name_file}`;
+      window.open(downloadUrl, '_blank');
+    },
+
     truncateFileName(fileName, maxLength) {
       if (fileName.length <= maxLength) return fileName;
 
@@ -1156,4 +1236,38 @@ p
   &--active
     border-color: #1976d2
     background-color: #f3f8ff
+
+// Attachment styles (same as Timeline.vue)
+.attachments-header
+  display: flex
+  align-items: center
+  margin-bottom: 8px
+
+.attachments-grid
+  display: grid
+  grid-template-columns: 1fr
+  gap: 8px
+  max-height: 200px
+  overflow-y: auto
+
+.attachment-card
+  cursor: pointer
+  transition: all 0.2s ease
+  border-radius: 8px
+
+  &:hover
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)
+    transform: translateY(-1px)
+
+.attachment-info
+  min-width: 0
+
+.attachment-name
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+  line-height: 1.2
+
+.attachment-type
+  line-height: 1
 </style>
