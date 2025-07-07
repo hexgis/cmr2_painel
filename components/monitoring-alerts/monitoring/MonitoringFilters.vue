@@ -136,7 +136,7 @@
       class="mt-3"
     >
       <v-col cols="12" class="mt-n3 mb-1">
-        <DialogConfirmDownload />
+        <DialogConfirmDownload module="monitoring" />
         <v-btn
           :loading="isLoadingStatistic"
           small

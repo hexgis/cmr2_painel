@@ -154,7 +154,7 @@
         cols="12"
         class="mt-n3 mb-1"
       >
-        <DialogConfirmDownload />
+        <DialogConfirmDownload module="urgent-alerts" />
         <v-btn
           :loading="isLoadingStatistic"
           small
@@ -236,7 +236,7 @@
           class="d-flex justify-end mt-n7 pr-1"
         >
           <v-switch
-            v-model="heatMap"
+            v-model="heatMap" 
             class="mt-0 pt-0"
             :loading="loadingHeatmap"
             :disabled="loadingHeatmap || !hasFeatures"
@@ -315,9 +315,9 @@
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';
 import TableDialog from '../../table-dialog/TableDialog.vue';
-import DialogConfirmDownload from '../DialogConfirmDownload.vue';
 import AnalyticalDialog from '../../analytical-dialog/AnalyticalDialog.vue';
 import BaseDateField from '@/components/base/BaseDateField';
+import DialogConfirmDownload from '../DialogConfirmDownload.vue';
 
 export default {
   name: 'UrgentAlertsFilters',
@@ -573,7 +573,7 @@ export default {
         );
 
         if (allEstagiosDisabled) {
-          this.$store.commit('urgent-alerts/resetLegendVisibility');
+        
           this.$store.commit('urgent-alerts/clearFeatures');
           this.$store.commit('urgent-alerts/setTableAlerts', []);
         }
@@ -610,25 +610,21 @@ export default {
       try {
         this.$set(this.loadingEstagios, item.estagio, true);
 
-        // Salva o estado atual do mapa
         const map = window.mapMain;
         const currentZoom = map?.getZoom();
         const currentCenter = map?.getCenter();
 
-        // Alterna a visibilidade sem refazer toda a pesquisa
         await this.$store.dispatch('urgent-alerts/toggleLegendVisibility', {
           estagio: item.estagio,
           visible: item.visible
         });
 
-        // Restaura a visualização do mapa
         if (map && currentZoom && currentCenter) {
           map.setView(currentCenter, currentZoom);
         }
 
       } catch (error) {
         console.error('Erro ao alternar estágio:', error);
-        // Reverte a mudança em caso de erro
         this.$store.commit('urgent-alerts/setLegendVisibility', {
           estagio: item.estagio,
           visible: !item.visible
