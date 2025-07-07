@@ -590,7 +590,7 @@
           "chooseFile": "Escolher Arquivos",
           "sendEmailToUser": "Enviar e-mail ao usuário",
           "comment": "Comentário",
-          "selectYourFile": "Selecione seus arquivos (múltipla seleção)",
+          "selectYourFile": "Selecione seus arquivos PDF, JPG, JPEG, PNG, DOC, DOCX, TXT, XLS, XLSX, CSV (múltipla seleção) ",
           "back": "Voltar",
           "description": "Descrição:",
           "error-request-title": "Erro na solicitação",
