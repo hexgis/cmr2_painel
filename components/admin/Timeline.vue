@@ -80,7 +80,7 @@
                     target="_blank"
                     @click.stop
                   >
-                  >
+                    >
                     <v-icon small>
                       mdi-download
                     </v-icon>
@@ -133,7 +133,7 @@ export default {
       if (!attachment || !attachment.id) return '#';
       const baseUrl = this.$api.defaults.baseURL;
       const attachmentId = attachment.id;
-      const attachmentType = 'answer'; // These are status attachments (answers)
+      const attachmentType = 'answer';
       return `${baseUrl}adm-panel/tickets/download/${attachmentId}/${attachmentType}/`;
     },
 
