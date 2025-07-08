@@ -119,19 +119,7 @@
               >
                 <template #item.actions="{ item }">
                   <v-tooltip bottom>
-                    <template
-                      #activator="{ on, attrs }"
-                    >
-                      <v-icon
-                        v-bind="attrs"
-                        dense
-                        class="mr-2"
-                        v-on="on"
-                        @click="downloadDocument(item)"
-                      >
-                        mdi-download
-                      </v-icon>
-                    </template>
+                    <template />
                     <span>{{
                       $t('download-label-tooltip')
                     }}</span>
@@ -204,7 +192,6 @@
     }
 </i18n>
 
-
 <script>
 import { mapMutations, mapState, mapActions } from 'vuex';
 import legend from '@/assets/legend.png';
@@ -274,15 +261,6 @@ export default {
 
     closeDialog(value) {
       this.setShowDialogMapoteca(value);
-    },
-
-    downloadDocument(item) {
-      const link = document.createElement('a');
-      link.href = item.url_doc;
-      link.download = item.no_document;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
     },
 
     showDocument(item) {
