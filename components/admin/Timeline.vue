@@ -76,9 +76,10 @@
                     icon
                     small
                     color="primary"
-                    :href="getDownloadLink(attachment.file_path)"
+                    :href="getDownloadLink(attachment)"
                     target="_blank"
                     @click.stop
+                  >
                   >
                     <v-icon small>
                       mdi-download
@@ -128,14 +129,16 @@ export default {
     },
   },
   methods: {
-    getDownloadLink(attachments) {
-      if (!attachments) return '#';
-      const baseUrl = process.env.API_URL;
-      return `${baseUrl}adm-panel/tickets/download${attachments}`;
+    getDownloadLink(attachment) {
+      if (!attachment || !attachment.id) return '#';
+      const baseUrl = this.$api.defaults.baseURL;
+      const attachmentId = attachment.id;
+      const attachmentType = 'answer'; // These are status attachments (answers)
+      return `${baseUrl}adm-panel/tickets/download/${attachmentId}/${attachmentType}/`;
     },
 
     downloadAttachment(attachment) {
-      const link = this.getDownloadLink(attachment.file_path);
+      const link = this.getDownloadLink(attachment);
       window.open(link, '_blank');
     },
 

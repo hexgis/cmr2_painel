@@ -545,35 +545,35 @@ export default {
       fileRules: [
         (files) => {
           if (!files || files.length === 0) return true;
-          
+
           // Check maximum number of files
           if (files.length > 10) {
             this.fileErrorMessages = ['Máximo de 10 arquivos permitidos'];
             return false;
           }
-          
+
           // Check file size (10MB limit)
           const maxSize = 10 * 1024 * 1024; // 10MB
-          const oversizedFiles = files.filter(file => file.size > maxSize);
+          const oversizedFiles = files.filter((file) => file.size > maxSize);
           if (oversizedFiles.length > 0) {
-            this.fileErrorMessages = [`Arquivos muito grandes: ${oversizedFiles.map(f => f.name).join(', ')} (máximo 10MB)`];
+            this.fileErrorMessages = [`Arquivos muito grandes: ${oversizedFiles.map((f) => f.name).join(', ')} (máximo 10MB)`];
             return false;
           }
-          
+
           // Check file extensions
           const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
-          const invalidFiles = files.filter(file => {
+          const invalidFiles = files.filter((file) => {
             const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
             return !validExtensions.includes(ext);
           });
           if (invalidFiles.length > 0) {
-            this.fileErrorMessages = [`Extensões inválidas: ${invalidFiles.map(f => f.name).join(', ')}`];
+            this.fileErrorMessages = [`Extensões inválidas: ${invalidFiles.map((f) => f.name).join(', ')}`];
             return false;
           }
-          
+
           this.fileErrorMessages = [];
           return true;
-        }
+        },
       ],
     };
   },
@@ -823,12 +823,12 @@ export default {
     // Métodos para manipulação de arquivos
     addFiles(files) {
       if (!files) return;
-      
+
       // Convert to array if single file
       const fileArray = Array.isArray(files) ? files : [files];
-      
+
       // Add files to existing array
-      fileArray.forEach(file => {
+      fileArray.forEach((file) => {
         if (this.newTicketData.attachments.length < 10) {
           // Validate file
           if (this.validateSingleFile(file)) {
@@ -836,46 +836,46 @@ export default {
           }
         }
       });
-      
+
       // Clear the temp input
       this.tempFile = null;
       this.$refs.fileInput.reset();
     },
-    
+
     removeFile(index) {
       this.newTicketData.attachments.splice(index, 1);
       this.fileErrorMessages = [];
     },
-    
+
     triggerFileInput() {
       this.$refs.fileInput.$refs.input.click();
     },
-    
+
     validateSingleFile(file) {
       const maxSize = 10 * 1024 * 1024; // 10MB
       const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
       const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-      
+
       if (file.size > maxSize) {
         this.fileErrorMessages = [`Arquivo muito grande: ${file.name} (máximo 10MB)`];
         return false;
       }
-      
+
       if (!validExtensions.includes(ext)) {
         this.fileErrorMessages = [`Extensão inválida: ${file.name}`];
         return false;
       }
-      
+
       this.fileErrorMessages = [];
       return true;
     },
-    
+
     formatFileSize(bytes) {
       if (bytes === 0) return '0 B';
       const k = 1024;
       const sizes = ['B', 'KB', 'MB', 'GB'];
       const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
     },
 
     getFileIcon(fileName) {

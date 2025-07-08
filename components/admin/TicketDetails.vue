@@ -681,6 +681,12 @@ export default {
       },
       deep: true,
     },
+    labels: {
+      handler() {
+        this.setInitialPriority();
+      },
+      deep: true,
+    },
   },
   async mounted() {
     await this.$store.dispatch('admin/fetchTicketDetail', {
@@ -758,7 +764,7 @@ export default {
       return this.labels && this.labels.priority_code && this.labels.priority_code.map((label) => ({
         text: label.label,
         value: label.value,
-      }));
+      })) || [];
     },
     lastComment() {
       return this.ticketDetail && this.ticketDetail.ticket_analysis_history && this.ticketDetail.ticket_analysis_history.length
@@ -807,6 +813,7 @@ export default {
           && this.ticketDetail.ticket_status
           && this.ticketDetail.ticket_status.formated_info
           && this.ticketDetail.ticket_status.formated_info.priority_display
+          && this.priorityLabelOptions.length > 0
           && !this.priority) {
         const currentPriority = this.ticketDetail.ticket_status.formated_info.priority_display;
 
@@ -1098,7 +1105,10 @@ export default {
     },
 
     downloadAttachedFile(file) {
-      const downloadUrl = `${this.$api}/adm-panel/tickets/download/${file.id || file.name_file}`;
+      const baseUrl = this.$api.defaults.baseURL;
+      const attachmentId = file.id;
+      const attachmentType = 'question';
+      const downloadUrl = `${baseUrl}adm-panel/tickets/download/${attachmentId}/${attachmentType}/`;
       window.open(downloadUrl, '_blank');
     },
 
