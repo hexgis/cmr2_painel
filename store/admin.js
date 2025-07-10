@@ -67,8 +67,8 @@ export const actions = {
         .reduce((sum, monthly) => sum + monthly.count, 0)
 
       commit('setAcessTotal', acessTotal)
-    } catch {
-      console.error('Erro ao requisitar os dados de acesso.')
+    } catch (error) {
+      console.error('Erro ao requisitar os dados de acesso.', error)
     }
   },
 
@@ -167,8 +167,8 @@ export const actions = {
       formData.append('status_category', ticketData.status_category);
 
       if (ticketData.attachments && ticketData.attachments.length > 0) {
-        ticketData.attachments.forEach((file, index) => {
-          formData.append(`attachments[${index}]`, file);
+        ticketData.attachments.forEach((file) => {
+          formData.append('attachments', file);
         });
       }
 

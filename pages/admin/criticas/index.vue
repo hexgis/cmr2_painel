@@ -145,18 +145,202 @@
 
               <v-row dense>
                 <v-col cols="12">
-                  <v-file-input
-                    v-model="newTicketData.attachments"
-                    :label="$t('attachFile')"
-                    accept=".pdf,.png,.jpg,.jpeg"
-                    :placeholder="$t('noFileSelected')"
-                    prepend-icon="mdi-paperclip"
-                    multiple
-                    outlined
-                  />
-                  <p class="ml-4 caption grey--text">
-                    Selecione seu arquivo (PDF, JPG, JPEG, PNG)
-                  </p>
+                  <div class="file-upload-section">
+                    <!-- Hidden file input -->
+                    <v-file-input
+                      ref="fileInput"
+                      v-model="tempFile"
+                      style="display: none"
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.xls,.xlsx,.csv"
+                      multiple
+                      @change="addFiles"
+                    />
+
+                    <!-- Main upload area -->
+                    <v-card
+                      outlined
+                      class="upload-card pa-4"
+                      :class="{ 'upload-card--active': newTicketData.attachments && newTicketData.attachments.length < 10 }"
+                      @click="triggerFileInput"
+                    >
+                      <div class="text-center">
+                        <v-icon
+                          size="32"
+                          color="primary"
+                          class="mb-2"
+                        >
+                          mdi-cloud-upload
+                        </v-icon>
+                        <p class="mb-1">
+                          {{ $t('chooseFile') }}
+                        </p>
+                        <p class="caption grey--text mb-0">
+                          {{ $t('selectYourFile') }}
+                        </p>
+                      </div>
+                    </v-card>
+
+                    <!-- Files list -->
+                    <div
+                      v-if="newTicketData.attachments && newTicketData.attachments.length > 0"
+                      class="mt-3"
+                    >
+                      <div class="d-flex justify-space-between align-center mb-2">
+                        <v-subheader class="pl-0 font-weight-medium">
+                          {{ $t('attachedFiles') }} ({{ newTicketData.attachments.length }}/10)
+                        </v-subheader>
+                        <v-btn
+                          v-if="newTicketData.attachments.length > 3"
+                          text
+                          small
+                          color="primary"
+                          @click="showAllFiles = !showAllFiles"
+                        >
+                          {{ showAllFiles ? $t('showLess') : $t('showAll') }}
+                          <v-icon
+                            small
+                            class="ml-1"
+                          >
+                            {{ showAllFiles ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+                          </v-icon>
+                        </v-btn>
+                      </div>
+
+                      <!-- File grid for better visualization -->
+                      <div
+                        v-if="newTicketData.attachments.length <= 3 || showAllFiles"
+                        class="files-grid"
+                      >
+                        <v-card
+                          v-for="(fileItem, index) in sortedFiles"
+                          :key="index"
+                          outlined
+                          class="file-card ma-1"
+                        >
+                          <div class="file-preview">
+                            <!-- Image preview for image files -->
+                            <div
+                              v-if="isImageFile(fileItem.name)"
+                              class="image-preview"
+                            >
+                              <img
+                                :src="getImagePreview(fileItem)"
+                                :alt="fileItem.name"
+                                class="preview-image"
+                                @error="onImageError"
+                              >
+                            </div>
+                            <!-- Icon for other files -->
+                            <div
+                              v-else
+                              class="icon-preview"
+                            >
+                              <v-icon
+                                size="40"
+                                :color="getFileIconColor(fileItem.name)"
+                              >
+                                {{ getFileIcon(fileItem.name) }}
+                              </v-icon>
+                            </div>
+                          </div>
+
+                          <v-card-text class="pa-2">
+                            <div class="file-info">
+                              <p
+                                class="file-name text-body-2 mb-1"
+                                :title="fileItem.name"
+                              >
+                                {{ truncateFileName(fileItem.name, 20) }}
+                              </p>
+                              <p class="file-size caption grey--text mb-0">
+                                {{ formatFileSize(fileItem.size) }}
+                              </p>
+                              <p class="file-type caption grey--text mb-0">
+                                {{ getFileType(fileItem.name) }}
+                              </p>
+                            </div>
+                          </v-card-text>
+
+                          <v-card-actions class="pa-1">
+                            <v-spacer />
+                            <v-btn
+                              icon
+                              x-small
+                              color="error"
+                              @click="removeFile(index)"
+                            >
+                              <v-icon x-small>
+                                mdi-close
+                              </v-icon>
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </div>
+
+                      <!-- Collapsed view for many files -->
+                      <div
+                        v-else
+                        class="files-collapsed"
+                      >
+                        <v-list
+                          dense
+                          class="py-0"
+                        >
+                          <v-list-item
+                            v-for="(fileItem, index) in newTicketData.attachments.slice(0, 3)"
+                            :key="index"
+                            class="px-0"
+                          >
+                            <v-list-item-avatar size="32">
+                              <v-icon
+                                size="20"
+                                :color="getFileIconColor(fileItem.name)"
+                              >
+                                {{ getFileIcon(fileItem.name) }}
+                              </v-icon>
+                            </v-list-item-avatar>
+                            <v-list-item-content>
+                              <v-list-item-title class="text-body-2">
+                                {{ truncateFileName(fileItem.name, 30) }}
+                              </v-list-item-title>
+                              <v-list-item-subtitle class="caption">
+                                {{ formatFileSize(fileItem.size) }} • {{ getFileType(fileItem.name) }}
+                              </v-list-item-subtitle>
+                            </v-list-item-content>
+                            <v-list-item-action>
+                              <v-btn
+                                icon
+                                x-small
+                                color="error"
+                                @click="removeFile(index)"
+                              >
+                                <v-icon x-small>
+                                  mdi-close
+                                </v-icon>
+                              </v-btn>
+                            </v-list-item-action>
+                          </v-list-item>
+                        </v-list>
+                        <v-divider />
+                        <div class="text-center pa-2">
+                          <span class="caption grey--text">
+                            {{ $t('andMoreFiles', { count: newTicketData.attachments.length - 3 }) }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Error messages -->
+                    <v-alert
+                      v-if="fileErrorMessages.length > 0"
+                      type="error"
+                      dense
+                      outlined
+                      class="mt-2"
+                    >
+                      {{ fileErrorMessages.join(', ') }}
+                    </v-alert>
+                  </div>
                 </v-col>
               </v-row>
             </v-form>
@@ -263,7 +447,13 @@
       "success-request-title": "We have received your request!",
       "success-request-message": "Request successfully created!",
       "error-request-title": "Request error",
-      "error-request-message": "Something went wrong with your request creation. Please try again."
+      "error-request-message": "Something went wrong with your request creation. Please try again.",
+      "attachedFiles": "Attached files:",
+      "chooseFile": "Choose files",
+      "selectYourFile": "Select your files (PDF, JPG, JPEG, PNG, XLS, XLSX, CSV, DOC, DOCX, TXT) - Multiple selection",
+      "showAll": "Show all",
+      "showLess": "Show less",
+      "andMoreFiles": "and {count} more files"
     },
     "pt-br": {
       "export": "Exportar",
@@ -282,7 +472,13 @@
       "success-request-title": "Recebemos sua solicitação!",
       "success-request-message": "Solicitação criada com sucesso!",
       "error-request-title": "Erro na solicitação",
-      "error-request-message": "Algo deu errado na criação da sua solicitação. Tente novamente."
+      "error-request-message": "Algo deu errado na criação da sua solicitação. Tente novamente.",
+      "attachedFiles": "Arquivos anexados:",
+      "chooseFile": "Escolher Arquivos",
+      "selectYourFile": "Selecione seus arquivos (múltipla seleção)",
+      "showAll": "Mostrar todos",
+      "showLess": "Mostrar menos",
+      "andMoreFiles": "e mais {count} arquivos"
     }
   }
 </i18n>
@@ -315,6 +511,8 @@ export default {
       sucessModal: false,
       errorModal: false,
       checkbox: false,
+      showAllFiles: false,
+      tempFile: null,
       newTicketData: {
         solicitation_type: '',
         functionality: '',
@@ -342,6 +540,40 @@ export default {
         { label: 'solicitações realizadas', total: 0, color: '#F58A1F' },
         { label: 'solicitações em andamento', total: 0, color: '#D92B3F' },
         { label: 'solicitações atendidas', total: 0, color: '#12A844' },
+      ],
+      fileErrorMessages: [],
+      fileRules: [
+        (files) => {
+          if (!files || files.length === 0) return true;
+
+          // Check maximum number of files
+          if (files.length > 10) {
+            this.fileErrorMessages = ['Máximo de 10 arquivos permitidos'];
+            return false;
+          }
+
+          // Check file size (10MB limit)
+          const maxSize = 10 * 1024 * 1024; // 10MB
+          const oversizedFiles = files.filter((file) => file.size > maxSize);
+          if (oversizedFiles.length > 0) {
+            this.fileErrorMessages = [`Arquivos muito grandes: ${oversizedFiles.map((f) => f.name).join(', ')} (máximo 10MB)`];
+            return false;
+          }
+
+          // Check file extensions
+          const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
+          const invalidFiles = files.filter((file) => {
+            const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            return !validExtensions.includes(ext);
+          });
+          if (invalidFiles.length > 0) {
+            this.fileErrorMessages = [`Extensões inválidas: ${invalidFiles.map((f) => f.name).join(', ')}`];
+            return false;
+          }
+
+          this.fileErrorMessages = [];
+          return true;
+        },
       ],
     };
   },
@@ -504,6 +736,21 @@ export default {
       });
     },
 
+    sortedFiles() {
+      if (!this.newTicketData.attachments || this.newTicketData.attachments.length === 0) return [];
+
+      return [...this.newTicketData.attachments].sort((a, b) => {
+        // First sort by file type
+        const typeA = this.getFileType(a.name);
+        const typeB = this.getFileType(b.name);
+        if (typeA !== typeB) {
+          return typeA.localeCompare(typeB);
+        }
+        // Then sort by name
+        return a.name.localeCompare(b.name);
+      });
+    },
+
   },
   methods: {
     getStatusButtonStyle(status) {
@@ -573,6 +820,166 @@ export default {
       };
     },
 
+    // Métodos para manipulação de arquivos
+    addFiles(files) {
+      if (!files) return;
+
+      // Convert to array if single file
+      const fileArray = Array.isArray(files) ? files : [files];
+
+      // Add files to existing array
+      fileArray.forEach((file) => {
+        if (this.newTicketData.attachments.length < 10) {
+          // Validate file
+          if (this.validateSingleFile(file)) {
+            this.newTicketData.attachments.push(file);
+          }
+        }
+      });
+
+      // Clear the temp input
+      this.tempFile = null;
+      this.$refs.fileInput.reset();
+    },
+
+    removeFile(index) {
+      this.newTicketData.attachments.splice(index, 1);
+      this.fileErrorMessages = [];
+    },
+
+    triggerFileInput() {
+      this.$refs.fileInput.$refs.input.click();
+    },
+
+    validateSingleFile(file) {
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
+      const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+      if (file.size > maxSize) {
+        this.fileErrorMessages = [`Arquivo muito grande: ${file.name} (máximo 10MB)`];
+        return false;
+      }
+
+      if (!validExtensions.includes(ext)) {
+        this.fileErrorMessages = [`Extensão inválida: ${file.name}`];
+        return false;
+      }
+
+      this.fileErrorMessages = [];
+      return true;
+    },
+
+    formatFileSize(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
+    },
+
+    getFileIcon(fileName) {
+      const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+      switch (ext) {
+        case '.pdf':
+          return 'mdi-file-pdf-box';
+        case '.doc':
+        case '.docx':
+          return 'mdi-file-word-box';
+        case '.xls':
+        case '.xlsx':
+          return 'mdi-file-excel-box';
+        case '.jpg':
+        case '.jpeg':
+        case '.png':
+          return 'mdi-file-image-box';
+        case '.txt':
+          return 'mdi-file-document-box';
+        case '.csv':
+          return 'mdi-file-delimited-box';
+        default:
+          return 'mdi-file-box';
+      }
+    },
+
+    getFileIconColor(fileName) {
+      const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+      switch (ext) {
+        case '.pdf':
+          return '#F44336';
+        case '.doc':
+        case '.docx':
+          return '#2196F3';
+        case '.xls':
+        case '.xlsx':
+          return '#4CAF50';
+        case '.jpg':
+        case '.jpeg':
+        case '.png':
+          return '#FF9800';
+        case '.txt':
+          return '#9E9E9E';
+        case '.csv':
+          return '#607D8B';
+        default:
+          return '#616161';
+      }
+    },
+
+    getFileType(fileName) {
+      const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+      switch (ext) {
+        case '.pdf':
+          return 'PDF';
+        case '.doc':
+        case '.docx':
+          return 'Word';
+        case '.xls':
+        case '.xlsx':
+          return 'Excel';
+        case '.jpg':
+        case '.jpeg':
+        case '.png':
+          return 'Imagem';
+        case '.txt':
+          return 'Texto';
+        case '.csv':
+          return 'CSV';
+        default:
+          return 'Arquivo';
+      }
+    },
+
+    isImageFile(fileName) {
+      const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+      return ['.jpg', '.jpeg', '.png'].includes(ext);
+    },
+
+    getImagePreview(file) {
+      if (file && typeof file === 'object') {
+        return URL.createObjectURL(file);
+      }
+      return '';
+    },
+
+    onImageError(event) {
+      // Hide broken image and show icon instead
+      const { target } = event;
+      target.style.display = 'none';
+    },
+
+    truncateFileName(fileName, maxLength) {
+      if (fileName.length <= maxLength) return fileName;
+
+      const ext = fileName.substring(fileName.lastIndexOf('.'));
+      const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+      const availableLength = maxLength - ext.length - 3; // 3 for "..."
+
+      if (availableLength <= 0) return fileName;
+
+      return `${nameWithoutExt.substring(0, availableLength)}...${ext}`;
+    },
+
     setDefaultStatusFiltersForAdmin() {
     // Check if user is administrator based on role or is_admin flag
       const isAdmin = (this.userData && this.userData.is_admin)
@@ -640,4 +1047,83 @@ export default {
   position: absolute
   bottom: -20px
   font-size: 12px
+
+// File upload styles
+.files-grid
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr))
+  gap: 8px
+  max-height: 300px
+  overflow-y: auto
+
+.file-card
+  border-radius: 8px
+  transition: all 0.2s ease
+  cursor: default
+
+  &:hover
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)
+
+.file-preview
+  height: 60px
+  display: flex
+  align-items: center
+  justify-content: center
+  background-color: #f5f5f5
+  border-radius: 8px 8px 0 0
+
+.image-preview
+  width: 100%
+  height: 100%
+  display: flex
+  align-items: center
+  justify-content: center
+  overflow: hidden
+  border-radius: 8px 8px 0 0
+
+.preview-image
+  max-width: 100%
+  max-height: 100%
+  object-fit: cover
+  border-radius: 4px
+
+.icon-preview
+  display: flex
+  align-items: center
+  justify-content: center
+
+.file-info
+  min-height: 60px
+  display: flex
+  flex-direction: column
+  justify-content: space-between
+
+.file-name
+  font-weight: 500
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.file-size, .file-type
+  font-size: 10px
+  line-height: 1.2
+
+.files-collapsed
+  background-color: #fafafa
+  border-radius: 8px
+  padding: 8px
+
+.upload-card
+  cursor: pointer
+  transition: all 0.2s ease
+  border: 2px dashed #e0e0e0
+  background-color: #fafafa
+
+  &:hover
+    border-color: #1976d2
+    background-color: #f3f8ff
+
+  &--active
+    border-color: #1976d2
+    background-color: #f3f8ff
 </style>
