@@ -3,6 +3,7 @@ export default {
         'default-error':
             'Error while {action} {resource}, contact a sytem administrator in case it persists.',
         'no-result': 'A pesquisa não retornou resultados.',
+        'file-too-large': 'The file exceeded the maximum allowed size.',
         retrieve: 'retrieving',
         save: 'saving',
         delete: 'deleting',
@@ -27,11 +28,15 @@ export default {
         'no-data': 'No available data',
         'file-already-exists': "The file {name} is already in the user's layer list.",
         'upload-success': 'Uploaded layer successfully',
+        upload: 'uploading',
+        file: 'file',
+        drawing: 'drawing',
     },
     'pt-br': {
         'default-error':
             'Ocorreu um erro ao {action} {resource}, entre em contato com um administrador caso persista.',
         'no-result': 'A pesquisa não retornou resultados.',
+        'file-too-large': 'O arquivo ultrapassou o tamanho máximo permitido.',
         retrieve: 'resgatar',
         save: 'salvar',
         delete: 'remover',
@@ -56,5 +61,8 @@ export default {
         'no-data': 'Sem dados disponíveis',
         'file-already-exists': "O arquivo {name} já está na lista de camadas do usuário.",
         'upload-success': 'Camada enviada com sucesso',
+        upload: 'fazer upload',
+        file: 'arquivo',
+        drawing: 'desenho',
     },
 }

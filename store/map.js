@@ -282,12 +282,23 @@ export const actions = {
         commit('setHasLayer', true);
       }
     } catch (exception) {
+      if (exception.response.status === 413) {
+        commit(
+          'alert/addAlert',
+          {
+            message: this.$i18n.t('file-too-large'),
+          },
+          { root: true },
+        );
+        return;
+      }
+
       commit(
         'alert/addAlert',
         {
           message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('retrieve'),
-            resource: this.$i18n.tc('imagery', 2),
+            action: this.$i18n.t('upload'),
+            resource: this.$i18n.t('file'),
           }),
         },
         { root: true },
@@ -318,12 +329,23 @@ export const actions = {
         commit('setHasLayer', true);
       }
     } catch (exception) {
+      if (exception.response.status === 413) {
+        commit(
+          'alert/addAlert',
+          {
+            message: this.$i18n.t('file-too-large'),
+          },
+          { root: true },
+        );
+        return;
+      }
+
       commit(
         'alert/addAlert',
         {
           message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('retrieve'),
-            resource: this.$i18n.tc('imagery', 2),
+            action: this.$i18n.t('upload'),
+            resource: this.$i18n.t('drawing'),
           }),
         },
         { root: true },
