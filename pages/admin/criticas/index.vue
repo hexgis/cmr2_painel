@@ -498,6 +498,7 @@ export default {
     GraphicBar, SuggestionsCard, StatusFilter, SearchFilters, CustomDialog, SavePdf,
   },
   layout: 'admin',
+  middleware: 'admin',
   props: {
     category: {},
   },

@@ -153,6 +153,7 @@ import { mapGetters } from 'vuex';
 export default {
   name: 'Admin',
   layout: 'admin',
+  middleware: 'admin',
 
   async mounted() {
     await this.$store.dispatch('admin/fetchRequestListAccess');

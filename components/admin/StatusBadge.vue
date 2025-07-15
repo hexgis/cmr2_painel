@@ -12,6 +12,7 @@ export default {
   props: {
     status: {
       type: String,
+      default: '',
     },
   },
   computed: {
@@ -26,6 +27,10 @@ export default {
         Recusada: '#D92B3F',
         Recusado: '#D92B3F',
         Inviável: '#D92B3F',
+        // New access request status
+        Pendente: '#F58A1F',
+        'Aprovado pelo Gestor': '#D66A00',
+        Concedida: '#12A844',
         true: '#12A844',
         false: '#D92B3F',
       };

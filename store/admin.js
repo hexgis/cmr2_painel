@@ -77,7 +77,7 @@ export const actions = {
   },
 
   async fetchRequestListAccess({commit, state}){
-    const url = `/user/access-requests/`
+    const url = `/user/access-requests/by-role/`
     const { data } = await this.$api.get(url)
     commit('setNewUsersRequest', data)
   },
@@ -127,6 +127,16 @@ export const actions = {
   async deniedAccessRequest({ commit }, {id, denied_details}) {
     const url = `/user/access-requests/${id}/reject/`
     return await this.$api.patch(url, { denied_details: denied_details })
+  },
+
+  async gestorApproveRequest({ commit }, { id }) {
+    const url = `/user/access-requests/${id}/gestor-approve/`
+    return await this.$api.post(url)
+  },
+
+  async gestorRejectRequest({ commit }, { id, denied_details }) {
+    const url = `/user/access-requests/${id}/gestor-reject/`
+    return await this.$api.post(url, { denied_details })
   },
 
   async sendCsvData({ commit, state }, {filteredData}) {

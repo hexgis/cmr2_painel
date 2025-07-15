@@ -63,10 +63,9 @@ import StatusFilter from '@/components/admin/StatusFilter.vue';
 
 export default {
   name: 'AreaRestrita',
-
   components: { RestrictedAreaCard, SearchFilters, StatusFilter },
-
   layout: 'admin',
+  middleware: 'admin',
 
   data: () => ({
     requestStatus: [],
@@ -104,7 +103,7 @@ export default {
         const matchesSIAPE = !siape || testCase.user_siape_registration.toString().includes(siape);
         const matchesServidor = !servidor || testCase.name.toLowerCase().includes(servidor.toLowerCase());
         const matchesCoordenador = !coordenador || testCase.coordinator_name.toLowerCase().includes(coordenador.toLowerCase());
-        const matchesLotacao = !lotacao || testCase.department.toLowerCase().includes(lotacao.toLowerCase());
+        const matchesLotacao = !lotacao || testCase.institution.toLowerCase().includes(lotacao.toLowerCase());
 
         const matchesDateRange = (!dataInicial || new Date(testCase.access_request.solicitation_date_formatted) >= new Date(dataInicial))
           && (!dataFinal || new Date(testCase.access_request.solicitation_date_formatted) <= new Date(dataFinal));

@@ -235,7 +235,7 @@ export default {
     },
 
     goToCriticisms() {
-      window.location.href = this.localePath('/admin/criticas');
+      this.$router.push(this.localePath('/admin/criticas'));
     },
 
     ...mapActions('auth', ['logout']),

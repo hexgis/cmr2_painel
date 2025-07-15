@@ -1,12 +1,10 @@
 <template>
   <v-app>
     <v-main>
-      <div class="admin-panel"
->
-
-        <v-card class="admin-panel--menu"
-  v-if="showAnalysisFieldsAdmin || showAnalysisFieldsDev"
-
+      <div class="admin-panel">
+        <v-card
+          v-if="canAccessRestrictedArea"
+          class="admin-panel--menu"
         >
           <nuxt-link :to="localePath('/admin')">
             <img
@@ -60,23 +58,16 @@
 
 <script>
 import { mapState } from 'vuex';
-import BaseAlert from '@/components/base/BaseAlert';
+
+import BaseAlert from '../components/base/BaseAlert.vue';
+
 export default {
   name: 'App',
   components: {
     BaseAlert,
   },
-  
   data() {
     return {
-      adminLabels: [
-        { route: '/admin/criticas', label: this.$t('feedback') },
-        { route: '/admin/area-restrita', label: this.$t('restricted_access') },
-        { route: '/admin/camadas', label: this.$t('manage_layers') },
-        { route: '/admin/permissoes', label: this.$t('manage_permissions') },
-        { route: '/admin/usuarios', label: this.$t('manage_users') },
-        { route: '/views-chart', label: this.$t('dashboard') },
-      ],
       selectedRoute: this.$route.path,
     };
   },
@@ -84,16 +75,42 @@ export default {
     title: 'CMR | Administrativo',
   }),
   computed: {
-        ...mapState('userProfile', ['user']),
+    ...mapState('userProfile', ['user']),
 
-        showAnalysisFieldsAdmin() {
-            return this.user?.components?.feedback_admin === true
-        },
+    showAnalysisFieldsAdmin() {
+      return this.user && this.user.components && this.user.components.feedback_admin === true;
+    },
 
-        showAnalysisFieldsDev() {
-            return this.user?.components?.feedback_dev === true
-        },
-      },
+    showAnalysisFieldsDev() {
+      return this.user && this.user.components && this.user.components.feedback_dev === true;
+    },
+
+    isGestor() {
+      return this.user && this.user.roles && this.user.roles.some((role) => role.name === 'Gestor');
+    },
+
+    canAccessRestrictedArea() {
+      return this.showAnalysisFieldsAdmin || this.showAnalysisFieldsDev || this.isGestor;
+    },
+
+    adminLabels() {
+      const allLabels = [
+        { route: '/admin/criticas', label: this.$t('feedback') },
+        { route: '/admin/area-restrita', label: this.$t('restricted_access') },
+        { route: '/admin/camadas', label: this.$t('manage_layers') },
+        { route: '/admin/permissoes', label: this.$t('manage_permissions') },
+        { route: '/admin/usuarios', label: this.$t('manage_users') },
+        { route: '/views-chart', label: this.$t('dashboard') },
+      ];
+
+      // If user is Gestor, only show feedback and restricted access
+      if (this.isGestor && !this.showAnalysisFieldsAdmin && !this.showAnalysisFieldsDev) {
+        return allLabels.filter((label) => label.route === '/admin/criticas' || label.route === '/admin/area-restrita');
+      }
+
+      return allLabels;
+    },
+  },
 
   watch: {
     $route(to) {
@@ -101,7 +118,7 @@ export default {
     },
   },
   async mounted() {
-    await this.$store.dispatch('userProfile/getUserData')
+    await this.$store.dispatch('userProfile/getUserData');
   },
 
   methods: {
@@ -141,7 +158,6 @@ export default {
 
       &:last-child
         position: absolute
-  
         width: 100%
 
       &:hover,
