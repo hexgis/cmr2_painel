@@ -3,7 +3,7 @@
     <v-main>
       <div class="admin-panel">
         <v-card
-          v-if="canAccessRestrictedArea"
+          v-if="shouldShowMenu"
           class="admin-panel--menu"
         >
           <nuxt-link :to="localePath('/admin')">
@@ -89,8 +89,16 @@ export default {
       return this.user && this.user.roles && this.user.roles.some((role) => role.name === 'Gestor');
     },
 
+    isAdmin() {
+      return this.user && (this.user.is_superuser || this.user.is_staff);
+    },
+
     canAccessRestrictedArea() {
-      return this.showAnalysisFieldsAdmin || this.showAnalysisFieldsDev || this.isGestor;
+      return this.showAnalysisFieldsAdmin || this.showAnalysisFieldsDev || this.isGestor || this.isAdmin;
+    },
+
+    shouldShowMenu() {
+      return this.isAdmin || this.isGestor;
     },
 
     adminLabels() {
@@ -103,12 +111,19 @@ export default {
         { route: '/views-chart', label: this.$t('dashboard') },
       ];
 
-      // If user is Gestor, only show feedback and restricted access
-      if (this.isGestor && !this.showAnalysisFieldsAdmin && !this.showAnalysisFieldsDev) {
-        return allLabels.filter((label) => label.route === '/admin/criticas' || label.route === '/admin/area-restrita');
+      // Se for Administrador, mostra todos os campos
+      if (this.isAdmin) {
+        return allLabels;
       }
 
-      return allLabels;
+      // Se for Gestor, mostra apenas Críticas e Sugestões e Área Restrita
+      if (this.isGestor) {
+        return allLabels.filter((label) => label.route === '/admin/criticas'
+          || label.route === '/admin/area-restrita');
+      }
+
+      // Para outros usuários, não mostra menu (retorna array vazio)
+      return [];
     },
   },
 
