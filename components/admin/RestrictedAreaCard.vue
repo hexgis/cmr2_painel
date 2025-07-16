@@ -432,11 +432,7 @@ export default {
     },
     async adminApprove() {
       try {
-        console.log('Tentando aprovar como administrador, ID:', this.userRequestData.id);
-        console.log('Instituição selecionada:', this.selectedInstitution);
-        console.log('Roles selecionados:', this.selectedRoles);
-
-        await this.$store.dispatch('admin/adminApproveRequest', {
+        const response = await this.$store.dispatch('admin/adminApproveRequest', {
           id: this.userRequestData.id,
           permissions: {
             selected_group: this.selectedInstitution,
@@ -444,12 +440,16 @@ export default {
           },
         });
 
-        console.log('Aprovação realizada com sucesso');
+        // Atualizar os dados do usuário se for o usuário logado
+        if (this.userRequestData.email === this.user.email) {
+          await this.$store.dispatch('userProfile/getUserData');
+        }
+
         this.dialog = false;
         this.$store.dispatch('admin/fetchRequestListAccess');
       } catch (error) {
         console.error('Erro ao aprovar:', error);
-        console.error('Detalhes do erro:', error.response);
+        console.error('Detalhes do erro:', error.response && error.response.data ? error.response.data : error.response);
       }
     },
     async updateDeniedDetails() {
