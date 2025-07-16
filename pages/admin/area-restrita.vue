@@ -56,7 +56,7 @@
   }
 </i18n>
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import SearchFilters from '@/components/admin/SearchFilters.vue';
 import RestrictedAreaCard from '@/components/admin/RestrictedAreaCard.vue';
 import StatusFilter from '@/components/admin/StatusFilter.vue';
@@ -85,6 +85,22 @@ export default {
   }),
 
   computed: {
+    ...mapGetters('admin', ['newUsersRequest']),
+    ...mapState('userProfile', ['user']),
+    
+    isAdministrator() {
+      return this.user && this.user.roles && this.user.roles.some((role) => role.name === 'Administrador');
+    },
+    
+    isGestor() {
+      return this.user && this.user.roles && this.user.roles.some((role) => role.name === 'Gestor');
+    },
+    
+    isCommonUser() {
+      return this.user && (!this.user.roles || this.user.roles.length === 0 || 
+             !this.user.roles.some(role => role.name === 'Gestor' || role.name === 'Administrador'));
+    },
+
     reviewersList() {
       const reviewers = this.newUsersRequest
         .map((testCase) => testCase.reviewed_by_name)
@@ -94,7 +110,23 @@ export default {
     },
 
     filteredTestCases() {
-      return this.newUsersRequest.filter((testCase) => {
+      let requests = this.newUsersRequest;
+
+      // Apply role-based filtering
+      if (this.isCommonUser) {
+        // Common users can only see their own requests
+        requests = requests.filter((request) => request.email === this.user.email);
+      } else if (this.isGestor && !this.isAdministrator) {
+        // Gestores can only see requests from their institution
+        requests = requests.filter((request) => {
+          if (!this.user.institution || !request.institution) return false;
+          return request.institution === this.user.institution;
+        });
+      }
+      // Administrators can see all requests (no filtering)
+
+      // Apply search filters
+      return requests.filter((testCase) => {
         const {
           siape, servidor, coordenador, lotacao, dataInicial, dataFinal, avaliadoPor,
         } = this.filters;
@@ -115,8 +147,6 @@ export default {
               && matchesLotacao && matchesDateRange && matchesAvaliadoPor;
       });
     },
-
-    ...mapGetters('admin', ['newUsersRequest']),
   },
 
   async mounted() {
