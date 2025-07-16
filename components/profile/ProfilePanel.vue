@@ -20,6 +20,27 @@
       </v-tooltip>
     </v-btn>
 
+    <!-- Botão Área Restrita -->
+    <v-btn
+      v-if="isLoggedIn"
+      icon
+      large
+      class="mx-2"
+      @click="goToRestrictedArea"
+    >
+      <v-tooltip left>
+        <template #activator="{ on: onTooltip }">
+          <v-icon
+            color="white"
+            v-on="onTooltip"
+          >
+            mdi-key
+          </v-icon>
+        </template>
+        <span>{{ $t('restricted-area-tooltip') }}</span>
+      </v-tooltip>
+    </v-btn>
+
     <!-- Botão Administrador -->
     <v-btn
       v-if="userCanAccess('admin_panel')"
@@ -152,6 +173,7 @@
     "logout-button": "Log out",
     "home-button": "Home",
     "admin-panel-tooltip": "Admin Panel",
+    "restricted-area-tooltip": "Restricted Area",
     "login-button": "Log In",
     "manual-button": "Manual"
   },
@@ -162,6 +184,7 @@
     "logout-button": "Sair",
     "home-button": "Início",
     "admin-panel-tooltip": "Painel do Administrador",
+    "restricted-area-tooltip": "Área Restrita",
     "login-button": "Login",
     "manual-button": "Manual"
   }
@@ -220,6 +243,10 @@ export default {
 
     goToAdmin() {
       this.$router.push(this.localePath('/admin'));
+    },
+
+    goToRestrictedArea() {
+      this.$router.push(this.localePath('/admin/area-restrita'));
     },
 
     openSettings() {
