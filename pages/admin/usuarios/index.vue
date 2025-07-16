@@ -798,7 +798,7 @@
         </v-menu>
       </template>
 
-      <!-- filtro Instituição -->
+      <!-- filtro Vínculo Institucional -->
       <template #header.institution="{ header }">
         <v-menu
           v-model="institutionMenu"
@@ -942,7 +942,7 @@
         "approveRequestCreation": "Deferir solicitação na criação",
         "description": "Descrição",
         "subject": "Assunto",
-        "institution": "Instituição",
+        "institution": "Vínculo Institucional",
         "requestType": "Tipo de Solicitação",
         "field-required": "Campo obrigatório",
         "max-characters": "Máximo de {max} caracteres permitido.",
@@ -996,7 +996,7 @@ export default {
         { text: 'Email', value: 'email' },
         { text: 'Administrador', value: 'is_admin' },
         { text: 'Acesso Permitido', value: 'is_active' },
-        { text: 'Instituição', value: 'institution' },
+        { text: 'Vínculo Institucional', value: 'institution' },
         { text: 'Ações', value: 'actions', align: 'center' },
       ],
       filters: {
@@ -1064,7 +1064,7 @@ export default {
         { text: 'Alterado em', value: 'action_time' },
         { text: 'Nome', value: 'username' },
         { text: 'Email', value: 'email' },
-        { text: 'Instituição', value: 'institution' },
+        { text: 'Vínculo Institucional', value: 'institution' },
         { text: 'Status', value: 'is_active' },
       ],
 
@@ -1424,7 +1424,7 @@ export default {
 
     generateCSV() {
       // Cabeçalho do CSV
-      const headers = ['Usuário', 'Primeiro Nome', 'Último Nome', 'Email', 'Administrador', 'Acesso Permitido', 'Instituição'];
+      const headers = ['Usuário', 'Primeiro Nome', 'Último Nome', 'Email', 'Administrador', 'Acesso Permitido', 'Vínculo Institucional'];
       const rows = this.filteredByColumns.map((user) => [
         user.username,
         user.first_name || '',
@@ -1469,7 +1469,7 @@ export default {
 
       autoTable(doc, {
         startY: 30,
-        head: [['Alterado por', 'Alterado em', 'Nome', 'Email', 'Instituição', 'Status']],
+        head: [['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status']],
         body: this.filteredUserLogs.map((log) => [
           log.alterado_por,
           new Date(log.action_time).toLocaleString('pt-BR'),
@@ -1488,7 +1488,7 @@ export default {
     },
 
     generateLogsCSV() {
-      const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Instituição', 'Status'];
+      const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status'];
       const rows = this.filteredUserLogs.map((log) => [
         log.alterado_por,
         new Date(log.action_time).toLocaleString('pt-BR'),
