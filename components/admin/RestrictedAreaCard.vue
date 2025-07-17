@@ -326,8 +326,8 @@
       v-model="showGestorDeniedDetails"
       title="Motivo da Recusa (Gestor)"
       :has-cta="true"
-      :save-btn="updateGestorDeniedDetails"
       :save-active="!!gestorDeniedDetails"
+      @save="updateGestorDeniedDetails"
     >
       <v-textarea
         v-model="gestorDeniedDetails"
@@ -342,8 +342,8 @@
       v-model="showDeniedDetails"
       title="Motivo da Recusa"
       :has-cta="true"
-      :save-btn="updateDeniedDetails"
       :save-active="!!deniedDetails"
+      @save="updateDeniedDetails"
     >
       <v-textarea
         v-model="deniedDetails"
@@ -590,17 +590,26 @@ export default {
         console.error('Detalhes do erro:', error.response && error.response.data ? error.response.data : error.response);
       }
     },
-    async updateDeniedDetails() {
+    updateDeniedDetails() {
       try {
-        await this.$store.dispatch('admin/deniedAccessRequest', {
+        // Dispatch the action to reject the access request
+        this.$store.dispatch('admin/deniedAccessRequest', {
           id: this.userRequestData.id,
           denied_details: this.deniedDetails,
+        }).then((response) => {
+          console.log('Request denied successfully!');
+
+          // Close the dialog and refresh the request list
+          this.showDeniedDetails = false;
+          this.dialog = false;
+          console.log('Refreshing the request list');
+          return this.$store.dispatch('admin/fetchRequestListAccess');
+        }).catch((error) => {
+          console.error('Error while denying the request:', error);
+          console.error('Error details:', error.response);
         });
-        this.showDeniedDetails = false;
-        this.dialog = false;
-        this.$store.dispatch('admin/fetchRequestListAccess');
       } catch (error) {
-        console.log(error);
+        console.error('Error in updateDeniedDetails method:', error);
       }
     },
   },
