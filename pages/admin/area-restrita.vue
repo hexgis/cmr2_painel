@@ -87,18 +87,18 @@ export default {
   computed: {
     ...mapGetters('admin', ['newUsersRequest']),
     ...mapState('userProfile', ['user']),
-    
+
     isAdministrator() {
       return this.user && this.user.roles && this.user.roles.some((role) => role.name === 'Administrador');
     },
-    
+
     isGestor() {
       return this.user && this.user.roles && this.user.roles.some((role) => role.name === 'Gestor');
     },
-    
+
     isCommonUser() {
-      return this.user && (!this.user.roles || this.user.roles.length === 0 || 
-             !this.user.roles.some(role => role.name === 'Gestor' || role.name === 'Administrador'));
+      return this.user && (!this.user.roles || this.user.roles.length === 0
+             || !this.user.roles.some((role) => role.name === 'Gestor' || role.name === 'Administrador'));
     },
 
     reviewersList() {

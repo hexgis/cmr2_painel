@@ -46,56 +46,179 @@
 
           <!-- Only show permission selection for administrators -->
           <template v-if="canSeeInstitutionSection">
-            <p>{{ $t('choose-user-bond') }}</p>
-            <v-row>
-              <v-col>
-                <div class="d-flex flex-column">
-                  <span
-                    v-for="item in institutionList"
-                    :key="item.id"
-                    class="d-flex align-center"
+            <div class="permission-selection-container">
+              <h3 class="mb-4 text-h6 font-weight-medium">
+                {{ $t('choose-user-bond') }}
+              </h3>
+
+              <v-row class="mb-4">
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-card
+                    outlined
+                    class="pa-4"
                   >
-                    <input
+                    <h4 class="mb-3 text-subtitle-1 font-weight-medium">
+                      <v-icon
+                        color="primary"
+                        class="mr-2"
+                      >
+                        mdi-domain
+                      </v-icon>
+                      {{ $t('institution') }}
+                    </h4>
+                    <v-select
                       v-model="selectedInstitution"
-                      type="radio"
-                      :value="item.id"
-                      name="userInstitution"
-                      class="mr-2"
+                      :items="institutionOptions"
+                      item-text="name"
+                      item-value="id"
+                      :label="$t('select-institution')"
+                      outlined
+                      dense
+                      clearable
+                      :search-input.sync="institutionSearch"
+                      :filter="filterInstitutions"
+                      :no-data-text="$t('no-institutions-found')"
+                      prepend-inner-icon="mdi-magnify"
                     >
-                    <label
-                      style="cursor: pointer;"
-                      @click="selectedInstitution = item.id"
-                    >{{ item.name }}</label>
-                  </span>
-                </div>
-              </v-col>
-              <v-col>
-                <div class="d-flex flex-column">
-                  <span
-                    v-for="item in rolesList"
-                    :key="item.id"
-                    class="d-flex align-center"
+                      <template #item="{ item }">
+                        <div class="d-flex align-center">
+                          <v-icon
+                            color="grey"
+                            class="mr-3"
+                          >
+                            mdi-domain
+                          </v-icon>
+                          <div>
+                            <div class="font-weight-medium">
+                              {{ item.name }}
+                            </div>
+                            <div
+                              v-if="item.description"
+                              class="text-caption grey--text"
+                            >
+                              {{ item.description }}
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </v-select>
+                  </v-card>
+                </v-col>
+
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-card
+                    outlined
+                    class="pa-4"
                   >
-                    <input
-                      :id="`role-${item.id}`"
-                      v-model="selectedRoles"
-                      type="checkbox"
-                      :value="item.id"
-                      name="userRoles"
-                      class="mr-2"
+                    <h4 class="mb-3 text-subtitle-1 font-weight-medium">
+                      <v-icon
+                        color="secondary"
+                        class="mr-2"
+                      >
+                        mdi-account-group
+                      </v-icon>
+                      {{ $t('roles') }}
+                    </h4>
+                    <div class="roles-container">
+                      <v-checkbox
+                        v-for="item in rolesList"
+                        :key="item.id"
+                        v-model="selectedRoles"
+                        :value="item.id"
+                        :label="item.name"
+                        dense
+                        class="ma-0 role-checkbox"
+                        hide-details
+                      >
+                        <template #label>
+                          <div class="d-flex align-center">
+                            <v-icon
+                              small
+                              color="grey"
+                              class="mr-2"
+                            >
+                              mdi-account-check
+                            </v-icon>
+                            <span>{{ item.name }}</span>
+                          </div>
+                        </template>
+                      </v-checkbox>
+                      <div
+                        v-if="selectedRoles.length === 0"
+                        class="text-caption grey--text mt-2"
+                      >
+                        {{ $t('select-at-least-one-role') }}
+                      </div>
+                    </div>
+                  </v-card>
+                </v-col>
+              </v-row>
+
+              <!-- Summary of selected options -->
+              <v-card
+                v-if="selectedInstitution || selectedRoles.length > 0"
+                color="grey lighten-5"
+                class="pa-3"
+              >
+                <h5 class="mb-2 text-subtitle-2 font-weight-medium">
+                  <v-icon
+                    small
+                    class="mr-1"
+                  >
+                    mdi-check-circle
+                  </v-icon>
+                  {{ $t('selection-summary') }}
+                </h5>
+                <div
+                  v-if="selectedInstitution"
+                  class="mb-1"
+                >
+                  <v-chip
+                    small
+                    color="primary"
+                    outlined
+                  >
+                    <v-icon
+                      left
+                      small
                     >
-                    <label
-                      :for="`role-${item.id}`"
-                      style="cursor: pointer;"
-                    >{{ item.name }}</label>
-                  </span>
+                      mdi-domain
+                    </v-icon>
+                    {{ getInstitutionName(selectedInstitution) }}
+                  </v-chip>
                 </div>
-              </v-col>
-            </v-row>
+                <div v-if="selectedRoles.length > 0">
+                  <v-chip
+                    v-for="roleId in selectedRoles"
+                    :key="roleId"
+                    small
+                    color="secondary"
+                    outlined
+                    class="mr-1 mb-1"
+                  >
+                    <v-icon
+                      left
+                      small
+                    >
+                      mdi-account-check
+                    </v-icon>
+                    {{ getRoleName(roleId) }}
+                  </v-chip>
+                </div>
+              </v-card>
+            </div>
           </template>
 
           <!-- Gestor approval message -->
-          <template v-else-if="isGestor && userRequestData.status_name === 'Pendente' && isSameInstitution">
+          <template
+            v-else-if="isGestor && userRequestData.status_name === 'Pendente' && isSameInstitution"
+          >
             <p>
               Você está aprovando esta solicitação como gestor. Após sua aprovação,
               um administrador poderá conceder o acesso final.
@@ -107,7 +230,9 @@
             <p>Esta solicitação já foi concedida.</p>
           </template>
 
-          <template v-else-if="isGestor && userRequestData.status_name === 'Pendente' && !isSameInstitution">
+          <template
+            v-else-if="isGestor && userRequestData.status_name === 'Pendente' && !isSameInstitution"
+          >
             <p>Você só pode aprovar solicitações de usuários da sua instituição.</p>
           </template>
 
@@ -132,7 +257,9 @@
             </template>
 
             <!-- Gestor actions - only for same institution and pending status -->
-            <template v-if="(isAdministrator || isGestor) && userRequestData.status_name == 'Pendente'">
+            <template
+              v-if="(isAdministrator || isGestor) && userRequestData.status_name == 'Pendente'"
+            >
               <v-btn
                 color="primary"
                 @click="gestorApprove"
@@ -147,7 +274,9 @@
               </v-btn>
             </template>
             <!-- Administrator actions for status_name 2 (Approved by Gestor) -->
-            <template v-if="isAdministrator && userRequestData.status_name === 'Aprovado pelo Gestor'">
+            <template
+              v-if="isAdministrator && userRequestData.status_name === 'Aprovado pelo Gestor'"
+            >
               <v-btn
                 color="primary"
                 :disabled="!selectedInstitution || selectedRoles.length === 0"
@@ -238,7 +367,13 @@
     "indian-museum": "Museum of the Indian",
     "other-institutions": "Other institutions",
     "specify-institution": "Specify the institution",
-    "enter-institution-name": "Enter the institution name"
+    "enter-institution-name": "Enter the institution name",
+    "institution": "Institution",
+    "roles": "Roles",
+    "select-institution": "Select an institution",
+    "no-institutions-found": "No institutions found",
+    "select-at-least-one-role": "Select at least one role",
+    "selection-summary": "Selection Summary"
   },
   "pt-br": {
     "choose-user-bond": "Escolha um vínculo para o usuário:",
@@ -249,7 +384,13 @@
     "indian-museum": "Museu do Índio",
     "other-institutions": "Outras instituições",
     "specify-institution": "Especifique a instituição",
-    "enter-institution-name": "Digite o nome da instituição"
+    "enter-institution-name": "Digite o nome da instituição",
+    "institution": "Instituição",
+    "roles": "Funções",
+    "select-institution": "Selecione uma instituição",
+    "no-institutions-found": "Nenhuma instituição encontrada",
+    "select-at-least-one-role": "Selecione pelo menos uma função",
+    "selection-summary": "Resumo da Seleção"
   }
 }
 </i18n>
@@ -283,19 +424,8 @@ export default {
       deniedDetails: '',
       showGestorDeniedDetails: false,
       gestorDeniedDetails: '',
+      institutionSearch: '',
     };
-  },
-  watch: {
-    selectedInstitution(newValue) {
-      if (newValue) {
-        this.selectedOption = newValue;
-      }
-    },
-    otherInstitution(newValue) {
-      if (newValue) {
-        this.selectedOption = newValue;
-      }
-    },
   },
   computed: {
     statusBackground() {
@@ -312,6 +442,13 @@ export default {
     },
     ...mapGetters('admin', ['institutionList', 'rolesList']),
     ...mapState('userProfile', ['user']),
+    institutionOptions() {
+      return this.institutionList.map((institution) => ({
+        id: institution.id,
+        name: institution.name,
+        description: institution.description || '',
+      }));
+    },
     groups() {
       const institutionList = this.institutionList.map((group) => ({
         id: group.id,
@@ -338,7 +475,6 @@ export default {
     isAdministrator() {
       const result = this.user && this.user.roles
         && this.user.roles.some((role) => role.name === 'Administrador');
-      console.log('aaaaaaaaaaaaaa', this.user.roles.some((role) => role.name === 'Gestor'));
       return result;
     },
     isCommonUser() {
@@ -366,41 +502,47 @@ export default {
       return this.user.institution === this.userRequestData.institution;
     },
     canInteract() {
-      const { status_name } = this.userRequestData;
+      const statusName = this.userRequestData.status_name;
       // Gestor pode interagir com status 'Pendente' e mesma instituição
       // Administrador pode interagir com qualquer status
-      return (this.isGestor && status_name === 'Pendente' && this.isSameInstitution)
-        || (this.isAdministrator && ['Pendente', 'Aprovado pelo Gestor', 'Recusada', 'Concedida'].includes(status_name));
+      return (this.isGestor && statusName === 'Pendente' && this.isSameInstitution)
+        || (this.isAdministrator && ['Pendente', 'Aprovado pelo Gestor', 'Recusada', 'Concedida'].includes(statusName));
     },
     wrappedPermissionsList() {
       return this.roles.filter((item) => this.selectedRoles.includes(item.id))
         .map((item) => item.name);
     },
   },
+  watch: {
+    selectedInstitution(newValue) {
+      if (newValue) {
+        this.selectedOption = newValue;
+      }
+    },
+    otherInstitution(newValue) {
+      if (newValue) {
+        this.selectedOption = newValue;
+      }
+    },
+  },
   methods: {
+    filterInstitutions(item, queryText) {
+      const text = queryText || '';
+      return item.name.toLowerCase().includes(text.toLowerCase());
+    },
+    getInstitutionName(institutionId) {
+      const institution = this.institutionList.find((inst) => inst.id === institutionId);
+      return institution ? institution.name : '';
+    },
+    getRoleName(roleId) {
+      const role = this.rolesList.find((r) => r.id === roleId);
+      return role ? role.name : '';
+    },
     openDialog() {
-      // Sempre abrir a modal para visualizar os detalhes
-      console.log('Opening dialog with user data:', this.userRequestData);
-      console.log('Current user:', this.user);
-      console.log('Is Gestor:', this.isGestor);
-      console.log('Is Administrator:', this.isAdministrator);
-      console.log('Is Common User:', this.isCommonUser);
-      console.log('Can see institution section:', this.canSeeInstitutionSection);
-      console.log('Same institution:', this.isSameInstitution);
-      console.log('Request status:', this.userRequestData.status);
-      console.log('Request status_name:', this.userRequestData.status_name);
-      console.log('Status comparison (Pendente):', this.userRequestData.status === 'Pendente');
-      console.log('Status comparison (status_name Pendente):', this.userRequestData.status_name === 'Pendente');
       this.dialog = true;
     },
     async gestorApprove() {
       try {
-        console.log('Tentando aprovar como gestor, ID:', this.userRequestData.id);
-        console.log('Dados do usuário:', this.userRequestData);
-        console.log('Usuário atual:', this.user);
-        console.log('É gestor?', this.isGestor);
-        console.log('É administrador?', this.isAdministrator);
-
         await this.$store.dispatch('admin/gestorApproveRequest', {
           id: this.userRequestData.id,
         });
@@ -472,4 +614,28 @@ export default {
   max-width: 750px
   min-height: 300px
   color: #5F5E5D
+
+.permission-selection-container
+  padding: 16px 0
+
+.roles-container
+  max-height: 300px
+  overflow-y: auto
+
+.role-checkbox
+  padding: 4px 0
+
+.role-checkbox >>> .v-input__control
+  min-height: 32px
+
+.permission-selection-container .v-card
+  border: 1px solid #e0e0e0
+  border-radius: 8px
+  transition: all 0.3s ease
+
+.permission-selection-container .v-card:hover
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1)
+
+.v-chip
+  margin: 2px
 </style>
