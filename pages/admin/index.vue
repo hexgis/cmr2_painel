@@ -2,20 +2,39 @@
   <div class="admin pa-5">
     <span class="d-flex align-center justify-space-between">
       <h1 class="pb-5 text-uppercase">{{ $t('title') }}</h1>
-      <v-tooltip bottom>
-        <template #activator="{ on, attrs }">
-          <v-btn
-            color="primary"
-            text
-            v-bind="attrs"
-            v-on="on"
-            @click="$router.push('/cmr')"
-          >
-            <v-icon color="primary">mdi-home</v-icon>
-          </v-btn>
-        </template>
-        <span>Ir para o CMR</span>
-      </v-tooltip>
+      <div class="d-flex align-center">
+        <!-- Ícone de chave para usuários comuns -->
+        <v-tooltip v-if="!isAdministrator && !isGestor" bottom>
+          <template #activator="{ on, attrs }">
+            <v-btn
+              color="primary"
+              text
+              v-bind="attrs"
+              v-on="on"
+              @click="$router.push('/admin/area-restrita')"
+              class="mr-2"
+            >
+              <v-icon color="primary">mdi-key</v-icon>
+            </v-btn>
+          </template>
+          <span>{{ $t('my-access-requests') }}</span>
+        </v-tooltip>
+        
+        <v-tooltip bottom>
+          <template #activator="{ on, attrs }">
+            <v-btn
+              color="primary"
+              text
+              v-bind="attrs"
+              v-on="on"
+              @click="$router.push('/cmr')"
+            >
+              <v-icon color="primary">mdi-home</v-icon>
+            </v-btn>
+          </template>
+          <span>Ir para o CMR</span>
+        </v-tooltip>
+      </div>
     </span>
     <v-row>
       <v-col>
@@ -127,7 +146,8 @@
       "active-users": "{count} USERS",
       "active": "ACTIVE",
       "add": "add",
-      "new-user": "new user"
+      "new-user": "new user",
+      "my-access-requests": "My Access Requests"
     },
     "pt-br": {
       "title": "Painel Administrativo",
@@ -143,16 +163,18 @@
       "active-users": "{activeUsers} USUÁRIOS",
       "active":  "ATIVOS",
       "add": "adicionar",
-      "new-user": "novo usuário"
+      "new-user": "novo usuário",
+      "my-access-requests": "Minhas Solicitações de Acesso"
     }
   }
 </i18n>
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 
 export default {
   name: 'Admin',
   layout: 'admin',
+  middleware: 'admin',
 
   async mounted() {
     await this.$store.dispatch('admin/fetchRequestListAccess');
@@ -164,8 +186,15 @@ export default {
 
   computed: {
     ...mapGetters('admin', ['acessTotal', 'activeUsers', 'newRequests', 'newAccessRequests', 'newUsersRequest']),
+    ...mapState('userProfile', ['user']),
     currentYear() {
       return new Date().getFullYear();
+    },
+    isAdministrator() {
+      return this.user && this.user.roles && this.user.roles.some((role) => role.name === 'Administrador');
+    },
+    isGestor() {
+      return this.user && this.user.roles && this.user.roles.some((role) => role.name === 'Gestor');
     },
     goToRescrictedArea() {
       return () => this.$router.push(this.localePath('/admin/area-restrita'));

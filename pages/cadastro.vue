@@ -83,12 +83,12 @@
                   md="6"
                 >
                   <v-autocomplete
-                    v-model="formData.department"
-                    :label="$t('department')"
-                    :items="departmentOptions"
+                    v-model="formData.institution"
+                    :label="$t('institution')"
+                    :items="institutionOptions"
                     item-text="text"
                     item-value="value"
-                    :rules="[v => !!v || $t('department-required')]"
+                    :rules="[v => !!v || $t('institution-required')]"
                     required
                     clearable
                     @input="validateStep1"
@@ -171,12 +171,12 @@
                   md="6"
                 >
                   <v-autocomplete
-                    v-model="formData.coordinator_department"
-                    :label="$t('coordinator-department')"
-                    :items="coordinatorDepartmentOptions"
+                    v-model="formData.coordinator_institution"
+                    :label="$t('coordinator-institution')"
+                    :items="coordinatorInstitutionOptions"
                     item-text="text"
                     item-value="value"
-                    :rules="[v => !!v || $t('coordinator-department-required')]"
+                    :rules="[v => !!v || $t('coordinator-institution-required')]"
                     required
                     clearable
                     @input="validateStep2"
@@ -229,7 +229,7 @@
                   md="6"
                 >
                   <p>
-                    <strong>{{ $t('department') }}:</strong> {{ formData.department }}
+                    <strong>{{ $t('institution') }}:</strong> {{ formData.institution }}
                   </p>
                   <p>
                     <strong>{{ $t('registration') }}:</strong>
@@ -258,8 +258,8 @@
                   md="6"
                 >
                   <p>
-                    <strong>{{ $t('coordinator-department') }}:</strong>
-                    {{ formData.coordinator_department }}
+                    <strong>{{ $t('coordinator-institution') }}:</strong>
+                    {{ formData.coordinator_institution }}
                   </p>
                   <p>
                     <strong>{{ $t('siape-registration') }}:</strong>
@@ -366,22 +366,22 @@
       "form": "Form",
       "name": "Name",
       "email": "Email",
-      "department": "Department",
+      "institution": "Institution",
       "registration": "Registration",
       "name-required": "Name is required",
       "email-required": "Email is required",
       "email-valid": "Email must be valid",
-      "department-required": "Department is required",
+      "institution-required": "Institution is required",
       "registration-required": "Registration is required",
       "next": "Next",
       "back": "Back",
       "coordinator-name": "Coordinator's Name",
       "coordinator-email": "Coordinator's Email",
-      "coordinator-department": "Coordinator's Department",
+      "coordinator-institution": "Coordinator's Institution",
       "siape-registration": "Siape Registration",
       "coordinator-name-required": "Coordinator Name is required",
       "coordinator-email-required": "Coordinator Email is required",
-      "coordinator-department-required": "Coordinator Department is required",
+      "coordinator-institution-required": "Coordinator Institution is required",
       "siape-registration-required": "Siape Registration is required",
       "click-here": "Click here",
       "download-form": "to download the form to be completed for restricted access request to CMR.",
@@ -411,22 +411,22 @@
       "form": "Formulário",
       "name": "Nome do servidor",
       "email": "Email do servidor",
-      "department": "Lotação",
+      "institution": "Lotação",
       "registration": "Matrícula Siape",
       "name-required": "Nome é obrigatório",
       "email-required": "Email é obrigatório",
       "email-valid": "Email deve ser válido",
-      "department-required": "Lotação é obrigatória",
+      "institution-required": "Lotação é obrigatória",
       "registration-required": "Matrícula é obrigatória",
       "next": "Próximo",
       "back": "Voltar",
       "coordinator-name": "Nome do Coordenador responsável",
       "coordinator-email": "Email do Coordenador responsável",
-      "coordinator-department": "Lotação do Coordenador",
+      "coordinator-institution": "Lotação do Coordenador",
       "siape-registration": "Matrícula Siape",
       "coordinator-name-required": "Nome do Coordenador é obrigatório",
       "coordinator-email-required": "Email do Coordenador é obrigatório",
-      "coordinator-department-required": "Lotação do Coordenador é obrigatória",
+      "coordinator-institution-required": "Lotação do Coordenador é obrigatória",
       "siape-registration-required": "Matrícula Siape é obrigatória",
       "click-here": "Clique aqui",
       "download-form": "para baixar o formulário a ser preenchido para solicitação de acesso restrito ao CMR.",
@@ -467,11 +467,11 @@ export default {
       formData: {
         name: '',
         email: '',
-        department: '',
+        institution: '',
         user_siape_registration: '',
         coordinator_name: '',
         coordinator_email: '',
-        coordinator_department: '',
+        coordinator_institution: '',
         coordinator_siape_registration: '',
         attachment: null,
       },
@@ -488,8 +488,8 @@ export default {
   computed: {
     ...mapGetters('admin', ['institutionList']),
 
-    // Computed property to filter institutions for department field
-    departmentOptions() {
+    // Computed property to filter institutions for institution field
+    institutionOptions() {
       return this.institutionList
         .filter((institution) => institution.institution_type === 'Coordenação Regional')
         .map((institution) => ({
@@ -500,8 +500,8 @@ export default {
         .sort((a, b) => a.text.localeCompare(b.text));
     },
 
-    // Computed property to filter institutions for coordinator department field
-    coordinatorDepartmentOptions() {
+    // Computed property to filter institutions for coordinator institution field
+    coordinatorInstitutionOptions() {
       return this.institutionList
         .filter((institution) => institution.institution_type === 'Coordenação Regional')
         .map((institution) => ({
@@ -530,13 +530,13 @@ export default {
     validateStep1() {
       this.isStep1Valid = this.formData.name
         && this.formData.email
-        && this.formData.department
+        && this.formData.institution
         && this.formData.user_siape_registration;
     },
     validateStep2() {
       this.isStep2Valid = this.formData.coordinator_name
         && this.formData.coordinator_email
-        && this.formData.coordinator_department
+        && this.formData.coordinator_institution
         && this.formData.coordinator_siape_registration;
     },
     // validateStep3() {
@@ -564,11 +564,11 @@ export default {
       const data = new FormData();
       data.append('name', this.formData.name);
       data.append('email', this.formData.email);
-      data.append('department', this.formData.department);
+      data.append('institution', this.formData.institution);
       data.append('user_siape_registration', this.formData.user_siape_registration);
       data.append('coordinator_name', this.formData.coordinator_name);
       data.append('coordinator_email', this.formData.coordinator_email);
-      data.append('coordinator_department', this.formData.coordinator_department);
+      data.append('coordinator_institution', this.formData.coordinator_institution);
       data.append(
         'coordinator_siape_registration',
         this.formData.coordinator_siape_registration,

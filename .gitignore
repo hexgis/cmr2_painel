@@ -89,3 +89,12 @@ sw.*
 
 # Ignore env files
 .env
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+virtualenv/
+
