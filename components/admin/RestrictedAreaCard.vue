@@ -258,7 +258,7 @@
 
             <!-- Gestor actions - only for same institution and pending status -->
             <template
-              v-if="(isAdministrator || isGestor) && userRequestData.status_name == 'Pendente'"
+              v-if="isGestor && userRequestData.status_name == 'Pendente'"
             >
               <v-btn
                 color="primary"
