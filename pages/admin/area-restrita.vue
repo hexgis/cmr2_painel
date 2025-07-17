@@ -151,6 +151,8 @@ export default {
 
   async mounted() {
     await this.$store.dispatch('admin/fetchRequestListAccess');
+    await this.$store.dispatch('admin/fetchInstitutionList');
+    await this.$store.dispatch('admin/fetchRolesList');
     this.requestStatus = [...new Set(this.newUsersRequest.map((testCase) => testCase.status_name))];
   },
 

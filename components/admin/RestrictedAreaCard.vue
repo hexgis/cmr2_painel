@@ -377,10 +377,6 @@ export default {
         .map((item) => item.name);
     },
   },
-  async mounted() {
-    await this.$store.dispatch('admin/fetchInstitutionList');
-    await this.$store.dispatch('admin/fetchRolesList');
-  },
   methods: {
     openDialog() {
       // Sempre abrir a modal para visualizar os detalhes
@@ -432,7 +428,7 @@ export default {
     },
     async adminApprove() {
       try {
-        const response = await this.$store.dispatch('admin/adminApproveRequest', {
+        await this.$store.dispatch('admin/adminApproveRequest', {
           id: this.userRequestData.id,
           permissions: {
             selected_group: this.selectedInstitution,
