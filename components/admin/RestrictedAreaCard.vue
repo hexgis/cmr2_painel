@@ -18,93 +18,218 @@
     <RequestStatus :request-data="userRequestData" />
     <v-dialog
       v-model="dialog"
-      width="730px"
+      max-width="1400px"
+      width="1400px"
+      min-height="800px"
       persistent
+      scrollable
     >
-      <v-card>
-        <v-card-title
-          class="headline d-flex justify-space-between"
-          style="background: #D92B3F; color: #FFFFFF;"
-        >
-          <p class="mb-0 text-subtitle-1 font-weight-bold">
-            {{ $t('dialog-title') }}
-          </p>
-          <v-icon
+      <v-card class="modal-card">
+        <v-card-title class="modal-header">
+          <div class="d-flex align-center">
+            <v-icon
+              class="mr-5 header-icon"
+              color="white"
+              size="32"
+            >
+              mdi-account-details
+            </v-icon>
+            <div>
+              <h3 class="modal-title">
+                {{ $t('dialog-title') }}
+              </h3>
+              <p class="modal-subtitle mb-0">
+                {{ $t('access-request-details') }}
+              </p>
+            </div>
+          </div>
+          <v-spacer />
+          <v-btn
+            icon
             color="white"
+            class="close-btn"
             @click="dialog = false"
           >
-            mdi-close
-          </v-icon>
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-card-title>
-        <v-card-text>
-          <div class="d-flex align-end justify-space-between pt-4">
-            <UserInfo :user="userRequestData" />
-            <CoordinatorInfo :coordinator="userRequestData" />
-            <RequestStatus :request-data="userRequestData" />
+
+        <v-card-text class="modal-content">
+          <!-- User Information Section -->
+          <div class="info-section">
+            <div class="section-header" />
+            <v-row class="user-info-row">
+              <v-col
+                cols="12"
+                class="user-info-col"
+              >
+                <div class="info-card main-info-card">
+                  <div class="info-header">
+                    <v-icon
+                      color="#D92B3F"
+                      class="mr-2"
+                      size="20"
+                    >
+                      mdi-account-circle
+                    </v-icon>
+                    <span class="info-label">{{ $t('user-information') }}</span>
+                  </div>
+                  <div class="user-info-content">
+                    <v-row>
+                      <v-col
+                        cols="12"
+                        md="4"
+                        class="info-subsection"
+                      >
+                        <div class="subsection-header">
+                          <v-icon
+                            color="#D92B3F"
+                            class="mr-2"
+                            size="16"
+                          >
+                            mdi-account
+                          </v-icon>
+                          <span class="subsection-title">{{ $t('user-details') }}</span>
+                        </div>
+                        <div class="info-details">
+                          <div class="info-item">
+                            <strong>{{ $t('server') }}:</strong> {{ userRequestData.name }}
+                          </div>
+                          <div class="info-item">
+                            <strong>{{ $t('email') }}:</strong> {{ userRequestData.email }}
+                          </div>
+                          <div class="info-item">
+                            <strong>{{ $t('siape-registration') }}:</strong> {{ userRequestData.siape || 'N/A' }}
+                          </div>
+                        </div>
+                      </v-col>
+                      <v-col
+                        cols="12"
+                        md="4"
+                        class="info-subsection"
+                      >
+                        <div class="subsection-header">
+                          <v-icon
+                            color="#D92B3F"
+                            class="mr-2"
+                            size="16"
+                          >
+                            mdi-account-tie
+                          </v-icon>
+                          <span class="subsection-title">{{ $t('coordination-info') }}</span>
+                        </div>
+                        <div class="info-details">
+                          <div class="info-item">
+                            <strong>{{ $t('coordinator') }}:</strong> {{ userRequestData.coordinator_name || 'N/A' }}
+                          </div>
+                          <div class="info-item">
+                            <strong>{{ $t('email') }}:</strong> {{ userRequestData.coordinator_email || 'N/A' }}
+                          </div>
+                        </div>
+                      </v-col>
+                      <v-col
+                        cols="12"
+                        md="4"
+                        class="info-subsection"
+                      >
+                        <div class="subsection-header">
+                          <v-icon
+                            color="#D92B3F"
+                            class="mr-2"
+                            size="16"
+                          >
+                            mdi-clipboard-text
+                          </v-icon>
+                          <span class="subsection-title">{{ $t('request-status') }}</span>
+                        </div>
+                        <RequestStatus :request-data="userRequestData" />
+                      </v-col>
+                    </v-row>
+                  </div>
+                </div>
+              </v-col>
+            </v-row>
           </div>
-          <v-divider class="mt-4 pb-4" />
 
-          <!-- Only show permission selection for administrators -->
+          <v-divider class="section-divider" />
+
+          <!-- Permission Selection Section -->
           <template v-if="canSeeInstitutionSection">
-            <div class="permission-selection-container">
-              <h3 class="mb-4 text-h6 font-weight-medium">
-                {{ $t('choose-user-bond') }}
-              </h3>
-
-              <v-row class="mb-4">
+            <div class="permission-section">
+              <v-row class="permission-row">
                 <v-col
                   cols="12"
                   md="6"
                 >
                   <v-card
+                    class="selection-card institution-card"
                     outlined
-                    class="pa-4"
                   >
-                    <h4 class="mb-3 text-subtitle-1 font-weight-medium">
+                    <v-card-title class="card-title">
                       <v-icon
-                        color="primary"
+                        color="#D92B3F"
                         class="mr-2"
                       >
                         mdi-domain
                       </v-icon>
                       {{ $t('institution') }}
-                    </h4>
-                    <v-select
-                      v-model="selectedInstitution"
-                      :items="institutionOptions"
-                      item-text="name"
-                      item-value="id"
-                      :label="$t('select-institution')"
-                      outlined
-                      dense
-                      clearable
-                      :search-input.sync="institutionSearch"
-                      :filter="filterInstitutions"
-                      :no-data-text="$t('no-institutions-found')"
-                      prepend-inner-icon="mdi-magnify"
-                    >
-                      <template #item="{ item }">
-                        <div class="d-flex align-center">
-                          <v-icon
-                            color="grey"
-                            class="mr-3"
-                          >
-                            mdi-domain
-                          </v-icon>
-                          <div>
-                            <div class="font-weight-medium">
-                              {{ item.name }}
-                            </div>
-                            <div
-                              v-if="item.description"
-                              class="text-caption grey--text"
+                    </v-card-title>
+                    <v-card-text class="card-content">
+                      <v-autocomplete
+                        v-model="selectedInstitution"
+                        :items="filteredInstitutions"
+                        item-text="name"
+                        item-value="id"
+                        :label="$t('select-institution')"
+                        :placeholder="$t('search-institution-placeholder')"
+                        outlined
+                        dense
+                        clearable
+                        :search-input.sync="institutionSearch"
+                        :no-data-text="institutionSearch ?
+                          $t('no-institutions-found') :
+                          $t('type-to-search')"
+                        prepend-inner-icon="mdi-magnify"
+                        hide-selected
+                        persistent-hint
+                        :hint="$t('search-institution-hint')"
+                        class="institution-select"
+                      >
+                        <template #item="{ item }">
+                          <div class="institution-item">
+                            <v-icon
+                              color="#D92B3F"
+                              class="mr-3"
                             >
-                              {{ item.description }}
+                              mdi-domain
+                            </v-icon>
+                            <div>
+                              <div class="institution-name">
+                                {{ item.name }}
+                              </div>
+                              <div
+                                v-if="item.description"
+                                class="institution-description"
+                              >
+                                {{ item.description }}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </template>
-                    </v-select>
+                        </template>
+                        <template #selection="{ item }">
+                          <div class="institution-selection">
+                            <v-icon
+                              color="#D92B3F"
+                              class="mr-2"
+                              small
+                            >
+                              mdi-domain
+                            </v-icon>
+                            <span class="selected-institution">{{ item.name }}</span>
+                          </div>
+                        </template>
+                      </v-autocomplete>
+                    </v-card-text>
                   </v-card>
                 </v-col>
 
@@ -113,212 +238,288 @@
                   md="6"
                 >
                   <v-card
+                    class="selection-card roles-card"
                     outlined
-                    class="pa-4"
                   >
-                    <h4 class="mb-3 text-subtitle-1 font-weight-medium">
+                    <v-card-title class="card-title">
                       <v-icon
-                        color="secondary"
+                        color="#D92B3F"
                         class="mr-2"
                       >
                         mdi-account-group
                       </v-icon>
                       {{ $t('roles') }}
-                    </h4>
-                    <div class="roles-container">
-                      <v-checkbox
-                        v-for="item in rolesList"
-                        :key="item.id"
-                        v-model="selectedRoles"
-                        :value="item.id"
-                        :label="item.name"
-                        dense
-                        class="ma-0 role-checkbox"
-                        hide-details
-                      >
-                        <template #label>
-                          <div class="d-flex align-center">
-                            <v-icon
-                              small
-                              color="grey"
-                              class="mr-2"
-                            >
-                              mdi-account-check
-                            </v-icon>
-                            <span>{{ item.name }}</span>
-                          </div>
-                        </template>
-                      </v-checkbox>
-                      <div
-                        v-if="selectedRoles.length === 0"
-                        class="text-caption grey--text mt-2"
-                      >
-                        {{ $t('select-at-least-one-role') }}
+                    </v-card-title>
+                    <v-card-text class="card-content">
+                      <div class="roles-container">
+                        <v-checkbox
+                          v-for="item in rolesList"
+                          :key="item.id"
+                          v-model="selectedRoles"
+                          :value="item.id"
+                          :label="item.name"
+                          dense
+                          class="role-checkbox"
+                          hide-details
+                        >
+                          <template #label>
+                            <div class="role-label">
+                              <v-icon
+                                small
+                                color="#D92B3F"
+                                class="mr-2"
+                              >
+                                mdi-account-check
+                              </v-icon>
+                              <span class="role-name">{{ item.name }}</span>
+                            </div>
+                          </template>
+                        </v-checkbox>
+                        <div
+                          v-if="selectedRoles.length === 0"
+                          class="roles-hint"
+                        >
+                          {{ $t('select-at-least-one-role') }}
+                        </div>
                       </div>
-                    </div>
+                    </v-card-text>
                   </v-card>
                 </v-col>
               </v-row>
 
-              <!-- Summary of selected options -->
-              <v-card
-                v-if="selectedInstitution || selectedRoles.length > 0"
-                color="grey lighten-5"
-                class="pa-3"
-              >
-                <h5 class="mb-2 text-subtitle-2 font-weight-medium">
-                  <v-icon
-                    small
-                    class="mr-1"
-                  >
-                    mdi-check-circle
-                  </v-icon>
-                  {{ $t('selection-summary') }}
-                </h5>
-                <div
-                  v-if="selectedInstitution"
-                  class="mb-1"
+              <!-- Selection Summary - Always reserve space -->
+              <div class="summary-section">
+                <v-card
+                  class="summary-card"
+                  :class="{ 'summary-visible': selectedInstitution || selectedRoles.length > 0 }"
+                  color="grey lighten-5"
                 >
-                  <v-chip
-                    small
-                    color="primary"
-                    outlined
-                  >
+                  <v-card-title class="summary-title">
                     <v-icon
-                      left
                       small
+                      color="#D92B3F"
+                      class="mr-2"
                     >
-                      mdi-domain
+                      mdi-check-circle
                     </v-icon>
-                    {{ getInstitutionName(selectedInstitution) }}
-                  </v-chip>
-                </div>
-                <div v-if="selectedRoles.length > 0">
-                  <v-chip
-                    v-for="roleId in selectedRoles"
-                    :key="roleId"
-                    small
-                    color="secondary"
-                    outlined
-                    class="mr-1 mb-1"
-                  >
-                    <v-icon
-                      left
-                      small
+                    {{ $t('selection-summary') }}
+                  </v-card-title>
+                  <v-card-text class="summary-content">
+                    <div
+                      v-if="selectedInstitution"
+                      class="summary-item"
                     >
-                      mdi-account-check
-                    </v-icon>
-                    {{ getRoleName(roleId) }}
-                  </v-chip>
-                </div>
-              </v-card>
+                      <v-chip
+                        color="black"
+                        outlined
+                        class="summary-chip"
+                      >
+                        <v-icon
+                          left
+                          small
+                          color="black"
+                        >
+                          mdi-domain
+                        </v-icon>
+                        {{ getInstitutionName(selectedInstitution) }}
+                      </v-chip>
+                    </div>
+                    <div
+                      v-if="selectedRoles.length > 0"
+                      class="summary-item"
+                    >
+                      <v-chip
+                        v-for="roleId in selectedRoles"
+                        :key="roleId"
+                        color="black"
+                        outlined
+                        class="summary-chip"
+                      >
+                        <v-icon
+                          left
+                          small
+                          color="black"
+                        >
+                          mdi-account-check
+                        </v-icon>
+                        {{ getRoleName(roleId) }}
+                      </v-chip>
+                    </div>
+                    <div
+                      v-if="!selectedInstitution && selectedRoles.length === 0"
+                      class="summary-placeholder"
+                    >
+                      {{ $t('no-selections-yet') }}
+                    </div>
+                  </v-card-text>
+                </v-card>
+              </div>
             </div>
           </template>
 
-          <!-- Gestor approval message -->
-          <template
-            v-else-if="isGestor && userRequestData.status_name === 'Pendente' && isSameInstitution"
-          >
-            <p>
-              Você está aprovando esta solicitação como gestor. Após sua aprovação,
-              um administrador poderá conceder o acesso final.
-            </p>
-          </template>
-
-          <!-- Status messages for different scenarios -->
-          <template v-else-if="isAdministrator && userRequestData.status_name === 'Concedida'">
-            <p>Esta solicitação já foi concedida.</p>
-          </template>
-
-          <template
-            v-else-if="isGestor && userRequestData.status_name === 'Pendente' && !isSameInstitution"
-          >
-            <p>Você só pode aprovar solicitações de usuários da sua instituição.</p>
-          </template>
-
-          <template v-else-if="isCommonUser">
-            <p>Suas solicitações são analisadas pelos gestores e administradores.</p>
-          </template>
-
+          <!-- Status Messages -->
           <template v-else>
-            <p>Você não tem permissão para interagir com esta solicitação.</p>
+            <div class="status-section">
+              <v-card
+                class="status-card"
+                outlined
+              >
+                <v-card-text class="status-content">
+                  <template v-if="isGestor && userRequestData.status_name === 'Pendente' && isSameInstitution">
+                    <v-icon
+                      color="info"
+                      class="mr-2"
+                    >
+                      mdi-information
+                    </v-icon>
+                    <span>{{ $t('gestor-approval-message') }}</span>
+                  </template>
+
+                  <template v-else-if="isAdministrator && userRequestData.status_name === 'Concedida'">
+                    <v-icon
+                      color="success"
+                      class="mr-2"
+                    >
+                      mdi-check-circle
+                    </v-icon>
+                    <span>{{ $t('request-already-granted') }}</span>
+                  </template>
+
+                  <template v-else-if="isGestor && userRequestData.status_name === 'Pendente' && !isSameInstitution">
+                    <v-icon
+                      color="warning"
+                      class="mr-2"
+                    >
+                      mdi-alert
+                    </v-icon>
+                    <span>{{ $t('same-institution-only') }}</span>
+                  </template>
+
+                  <template v-else-if="isCommonUser">
+                    <v-icon
+                      color="info"
+                      class="mr-2"
+                    >
+                      mdi-information
+                    </v-icon>
+                    <span>{{ $t('requests-under-review') }}</span>
+                  </template>
+
+                  <template v-else>
+                    <v-icon
+                      color="error"
+                      class="mr-2"
+                    >
+                      mdi-block-helper
+                    </v-icon>
+                    <span>{{ $t('no-permission-to-interact') }}</span>
+                  </template>
+                </v-card-text>
+              </v-card>
+            </div>
           </template>
         </v-card-text>
-        <v-card-actions>
-          <div class="d-flex justify-end mt-4">
-            <!-- Usuário comum - apenas visualização -->
-            <template v-if="isCommonUser">
+
+        <v-card-actions class="modal-actions">
+          <v-spacer />
+
+          <!-- Common User Actions -->
+          <template v-if="isCommonUser">
+            <v-btn
+              text
+              color="grey darken-1"
+              @click="dialog = false"
+            >
+              <v-icon left>
+                mdi-close
+              </v-icon>
+              {{ $t('close') }}
+            </v-btn>
+          </template>
+
+          <!-- Gestor Actions -->
+          <template v-else-if="isGestor && userRequestData.status_name == 'Pendente'">
+            <v-btn
+              text
+              color="error"
+              @click="showGestorDeniedDetails = true"
+            >
+              <v-icon left>
+                mdi-close-circle
+              </v-icon>
+              {{ $t('reject') }}
+            </v-btn>
+            <v-btn
+              color="success"
+              @click="gestorApprove"
+            >
+              <v-icon left>
+                mdi-check-circle
+              </v-icon>
+              {{ $t('approve-as-gestor') }}
+            </v-btn>
+          </template>
+
+          <!-- Administrator Actions -->
+          <template v-else-if="isAdministrator">
+            <template v-if="userRequestData.status_name === 'Aprovado pelo Gestor'">
               <v-btn
                 text
-                @click="dialog = false"
+                color="error"
+                @click="showDeniedDetails = true"
               >
-                Fechar
+                <v-icon left>
+                  mdi-close-circle
+                </v-icon>
+                {{ $t('reject') }}
+              </v-btn>
+              <v-btn
+                color="success"
+                :disabled="!selectedInstitution || selectedRoles.length === 0"
+                @click="adminApprove"
+              >
+                <v-icon left>
+                  mdi-shield-check
+                </v-icon>
+                {{ $t('grant-access') }}
               </v-btn>
             </template>
 
-            <!-- Gestor actions - only for same institution and pending status -->
-            <template
-              v-if="isGestor && userRequestData.status_name == 'Pendente'"
-            >
-              <v-btn
-                color="primary"
-                @click="gestorApprove"
-              >
-                Aprovar como Gestor
-              </v-btn>
+            <template v-else-if="userRequestData.status_name == 'Pendente'">
               <v-btn
                 text
-                @click="showGestorDeniedDetails = true"
+                color="error"
+                @click="showDeniedDetails = true"
               >
-                Recusar
+                <v-icon left>
+                  mdi-close-circle
+                </v-icon>
+                {{ $t('reject') }}
               </v-btn>
-            </template>
-            <!-- Administrator actions for status_name 2 (Approved by Gestor) -->
-            <template
-              v-if="isAdministrator && userRequestData.status_name === 'Aprovado pelo Gestor'"
-            >
               <v-btn
                 color="primary"
                 :disabled="!selectedInstitution || selectedRoles.length === 0"
                 @click="adminApprove"
               >
-                Conceder Acesso
-              </v-btn>
-              <v-btn
-                text
-                @click="showDeniedDetails = true"
-              >
-                Recusar
+                <v-icon left>
+                  mdi-shield-check
+                </v-icon>
+                {{ $t('approve-as-administrator') }}
               </v-btn>
             </template>
 
-            <!-- Administrator actions for status_name 1 (Pending) -->
-            <template v-if="isAdministrator && userRequestData.status_name == 'Pendente'">
+            <template v-else-if="userRequestData.status_name == 'Recusada'">
               <v-btn
-                color="primary"
-                :disabled="!selectedInstitution || selectedRoles.length === 0"
-                @click="adminApprove"
-              >
-                Aprovar como Administrador
-              </v-btn>
-              <v-btn
-                text
-                @click="showDeniedDetails = true"
-              >
-                Recusar
-              </v-btn>
-            </template>
-
-            <!-- Administrator actions for status_name 3 (Rejected) -->
-            <template v-if="isAdministrator && userRequestData.status_name == 'Recusada'">
-              <v-btn
-                color="primary"
+                color="warning"
                 @click="gestorApprove"
               >
-                Reativar Solicitação
+                <v-icon left>
+                  mdi-refresh
+                </v-icon>
+                {{ $t('reactivate-request') }}
               </v-btn>
             </template>
-          </div>
+          </template>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -361,6 +562,8 @@
   "en": {
     "choose-user-bond": "Choose an affiliation for the user:",
     "dialog-title": "Details",
+    "access-request-details": "Access Request Details",
+    "user-information": "User Information",
     "coordination": "Coordination",
     "regional-coordination": "Regional Coordination",
     "fpe": "Front for Ethnoenvironmental Protection (FPE)",
@@ -371,13 +574,37 @@
     "institution": "Institution",
     "roles": "Roles",
     "select-institution": "Select an institution",
+    "search-institution-placeholder": "Search for an institution...",
+    "search-institution-hint": "Type at least 2 characters to search",
+    "type-to-search": "Type to search institutions",
     "no-institutions-found": "No institutions found",
     "select-at-least-one-role": "Select at least one role",
-    "selection-summary": "Selection Summary"
+    "selection-summary": "Selection Summary",
+    "gestor-approval-message": "You are approving this request as a manager. After your approval, an administrator can grant final access.",
+    "request-already-granted": "This request has already been granted.",
+    "same-institution-only": "You can only approve requests from users of your institution.",
+    "requests-under-review": "Your requests are being reviewed by managers and administrators.",
+    "no-permission-to-interact": "You do not have permission to interact with this request.",
+    "close": "Close",
+    "reject": "Reject",
+    "approve-as-gestor": "Approve as Manager",
+    "grant-access": "Grant Access",
+    "approve-as-administrator": "Approve as Administrator",
+    "reactivate-request": "Reactivate Request",
+    "no-selections-yet": "No selections made yet",
+    "user-details": "User Details",
+    "coordination-info": "Coordination Information",
+    "request-status": "Request Status",
+    "server": "Server",
+    "email": "Email",
+    "siape-registration": "SIAPE Registration",
+    "coordinator": "Coordinator"
   },
   "pt-br": {
     "choose-user-bond": "Escolha um vínculo para o usuário:",
     "dialog-title": "Detalhes",
+    "access-request-details": "Detalhes da Solicitação de Acesso",
+    "user-information": "Informações do Usuário",
     "coordination": "Coordenação",
     "regional-coordination": "Coordenação Regional",
     "fpe": "Frente de proteção Etnoambiental (FPE)",
@@ -388,9 +615,31 @@
     "institution": "Instituição",
     "roles": "Funções",
     "select-institution": "Selecione uma instituição",
+    "search-institution-placeholder": "Pesquisar instituição...",
+    "search-institution-hint": "Digite pelo menos 2 caracteres para pesquisar",
+    "type-to-search": "Digite para pesquisar instituições",
     "no-institutions-found": "Nenhuma instituição encontrada",
     "select-at-least-one-role": "Selecione pelo menos uma função",
-    "selection-summary": "Resumo da Seleção"
+    "selection-summary": "Resumo da Seleção",
+    "gestor-approval-message": "Você está aprovando esta solicitação como gestor. Após sua aprovação, um administrador poderá conceder o acesso final.",
+    "request-already-granted": "Esta solicitação já foi concedida.",
+    "same-institution-only": "Você só pode aprovar solicitações de usuários da sua instituição.",
+    "requests-under-review": "Suas solicitações são analisadas pelos gestores e administradores.",
+    "no-permission-to-interact": "Você não tem permissão para interagir com esta solicitação.",
+    "close": "Fechar",
+    "reject": "Recusar",
+    "approve-as-gestor": "Aprovar como Gestor",
+    "grant-access": "Conceder Acesso",
+    "approve-as-administrator": "Aprovar como Administrador",
+    "reactivate-request": "Reativar Solicitação",
+    "no-selections-yet": "Nenhuma seleção feita ainda",
+    "user-details": "Detalhes do Usuário",
+    "coordination-info": "Informações de Coordenação",
+    "request-status": "Status da Solicitação",
+    "server": "Servidor",
+    "email": "Email",
+    "siape-registration": "Matrícula SIAPE",
+    "coordinator": "Coordenador"
   }
 }
 </i18n>
@@ -448,6 +697,15 @@ export default {
         name: institution.name,
         description: institution.description || '',
       }));
+    },
+    filteredInstitutions() {
+      if (!this.institutionSearch || this.institutionSearch.length < 2) {
+        return this.institutionOptions;
+      }
+      const searchTerm = this.institutionSearch.toLowerCase();
+      return this.institutionOptions.filter((institution) => institution.name.toLowerCase().includes(searchTerm)
+        || (institution.description
+          && institution.description.toLowerCase().includes(searchTerm)));
     },
     groups() {
       const institutionList = this.institutionList.map((group) => ({
@@ -596,7 +854,7 @@ export default {
         this.$store.dispatch('admin/deniedAccessRequest', {
           id: this.userRequestData.id,
           denied_details: this.deniedDetails,
-        }).then((response) => {
+        }).then(() => {
           console.log('Request denied successfully!');
 
           // Close the dialog and refresh the request list
@@ -624,27 +882,324 @@ export default {
   min-height: 300px
   color: #5F5E5D
 
-.permission-selection-container
-  padding: 16px 0
+/* Modal Styles */
+.modal-card
+  border-radius: 12px
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1)
+  min-height: 800px
+  width: 100%
+  max-width: 1400px
 
+.modal-header
+  background: linear-gradient(135deg, #D92B3F 0%, #B71C1C 100%)
+  color: white
+  padding: 24px 32px
+  border-radius: 12px 12px 0 0
+  display: flex
+  align-items: center
+  justify-content: space-between
+  min-height: 80px
+
+.header-icon
+  font-size: 32px !important
+
+.close-btn
+  position: absolute
+  right: 20px
+  top: 20px
+
+.modal-title
+  font-size: 1.6rem
+  font-weight: 600
+  margin: 0
+
+.modal-subtitle
+  font-size: 1rem
+  opacity: 0.9
+  margin-top: 6px
+
+.modal-content
+  padding: 32px
+  background: #fafafa
+  min-height: 650px
+
+.modal-actions
+  padding: 20px 32px
+  background: white
+  border-top: 1px solid #e0e0e0
+
+/* Section Styles */
+.info-section,
+.permission-section,
+.status-section
+  margin-bottom: 32px
+
+.section-header
+  display: flex
+  align-items: center
+  margin-bottom: 24px
+
+.section-title
+  font-size: 1.3rem
+  font-weight: 600
+  color: #2c3e50
+  margin: 0
+
+.section-divider
+  margin: 32px 0
+  background: #e0e0e0
+
+.user-info-row
+  padding: 0
+  gap: 16px
+  margin-top: 8px
+
+.user-info-col
+  display: flex
+  flex-direction: column
+  padding: 0
+
+.info-card
+  background: white
+  border-radius: 12px
+  padding: 20px
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08)
+  border-left: 4px solid #D92B3F
+  height: 100%
+  transition: all 0.3s ease
+
+.info-card:hover
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12)
+  transform: translateY(-2px)
+
+.main-info-card
+  border-left: 4px solid #D92B3F
+  min-height: 220px
+
+.info-header
+  display: flex
+  align-items: center
+  margin-bottom: 16px
+  padding-bottom: 12px
+  border-bottom: 2px solid #f0f0f0
+
+.info-label
+  font-weight: 600
+  color: #2c3e50
+  font-size: 1rem
+
+.user-info-content
+  margin-top: 8px
+
+.info-subsection
+  padding: 12px
+  margin-bottom: 8px
+
+.subsection-header
+  display: flex
+  align-items: center
+  margin-bottom: 12px
+  padding-bottom: 8px
+  border-bottom: 1px solid #e8e8e8
+
+.subsection-title
+  font-weight: 600
+  color: #D92B3F
+  font-size: 0.9rem
+
+.info-details
+  padding: 8px 0
+
+.info-item
+  margin-bottom: 8px
+  line-height: 1.5
+  font-size: 0.95rem
+  color: #2c3e50
+
+.info-item strong
+  color: #D92B3F
+  font-weight: 600
+
+/* Selection Cards */
+.selection-card
+  height: 100%
+  border-radius: 12px
+  transition: all 0.3s ease
+  background: white
+
+.selection-card:hover
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12)
+  transform: translateY(-3px)
+
+.card-title
+  font-size: 1.2rem
+  font-weight: 600
+  color: #2c3e50
+  padding: 20px 20px 0 20px
+
+.card-content
+  padding: 20px
+
+.institution-card
+  border-left: 4px solid #D92B3F
+
+.roles-card
+  border-left: 4px solid #D92B3F
+
+/* Institution Select Styles */
+.institution-select
+  margin-top: 12px
+
+.institution-select .v-text-field__slot input
+  color: #000000 !important
+  font-size: 1rem
+
+.institution-select .v-select__selection--comma
+  color: #000000 !important
+
+.institution-select .v-label
+  color: #000000 !important
+
+.institution-item
+  display: flex
+  align-items: center
+  padding: 16px 20px
+  border-radius: 8px
+  transition: background-color 0.2s
+
+.institution-item:hover
+  background-color: #f8f8f8
+
+.institution-name
+  font-weight: 500
+  color: #2c3e50
+  font-size: 1rem
+
+.institution-description
+  font-size: 0.85rem
+  color: #7d7d7d
+  margin-top: 4px
+
+.institution-selection
+  display: flex
+  align-items: center
+
+.selected-institution
+  font-weight: 500
+  color: #000000
+  font-size: 1rem
+
+/* Roles Styles */
 .roles-container
   max-height: 300px
   overflow-y: auto
+  padding: 12px 0
 
 .role-checkbox
-  padding: 4px 0
-
-.role-checkbox >>> .v-input__control
-  min-height: 32px
-
-.permission-selection-container .v-card
-  border: 1px solid #e0e0e0
+  margin: 6px 0
+  padding: 12px
   border-radius: 8px
-  transition: all 0.3s ease
+  transition: background-color 0.2s
 
-.permission-selection-container .v-card:hover
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1)
+.role-checkbox:hover
+  background-color: #f8f8f8
 
-.v-chip
-  margin: 2px
+.role-label
+  display: flex
+  align-items: center
+
+.role-name
+  font-weight: 500
+  color: #2c3e50
+  font-size: 1rem
+
+.roles-hint
+  font-size: 0.9rem
+  color: #7d7d7d
+  text-align: center
+  padding: 20px
+  font-style: italic
+
+/* Summary Styles */
+.summary-section
+  margin-top: 24px
+  min-height: 140px
+
+.summary-card
+  border-radius: 12px
+  border: 1px solid #fce4e6
+  border-left: 4px solid #D92B3F
+  opacity: 0.5
+  transition: opacity 0.3s ease
+
+.summary-card.summary-visible
+  opacity: 1
+
+.summary-title
+  font-size: 1.1rem
+  font-weight: 600
+  color: #D92B3F
+  padding: 16px 20px 0 20px
+
+.summary-content
+  padding: 20px
+  min-height: 80px
+
+.summary-item
+  margin-bottom: 12px
+
+.summary-chip
+  margin: 4px 6px 4px 0
+  font-weight: 500
+  font-size: 0.9rem
+
+.summary-placeholder
+  color: #9e9e9e
+  font-style: italic
+  text-align: center
+  padding: 20px
+  font-size: 1rem
+
+/* Status Styles */
+.status-card
+  border-radius: 12px
+  border-left: 4px solid #D92B3F
+
+.status-content
+  padding: 24px
+  display: flex
+  align-items: center
+  font-size: 1.1rem
+  color: #2c3e50
+
+/* Responsive Design */
+@media (max-width: 1440px)
+  .modal-card
+    max-width: 95vw
+    min-height: 700px
+
+@media (max-width: 960px)
+  .modal-content
+    padding: 20px
+    min-height: 500px
+
+  .user-info-row
+    gap: 12px
+
+  .info-card
+    padding: 16px
+
+  .section-title
+    font-size: 1.2rem
+
+  .modal-title
+    font-size: 1.4rem
+
+  .close-btn
+    right: 12px
+    top: 12px
+
+  .modal-header
+    padding: 20px 24px
+    min-height: 70px
 </style>
