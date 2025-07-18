@@ -539,9 +539,6 @@ export default {
         && this.formData.coordinator_institution
         && this.formData.coordinator_siape_registration;
     },
-    // validateStep3() {
-    //   this.isStep3Valid = this.formData.attachment;
-    // },
     nextStep() {
       if (this.step < 3) {
         this.step++;
@@ -565,10 +562,28 @@ export default {
       data.append('name', this.formData.name);
       data.append('email', this.formData.email);
       data.append('institution', this.formData.institution);
+
+      const userInstitution = this.institutionList.find(
+        (inst) => inst.name === this.formData.institution,
+      );
+      if (userInstitution) {
+        data.append('institution_id', userInstitution.id);
+        data.append('institution_acronym', userInstitution.acronym || '');
+      }
+
       data.append('user_siape_registration', this.formData.user_siape_registration);
       data.append('coordinator_name', this.formData.coordinator_name);
       data.append('coordinator_email', this.formData.coordinator_email);
       data.append('coordinator_institution', this.formData.coordinator_institution);
+
+      const coordinatorInstitution = this.institutionList.find(
+        (inst) => inst.name === this.formData.coordinator_institution,
+      );
+      if (coordinatorInstitution) {
+        data.append('coordinator_institution_id', coordinatorInstitution.id);
+        data.append('coordinator_institution_acronym', coordinatorInstitution.acronym || '');
+      }
+
       data.append(
         'coordinator_siape_registration',
         this.formData.coordinator_siape_registration,

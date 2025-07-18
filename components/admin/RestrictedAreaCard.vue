@@ -1,4 +1,5 @@
 <template>
+  <!-- ===== MAIN CARD ===== -->
   <v-card
     class="card pa-5"
     style="cursor: pointer;"
@@ -16,6 +17,8 @@
     </div>
     <v-divider class="mt-4 pb-4" />
     <RequestStatus :request-data="userRequestData" />
+
+    <!-- ===== MAIN MODAL ===== -->
     <v-dialog
       v-model="dialog"
       max-width="1400px"
@@ -25,6 +28,7 @@
       scrollable
     >
       <v-card class="modal-card">
+        <!-- ===== MODAL HEADER ===== -->
         <v-card-title class="modal-header">
           <div class="d-flex align-center">
             <v-icon
@@ -54,8 +58,9 @@
           </v-btn>
         </v-card-title>
 
+        <!-- ===== MAIN CONTENTL ===== -->
         <v-card-text class="modal-content">
-          <!-- User Information Section -->
+          <!-- ===== SECTION: USER INFO ===== -->
           <div class="info-section">
             <div class="section-header" />
             <v-row class="user-info-row">
@@ -76,6 +81,7 @@
                   </div>
                   <div class="user-info-content">
                     <v-row>
+                      <!-- SUB-SECTION: user details -->
                       <v-col
                         cols="12"
                         md="4"
@@ -102,8 +108,25 @@
                             <strong>{{ $t('siape-registration') }}:</strong>
                             {{ userRequestData.user_siape_registration || 'N/A' }}
                           </div>
+                          <div class="info-item">
+                            <strong>{{ $t('institution') }}:</strong>
+                            <v-tooltip bottom>
+                              <template #activator="{ on, attrs }">
+                                <span
+                                  class="institution-acronym"
+                                  v-bind="attrs"
+                                  v-on="on"
+                                >
+                                  {{ userRequestData.institution_acronym ||
+                                    userRequestData.institution }}
+                                </span>
+                              </template>
+                              <span>{{ userRequestData.institution }}</span>
+                            </v-tooltip>
+                          </div>
                         </div>
                       </v-col>
+                      <!-- SUB-SECTION: Coordination Info -->
                       <v-col
                         cols="12"
                         md="4"
@@ -132,8 +155,25 @@
                             <strong>{{ $t('coordinator_siape_registration') }}:</strong>
                             {{ userRequestData.coordinator_siape_registration || 'N/A' }}
                           </div>
+                          <div class="info-item">
+                            <strong>{{ $t('institution') }}:</strong>
+                            <v-tooltip bottom>
+                              <template #activator="{ on, attrs }">
+                                <span
+                                  class="institution-acronym"
+                                  v-bind="attrs"
+                                  v-on="on"
+                                >
+                                  {{ userRequestData.coordinator_institution_acronym ||
+                                    userRequestData.coordinator_institution }}
+                                </span>
+                              </template>
+                              <span>{{ userRequestData.coordinator_institution }}</span>
+                            </v-tooltip>
+                          </div>
                         </div>
                       </v-col>
+                      <!-- SUB-SECTION: Solicitation Status -->
                       <v-col
                         cols="12"
                         md="4"
@@ -160,10 +200,11 @@
 
           <v-divider class="section-divider" />
 
-          <!-- Permission Selection Section -->
+          <!-- ===== SECTION: PERMISSIONS (Adms Only) ===== -->
           <template v-if="canSeeInstitutionSection">
             <div class="permission-section">
               <v-row class="permission-row">
+                <!-- SUB-SECTION: Institution -->
                 <v-col
                   cols="12"
                   md="6"
@@ -240,6 +281,7 @@
                   </v-card>
                 </v-col>
 
+                <!-- SUB-SECTION: Roles  -->
                 <v-col
                   cols="12"
                   md="6"
@@ -294,7 +336,7 @@
                 </v-col>
               </v-row>
 
-              <!-- Selection Summary - Always reserve space -->
+              <!-- SUB-SECTION: Final Summary -->
               <div class="summary-section">
                 <v-card
                   class="summary-card"
@@ -364,7 +406,7 @@
             </div>
           </template>
 
-          <!-- Status Messages -->
+          <!-- ===== SECTION: STATUS MESSAGES (Normal User/Gestor) ===== -->
           <template v-else>
             <div class="status-section">
               <v-card
@@ -372,7 +414,10 @@
                 outlined
               >
                 <v-card-text class="status-content">
-                  <template v-if="isGestor && userRequestData.status_name === 'Pendente' && isSameInstitution">
+                  <template
+                    v-if="isGestor && userRequestData.status_name === 'Pendente'
+                      && isSameInstitution"
+                  >
                     <v-icon
                       color="info"
                       class="mr-2"
@@ -382,7 +427,10 @@
                     <span>{{ $t('gestor-approval-message') }}</span>
                   </template>
 
-                  <template v-else-if="isAdministrator && userRequestData.status_name === 'Concedida'">
+                  <template
+                    v-else-if="isAdministrator
+                      && userRequestData.status_name === 'Concedida'"
+                  >
                     <v-icon
                       color="success"
                       class="mr-2"
@@ -392,7 +440,10 @@
                     <span>{{ $t('request-already-granted') }}</span>
                   </template>
 
-                  <template v-else-if="isGestor && userRequestData.status_name === 'Pendente' && !isSameInstitution">
+                  <template
+                    v-else-if="isGestor && userRequestData.status_name === 'Pendente'
+                      && !isSameInstitution"
+                  >
                     <v-icon
                       color="warning"
                       class="mr-2"
@@ -427,10 +478,11 @@
           </template>
         </v-card-text>
 
+        <!-- ===== ACTIONS (BUTTONS) ===== -->
         <v-card-actions class="modal-actions">
           <v-spacer />
 
-          <!-- Common User Actions -->
+          <!-- AÇÕES: Usuário Comum -->
           <template v-if="isCommonUser">
             <v-btn
               text
@@ -444,7 +496,7 @@
             </v-btn>
           </template>
 
-          <!-- Gestor Actions -->
+          <!-- AÇÕES: Gestor -->
           <template v-else-if="isGestor && userRequestData.status_name == 'Pendente'">
             <v-btn
               text
@@ -467,7 +519,7 @@
             </v-btn>
           </template>
 
-          <!-- Administrator Actions -->
+          <!-- AÇÕES: Administrador -->
           <template v-else-if="isAdministrator">
             <template v-if="userRequestData.status_name === 'Aprovado pelo Gestor'">
               <v-btn
@@ -530,6 +582,9 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- ===== DIALOGS ===== -->
+    <!-- Dialog: Motivo da Recusa (Gestor) -->
     <CustomDialog
       v-model="showGestorDeniedDetails"
       title="Motivo da Recusa (Gestor)"
@@ -546,6 +601,8 @@
         class="mt-8"
       />
     </CustomDialog>
+
+    <!-- Dialog: Motivo da Recusa (Administrador) -->
     <CustomDialog
       v-model="showDeniedDetails"
       title="Motivo da Recusa"
@@ -587,7 +644,7 @@
     "no-institutions-found": "No institutions found",
     "select-at-least-one-role": "Select at least one role",
     "selection-summary": "Selection Summary",
-    "gestor-approval-message": "You are approving this request as a manager. After your approval, an administrator can grant final access.",
+    "gestor-approval-message": "Approving as manager. After approval, admin can grant access.",
     "request-already-granted": "This request has already been granted.",
     "same-institution-only": "You can only approve requests from users of your institution.",
     "requests-under-review": "Your requests are being reviewed by managers and administrators.",
@@ -629,7 +686,7 @@
     "no-institutions-found": "Nenhuma instituição encontrada",
     "select-at-least-one-role": "Selecione pelo menos uma função",
     "selection-summary": "Resumo da Seleção",
-    "gestor-approval-message": "Você está aprovando esta solicitação como gestor. Após sua aprovação, um administrador poderá conceder o acesso final.",
+    "gestor-approval-message": "Aprovando como gestor. Após aprovação, admin pode conceder acesso.",
     "request-already-granted": "Esta solicitação já foi concedida.",
     "same-institution-only": "Você só pode aprovar solicitações de usuários da sua instituição.",
     "requests-under-review": "Suas solicitações são analisadas pelos gestores e administradores.",
@@ -712,7 +769,8 @@ export default {
         return this.institutionOptions;
       }
       const searchTerm = this.institutionSearch.toLowerCase();
-      return this.institutionOptions.filter((institution) => institution.name.toLowerCase().includes(searchTerm)
+      return this.institutionOptions.filter((institution) => institution.name.toLowerCase()
+        .includes(searchTerm)
         || (institution.description
           && institution.description.toLowerCase().includes(searchTerm)));
     },
@@ -735,6 +793,7 @@ export default {
         name: role.name,
       }));
     },
+    // ===== CHECK PERMISSIONS =====
     isGestor() {
       return this.user && this.user.roles
         && this.user.roles.some((role) => role.name === 'Gestor');
@@ -748,6 +807,7 @@ export default {
       return this.user && (!this.user.roles || this.user.roles.length === 0
              || !this.user.roles.some((role) => role.name === 'Gestor' || role.name === 'Administrador'));
     },
+    // ===== CHECK ROLES =====
     canSeeInstitutionSection() {
       // Only administrators can see the institution and role selection section
       return this.isAdministrator && ['Pendente', 'Aprovado pelo Gestor', 'Recusada'].includes(this.userRequestData.status_name);
@@ -762,16 +822,26 @@ export default {
       return this.isAdministrator && ['Pendente', 'Aprovado pelo Gestor', 'Recusada', 'Concedida'].includes(this.userRequestData.status_name);
     },
     isSameInstitution() {
-      // Check if the current user is from the same institution as the request
-      if (!this.user || !this.user.institution || !this.userRequestData.institution) {
+      if (!this.user || !this.user.institution) {
         return false;
       }
-      return this.user.institution === this.userRequestData.institution;
+      if (this.userRequestData.institution_id) {
+        const userInstitution = this.institutionList.find(
+          (inst) => inst.name === this.user.institution,
+        );
+        if (userInstitution) {
+          return userInstitution.id === this.userRequestData.institution_id;
+        }
+      }
+
+      if (this.userRequestData.institution) {
+        return this.user.institution === this.userRequestData.institution;
+      }
+
+      return false;
     },
     canInteract() {
       const statusName = this.userRequestData.status_name;
-      // Gestor pode interagir com status 'Pendente' e mesma instituição
-      // Administrador pode interagir com qualquer status
       return (this.isGestor && statusName === 'Pendente' && this.isSameInstitution)
         || (this.isAdministrator && ['Pendente', 'Aprovado pelo Gestor', 'Recusada', 'Concedida'].includes(statusName));
     },
@@ -791,8 +861,34 @@ export default {
         this.selectedOption = newValue;
       }
     },
+    dialog(newValue) {
+      if (newValue) {
+        this.initializeFormData();
+      }
+    },
   },
   methods: {
+    initializeFormData() {
+      // Pré-selecionar a instituição do usuário se disponível
+      if (this.userRequestData && this.userRequestData.institution_id) {
+        const userInstitution = this.institutionList.find(
+          (inst) => inst.id === this.userRequestData.institution_id,
+        );
+        if (userInstitution) {
+          this.selectedInstitution = userInstitution.id;
+        }
+      } else if (this.userRequestData && this.userRequestData.institution) {
+        // Fallback: buscar pelo nome se não tiver o ID
+        const userInstitution = this.institutionList.find(
+          (inst) => inst.name === this.userRequestData.institution,
+        );
+        if (userInstitution) {
+          this.selectedInstitution = userInstitution.id;
+        }
+      }
+
+      this.selectedRoles = [];
+    },
     filterInstitutions(item, queryText) {
       const text = queryText || '';
       return item.name.toLowerCase().includes(text.toLowerCase());
@@ -808,6 +904,7 @@ export default {
     openDialog() {
       this.dialog = true;
     },
+    // ===== APPROVE ACTIONS =====
     async gestorApprove() {
       try {
         await this.$store.dispatch('admin/gestorApproveRequest', {
@@ -820,19 +917,6 @@ export default {
       } catch (error) {
         console.error('Erro ao aprovar:', error);
         console.error('Detalhes do erro:', error.response);
-      }
-    },
-    async updateGestorDeniedDetails() {
-      try {
-        await this.$store.dispatch('admin/gestorRejectRequest', {
-          id: this.userRequestData.id,
-          denied_details: this.gestorDeniedDetails,
-        });
-        this.showGestorDeniedDetails = false;
-        this.dialog = false;
-        this.$store.dispatch('admin/fetchRequestListAccess');
-      } catch (error) {
-        console.log(error);
       }
     },
     async adminApprove() {
@@ -855,6 +939,20 @@ export default {
       } catch (error) {
         console.error('Erro ao aprovar:', error);
         console.error('Detalhes do erro:', error.response && error.response.data ? error.response.data : error.response);
+      }
+    },
+    // ===== DENIED ACTIONS =====
+    async updateGestorDeniedDetails() {
+      try {
+        await this.$store.dispatch('admin/gestorRejectRequest', {
+          id: this.userRequestData.id,
+          denied_details: this.gestorDeniedDetails,
+        });
+        this.showGestorDeniedDetails = false;
+        this.dialog = false;
+        this.$store.dispatch('admin/fetchRequestListAccess');
+      } catch (error) {
+        console.log(error);
       }
     },
     updateDeniedDetails() {
@@ -885,13 +983,14 @@ export default {
 
 <style lang="sass" scoped>
 
+/* ===== MAIN CARD STYLE ===== */
 .card
   width: 100%
   max-width: 750px
   min-height: 300px
   color: #5F5E5D
 
-/* Modal Styles */
+/* ===== MODAL STYLE ===== */
 .modal-card
   border-radius: 12px
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1)
@@ -899,6 +998,7 @@ export default {
   width: 100%
   max-width: 1400px
 
+/* ===== MODAL HEADER ===== */
 .modal-header
   background: linear-gradient(135deg, #D92B3F 0%, #B71C1C 100%)
   color: white
@@ -927,6 +1027,7 @@ export default {
   opacity: 0.9
   margin-top: 6px
 
+/* ===== MODAL CONTENT ===== */
 .modal-content
   padding: 32px
   background: #fafafa
@@ -937,7 +1038,7 @@ export default {
   background: white
   border-top: 1px solid #e0e0e0
 
-/* Section Styles */
+/* ===== SECTION STYLES ===== */
 .info-section,
 .permission-section,
 .status-section
@@ -958,6 +1059,7 @@ export default {
   margin: 32px 0
   background: #e0e0e0
 
+/* ===== USER INFO STYLES ===== */
 .user-info-row
   padding: 0
   gap: 16px
@@ -1029,7 +1131,18 @@ export default {
   color: #D92B3F
   font-weight: 600
 
-/* Selection Cards */
+.institution-acronym
+  color: #2c3e50
+  font-weight: 500
+  cursor: help
+  text-decoration: underline
+  text-decoration-style: dotted
+  text-decoration-color: #D92B3F
+
+.institution-acronym:hover
+  color: #D92B3F
+
+/* ===== SELECTION CARDS STYLES ===== */
 .selection-card
   height: 100%
   border-radius: 12px
@@ -1055,7 +1168,7 @@ export default {
 .roles-card
   border-left: 4px solid #D92B3F
 
-/* Institution Select Styles */
+/* ===== INSTITUTIONS STYLES ===== */
 .institution-select
   margin-top: 12px
 
@@ -1098,7 +1211,7 @@ export default {
   color: #000000
   font-size: 1rem
 
-/* Roles Styles */
+/* ===== FUNCTION STYLES ===== */
 .roles-container
   max-height: 300px
   overflow-y: auto
@@ -1129,7 +1242,7 @@ export default {
   padding: 20px
   font-style: italic
 
-/* Summary Styles */
+/* ===== SUMMARY STYLES ===== */
 .summary-section
   margin-top: 24px
   min-height: 140px
@@ -1169,7 +1282,7 @@ export default {
   padding: 20px
   font-size: 1rem
 
-/* Status Styles */
+/* ===== STATUS STYLE ===== */
 .status-card
   border-radius: 12px
   border-left: 4px solid #D92B3F
@@ -1181,7 +1294,7 @@ export default {
   font-size: 1.1rem
   color: #2c3e50
 
-/* Responsive Design */
+/* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1440px)
   .modal-card
     max-width: 95vw
