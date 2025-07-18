@@ -69,24 +69,29 @@
                       </v-icon>
                       {{ $t('institution') }}
                     </h4>
-                    <v-select
+                    <v-autocomplete
                       v-model="selectedInstitution"
-                      :items="institutionOptions"
+                      :items="filteredInstitutions"
                       item-text="name"
                       item-value="id"
                       :label="$t('select-institution')"
+                      :placeholder="$t('search-institution-placeholder')"
                       outlined
                       dense
                       clearable
                       :search-input.sync="institutionSearch"
-                      :filter="filterInstitutions"
-                      :no-data-text="$t('no-institutions-found')"
+                      :no-data-text="institutionSearch ?
+                        $t('no-institutions-found') :
+                        $t('type-to-search')"
                       prepend-inner-icon="mdi-magnify"
+                      hide-selected
+                      persistent-hint
+                      :hint="$t('search-institution-hint')"
                     >
                       <template #item="{ item }">
                         <div class="d-flex align-center">
                           <v-icon
-                            color="grey"
+                            color="primary"
                             class="mr-3"
                           >
                             mdi-domain
@@ -104,7 +109,19 @@
                           </div>
                         </div>
                       </template>
-                    </v-select>
+                      <template #selection="{ item }">
+                        <div class="d-flex align-center">
+                          <v-icon
+                            color="primary"
+                            class="mr-2"
+                            small
+                          >
+                            mdi-domain
+                          </v-icon>
+                          <span class="font-weight-medium">{{ item.name }}</span>
+                        </div>
+                      </template>
+                    </v-autocomplete>
                   </v-card>
                 </v-col>
 
@@ -371,6 +388,9 @@
     "institution": "Institution",
     "roles": "Roles",
     "select-institution": "Select an institution",
+    "search-institution-placeholder": "Search for an institution...",
+    "search-institution-hint": "Type at least 2 characters to search",
+    "type-to-search": "Type to search institutions",
     "no-institutions-found": "No institutions found",
     "select-at-least-one-role": "Select at least one role",
     "selection-summary": "Selection Summary"
@@ -388,6 +408,9 @@
     "institution": "Instituição",
     "roles": "Funções",
     "select-institution": "Selecione uma instituição",
+    "search-institution-placeholder": "Pesquisar instituição...",
+    "search-institution-hint": "Digite pelo menos 2 caracteres para pesquisar",
+    "type-to-search": "Digite para pesquisar instituições",
     "no-institutions-found": "Nenhuma instituição encontrada",
     "select-at-least-one-role": "Selecione pelo menos uma função",
     "selection-summary": "Resumo da Seleção"
@@ -448,6 +471,15 @@ export default {
         name: institution.name,
         description: institution.description || '',
       }));
+    },
+    filteredInstitutions() {
+      if (!this.institutionSearch || this.institutionSearch.length < 2) {
+        return this.institutionOptions;
+      }
+      const searchTerm = this.institutionSearch.toLowerCase();
+      return this.institutionOptions.filter((institution) => institution.name.toLowerCase().includes(searchTerm)
+        || (institution.description
+          && institution.description.toLowerCase().includes(searchTerm)));
     },
     groups() {
       const institutionList = this.institutionList.map((group) => ({
@@ -596,7 +628,7 @@ export default {
         this.$store.dispatch('admin/deniedAccessRequest', {
           id: this.userRequestData.id,
           denied_details: this.deniedDetails,
-        }).then((response) => {
+        }).then(() => {
           console.log('Request denied successfully!');
 
           // Close the dialog and refresh the request list
