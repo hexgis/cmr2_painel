@@ -99,7 +99,8 @@
                             <strong>{{ $t('email') }}:</strong> {{ userRequestData.email }}
                           </div>
                           <div class="info-item">
-                            <strong>{{ $t('siape-registration') }}:</strong> {{ userRequestData.siape || 'N/A' }}
+                            <strong>{{ $t('siape-registration') }}:</strong>
+                            {{ userRequestData.user_siape_registration || 'N/A' }}
                           </div>
                         </div>
                       </v-col>
@@ -120,10 +121,16 @@
                         </div>
                         <div class="info-details">
                           <div class="info-item">
-                            <strong>{{ $t('coordinator') }}:</strong> {{ userRequestData.coordinator_name || 'N/A' }}
+                            <strong>{{ $t('coordinator') }}:</strong>
+                            {{ userRequestData.coordinator_name || 'N/A' }}
                           </div>
                           <div class="info-item">
-                            <strong>{{ $t('email') }}:</strong> {{ userRequestData.coordinator_email || 'N/A' }}
+                            <strong>{{ $t('email') }}:</strong>
+                            {{ userRequestData.coordinator_email || 'N/A' }}
+                          </div>
+                          <div class="info-item">
+                            <strong>{{ $t('coordinator_siape_registration') }}:</strong>
+                            {{ userRequestData.coordinator_siape_registration || 'N/A' }}
                           </div>
                         </div>
                       </v-col>
@@ -598,6 +605,7 @@
     "server": "Server",
     "email": "Email",
     "siape-registration": "SIAPE Registration",
+    "coordinator_siape_registration": "Coordinator SIAPE Registration",
     "coordinator": "Coordinator"
   },
   "pt-br": {
@@ -639,6 +647,7 @@
     "server": "Servidor",
     "email": "Email",
     "siape-registration": "Matrícula SIAPE",
+    "coordinator_siape_registration": "Matrícula SIAPE Coordenador",
     "coordinator": "Coordenador"
   }
 }
