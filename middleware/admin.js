@@ -23,6 +23,10 @@ export default function admin({
     return null; // Allow access to restricted area for all authenticated users
   }
 
+  if (routePath === '/admin/criticas' || routePath.startsWith('/admin/criticas/')) {
+    return null;
+  }
+
   // Allow access if user has admin access OR is Gestor
   if (hasAdminAccess || isGestor) {
     // If user is only Gestor (not admin), restrict to specific routes
