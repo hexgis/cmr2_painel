@@ -94,11 +94,12 @@ export default {
     },
 
     canAccessRestrictedArea() {
-      return this.showAnalysisFieldsAdmin || this.showAnalysisFieldsDev || this.isGestor || this.isAdmin;
+      return this.showAnalysisFieldsAdmin || this.showAnalysisFieldsDev
+        || this.isGestor || this.isAdmin;
     },
 
     shouldShowMenu() {
-      return this.isAdmin || this.isGestor;
+      return this.user !== null;
     },
 
     adminLabels() {
@@ -122,7 +123,11 @@ export default {
           || label.route === '/admin/area-restrita');
       }
 
-      // Para outros usuários, não mostra menu (retorna array vazio)
+      if (this.user) {
+        return allLabels.filter((label) => label.route === '/admin/criticas'
+          || label.route === '/admin/area-restrita');
+      }
+
       return [];
     },
   },
