@@ -20,6 +20,39 @@
       </v-tooltip>
     </v-btn>
 
+    <!-- Botão Área Restrita -->
+    <div
+      v-if="isLoggedIn"
+      style="position: relative; display: inline-block;"
+    >
+      <v-btn
+        icon
+        large
+        class="mx-2"
+        @click="goToRestrictedArea"
+      >
+        <v-tooltip left>
+          <template #activator="{ on: onTooltip }">
+            <v-icon
+              color="white"
+              v-on="onTooltip"
+            >
+              mdi-key
+            </v-icon>
+          </template>
+          <span>{{ $t('restricted-area-tooltip') }}</span>
+        </v-tooltip>
+      </v-btn>
+
+      <!-- Badge com contador de solicitações pendentes -->
+      <span
+        v-if="pendingRequestsCount > 0"
+        class="pending-count-badge"
+      >
+        {{ pendingRequestsCount }}
+      </span>
+    </div>
+
     <!-- Botão Administrador -->
     <v-btn
       v-if="userCanAccess('admin_panel')"
@@ -152,6 +185,7 @@
     "logout-button": "Log out",
     "home-button": "Home",
     "admin-panel-tooltip": "Admin Panel",
+    "restricted-area-tooltip": "Restricted Area",
     "login-button": "Log In",
     "manual-button": "Manual"
   },
@@ -162,6 +196,7 @@
     "logout-button": "Sair",
     "home-button": "Início",
     "admin-panel-tooltip": "Painel do Administrador",
+    "restricted-area-tooltip": "Área Restrita",
     "login-button": "Login",
     "manual-button": "Manual"
   }
@@ -195,6 +230,7 @@ export default {
   data: () => ({
     settingsOpened: false,
     hasAnalytics: process.env.ANALYTICS === 'true',
+    pendingRequestsCount: 0,
   }),
 
   watch: {
@@ -205,6 +241,12 @@ export default {
     settingsOpened(value) {
       this.$emit('update', value);
     },
+  },
+
+  async mounted() {
+    if (this.isLoggedIn && this.user) {
+      await this.fetchPendingRequestsCount();
+    }
   },
 
   methods: {
@@ -222,11 +264,39 @@ export default {
       this.$router.push(this.localePath('/admin'));
     },
 
+    goToRestrictedArea() {
+      this.$router.push(this.localePath('/admin/area-restrita'));
+    },
+
     openSettings() {
       this.settingsOpened = true;
     },
 
-    goToMain() {
+    async fetchPendingRequestsCount() {
+      try {
+
+        if (!this.user) {
+          console.log('Usuário não encontrado');
+          this.pendingRequestsCount = 0;
+          return;
+        }
+
+        const url = `/user/restricted-access/pending-count/`;
+        console.log('URL da requisição:', url);
+
+        const response = await this.$axios.get(url);
+        console.log('Resposta da API:', response.data);
+
+        this.pendingRequestsCount = response.data.count || 0;
+        console.log('Contador atualizado para:', this.pendingRequestsCount);
+      } catch (error) {
+        console.error('Erro ao buscar contador de solicitações pendentes:', error);
+        this.pendingRequestsCount = 0;
+      }
+    },
+
+    async goToMain() {
+      await this.fetchPendingRequestsCount();
       this.$router.replace(this.localePath('/'));
     },
 
@@ -235,7 +305,7 @@ export default {
     },
 
     goToCriticisms() {
-      window.location.href = this.localePath('/admin/criticas');
+      this.$router.push(this.localePath('/admin/criticas'));
     },
 
     ...mapActions('auth', ['logout']),
@@ -258,6 +328,25 @@ export default {
   width: 100%
   bottom: 0
   padding: 3px 0
+
+.pending-count-badge
+  position: absolute
+  top: -5px
+  right: -5px
+  background: #ff1744 !important
+  color: white !important
+  border-radius: 50%
+  padding: 4px 8px
+  font-size: 0.8rem
+  font-weight: bold
+  min-width: 20px
+  height: 20px
+  display: flex !important
+  align-items: center
+  justify-content: center
+  z-index: 1000
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5)
+  border: 2px solid white
 
 .username
   pointer-events: none

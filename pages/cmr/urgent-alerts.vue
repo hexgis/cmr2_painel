@@ -33,7 +33,7 @@
       />
     </div>
 
-    <AlertFilter @onSearch="search()" />
+    <AlertsFilters @onSearch="search()" />
     <ShowDialog />
     <div
       v-if="showFeaturesUrgentAlerts && !isLoadingFeatures"
@@ -117,11 +117,11 @@
 
 <script>
 import { mapActions, mapMutations, mapState } from 'vuex';
-import AlertFilter from '@/components/monitoring/AlertFilter.vue';
+import AlertsFilters from '@/components/monitoring-alerts/urgent-alerts/AlertsFilters.vue';
 import ShowDialog from '@/components/show-dialog/ShowDialog';
 
 export default {
-  components: { AlertFilter, ShowDialog },
+  components: { AlertsFilters, ShowDialog },
 
   data() {
     return {

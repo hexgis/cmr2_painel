@@ -26,7 +26,7 @@
           cols="12"
           md="6"
         >
-          <p><strong>{{ $t('department') }}:</strong> {{ accessRequest.department }}</p>
+          <p><strong>{{ $t('institution') }}:</strong> {{ accessRequest.institution }}</p>
           <p><strong>{{ $t('registration') }}:</strong> {{ accessRequest.user_siape_registration }}</p>
         </v-col>
       </v-row>
@@ -46,7 +46,7 @@
           cols="12"
           md="6"
         >
-          <p><strong>{{ $t('coordinator-department') }}:</strong> {{ accessRequest.coordinator_department }}</p>
+          <p><strong>{{ $t('coordinator-institution') }}:</strong> {{ accessRequest.coordinator_institution }}</p>
           <p><strong>{{ $t('siape-registration') }}:</strong> {{ accessRequest.coordinator_siape_registration }}</p>
         </v-col>
       </v-row>
@@ -122,12 +122,12 @@
     "coordinator": "Coordinator",
     "name": "Name",
     "email": "Email",
-    "department": "Department",
+    "institution": "Institution",
     "registration": "Registration",
     "email-valid": "Email must be valid",
     "coordinator-name": "Coordinator's Name",
     "coordinator-email": "Coordinator's Email",
-    "coordinator-department": "Coordinator's Department",
+    "coordinator-institution": "Coordinator's Institution",
     "siape-registration": "Siape Registration",
     "submit-request": "Approve Request",
     "reject-request": "Reject Request",
@@ -148,12 +148,12 @@
     "coordinator": "Coordenador",
     "name": "Nome do servidor",
     "email": "Email do servidor",
-    "department": "Lotação",
+    "institution": "Lotação",
     "registration": "Matrícula Siape",
     "email-valid": "Email deve ser válido",
     "coordinator-name": "Nome do Coordenador responsável",
     "coordinator-email": "Email do Coordenador responsável",
-    "coordinator-department": "Lotação do Coordenador",
+    "coordinator-institution": "Lotação do Coordenador",
     "siape-registration": "Matrícula Siape",
     "submit-request": "Aprovar Solicitação",
     "reject-request": "Reprovar Solicitação",
@@ -183,11 +183,11 @@ export default {
       accessRequest: {
         name: '',
         email: '',
-        department: '',
+        institution: '',
         user_siape_registration: '',
         coordinator_name: '',
         coordinator_email: '',
-        coordinator_department: '',
+        coordinator_institution: '',
         coordinator_siape_registration: '',
       },
       showModal: false,

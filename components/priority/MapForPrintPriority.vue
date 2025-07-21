@@ -36,11 +36,7 @@
           </l-control>
           <PriorityIndividualLayer :map="map" />
           <SupportLayers />
-          <SupportLayersRaster />
-
-          <SupportLayersProdes />
-
-          <SupportLayersHazard />
+          <LayersRaster />
         </l-map>
       </client-only>
     </v-col>
@@ -216,58 +212,8 @@
                 </v-row>
               </div>
             </div>
-            <div v-if="showFeaturesSupportLayers">
-              <div
-                v-for="layer in supportLayersCategoryFire"
-                :key="layer.id"
-              >
-                <v-row
-                  v-if="layer.visible"
-                  no-gutters
-                  align="center"
-                >
-                  <img
-                    :src="
-                      layer.wms.geoserver.preview_url +
-                        layer.wms.geoserver_layer_name
-                    "
-                    width="13vw"
-                    alt="CorLayer"
-                  >
-                  <v-col>
-                    <p class="ml-1">
-                      {{ $t('support-layer-label', { layer: layer.name }) }}
-                    </p>
-                  </v-col>
-                </v-row>
-              </div>
-            </div>
-            <div v-if="showFeaturesSupportLayers">
-              <div
-                v-for="layer in supportLayersCategoryRaster"
-                :key="layer.id"
-              >
-                <v-row
-                  v-if="layer.visible"
-                  no-gutters
-                  align="center"
-                >
-                  <img
-                    :src="
-                      layer.wms.geoserver.preview_url +
-                        layer.wms.geoserver_layer_name
-                    "
-                    width="13vw"
-                    alt="CorLayer"
-                  >
-                  <v-col>
-                    <p class="ml-1">
-                      {{ $t('support-layer-label', { layer: layer.name }) }}
-                    </p>
-                  </v-col>
-                </v-row>
-              </div>
-            </div>
+            <div v-if="showFeaturesSupportLayers" />
+            <div v-if="showFeaturesSupportLayers" />
             <div v-if="showFeaturesSupportLayers">
               <div
                 v-for="layer in supportLayers"
@@ -326,23 +272,6 @@
               <div
                 v-for="layer in supportLayersCategoryAntropismo"
                 :key="layer.name"
-              >
-                <v-row
-                  v-if="layer.visible"
-                  no-gutters
-                >
-                  <v-col>
-                    <p>
-                      {{ $t('support-layer-label', { layer: layer.name }) }}
-                    </p>
-                  </v-col>
-                </v-row>
-              </div>
-            </div>
-            <div v-if="supportLayersCategoryFire">
-              <div
-                v-for="layer in supportLayersCategoryFire"
-                :key="layer.id"
               >
                 <v-row
                   v-if="layer.visible"
@@ -426,12 +355,11 @@
 import { mapState } from 'vuex';
 import MiniMapForPrintPriority from '@/components/priority/MiniMapForPrintPriority.vue';
 import PriorityIndividualLayer from '@/components/priority/PriorityIndividualLayer';
-import MonitoringLayers from '@/components/monitoring/MonitoringLayers';
+import MonitoringLayers from '@/components/monitoring-alerts/monitoring/MonitoringLayers';
 import SupportLayers from '@/components/support/SupportLayers';
-import AlertLayers from '@/components/monitoring/AlertLayers';
-import SupportLayersHazard from '@/components/support/SupportLayersHazard';
-import SupportLayersProdes from '@/components/support/SupportLayersProdes';
-import SupportLayersRaster from '@/components/support/SupportLayersRaster';
+import AlertsLayers from '@/components/monitoring-alerts/urgent-alerts/AlertsLayers';
+
+import LayersRaster from '@/components/raster/LayersRaster';
 
 const intervalZooms = require('@/utils/zoomIntervalsGraticule');
 
@@ -441,10 +369,9 @@ export default {
     PriorityIndividualLayer,
     MonitoringLayers,
     SupportLayers,
-    AlertLayers,
-    SupportLayersRaster,
-    SupportLayersProdes,
-    SupportLayersHazard,
+    AlertsLayers,
+    LayersRaster,
+
   },
   props: {
     titleMap: {
@@ -509,8 +436,7 @@ export default {
       'showFeaturesSupportLayers',
       'supportLayers',
       'supportLayersCategoryAntropismo',
-      'supportLayersCategoryFire',
-      'supportLayersCategoryRaster',
+
     ]),
   },
 

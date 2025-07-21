@@ -152,30 +152,14 @@ export default {
           route: '/deter',
           show: process.env.ROUTE_DETER === 'true',
         },
-        {
-          name: this.$t('prodes-tab'),
-          icon: 'mdi-view-dashboard',
-          route: '/support-prodes',
-          show: process.env.ROUTE_SUPPORT_PRODES === 'true',
-        },
+
            {
           name: this.$t('catalog-tab'),
           icon: 'mdi-folder-multiple-image',
           route: '/catalog',
           show: process.env.ROUTE_CATALOG === 'true',
         },
-          {
-          name: this.$t('support-fire-tab'),
-          icon: 'mdi-fire',
-          route: '/support-hazard',
-          show: process.env.ROUTE_SUPPORT_HAZARD === 'true',
-        },
-        {
-          name: this.$t('support-fire-tab'),
-          icon: 'mdi-fire',
-          route: '/cmr/support-hazard',
-          show: process.env.ROUTE_SUPPORT_HAZARD === 'true',
-        },
+
         */
 
       return [
@@ -190,19 +174,20 @@ export default {
         {
           name: this.$t('search-tab'),
           icon: 'mdi-map-search',
-          route: '/cmr/monitoring',
+          route: '/cmr/monitoring-alerts',
           requiredLogin: true,
           show: process.env.ROUTE_MONITORING === 'true',
-          componentKey: 'monitoring',
+          componentKey: 'monitoring-alerts',
         },
         {
           name: this.$t('high-resolution-mosaics-tab'),
-          icon: 'mdi-book-open-page-variant',
-          route: '/cmr/support-raster',
+           icon: 'mdi-book-open-page-variant',
+          route: '/cmr/raster',
           requiredLogin: true,
-          show: process.env.ROUTE_SUPPORT_RASTER === 'true',
+          show: process.env.ROUTE_RASTER === 'true',
           componentKey: 'layers_mosaics',
         },
+
         {
           name: this.$t('landuse-tab'),
           icon: 'mdi-sprout',
@@ -224,7 +209,7 @@ export default {
           icon: 'mdi-satellite-variant',
           route: '/cmr/inpe',
           requiredLogin: true,
-          show: process.env.ROUTE_SUPPORT_PRODES === 'true',
+          show: process.env.ROUTE_INPE === 'true',
         },
         {
           name: this.$t('analytics-tab'),

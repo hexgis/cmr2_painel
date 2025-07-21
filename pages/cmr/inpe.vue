@@ -11,7 +11,7 @@
           {{ $t('title') }}
         </h6>
 
-        <v-tooltip  
+        <v-tooltip
           bottom
           max-width="600px"
           color="grey darken-4"
@@ -44,10 +44,11 @@
         >
           {{ $t('title-deter') }}
         </h4>
-        <v-tooltip 
+        <v-tooltip
           bottom
           max-width="600px"
-          color="grey darken-4">
+          color="grey darken-4"
+        >
           <template #activator="{ on }">
             <v-icon
               class="infoIconMargin"
@@ -205,17 +206,15 @@
 </i18n>
 
 <script>
-import { mapState } from 'vuex';
-import _ from 'lodash';
 
 import DeterFilters from '../../components/inpe/deter/DeterFilters.vue';
 import ProdesFilters from '../../components/inpe/prodes/ProdesFilters.vue';
 import FocoFilters from '../../components/inpe/foco/FocoFilters.vue';
 
 export default {
-  name: 'SupportProdes',
+  name: 'Inpe',
 
-  components: { DeterFilters, ProdesFilters, FocoFilters},
+  components: { DeterFilters, ProdesFilters, FocoFilters },
 
   transition: 'scroll-y-transition',
 
@@ -236,24 +235,7 @@ export default {
     orderedSupportLayersGroups() {
       return _.sortBy(this.supportCategoryGroupsProdes, 'order');
     },
-    showFeatures: {
-      get() {
-        return this.$store.state.supportLayers
-          .showFeaturesSupportLayersProdes;
-      },
-      set(value) {
-        this.$store.commit(
-          'supportLayers/setshowFeaturesSupportLayersProdes',
-          value,
-        );
-      },
-    },
 
-    ...mapState('supportLayers', [
-      'supportCategoryGroupsProdes',
-      'loading',
-      'showFeaturesSupportLayersProdes',
-    ]),
   },
 };
 </script>

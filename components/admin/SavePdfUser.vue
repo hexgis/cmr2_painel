@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { logoBase64 } from '@/utils/logoBase64';
 
@@ -48,13 +48,15 @@ export default {
       // Cria a tabela com os dados dos usuários
       autoTable(doc, {
         startY: 30,
-        head: [['Nome', 'Email', 'Administrador', 'Acesso Permitido', 'Instituição']],
+        head: [['Usuário', 'Primeiro Nome', 'Último Nome', 'Email', 'Administrador', 'Acesso Permitido', 'Instituição']],
         body: this.users.map((user) => [
           user.username,
+          user.first_name || '',
+          user.last_name || '',
           user.email,
-          user.is_staff ? 'Sim' : 'Não',
-          user.is_active ? 'Sim' : 'Não',
-          user.institution,
+          user.is_admin ? 'Sim' : 'Não',
+          user.is_active ? 'Ativo' : 'Inativo',
+          user.institution || '',
         ]),
         headStyles: {
           fillColor: '#D92B3F',

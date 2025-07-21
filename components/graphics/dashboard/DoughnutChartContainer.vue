@@ -1,54 +1,65 @@
 <template>
-  <v-container>
-    <v-row class="align-sm-center">
-      <v-col cols="8">
-        <doughnut-chart
-          v-if="chartData"
-          :chartData="chartData"
-          :chartOptions="chartOptions"
-        ></doughnut-chart>
+  <v-container class="pa-2">
+    <v-row class="justify-center">
+      <v-col
+        cols="12"
+        class="d-flex justify-center"
+      >
+        <div class="chart-wrapper">
+          <doughnut-chart
+            v-if="chartData"
+            :chart-data="chartData"
+            :chart-options="chartOptions"
+          />
+        </div>
       </v-col>
-      <v-col cols="4">
-        <legend-list :legendItems="legendItems"></legend-list>
+    </v-row>
+    <v-row class="justify-center mt-2">
+      <v-col
+        cols="12"
+        class="d-flex justify-center"
+      >
+        <legend-list :legend-items="legendItems" />
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import DoughnutChart from './DoughnutChart.vue';
 import LegendList from './LegendList.vue';
-import { mapGetters } from 'vuex';
 
 export default {
   components: {
     DoughnutChart,
-    LegendList
+    LegendList,
   },
   data() {
     return {
       chartData: null,
       chartOptions: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
         legend: {
-          display: false
-        }
+          display: false,
+        },
+        cutout: '60%',
       },
-      legendItems: []
+      legendItems: [],
     };
   },
   computed: {
     ...mapGetters('charts', [
-      'getTypeDeviceCounts'
-    ])
+      'getTypeDeviceCounts',
+    ]),
   },
-  watch:{
+  watch: {
     getTypeDeviceCounts: {
-      async handler(){
-        await this.prepareChartData()
-      }
-    }
+      async handler() {
+        await this.prepareChartData();
+      },
+    },
   },
   methods: {
     async prepareChartData() {
@@ -61,24 +72,32 @@ export default {
       this.legendItems = labels.map((label, index) => ({
         label,
         count: (data[index] / total * 100).toFixed(0),
-        color: backgroundColors[index]
+        color: backgroundColors[index],
       }));
 
       this.chartData = {
-        labels: labels,
+        labels,
         datasets: [
           {
             label: 'Modo de acesso ao CMR',
             backgroundColor: backgroundColors,
-            data: data
-          }
-        ]
+            data,
+          },
+        ],
       };
-    }
-  }
+    },
+  },
 };
 </script>
+
 <style lang="sass" scoped>
-  .col-8
-    height: 400px !important
+.chart-wrapper
+  width: 300px
+  height: 300px
+
+.v-container
+  text-align: center
+
+.mt-2
+  margin-top: 8px !important
 </style>

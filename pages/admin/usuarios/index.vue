@@ -20,13 +20,12 @@
     </span>
     <v-row class="mt-4">
       <v-col>
-
-          <GraphicBar
-            v-for="(category, index) in storeCategories"
-            :key="index"
-            :category="category"
-            :max-value="totalValue"
-          />
+        <GraphicBar
+          v-for="(category, index) in storeCategories"
+          :key="index"
+          :category="category"
+          :max-value="totalValue"
+        />
       </v-col>
       <v-col class="d-flex flex-column justify-space-between">
         <CustomDialog
@@ -45,9 +44,22 @@
               <v-row class="pa-3">
                 <v-text-field
                   v-model="newUser.username"
-                  label="Nome"
+                  label="Usuário"
                   outlined
                   :rules="[requiredRule]"
+                />
+                <v-spacer />
+                <v-text-field
+                  v-model="newUser.first_name"
+                  label="Primeiro Nome"
+                  outlined
+                />
+              </v-row>
+              <v-row class="pa-3">
+                <v-text-field
+                  v-model="newUser.last_name"
+                  label="Último Nome"
+                  outlined
                 />
                 <v-spacer />
                 <v-text-field
@@ -129,11 +141,13 @@
                             icon
                             color="#D92B3F"
                             v-bind="attrs"
-                            v-on="on"
                             class="mr-2"
+                            v-on="on"
                             @click="generateLogsPDF"
                           >
-                            <v-icon size="30">mdi-file-pdf-box</v-icon>
+                            <v-icon size="30">
+                              mdi-file-pdf-box
+                            </v-icon>
                           </v-btn>
                         </template>
                         <span>PDF</span>
@@ -144,11 +158,13 @@
                           <v-btn
                             icon
                             color="#43A047"
-                            @click="generateLogsCSV"
                             v-bind="attrs"
+                            @click="generateLogsCSV"
                             v-on="on"
                           >
-                            <v-icon size="30">mdi-file-excel-box</v-icon>
+                            <v-icon size="30">
+                              mdi-file-excel-box
+                            </v-icon>
                           </v-btn>
                         </template>
                         <span>CSV</span>
@@ -218,11 +234,13 @@
                             icon
                             color="#D92B3F"
                             v-bind="attrs"
-                            v-on="on"
                             class="mr-2"
+                            v-on="on"
                             @click="generateAccessPDF"
                           >
-                            <v-icon size="30">mdi-file-pdf-box</v-icon>
+                            <v-icon size="30">
+                              mdi-file-pdf-box
+                            </v-icon>
                           </v-btn>
                         </template>
                         <span>PDF</span>
@@ -233,11 +251,13 @@
                           <v-btn
                             icon
                             color="#43A047"
-                            @click="generateAccessCSV"
                             v-bind="attrs"
+                            @click="generateAccessCSV"
                             v-on="on"
                           >
-                            <v-icon size="30">mdi-file-excel-box</v-icon>
+                            <v-icon size="30">
+                              mdi-file-excel-box
+                            </v-icon>
                           </v-btn>
                         </template>
                         <span>CSV</span>
@@ -247,7 +267,9 @@
                 </div>
 
                 <!-- Login History Table -->
-                <h3 class="mb-3">Histórico de Login</h3>
+                <h3 class="mb-3">
+                  Histórico de Login
+                </h3>
                 <v-data-table
                   :headers="loginHeaders"
                   :items="filteredUserLoginHistory"
@@ -261,12 +283,17 @@
                   </template>
                 </v-data-table>
 
-                <div v-if="!userLoginHistory.length" class="text-center mb-4">
+                <div
+                  v-if="!userLoginHistory.length"
+                  class="text-center mb-4"
+                >
                   Nenhum histórico de login encontrado.
                 </div>
 
                 <!-- Role Changes Table -->
-                <h3 class="mb-3">Histórico de Alterações de Papéis de Acesso</h3>
+                <h3 class="mb-3">
+                  Histórico de Alterações de Papéis de Acesso
+                </h3>
                 <v-data-table
                   :headers="roleChangesHeaders"
                   :items="filteredUserRoleChanges"
@@ -280,7 +307,10 @@
                   </template>
                 </v-data-table>
 
-                <div v-if="!userRoleChanges.length" class="text-center mt-4">
+                <div
+                  v-if="!userRoleChanges.length"
+                  class="text-center mt-4"
+                >
                   Nenhuma alteração de grupo encontrada para este usuário.
                 </div>
               </v-card-text>
@@ -305,8 +335,21 @@
                 <v-text-field
                   v-model="editUserData.username"
                   outlined
-                  label="Nome"
+                  label="Usuário"
                   :rules="[requiredRule]"
+                />
+                <v-spacer />
+                <v-text-field
+                  v-model="editUserData.first_name"
+                  outlined
+                  label="Primeiro Nome"
+                />
+              </v-row>
+              <v-row class="pa-3">
+                <v-text-field
+                  v-model="editUserData.last_name"
+                  outlined
+                  label="Último Nome"
                 />
                 <v-spacer />
                 <v-text-field
@@ -350,322 +393,522 @@
       <SearchFiltersUser :filters="filters" />
     </div>
 
+    <div class="d-flex justify-space-between align-center mb-2">
+      <div class="d-flex align-center">
+        <!-- botão para escolher colunas -->
+        <v-menu offset-y>
+          <template #activator="{ on, attrs }">
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              Selecionar colunas
+              <v-icon right>
+                mdi-chevron-down
+              </v-icon>
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-list-item
+              v-for="h in headers"
+              :key="h.value"
+            >
+              <v-list-item-action>
+                <v-checkbox
+                  v-model="visibleColumns"
+                  :value="h.value"
+                  dense
+                  hide-details
+                />
+              </v-list-item-action>
+              <v-list-item-content>
+                <v-list-item-title>{{ h.text }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
 
-      <div class="d-flex justify-space-between align-center mb-2">
-        <div class="d-flex align-center">
-          <!-- botão para escolher colunas -->
-          <v-menu offset-y>
-            <template #activator="{ on, attrs }">
-              <v-btn text small v-bind="attrs" v-on="on">
-                Selecionar colunas
-                <v-icon right>mdi-chevron-down</v-icon>
-              </v-btn>
-            </template>
-            <v-list dense>
-              <v-list-item v-for="h in headers" :key="h.value">
-                <v-list-item-action>
-                  <v-checkbox
-                    v-model="visibleColumns"
-                    :value="h.value"
-                    dense
-                    hide-details
-                  />
-                </v-list-item-action>
-                <v-list-item-content>
-                  <v-list-item-title>{{ h.text }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
-          </v-menu>
+        <!-- pesquisa geral -->
+        <v-text-field
+          v-model="searchAll"
+          placeholder="Pesquisar tudo"
+          append-icon="mdi-magnify"
+          clearable
+          dense
+          outlined
+          hide-details
+          class="ml-4"
+          style="width: 350px;"
+          @click.stop
+        />
 
-          <!-- pesquisa geral -->
-          <v-text-field
-            v-model="searchAll"
-            placeholder="Pesquisar tudo"
-            append-icon="mdi-magnify"
-            clearable
-            dense
-            outlined
-            hide-details
-            class="ml-4"
-            style="width: 350px;"
-            @click.stop
-          />
-
-          <!-- Export section -->
-          <div class="d-flex align-center ml-3">
-
-            <!-- Export icons -->
-            <div class="export-icons">
-               <div class="export-label text-uppercase mr-2">
+        <!-- Export section -->
+        <div class="d-flex align-center ml-3">
+          <!-- Export icons -->
+          <div class="export-icons">
+            <div class="export-label text-uppercase mr-2">
               {{ $t('export') }}
             </div>
-              <SavePdfUser :users="filteredUsers">
-                <template #activator="{ on, attrs }">
-                  <v-btn
-                    icon
-                    color="#D92B3F"
-                    v-bind="attrs"
-                    v-on="on"
-                    class="mr-2"
-                  >
-                    <v-icon>mdi-file-pdf-box</v-icon>
-                  </v-btn>
-                </template>
-              </SavePdfUser>
+            <SavePdfUser :users="filteredByColumns">
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  icon
+                  color="#D92B3F"
+                  v-bind="attrs"
+                  class="mr-2"
+                  v-on="on"
+                >
+                  <v-icon>mdi-file-pdf-box</v-icon>
+                </v-btn>
+              </template>
+            </SavePdfUser>
 
-              <v-tooltip top>
-                <template #activator="{ on, attrs }">
-                  <v-btn
-                    icon
-                    color="#43A047"
-                    @click="generateCSV"
-                    class="mr-3"
-                    v-bind="attrs"
-                    v-on="on"
-                  >
-                    <v-icon size="40">mdi-file-excel-box</v-icon>
-                  </v-btn>
-                </template>
-                <span>CSV</span>
-              </v-tooltip>
-            </div>
+            <v-tooltip top>
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  icon
+                  color="#43A047"
+                  class="mr-3"
+                  v-bind="attrs"
+                  @click="generateCSV"
+                  v-on="on"
+                >
+                  <v-icon size="40">
+                    mdi-file-excel-box
+                  </v-icon>
+                </v-btn>
+              </template>
+              <span>CSV</span>
+            </v-tooltip>
           </div>
         </div>
-
-        <!-- botão adicionar novo usuário -->
-        <v-btn
-          color="error"
-          dark
-          rounded
-          class="add-user-btn"
-          :class="{ 'collapsed': isButtonCollapsed }"
-          @click="showModal = true"
-          @mouseenter="expandButton"
-          @mouseleave="collapseButtonIfNeeded"
-        >
-          <v-icon>mdi-plus</v-icon>
-          <span class="button-text ml-2">{{ $t('addNewUser') }}</span>
-        </v-btn>
       </div>
 
-      <v-data-table
-        v-if="filteredUsers.length"
-        :headers="filteredHeaders"
-        :items="filteredByColumns"
-        class="elevation-1 mt-4"
-        dense
-        :search="search"
+      <!-- botão adicionar novo usuário -->
+      <v-btn
+        color="error"
+        dark
+        rounded
+        class="add-user-btn"
+        :class="{ 'collapsed': isButtonCollapsed }"
+        @click="showModal = true"
+        @mouseenter="expandButton"
+        @mouseleave="collapseButtonIfNeeded"
       >
-
-        <!-- filtro Nome -->
-<template #header.username="{ header }">
-  <v-menu
-    v-model="usernameMenu"
-    offset-y
-    :close-on-content-click="false"
-  >
-    <template #activator="{ on, attrs }">
-      <v-btn text small v-bind="attrs" v-on="on">
-        {{ header.text }}<v-icon small>mdi-filter-variant</v-icon>
+        <v-icon>mdi-plus</v-icon>
+        <span class="button-text ml-2">{{ $t('addNewUser') }}</span>
       </v-btn>
-    </template>
-    <v-card style="width:250px">
-      <v-text-field
-        v-model="searchUsername"
-        placeholder="Pesquisar..."
-        outlined dense hide-details clearable
-        class="mx-3 mt-3" @click.stop
-      />
-      <v-divider/>
-      <v-list dense class="filter-list">
-        <v-list-item
-          v-for="name in filteredUsernameList" :key="name"
+    </div>
+
+    <v-data-table
+      v-if="filteredUsers.length"
+      :headers="filteredHeaders"
+      :items="filteredByColumns"
+      class="elevation-1 mt-4"
+      dense
+      :search="search"
+    >
+      <!-- filtro Nome -->
+      <template #header.username="{ header }">
+        <v-menu
+          v-model="usernameMenu"
+          offset-y
+          :close-on-content-click="false"
         >
-          <v-checkbox
-            v-model="columnFilters.username"
-            :value="name" :label="name"
-            dense @change="usernameMenu = false"
-          />
-        </v-list-item>
-      </v-list>
-    </v-card>
-  </v-menu>
-</template>
-
-<!-- filtro Email -->
-<template #header.email="{ header }">
-  <v-menu
-    v-model="emailMenu"
-    offset-y
-    :close-on-content-click="false"
-  >
-    <template #activator="{ on, attrs }">
-      <v-btn text small v-bind="attrs" v-on="on">
-        {{ header.text }}<v-icon small>mdi-filter-variant</v-icon>
-      </v-btn>
-    </template>
-    <v-card style="width:250px">
-      <v-text-field
-        v-model="searchEmail"
-        placeholder="Pesquisar..."
-        outlined dense hide-details clearable
-        class="mx-3 mt-3" @click.stop
-      />
-      <v-divider/>
-      <v-list dense class="filter-list">
-        <v-list-item
-          v-for="mail in filteredEmailList" :key="mail"
-        >
-          <v-checkbox
-            v-model="columnFilters.email"
-            :value="mail" :label="mail"
-            dense @change="emailMenu = false"
-          />
-        </v-list-item>
-      </v-list>
-    </v-card>
-  </v-menu>
-</template>
-
-<!-- filtro Administrador -->
-<template #header.is_staff="{ header }">
-  <v-menu offset-y>
-    <template #activator="{ on, attrs }">
-      <v-btn text small v-bind="attrs" v-on="on">
-        {{ header.text }}
-        <v-icon small class="ml-1">mdi-filter-variant</v-icon>
-      </v-btn>
-    </template>
-    <v-list dense>
-      <v-list-item>
-        <v-checkbox
-          v-model="columnFilters.is_staff"
-          :value="true"
-          label="Sim"
-          dense
-        />
-      </v-list-item>
-      <v-list-item>
-        <v-checkbox
-          v-model="columnFilters.is_staff"
-          :value="false"
-          label="Não"
-          dense
-        />
-      </v-list-item>
-    </v-list>
-  </v-menu>
-</template>
-
-<!-- filtro Acesso Permitido -->
-<template #header.is_active="{ header }">
-  <v-menu offset-y>
-    <template #activator="{ on, attrs }">
-      <v-btn text small v-bind="attrs" v-on="on">
-        {{ header.text }}
-        <v-icon small class="ml-1">mdi-filter-variant</v-icon>
-      </v-btn>
-    </template>
-    <v-list dense>
-      <v-list-item>
-        <v-checkbox
-          v-model="columnFilters.is_active"
-          :value="true"
-          label="Ativo"
-          dense
-        />
-      </v-list-item>
-      <v-list-item>
-        <v-checkbox
-          v-model="columnFilters.is_active"
-          :value="false"
-          label="Inativo"
-          dense
-        />
-      </v-list-item>
-    </v-list>
-  </v-menu>
-</template>
-
-<!-- filtro Instituição -->
-<template #header.institution="{ header }">
-  <v-menu
-    v-model="institutionMenu"
-    offset-y
-    :close-on-content-click="false"
-  >
-    <template #activator="{ on, attrs }">
-      <v-btn text small v-bind="attrs" v-on="on">
-        {{ header.text }}
-        <v-icon small class="ml-1">mdi-filter-variant</v-icon>
-      </v-btn>
-    </template>
-    <v-card style="width:250px">
-      <v-text-field
-        v-model="searchInstitution"
-        placeholder="Pesquisar..."
-        outlined
-        dense
-        hide-details
-        clearable
-        class="mx-3 mt-3"
-        @click.stop
-      />
-      <v-divider/>
-      <v-list dense class="filter-list">
-        <v-list-item
-          v-for="inst in filteredInstitutionList"
-          :key="inst.id"
-        >
-          <v-checkbox
-            v-model="columnFilters.institution"
-            :value="inst.name"
-            :label="inst.name"
-            dense
-            @change="institutionMenu = false"
-          />
-        </v-list-item>
-      </v-list>
-    </v-card>
-  </v-menu>
-</template>
-
-        <template #item.actions="{ item }">
-            <v-tooltip top>
-              <template #activator="{ on, attrs }">
-                <v-btn icon small color="grey darken-2" v-bind="attrs" v-on="on" @click="openEditDialog(item)">
-                  <v-icon>mdi-pencil</v-icon>
-                </v-btn>
-              </template>
-              <span>Editar</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <template #activator="{ on, attrs }">
-                <v-btn icon small color="grey darken-2" v-bind="attrs" v-on="on" @click="openLogsDialog(item)">
-                  <v-icon>mdi-clock-outline</v-icon>
-                </v-btn>
-              </template>
-              <span>Logs</span>
-            </v-tooltip>
-          </template>
-          <template #item.is_active="{ item }">
-            <div class="d-flex align-center">
-              <v-icon :color="item.is_active ? 'green' : 'red'" small>
-                {{ item.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
+          <template #activator="{ on, attrs }">
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ header.text }}<v-icon small>
+                mdi-filter-variant
               </v-icon>
-              <span class="ml-2">{{ item.is_active ? 'Ativo' : 'Inativo' }}</span>
-            </div>
+            </v-btn>
           </template>
-          <template #item.is_staff="{ item }">
-              <div class="d-flex align-center">
-                <v-icon :color="item.is_staff ? '#F58A1F' : 'grey'" small>
-                  {{ item.is_staff ? 'mdi-account-star' : 'mdi-account' }}
-                </v-icon>
-                <span class="ml-2">{{ item.is_staff ? 'Sim' : 'Não' }}</span>
-              </div>
-           </template>
-      </v-data-table>
+          <v-card style="width:250px">
+            <v-text-field
+              v-model="searchUsername"
+              placeholder="Pesquisar..."
+              outlined
+              dense
+              hide-details
+              clearable
+              class="mx-3 mt-3"
+              @click.stop
+            />
+            <v-divider />
+            <v-list
+              dense
+              class="filter-list"
+            >
+              <v-list-item
+                v-for="name in filteredUsernameList"
+                :key="name"
+              >
+                <v-checkbox
+                  v-model="columnFilters.username"
+                  :value="name"
+                  :label="name"
+                  dense
+                  @change="usernameMenu = false"
+                />
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </template>
+
+      <!-- filtro Primeiro Nome -->
+      <template #header.first_name="{ header }">
+        <v-menu
+          v-model="firstNameMenu"
+          offset-y
+          :close-on-content-click="false"
+        >
+          <template #activator="{ on, attrs }">
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ header.text }}<v-icon small>
+                mdi-filter-variant
+              </v-icon>
+            </v-btn>
+          </template>
+          <v-card style="width:250px">
+            <v-text-field
+              v-model="searchFirstName"
+              placeholder="Pesquisar..."
+              outlined
+              dense
+              hide-details
+              clearable
+              class="mx-3 mt-3"
+              @click.stop
+            />
+            <v-divider />
+            <v-list
+              dense
+              class="filter-list"
+            >
+              <v-list-item
+                v-for="name in filteredFirstNameList"
+                :key="name"
+              >
+                <v-checkbox
+                  v-model="columnFilters.first_name"
+                  :value="name"
+                  :label="name"
+                  dense
+                  @change="firstNameMenu = false"
+                />
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </template>
+
+      <!-- filtro Último Nome -->
+      <template #header.last_name="{ header }">
+        <v-menu
+          v-model="lastNameMenu"
+          offset-y
+          :close-on-content-click="false"
+        >
+          <template #activator="{ on, attrs }">
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ header.text }}<v-icon small>
+                mdi-filter-variant
+              </v-icon>
+            </v-btn>
+          </template>
+          <v-card style="width:250px">
+            <v-text-field
+              v-model="searchLastName"
+              placeholder="Pesquisar..."
+              outlined
+              dense
+              hide-details
+              clearable
+              class="mx-3 mt-3"
+              @click.stop
+            />
+            <v-divider />
+            <v-list
+              dense
+              class="filter-list"
+            >
+              <v-list-item
+                v-for="name in filteredLastNameList"
+                :key="name"
+              >
+                <v-checkbox
+                  v-model="columnFilters.last_name"
+                  :value="name"
+                  :label="name"
+                  dense
+                  @change="lastNameMenu = false"
+                />
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </template>
+
+      <!-- filtro Email -->
+      <template #header.email="{ header }">
+        <v-menu
+          v-model="emailMenu"
+          offset-y
+          :close-on-content-click="false"
+        >
+          <template #activator="{ on, attrs }">
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ header.text }}<v-icon small>
+                mdi-filter-variant
+              </v-icon>
+            </v-btn>
+          </template>
+          <v-card style="width:250px">
+            <v-text-field
+              v-model="searchEmail"
+              placeholder="Pesquisar..."
+              outlined
+              dense
+              hide-details
+              clearable
+              class="mx-3 mt-3"
+              @click.stop
+            />
+            <v-divider />
+            <v-list
+              dense
+              class="filter-list"
+            >
+              <v-list-item
+                v-for="mail in filteredEmailList"
+                :key="mail"
+              >
+                <v-checkbox
+                  v-model="columnFilters.email"
+                  :value="mail"
+                  :label="mail"
+                  dense
+                  @change="emailMenu = false"
+                />
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </template>
+
+      <!-- filtro Administrador -->
+      <template #header.is_admin="{ header }">
+        <v-menu offset-y>
+          <template #activator="{ on, attrs }">
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ header.text }}
+              <v-icon
+                small
+                class="ml-1"
+              >
+                mdi-filter-variant
+              </v-icon>
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-list-item>
+              <v-checkbox
+                v-model="columnFilters.is_admin"
+                :value="true"
+                label="Sim"
+                dense
+              />
+            </v-list-item>
+            <v-list-item>
+              <v-checkbox
+                v-model="columnFilters.is_admin"
+                :value="false"
+                label="Não"
+                dense
+              />
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </template>
+
+      <!-- filtro Acesso Permitido -->
+      <template #header.is_active="{ header }">
+        <v-menu offset-y>
+          <template #activator="{ on, attrs }">
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ header.text }}
+              <v-icon
+                small
+                class="ml-1"
+              >
+                mdi-filter-variant
+              </v-icon>
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-list-item>
+              <v-checkbox
+                v-model="columnFilters.is_active"
+                :value="true"
+                label="Ativo"
+                dense
+              />
+            </v-list-item>
+            <v-list-item>
+              <v-checkbox
+                v-model="columnFilters.is_active"
+                :value="false"
+                label="Inativo"
+                dense
+              />
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </template>
+
+      <!-- filtro Vínculo Institucional -->
+      <template #header.institution="{ header }">
+        <v-menu
+          v-model="institutionMenu"
+          offset-y
+          :close-on-content-click="false"
+        >
+          <template #activator="{ on, attrs }">
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ header.text }}
+              <v-icon
+                small
+                class="ml-1"
+              >
+                mdi-filter-variant
+              </v-icon>
+            </v-btn>
+          </template>
+          <v-card style="width:250px">
+            <v-text-field
+              v-model="searchInstitution"
+              placeholder="Pesquisar..."
+              outlined
+              dense
+              hide-details
+              clearable
+              class="mx-3 mt-3"
+              @click.stop
+            />
+            <v-divider />
+            <v-list
+              dense
+              class="filter-list"
+            >
+              <v-list-item
+                v-for="inst in filteredInstitutionList"
+                :key="inst.id"
+              >
+                <v-checkbox
+                  v-model="columnFilters.institution"
+                  :value="inst.name"
+                  :label="inst.name"
+                  dense
+                  @change="institutionMenu = false"
+                />
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </template>
+
+      <template #item.actions="{ item }">
+        <v-tooltip top>
+          <template #activator="{ on, attrs }">
+            <v-btn
+              icon
+              small
+              color="grey darken-2"
+              v-bind="attrs"
+              v-on="on"
+              @click="openEditDialog(item)"
+            >
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+          </template>
+          <span>Editar</span>
+        </v-tooltip>
+        <v-tooltip top>
+          <template #activator="{ on, attrs }">
+            <v-btn
+              icon
+              small
+              color="grey darken-2"
+              v-bind="attrs"
+              v-on="on"
+              @click="openLogsDialog(item)"
+            >
+              <v-icon>mdi-clock-outline</v-icon>
+            </v-btn>
+          </template>
+          <span>Logs</span>
+        </v-tooltip>
+      </template>
+      <template #item.is_active="{ item }">
+        <div class="d-flex align-center">
+          <v-icon
+            :color="item.is_active ? 'green' : 'red'"
+            small
+          >
+            {{ item.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
+          </v-icon>
+          <span class="ml-2">{{ item.is_active ? 'Ativo' : 'Inativo' }}</span>
+        </div>
+      </template>
+      <template #item.is_admin="{ item }">
+        <div class="d-flex align-center">
+          <v-icon
+            :color="item.is_admin ? '#F58A1F' : 'grey'"
+            small
+          >
+            {{ item.is_admin ? 'mdi-account-star' : 'mdi-account' }}
+          </v-icon>
+          <span class="ml-2">{{ item.is_admin ? 'Sim' : 'Não' }}</span>
+        </div>
+      </template>
+    </v-data-table>
   </div>
 </template>
 
@@ -699,7 +942,7 @@
         "approveRequestCreation": "Deferir solicitação na criação",
         "description": "Descrição",
         "subject": "Assunto",
-        "institution": "Instituição",
+        "institution": "Vínculo Institucional",
         "requestType": "Tipo de Solicitação",
         "field-required": "Campo obrigatório",
         "max-characters": "Máximo de {max} caracteres permitido.",
@@ -713,6 +956,8 @@
 
 <script>
 import { mapState, mapActions } from 'vuex';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import GraphicBar from '/components/admin/GraphicBar.vue';
 import SearchFiltersUser from '/components/admin/SearchFiltersUser.vue';
 import CustomDialog from '/components/admin/CustomDialog.vue';
@@ -732,7 +977,7 @@ export default {
 
   data() {
     return {
-          userLoginHistory: [], // novo array
+      userLoginHistory: [], // novo array
       showLogsModal: false,
       userLogs: [],
       selectedUserLogs: null,
@@ -745,11 +990,13 @@ export default {
       userLogs: [],
       selectedUserLogs: null,
       headers: [
-        { text: 'Nome', value: 'username' },
+        { text: 'Usuário', value: 'username' },
+        { text: 'Primeiro Nome', value: 'first_name' },
+        { text: 'Último Nome', value: 'last_name' },
         { text: 'Email', value: 'email' },
-        { text: 'Administrador', value: 'is_staff' },
+        { text: 'Administrador', value: 'is_admin' },
         { text: 'Acesso Permitido', value: 'is_active' },
-        { text: 'Instituição', value: 'institution' },
+        { text: 'Vínculo Institucional', value: 'institution' },
         { text: 'Ações', value: 'actions', align: 'center' },
       ],
       filters: {
@@ -763,6 +1010,8 @@ export default {
       formValid: false,
       newUser: {
         username: '',
+        first_name: '',
+        last_name: '',
         email: '',
         institution_id: null,
         roles: [],
@@ -770,6 +1019,8 @@ export default {
       editUserData: {
         id: null,
         username: '',
+        first_name: '',
+        last_name: '',
         email: '',
         institution_id: null,
       },
@@ -781,19 +1032,25 @@ export default {
       requiredRule: (v) => !!v || 'Campo obrigatório',
       emailRule: (v) => /.+@.+\..+/.test(v) || 'E-mail inválido',
       userRoleChanges: [],
-      visibleColumns: ['username','email','is_staff','is_active','institution','actions'],
+      visibleColumns: ['username', 'email', 'is_admin', 'is_active', 'institution', 'actions'],
       columnFilters: {
-        is_staff: [],    // [true, false]
-        is_active: [],   // [true, false]
+        is_admin: [], // [true, false]
+        is_active: [], // [true, false]
         institution: [],
         username: [],
+        first_name: [],
+        last_name: [],
         email: [],
       },
       searchInstitution: '',
       institutionMenu: false,
       usernameMenu: false,
+      firstNameMenu: false,
+      lastNameMenu: false,
       emailMenu: false,
       searchUsername: '',
+      searchFirstName: '',
+      searchLastName: '',
       searchEmail: '',
       searchAll: '',
       isButtonCollapsed: true,
@@ -807,7 +1064,7 @@ export default {
         { text: 'Alterado em', value: 'action_time' },
         { text: 'Nome', value: 'username' },
         { text: 'Email', value: 'email' },
-        { text: 'Instituição', value: 'institution' },
+        { text: 'Vínculo Institucional', value: 'institution' },
         { text: 'Status', value: 'is_active' },
       ],
 
@@ -833,7 +1090,7 @@ export default {
   watch: {
     searchAll(val) {
       this.search = val;
-    }
+    },
   },
   computed: {
     totalValue() {
@@ -844,35 +1101,42 @@ export default {
     },
 
     filteredHeaders() {
-      return this.headers.filter(h => this.visibleColumns.includes(h.value));
+      return this.headers.filter((h) => this.visibleColumns.includes(h.value));
     },
 
     filteredByColumns() {
-      return this.filteredUsers.filter(user => {
+      return this.filteredUsers.filter((user) =>
         // para cada filtro de coluna
-        return Object.entries(this.columnFilters).every(([col, vals]) => {
-          return !vals.length || vals.includes(user[col]);
-        });
-      });
+        Object.entries(this.columnFilters).every(([col, vals]) => !vals.length || vals.includes(user[col])));
     },
 
     filteredInstitutionList() {
       const term = (this.searchInstitution || '').toLowerCase();
-      return this.institutionList.filter(inst =>
-        inst.name.toLowerCase().includes(term)
-      );
+      return this.institutionList.filter((inst) => inst.name.toLowerCase().includes(term));
     },
 
     filteredUsernameList() {
-      const term = (this.searchUsername||'').toLowerCase();
-      return [...new Set(this.filteredUsers.map(u=>u.username))]
-        .filter(v => v.toLowerCase().includes(term));
+      const term = (this.searchUsername || '').toLowerCase();
+      return [...new Set(this.filteredUsers.map((u) => u.username))]
+        .filter((v) => v.toLowerCase().includes(term));
     },
 
     filteredEmailList() {
-      const term = (this.searchEmail||'').toLowerCase();
-      return [...new Set(this.filteredUsers.map(u=>u.email))]
-        .filter(v => v.toLowerCase().includes(term));
+      const term = (this.searchEmail || '').toLowerCase();
+      return [...new Set(this.filteredUsers.map((u) => u.email))]
+        .filter((v) => v.toLowerCase().includes(term));
+    },
+
+    filteredFirstNameList() {
+      const term = (this.searchFirstName || '').toLowerCase();
+      return [...new Set(this.filteredUsers.map((u) => u.first_name || '').filter((v) => v))]
+        .filter((v) => v.toLowerCase().includes(term));
+    },
+
+    filteredLastNameList() {
+      const term = (this.searchLastName || '').toLowerCase();
+      return [...new Set(this.filteredUsers.map((u) => u.last_name || '').filter((v) => v))]
+        .filter((v) => v.toLowerCase().includes(term));
     },
 
     filteredUserLogs() {
@@ -903,17 +1167,17 @@ export default {
   },
 
   methods: {
-     parseChangedFields(changeMessage) {
-    try {
-      const parsed = JSON.parse(changeMessage);
-      if (Array.isArray(parsed) && parsed[0]?.changed?.fields) {
-        return parsed[0].changed.fields;
+    parseChangedFields(changeMessage) {
+      try {
+        const parsed = JSON.parse(changeMessage);
+        if (Array.isArray(parsed) && parsed[0] && parsed[0].changed && parsed[0].changed.fields) {
+          return parsed[0].changed.fields;
+        }
+        return [];
+      } catch (e) {
+        return [];
       }
-      return [];
-    } catch (e) {
-      return [];
-    }
-  },
+    },
     async openLogsDialog(user) {
       this.selectedUserLogs = user;
       this.showLogsModal = true;
@@ -922,22 +1186,20 @@ export default {
         const [logsResponse, loginResponse, roleChangesResponse] = await Promise.all([
           this.$api.get(`/history/logs/?user_id=${user.id}`),
           this.$api.get(`/dashboard/get-user-login/?user_id=${user.id}`),
-          this.$api.get(`/history/role-changes/?user_id=${user.id}`)
+          this.$api.get(`/history/role-changes/?user_id=${user.id}`),
         ]);
 
         this.userLogs = logsResponse.data;
         this.userLoginHistory = loginResponse.data;
         this.userRoleChanges = roleChangesResponse.data;
-
       } catch (e) {
         this.userLogs = [];
         this.userLoginHistory = [];
         this.userRoleChanges = [];
       }
-
     },
     async fetchRoles() {
-      try {s
+      try {
         const response = await this.$api.get('/user/role/');
         this.$store.commit('admin/setRolesList', response.data);
       } catch (error) {
@@ -958,9 +1220,9 @@ export default {
         const matchesInactive = this.filters.inactive
           ? !user.is_active
           : true;
-        const matchesAdm = this.filters.adm ? user.is_staff : true;
+        const matchesAdm = this.filters.adm ? user.is_admin : true;
         const matchesCommon = this.filters.common
-          ? !user.is_staff
+          ? !user.is_admin
           : true;
         return (
           matchesActive
@@ -993,7 +1255,7 @@ export default {
       const inactiveUsers = this.users.filter(
         (user) => !user.is_active,
       ).length;
-      const adminUser = this.users.filter((user) => user.is_staff).length;
+      const adminUser = this.users.filter((user) => user.is_admin).length;
       this.storeCategories[0].total = activeUsers;
       this.storeCategories[1].total = inactiveUsers;
       this.storeCategories[2].total = adminUser;
@@ -1013,19 +1275,21 @@ export default {
     },
 
     addRoleToUser(role) {
-      if (!this.editUserData.roles.some(r => r.id === role.id)) {
+      if (!this.editUserData.roles.some((r) => r.id === role.id)) {
         this.editUserData.roles = [...this.editUserData.roles, role];
       }
     },
 
     removeRoleFromUser(role) {
-      this.editUserData.roles = this.editUserData.roles.filter(r => r.id !== role.id);
+      this.editUserData.roles = this.editUserData.roles.filter((r) => r.id !== role.id);
     },
 
     async addUser() {
       try {
         const payload = {
           username: this.newUser.username,
+          first_name: this.newUser.first_name,
+          last_name: this.newUser.last_name,
           email: this.newUser.email,
           institution_id: this.newUser.institution_id,
           roles: this.newUser.roles.map((role) => role.id),
@@ -1054,6 +1318,8 @@ export default {
     resetForm() {
       this.newUser = {
         username: '',
+        first_name: '',
+        last_name: '',
         email: '',
         institution_id: null,
         roles: [],
@@ -1061,6 +1327,8 @@ export default {
       this.editUserData = {
         id: null,
         username: '',
+        first_name: '',
+        last_name: '',
         email: '',
         institution_id: null,
         is_inactive: false,
@@ -1078,6 +1346,8 @@ export default {
 
         const payload = {
           username: this.editUserData.username,
+          first_name: this.editUserData.first_name,
+          last_name: this.editUserData.last_name,
           email: this.editUserData.email,
           institution_id: this.editUserData.institution_id,
           is_active: !this.editUserData.is_inactive,
@@ -1123,6 +1393,8 @@ export default {
         this.editUserData = {
           id: userData.id,
           username: userData.username,
+          first_name: userData.first_name,
+          last_name: userData.last_name,
           email: userData.email,
           institution_id: userData.institution_id,
           is_inactive: !userData.is_active,
@@ -1139,6 +1411,8 @@ export default {
         this.editUserData = {
           id: user.id,
           username: user.username,
+          first_name: user.first_name,
+          last_name: user.last_name,
           email: user.email,
           institution_id: user.institution_id,
           is_inactive: !user.is_active,
@@ -1150,14 +1424,17 @@ export default {
 
     generateCSV() {
       // Cabeçalho do CSV
-      const headers = ['Nome', 'Email', 'Acesso Permitido', 'Instituição'];
-      const rows = this.filteredUsers.map(user => [
+      const headers = ['Usuário', 'Primeiro Nome', 'Último Nome', 'Email', 'Administrador', 'Acesso Permitido', 'Vínculo Institucional'];
+      const rows = this.filteredByColumns.map((user) => [
         user.username,
+        user.first_name || '',
+        user.last_name || '',
         user.email,
+        user.is_admin ? 'Sim' : 'Não',
         user.is_active ? 'Ativo' : 'Inativo',
-        user.institution,
+        user.institution || '',
       ]);
-      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -1181,42 +1458,38 @@ export default {
     },
 
     generateLogsPDF() {
-      import('jspdf').then(({ default: jsPDF }) => {
-        import('jspdf-autotable').then(({ default: autoTable }) => {
-          const doc = new jsPDF({
-            orientation: 'landscape',
-            unit: 'mm',
-            format: 'a4',
-          });
-
-          doc.setFontSize(12);
-          doc.text('Dados Cadastrais do Usuário', 15, 20);
-
-          autoTable(doc, {
-            startY: 30,
-            head: [['Alterado por', 'Alterado em', 'Nome', 'Email', 'Instituição', 'Status']],
-            body: this.filteredUserLogs.map((log) => [
-              log.alterado_por,
-              new Date(log.action_time).toLocaleString('pt-BR'),
-              log.username,
-              log.email,
-              log.institution,
-              log.is_active ? 'Ativo' : 'Inativo',
-            ]),
-            headStyles: {
-              fillColor: '#D92B3F',
-              textColor: [255, 255, 255],
-            },
-          });
-
-          doc.save('dados_cadastrais_usuario.pdf');
-        });
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
       });
+
+      doc.setFontSize(12);
+      doc.text('Dados Cadastrais do Usuário', 15, 20);
+
+      autoTable(doc, {
+        startY: 30,
+        head: [['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status']],
+        body: this.filteredUserLogs.map((log) => [
+          log.alterado_por,
+          new Date(log.action_time).toLocaleString('pt-BR'),
+          log.username,
+          log.email,
+          log.institution,
+          log.is_active ? 'Ativo' : 'Inativo',
+        ]),
+        headStyles: {
+          fillColor: '#D92B3F',
+          textColor: [255, 255, 255],
+        },
+      });
+
+      doc.save('dados_cadastrais_usuario.pdf');
     },
 
     generateLogsCSV() {
-      const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Instituição', 'Status'];
-      const rows = this.filteredUserLogs.map(log => [
+      const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status'];
+      const rows = this.filteredUserLogs.map((log) => [
         log.alterado_por,
         new Date(log.action_time).toLocaleString('pt-BR'),
         log.username,
@@ -1224,7 +1497,7 @@ export default {
         log.institution,
         log.is_active ? 'Ativo' : 'Inativo',
       ]);
-      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -1234,61 +1507,57 @@ export default {
     },
 
     generateAccessPDF() {
-      import('jspdf').then(({ default: jsPDF }) => {
-        import('jspdf-autotable').then(({ default: autoTable }) => {
-          const doc = new jsPDF({
-            orientation: 'landscape',
-            unit: 'mm',
-            format: 'a4',
-          });
-
-          doc.setFontSize(12);
-          doc.text('Registro de Acessos do Usuário', 15, 20);
-
-          // Login History
-          autoTable(doc, {
-            startY: 30,
-            head: [['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador']],
-            body: this.filteredUserLoginHistory.map((login) => [
-              login.last_date_login,
-              login.ip,
-              login.location,
-              login.type_device,
-              login.browser,
-            ]),
-            headStyles: {
-              fillColor: '#D92B3F',
-              textColor: [255, 255, 255],
-            },
-          });
-
-          // Role Changes
-          const finalY = doc.lastAutoTable.finalY + 20;
-          doc.text('Histórico de Alterações de Papéis', 15, finalY);
-
-          autoTable(doc, {
-            startY: finalY + 10,
-            head: [['Alterado Por', 'Data/Hora', 'Ação', 'Papel']],
-            body: this.filteredUserRoleChanges.map((change) => [
-              change.changed_by,
-              change.changed_at,
-              change.action,
-              change.role,
-            ]),
-            headStyles: {
-              fillColor: '#D92B3F',
-              textColor: [255, 255, 255],
-            },
-          });
-
-          doc.save('registro_acessos_usuario.pdf');
-        });
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
       });
+
+      doc.setFontSize(12);
+      doc.text('Registro de Acessos do Usuário', 15, 20);
+
+      // Login History
+      autoTable(doc, {
+        startY: 30,
+        head: [['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador']],
+        body: this.filteredUserLoginHistory.map((login) => [
+          login.last_date_login,
+          login.ip,
+          login.location,
+          login.type_device,
+          login.browser,
+        ]),
+        headStyles: {
+          fillColor: '#D92B3F',
+          textColor: [255, 255, 255],
+        },
+      });
+
+      // Role Changes
+      const finalY = doc.lastAutoTable.finalY + 20;
+      doc.text('Histórico de Alterações de Papéis', 15, finalY);
+
+      autoTable(doc, {
+        startY: finalY + 10,
+        head: [['Alterado Por', 'Data/Hora', 'Ação', 'Papel']],
+        body: this.filteredUserRoleChanges.map((change) => [
+          change.changed_by,
+          change.changed_at,
+          change.action,
+          change.role,
+        ]),
+        headStyles: {
+          fillColor: '#D92B3F',
+          textColor: [255, 255, 255],
+        },
+      });
+
+      doc.save('registro_acessos_usuario.pdf');
     },
 
     generateAccessCSV() {
       const loginHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Latitude', 'Longitude'];
-      const loginRows = this.filteredUserLoginHistory.map(login => [
+      const loginRows = this.filteredUserLoginHistory.map((login) => [
         login.last_date_login,
         login.ip,
         login.location,
@@ -1299,7 +1568,7 @@ export default {
       ]);
 
       const roleHeaders = ['Alterado Por', 'Data/Hora', 'Ação', 'Papel'];
-      const roleRows = this.filteredUserRoleChanges.map(change => [
+      const roleRows = this.filteredUserRoleChanges.map((change) => [
         change.changed_by,
         change.changed_at,
         change.action,
@@ -1309,11 +1578,11 @@ export default {
       const csvContent = [
         'HISTÓRICO DE LOGIN',
         loginHeaders.join(','),
-        ...loginRows.map(row => row.join(',')),
+        ...loginRows.map((row) => row.join(',')),
         '',
         'HISTÓRICO DE ALTERAÇÕES DE PAPÉIS',
         roleHeaders.join(','),
-        ...roleRows.map(row => row.join(','))
+        ...roleRows.map((row) => row.join(',')),
       ].join('\n');
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1325,7 +1594,7 @@ export default {
     },
 
     ...mapActions('admin', ['fetchInstitutionList']),
-  }
+  },
 };
 </script>
 

@@ -7,34 +7,43 @@
       dense
       class="my-4"
     >
+      <template v-if="hasDoubleDate">
+        <v-col cols="6">
+          <BaseDateField
+            v-model="filters.start_date"
+            :label="$t('start-date-label')"
+            required
+            outlined
+            dense
+          />
+        </v-col>
+        <v-col cols="6">
+          <BaseDateField
+            v-model="filters.end_date"
+            :label="$t('end-date-label')"
+            required
+            :min-date="filters.start_date"
+            outlined
+            dense
+          />
+        </v-col>
+      </template>
+
       <template v-for="layer_filter in layer.filters">
-        <template>
-          <v-col
-            v-if="layer_filter.filter_type === 'start_date'"
-            :key="layer_filter.filter_type"
-            cols="6"
-          >
+        <template
+          v-if="
+            !hasDoubleDate &&
+              (layer_filter.filter_type === 'start_date' ||
+                layer_filter.filter_type === 'end_date')
+          "
+        >
+          <v-col :key="layer_filter.filter_type">
             <BaseDateField
-              :key="layer_filter.filter_alias"
-              v-model="filters.startData"
+              v-model="filters[layer_filter.filter_type]"
+              :label="$t('start-date-label')"
+              required
               outlined
               dense
-              :label="$t('end-date-label')"
-              required
-            />
-          </v-col>
-          <v-col
-            v-if="layer_filter.filter_type === 'end_date'"
-            :key="layer_filter.filter_type"
-            cols="6"
-          >
-            <BaseDateField
-              :key="layer_filter.filter_alias"
-              v-model="filters.endData"
-              outlined
-              dense
-              :label="$t('end-date-label')"
-              required
             />
           </v-col>
         </template>
@@ -49,7 +58,7 @@
           <v-select
             v-model="filters.co_cr"
             :label="$t('regional-coordination-label')"
-            :items="filterOptions.regionalFilters"
+            :items="flattened"
             item-value="co_cr"
             item-text="ds_cr"
             hide-details
@@ -84,8 +93,8 @@
       <v-col cols="12">
         <v-btn
           block
-          color="primary"
           small
+          color="primary"
           outlined
           :disabled="!valid"
           :loading="loading"
@@ -105,16 +114,16 @@
         "end-date-label": "End date",
         "cpf-label": "CPF/CNPJ",
         "filter-button": "Filter",
-        "regional-coordination-label": "Regional Coordination (All)",
-        "indigenous-lands-label": "Indigenous Lands (All)"
+        "indigenous-lands-label": "Indigenous Lands (All)",
+        "regional-coordination-label": "Regional Coordination (All)"
     },
     "pt-br": {
         "start-date-label": "Data inicial",
         "end-date-label": "Data final",
         "cpf-label": "CPF/CNPJ",
         "filter-button": "Filtrar",
-        "regional-coordination-label": "Coordenação Regional (Todas)",
-        "indigenous-lands-label": "Terras Indígenas (Todas)"
+        "indigenous-lands-label": "Terras Indígenas (Todas)",
+        "regional-coordination-label": "Coordenação Regional (Todas)"
     }
 }
 </i18n>
@@ -125,7 +134,7 @@ import { mapMutations, mapActions, mapState } from 'vuex';
 import BaseDateField from '@/components/base/BaseDateField';
 
 export default {
-  name: 'SupportLayerFiltersAntropismo',
+  name: 'SupportLayerFilters',
 
   components: {
     BaseDateField,
@@ -140,6 +149,7 @@ export default {
 
   data: () => ({
     valid: false,
+    flattened: [],
     filters: {
       co_cr: [],
       co_funai: [],
@@ -151,6 +161,10 @@ export default {
   watch: {
     'filters.co_cr': function (value) {
       this.populateTiOptions(value);
+    },
+
+    'filterOptions.regionalFilters': function () {
+      this.populateCrOptions();
     },
   },
 
@@ -192,17 +206,37 @@ export default {
   },
 
   methods: {
+
+    populateCrOptions() {
+      const groups = {};
+
+      this.filterOptions.regionalFilters.forEach((x) => {
+        groups[x.no_regiao] = groups[x.no_regiao] || { ds_cr: x.ds_cr, list: [] };
+
+        groups[x.no_regiao].list.push(x);
+      });
+
+      Object.keys(groups).forEach((categoryId) => {
+        const category = groups[categoryId];
+        const categoryRegiao = categoryId;
+        this.flattened.push({ header: categoryRegiao });
+        this.flattened.push(...category.list);
+      });
+
+      return this.flattened;
+    },
+
     populateTiOptions(cr) {
       if (cr) this.$store.dispatch('supportLayers/getTiOptions', cr);
       else this.filters.ti = null;
     },
+
     verifyFilterType(type) {
-      const keys = Object.keys(this.layer.filters);
-      for (const key in keys) {
-        if (this.layer.filters[key].filter_type.includes(type)) {
-          return true;
-        }
+      const { filters } = this.layer;
+      if (filters) {
+        return filters.filter((filter) => filter.type === type).length;
       }
+      return false;
     },
 
     filterLayer() {
@@ -212,14 +246,14 @@ export default {
       };
       if (this.layer.layer_type === 'heatmap') {
         this.loading = true;
-        this.setLayerFiltersAntropismo(filterInfo);
+        this.setLayerFilters(filterInfo);
         this.getHeatMapLayer(filterInfo).finally(() => {
           this.loading = false;
         });
       } else if (this.layer.layer_type === 'wms') {
-        this.setLayerFiltersAntropismo(filterInfo);
+        this.setLayerFilters(filterInfo);
 
-        this.toggleLayerVisibilityAntropismo({
+        this.toggleLayerVisibility({
           id: this.layer.id,
           visible: true,
         });
@@ -227,8 +261,8 @@ export default {
     },
 
     ...mapMutations('supportLayers', [
-      'setLayerFiltersAntropismo',
-      'toggleLayerVisibilityAntropismo',
+      'setLayerFilters',
+      'toggleLayerVisibility',
     ]),
 
     ...mapActions('supportLayers', ['getHeatMapLayer', 'getFilterOptions']),

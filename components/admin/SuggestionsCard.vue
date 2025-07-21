@@ -1,39 +1,58 @@
 <template>
-  <v-card class="card pa-5"
+  <v-card
+    class="card pa-5"
     @click="openDialog"
   >
     <div v-if="cards">
       <StatusBadge :status="cards.ticket_status?.formated_info?.status_category_display" />
-      <TicketInfo :info="cards"/>
+      <TicketInfo :info="cards" />
       <div class="d-flex align-center justify-space-between">
-        <ActionIcons :deniedDetails="cards.denied_details" :hasFile="cards.access_request?.attachment" />
+        <ActionIcons
+          :denied-details="cards.denied_details"
+          :has-file="cards.access_request?.attachment"
+        />
       </div>
     </div>
     <v-divider class="mt-4 pb-4" />
-    <RequestStatus :requestData="cards"/>
-    <CustomDialog v-model="dialog" :title="$t('dialog-title')" :content="cards" :hasCta="true">
+    <RequestStatus :request-data="cards" />
+    <CustomDialog
+      v-model="dialog"
+      :title="$t('dialog-title')"
+      :content="cards"
+      :has-cta="true"
+    >
       <div class="d-flex align-end justify-space-between pt-4">
-        <UserInfo :user="cards.access_request"/>
+        <UserInfo :user="cards.access_request" />
         <CoordinatorInfo :coordinator="cards.access_request" />
-        <RequestStatus :requestData="cards" />
+        <RequestStatus :request-data="cards" />
       </div>
-      <v-divider class="mt-4 pb-4"/>
-      <p>{{ $t('choose-user-bond')}}</p>
+      <v-divider class="mt-4 pb-4" />
+      <p>{{ $t('choose-user-bond') }}</p>
       <div class="d-flex flex-column">
-        <span class="d-flex align-center" v-for="item in userGroup" :key="item">
+        <span
+          v-for="item in userGroup"
+          :key="item"
+          class="d-flex align-center"
+        >
           <input
+            v-model="selectedGroup"
             type="radio"
             :value="item"
-            v-model="selectedGroup"
             name="userGroup"
             class="mr-2"
-          />
-          <label style="cursor: pointer;" @click="selectedGroup = item">{{ $t(item) }}</label>
+          >
+          <label
+            style="cursor: pointer;"
+            @click="selectedGroup = item"
+          >{{ $t(item) }}</label>
         </span>
-        <div v-if="selectedGroup === 'other-institutions'" class="mt-3">
+        <div
+          v-if="selectedGroup === 'other-institutions'"
+          class="mt-3"
+        >
           <v-text-field
-            :label="$t('specify-institution')"
             v-model="otherInstitution"
+            :label="$t('specify-institution')"
             :placeholder="$t('enter-institution-name')"
             dense
           />
@@ -69,16 +88,19 @@
 }
 </i18n>
 <script>
+import { mapGetters } from 'vuex';
 import ActionIcons from './ActionIcons.vue';
 import CoordinatorInfo from './CoordinatorInfo.vue';
 import CustomDialog from './CustomDialog.vue';
 import RequestStatus from './RequestStatus.vue';
 import StatusBadge from './StatusBadge.vue';
 import TicketInfo from './TicketInfo.vue';
-import { mapGetters } from 'vuex'
 
 export default {
   name: 'RestrictedAreaCard',
+  components: {
+    StatusBadge, RequestStatus, ActionIcons, CoordinatorInfo, CustomDialog, TicketInfo,
+  },
   props: {
     cards: {
       type: Object,
@@ -86,21 +108,20 @@ export default {
     },
   },
   data() {
-      return {
-        dialog: false,
-        userGroup:[
-          'coordination',
-          'regional-coordination',
-          'fpe',
-          'indian-museum',
-          'other-institutions'
-        ],
-        selectedGroup: null,
-        otherInstitution: '',
-        selectedOption: '',
-      };
+    return {
+      dialog: false,
+      userGroup: [
+        'coordination',
+        'regional-coordination',
+        'fpe',
+        'indian-museum',
+        'other-institutions',
+      ],
+      selectedGroup: null,
+      otherInstitution: '',
+      selectedOption: '',
+    };
   },
-  components: { StatusBadge, RequestStatus, ActionIcons, CoordinatorInfo, CustomDialog, TicketInfo },
   watch: {
     selectedGroup(newValue) {
       if (newValue !== 'other-institutions') {
@@ -120,27 +141,32 @@ export default {
     ...mapGetters('admin', ['suggestionsCards', 'tickets']),
     statusBackground() {
       switch (this.cards.status_category_name) {
+        case 'Aguardando Gestor':
+          return '#D66A00';
         case 'Concluído':
           return '#12A844';
-        case 'Em andamento':
+        case 'Desenvolvido':
+          return '#1A535C';
+        case 'Deferido':
+          return '#FFCE03';
+        case 'Em Desenvolvimento':
           return '#F58A1F';
         case 'Recusado':
           return '#D92B3F';
-        case 'Deferido':
-          return '#FFCE03';
+
         default:
           return '#9A9997';
       }
-    }
+    },
   },
-  methods:{
+  methods: {
     openDialog() {
       if (this.cards.status_name === 'Pendente') {
         this.dialog = true;
       }
     },
-  }
-}
+  },
+};
 </script>
 
 <style lang="sass" scoped>
