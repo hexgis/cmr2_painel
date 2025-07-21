@@ -177,7 +177,7 @@ export default {
           route: '/cmr/monitoring-alerts',
           requiredLogin: true,
           show: process.env.ROUTE_MONITORING === 'true',
-          componentKey: 'monitoring-alerts',
+          componentKey: 'monitoring',
         },
         {
           name: this.$t('high-resolution-mosaics-tab'),
