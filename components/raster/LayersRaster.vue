@@ -24,7 +24,7 @@ export default {
     SupportLayerItem,
   },
 
-  computed: mapState('supportLayers', [
+  computed: mapState('raster', [
     'supportLayers',
     'showFeaturesSupportLayersRaster',
     'supportLayersCategoryRaster',

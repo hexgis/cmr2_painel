@@ -108,7 +108,7 @@ export default {
   }),
 
   computed: {
-    ...mapState('supportLayers', ['supportLayersCategoryRaster']),
+    ...mapState('raster', ['supportLayersCategoryRaster']),
 
     layer() {
       return this.supportLayersCategoryRaster[this.layerId] || null;
@@ -141,14 +141,10 @@ export default {
       });
 
       this.isOpen = this.layer.visible;
-      this.setshowFeaturesSupportLayers(false);
+      this.setshowFeaturesSupportLayersRaster(false);
       setTimeout(() => {
-        this.setshowFeaturesSupportLayers(true);
+        this.setshowFeaturesSupportLayersRaster(true);
       }, 1);
-
-      const activeLayers = Object.values(
-        this.supportLayersCategoryRaster,
-      ).filter((layer) => layer.visible);
     },
 
     updateLayerOpacity(opacity) {
@@ -158,9 +154,9 @@ export default {
       });
     },
 
-    ...mapMutations('supportLayers', [
+    ...mapMutations('raster', [
       'toggleLayerVisibilityRaster',
-      'setshowFeaturesSupportLayers',
+      'setshowFeaturesSupportLayersRaster',
       'setLayerOpacityRaster',
     ]),
   },

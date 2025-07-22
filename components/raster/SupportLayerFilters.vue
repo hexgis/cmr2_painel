@@ -202,7 +202,7 @@ export default {
   },
 
   computed: {
-    ...mapState('supportLayers', ['filterOptions']),
+    ...mapState('raster', ['filterOptions']),
   },
 
   methods: {
@@ -227,7 +227,7 @@ export default {
     },
 
     populateTiOptions(cr) {
-      if (cr) this.$store.dispatch('supportLayers/getTiOptions', cr);
+      if (cr) this.$store.dispatch('raster/getTiOptions', cr);
       else this.filters.ti = null;
     },
 
@@ -260,12 +260,12 @@ export default {
       }
     },
 
-    ...mapMutations('supportLayers', [
+    ...mapMutations('raster', [
       'setLayerFilters',
       'toggleLayerVisibility',
     ]),
 
-    ...mapActions('supportLayers', ['getHeatMapLayer', 'getFilterOptions']),
+    ...mapActions('raster', ['getHeatMapLayer', 'getFilterOptions']),
   },
 };
 </script>
