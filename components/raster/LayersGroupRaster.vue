@@ -96,7 +96,7 @@
   }
 </i18n>
 <script>
-import { mapState, mapMutations } from 'vuex';
+import { mapState } from 'vuex';
 import _ from 'lodash';
 import LayersGroupItemRaster from '@/components/raster/LayersGroupItemRaster';
 
@@ -139,7 +139,7 @@ export default {
       return this.activeLayers.length;
     },
 
-    ...mapState('supportLayers', [
+    ...mapState('raster', [
       'supportCategoryGroupsRaster',
       'searchLayer',
       'filteredLayersId',
@@ -158,11 +158,6 @@ export default {
     includesLayers(id) {
       return this.filteredLayersId.includes(id);
     },
-
-    ...mapMutations('supportLayers', [
-      'setexpandAllLayers',
-      'setretractAllLayers',
-    ]),
   },
 };
 </script>

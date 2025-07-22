@@ -250,12 +250,12 @@ export default {
         .addTo(this.$refs.heatmap.mapObject);
     },
 
-    ...mapMutations('supportLayers', [
+    ...mapMutations('raster', [
       'setLayerFilters',
       'toggleLayerVisibility',
     ]),
 
-    ...mapActions('supportLayers', ['getHeatMapLayer']),
+    ...mapActions('raster', ['getHeatMapLayer']),
   },
 };
 </script>

@@ -11,7 +11,10 @@
           color="grey darken-4"
         >
           <template #activator="{ on }">
-            <v-icon class="ml-2" v-on="on">
+            <v-icon
+              class="ml-2"
+              v-on="on"
+            >
               mdi-information
             </v-icon>
           </template>
@@ -20,12 +23,12 @@
           </span>
         </v-tooltip>
       </div>
-        <v-switch
-          v-show="!loading"
-          v-model="showFeatures"
-          class="mt-n1 justify-self-end"
-          hide-details
-        />
+      <v-switch
+        v-show="!loading"
+        v-model="showFeatures"
+        class="mt-n1 justify-self-end"
+        hide-details
+      />
     </div>
     <v-tabs
       v-model="tab"
@@ -34,7 +37,7 @@
       dark
       icons-and-text
     >
-      <v-tabs-slider></v-tabs-slider>
+      <v-tabs-slider />
       <v-tab href="#tab-1">
         Landsat/Sentinel
         <v-icon>mdi-satellite-variant</v-icon>
@@ -49,7 +52,10 @@
     <v-tabs-items v-model="tab">
       <v-tab-item value="tab-1">
         <v-card flat>
-          <v-col cols="12" class="pb-0 mb-n8">
+          <v-col
+            cols="12"
+            class="pb-0 mb-n8"
+          >
             <v-autocomplete
               v-model="selectedLayers"
               :label="$t('search-label')"
@@ -63,7 +69,10 @@
               @click:clear="clearInput"
             />
           </v-col>
-          <v-col cols="12" class="pb-0 mb-n6">
+          <v-col
+            cols="12"
+            class="pb-0 mb-n6"
+          >
             <v-autocomplete
               v-model="selectedYears"
               :label="$t('search-label-years')"
@@ -77,13 +86,17 @@
             />
           </v-col>
           <div>
-            <v-list v-if="!$fetchState.pending" expand class="pt-0">
+            <v-list
+              v-if="!$fetchState.pending"
+              expand
+              class="pt-0"
+            >
               <template v-for="group in filteredGroups">
                 <LayersGroupRaster
                   :key="group.id"
                   :group="group"
                   :open-group="searchLayer"
-                  :isPlanet="false"
+                  :is-planet="false"
                 />
               </template>
             </v-list>
@@ -92,7 +105,10 @@
       </v-tab-item>
       <v-tab-item value="tab-2">
         <v-card flat>
-          <v-col cols="12" class="pb-0 mb-n8">
+          <v-col
+            cols="12"
+            class="pb-0 mb-n8"
+          >
             <v-autocomplete
               v-model="selectedLayers"
               :label="$t('search-label-month')"
@@ -106,7 +122,10 @@
               @click:clear="clearInput"
             />
           </v-col>
-          <v-col cols="12" class="pb-0 mb-n6">
+          <v-col
+            cols="12"
+            class="pb-0 mb-n6"
+          >
             <v-autocomplete
               v-model="selectedYears"
               :label="$t('search-label-years')"
@@ -130,7 +149,7 @@
                   :key="group.id"
                   :group="group"
                   :open-group="searchLayer"
-                  :isPlanet="true"
+                  :is-planet="true"
                 />
               </template>
             </v-list>
@@ -169,184 +188,163 @@
 </i18n>
 
 <script>
-import { mapState, mapMutations } from 'vuex'
-import _ from 'lodash'
-import LayersGroupRaster from '@/components/raster/LayersGroupRaster'
+import { mapState, mapMutations } from 'vuex';
+import _ from 'lodash';
+import LayersGroupRaster from '@/components/raster/LayersGroupRaster';
 
 export default {
-    name: 'SupportRaster',
-    components: { LayersGroupRaster },
+  name: 'SupportRaster',
+  components: { LayersGroupRaster },
 
-    data: () => ({
-        showFooter: process.env.SHOW_FOOTER === 'true',
-        selectedLayers: [],
-        searchInput: '',
-        searchLayer: false,
-        selectedYears: [],
-        searchInputYears: '',
-        searchInputMonths: '',
-        tab: null,
+  data: () => ({
+    showFooter: process.env.SHOW_FOOTER === 'true',
+    selectedLayers: [],
+    searchInput: '',
+    searchLayer: false,
+    selectedYears: [],
+    searchInputYears: '',
+    searchInputMonths: '',
+    tab: null,
+  }),
+
+  async fetch() {
+    if (!Object.keys(this.supportCategoryGroupsRaster).length) {
+      await this.$store.dispatch('raster/getCategoryGroupsRasters');
+    }
+  },
+
+  computed: {
+    years() {
+      const groupsWithContent = this.orderedSupportLayersGroups.filter(
+        (group) => group.layers && group.layers.length > 0 && !group.name.includes('Planet'),
+      );
+      const yearsWithContent = groupsWithContent
+        .map((group) => {
+          const match = group.name.match(/\d{4}$/);
+          return match ? parseInt(match[0]) : null;
+        })
+        .filter((year) => year !== null);
+      return Array.from(new Set(yearsWithContent)).sort((a, b) => a - b);
+    },
+
+    yearsPlanet() {
+      const groupsWithContent = this.orderedSupportLayersGroups.filter(
+        (group) => group.layers
+                    && group.layers.length > 0
+                    && group.name.includes('Planet'),
+      );
+
+      const yearsWithContent = groupsWithContent
+        .map((group) => {
+          const match = group.name.match(/\d{4}$/);
+          return match ? parseInt(match[0]) : null;
+        })
+        .filter((year) => year !== null);
+
+      return Array.from(new Set(yearsWithContent)).sort((a, b) => a - b);
+    },
+
+    orderedSupportLayersGroups() {
+      return _.sortBy(this.supportCategoryGroupsRaster, 'order');
+    },
+
+    orderedSupportLayersGroupsItens() {
+      return _.sortBy(this.supportLayersCategoryRaster, 'order');
+    },
+
+    orderedSupportLayersGroupsItensPlanet() {
+      return _.chain(this.supportLayersCategoryRaster)
+        .filter((item) => /^\d{2} - /.test(item.name))
+        .sortBy('order')
+        .value();
+    },
+    visibleLayers() {
+      const rasterLayers = this.$store.state.raster && this.$store.state.raster.supportLayersCategoryRaster;
+      if (Array.isArray(rasterLayers)) {
+        return rasterLayers.filter((layer) => layer.visible);
+      }
+      return [];
+    },
+
+    showFeatures: {
+      get() {
+        return this.$store.state.raster.showFeaturesSupportLayersRaster;
+      },
+      set(value) {
+        this.$store.commit(
+          'raster/setshowFeaturesSupportLayersRaster',
+          value,
+        );
+      },
+    },
+
+    groupsFilteredByYear() {
+      if (!this.selectedYears.length) {
+        return this.orderedSupportLayersGroups.filter(
+          (group) => group.layers && group.layers.length > 0,
+        );
+      }
+
+      return this.orderedSupportLayersGroups.filter((group) => {
+        const groupYearMatch = group.name.match(/\d{4}$/);
+        const groupYear = groupYearMatch
+          ? parseInt(groupYearMatch[0])
+          : null;
+        return (
+          groupYear
+                    && this.selectedYears.includes(groupYear)
+                    && group.layers
+                    && group.layers.length > 0
+        );
+      });
+    },
+
+    groupsFilteredByLayer() {
+      if (this.selectedLayers.length) {
+        this.setSearchLayer(true);
+
+        const filteredItens = this.orderedSupportLayersGroupsItens.filter(
+          (layer) => this.selectedLayers.includes(layer.name),
+        );
+
+        const filteredLayersId = filteredItens.map((item) => item.id);
+
+        const filteredGroup = this.orderedSupportLayersGroups.filter((group) => group.layers
+          && group.layers.some((layerId) => filteredLayersId.includes(layerId)));
+
+        this.setFilteredLayers(filteredLayersId);
+        return filteredGroup;
+      }
+      this.setSearchLayer(false);
+      this.setFilteredLayers(null);
+      return _.sortBy(this.orderedSupportLayersGroups, 'order');
+    },
+
+    filteredGroups() {
+      const yearFilteredGroups = this.groupsFilteredByYear;
+      const layerFilteredGroups = this.groupsFilteredByLayer;
+
+      return yearFilteredGroups.filter((group) => layerFilteredGroups.includes(group));
+    },
+    ...mapState('raster', [
+      'supportCategoryGroupsRaster',
+      'supportLayersCategoryRaster',
+      'loading',
+      'showFeaturesSupportLayersRaster',
+    ]),
+  },
+
+  methods: {
+    ...mapMutations('raster', {
+      setFilteredLayers: 'setFilteredLayers',
+      setSearchLayer: 'setSearchLayer',
     }),
-
-    async fetch() {
-        if (!Object.keys(this.supportCategoryGroupsRaster).length) {
-            await this.$store.dispatch('supportLayers/getCategoryGroupsRasters')
-        }
+    clearInput() {
+      this.selectedLayers = [];
+      this.searchInput = '';
     },
-
-    computed: {
-        years() {
-            const groupsWithContent = this.orderedSupportLayersGroups.filter(
-                (group) => group.layers && group.layers.length > 0 && !group.name.includes('Planet')
-            )
-            const yearsWithContent = groupsWithContent
-                .map((group) => {
-                    const match = group.name.match(/\d{4}$/)
-                    return match ? parseInt(match[0]) : null
-                })
-                .filter((year) => year !== null)
-            return Array.from(new Set(yearsWithContent)).sort((a, b) => a - b)
-        },
-
-        yearsPlanet() {
-            const groupsWithContent = this.orderedSupportLayersGroups.filter(
-                (group) =>
-                    group.layers &&
-                    group.layers.length > 0 &&
-                    group.name.includes('Planet')
-            )
-
-            const yearsWithContent = groupsWithContent
-                .map((group) => {
-                    const match = group.name.match(/\d{4}$/)
-                    return match ? parseInt(match[0]) : null
-                })
-                .filter((year) => year !== null)
-
-            return Array.from(new Set(yearsWithContent)).sort((a, b) => a - b)
-        },
-
-        orderedSupportLayersGroups() {
-            return _.sortBy(this.supportCategoryGroupsRaster, 'order')
-        },
-
-        orderedSupportLayersGroupsItens() {
-            return _.sortBy(this.supportLayersCategoryRaster, 'order')
-        },
-
-        orderedSupportLayersGroupsItensPlanet() {
-            return _.chain(this.supportLayersCategoryRaster)
-                .filter((item) => {
-                    return /^\d{2} - /.test(item.name)
-                })
-                .sortBy('order')
-                .value()
-        },
-        visibleLayers() {
-          const rasterLayers = this.$store.state.supportLayers?.supportLayersCategoryRaster;
-          if (Array.isArray(rasterLayers)) {
-            return rasterLayers.filter(layer => layer.visible);
-          }
-          return [];
-        },
-
-        showFeatures: {
-            get() {
-                return this.$store.state.supportLayers
-                    .showFeaturesSupportLayersRaster
-            },
-            set(value) {
-                this.$store.commit(
-                    'supportLayers/setshowFeaturesSupportLayersRaster',
-                    value
-                )
-            },
-        },
-
-        groupsFilteredByYear() {
-            if (!this.selectedYears.length) {
-                return this.orderedSupportLayersGroups.filter(
-                    (group) => group.layers && group.layers.length > 0
-                )
-            }
-
-            return this.orderedSupportLayersGroups.filter((group) => {
-                const groupYearMatch = group.name.match(/\d{4}$/)
-                const groupYear = groupYearMatch
-                    ? parseInt(groupYearMatch[0])
-                    : null
-                return (
-                    groupYear &&
-                    this.selectedYears.includes(groupYear) &&
-                    group.layers &&
-                    group.layers.length > 0
-                )
-            })
-        },
-
-        groupsFilteredByLayer() {
-            if (this.selectedLayers.length) {
-                this.setSearchLayer(true)
-                let filteredLayersId = []
-                const filteredItens = []
-                const filteredGroup = []
-                for (const filter of this.selectedLayers) {
-                    filteredItens.push(
-                        ...this.orderedSupportLayersGroupsItens.filter(
-                            (layer) => layer.name === filter
-                        )
-                    )
-                }
-                for (const group of this.orderedSupportLayersGroups) {
-                    const { layers } = group
-                    for (const layer of layers) {
-                        for (const item of filteredItens) {
-                            if (item.id === layer) {
-                                filteredLayersId = filteredLayersId.concat(
-                                    item.id
-                                )
-                                if (!filteredGroup.includes(group)) {
-                                    filteredGroup.push(group)
-                                }
-                            }
-                        }
-                    }
-                }
-                this.setFilteredLayers(filteredLayersId)
-                return filteredGroup
-            }
-            this.setSearchLayer(false)
-            this.setFilteredLayers(null)
-            return _.sortBy(this.orderedSupportLayersGroups, 'order')
-        },
-
-        filteredGroups() {
-            const yearFilteredGroups = this.groupsFilteredByYear
-            const layerFilteredGroups = this.groupsFilteredByLayer
-
-            return yearFilteredGroups.filter((group) =>
-                layerFilteredGroups.includes(group)
-            )
-        },
-        ...mapState('supportLayers', [
-            'supportCategoryGroupsRaster',
-            'supportLayersCategoryRaster',
-            'loading',
-            'showFeaturesSupportLayersRaster',
-        ]),
-    },
-
-    methods: {
-        ...mapMutations('supportLayers', {
-            setFilteredLayers: 'setFilteredLayers',
-            setSearchLayer: 'setSearchLayer',
-        }),
-        clearInput() {
-            this.selectedLayers = []
-            this.searchInput = ''
-        },
-    },
-}
+  },
+};
 </script>
 
 <style scoped lang="scss">
