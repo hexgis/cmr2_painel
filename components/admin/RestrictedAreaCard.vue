@@ -911,7 +911,6 @@ export default {
           id: this.userRequestData.id,
         });
 
-        console.log('Aprovação realizada com sucesso');
         this.dialog = false;
         this.$store.dispatch('admin/fetchRequestListAccess');
       } catch (error) {
@@ -957,17 +956,12 @@ export default {
     },
     updateDeniedDetails() {
       try {
-        // Dispatch the action to reject the access request
         this.$store.dispatch('admin/deniedAccessRequest', {
           id: this.userRequestData.id,
           denied_details: this.deniedDetails,
         }).then(() => {
-          console.log('Request denied successfully!');
-
-          // Close the dialog and refresh the request list
           this.showDeniedDetails = false;
           this.dialog = false;
-          console.log('Refreshing the request list');
           return this.$store.dispatch('admin/fetchRequestListAccess');
         }).catch((error) => {
           console.error('Error while denying the request:', error);

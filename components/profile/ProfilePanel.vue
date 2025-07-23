@@ -20,7 +20,7 @@
       </v-tooltip>
     </v-btn>
 
-    <!-- Botão Área Restrita -->
+    <!-- Button Restricted Area -->
     <div
       v-if="isLoggedIn"
       style="position: relative; display: inline-block;"
@@ -276,19 +276,15 @@ export default {
       try {
 
         if (!this.user) {
-          console.log('Usuário não encontrado');
           this.pendingRequestsCount = 0;
           return;
         }
 
         const url = `/user/restricted-access/pending-count/`;
-        console.log('URL da requisição:', url);
 
         const response = await this.$axios.get(url);
-        console.log('Resposta da API:', response.data);
 
         this.pendingRequestsCount = response.data.count || 0;
-        console.log('Contador atualizado para:', this.pendingRequestsCount);
       } catch (error) {
         console.error('Erro ao buscar contador de solicitações pendentes:', error);
         this.pendingRequestsCount = 0;
