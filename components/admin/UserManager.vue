@@ -3,14 +3,24 @@
     <div class="permission-list">
       <h5>{{ title }}</h5>
       <v-list dense>
-        <v-list-item
-          v-for="role in filteredAvailableRoles"
-          :key="role.id"
-          @click="selectRole(role)"
-        >
-          <v-list-item-title>{{ role.name }}</v-list-item-title>
-          <v-icon>mdi-chevron-right</v-icon>
-        </v-list-item>
+        <template v-if="loading">
+          <v-skeleton-loader
+            v-for="n in 5"
+            :key="n"
+            type="list-item"
+            tile
+          />
+        </template>
+        <template v-else>
+          <v-list-item
+            v-for="role in filteredAvailableRoles"
+            :key="role.id"
+            @click="selectRole(role)"
+          >
+            <v-list-item-title>{{ role.name }}</v-list-item-title>
+            <v-icon>mdi-chevron-right</v-icon>
+          </v-list-item>
+        </template>
       </v-list>
     </div>
 
@@ -35,17 +45,21 @@ export default {
   props: {
     availableRoles: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     selectedRoles: {
       type: Array,
-      default: () => []
+      default: () => [],
+    },
+    loading: {
+      type: Boolean,
+      default: false,
     },
     mode: {
       type: String,
       default: 'edit',
-      validator: value => ['edit', 'create'].includes(value)
-    }
+      validator: (value) => ['edit', 'create'].includes(value),
+    },
   },
   computed: {
     title() {
@@ -54,10 +68,8 @@ export default {
 
     filteredAvailableRoles() {
       if (!this.availableRoles) return [];
-      return this.availableRoles.filter(role => 
-        !this.selectedRoles.some(r => r.id === role.id)
-      );
-    }
+      return this.availableRoles.filter((role) => !this.selectedRoles.some((r) => r.id === role.id));
+    },
   },
   methods: {
     selectRole(role) {
@@ -65,9 +77,9 @@ export default {
     },
     removeRole(role) {
       this.$emit('remove-role', role);
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style lang="sass" scoped>
