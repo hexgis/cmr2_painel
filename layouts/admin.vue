@@ -38,7 +38,7 @@
   "pt-br": {
     "dashboard": "Visualizar Acessos",
     "manage_users": "Gerenciar Usuários",
-    "restricted_access": "Conceder acesso à Área Restrita",
+    "restricted_access": "Acesso à Área Restrita",
     "manage_permissions": "Gerenciar Permissões",
     "manage_layers": "Gerenciar Camadas",
     "manage_documents": "Gerenciar Documentos",
@@ -47,7 +47,7 @@
   "en": {
     "dashboard": "View Accesses",
     "manage_users": "Manage Users",
-    "restricted_access": "Grant Access to Restricted Area",
+    "restricted_access": "Restricted Area Access",
     "manage_permissions": "Manage Permissions",
     "manage_layers": "Manage Layers",
     "manage_documents": "Manage Documents",
