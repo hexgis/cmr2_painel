@@ -86,6 +86,7 @@ export default {
           maxZoom: 21,
           maxNativeZoom: 19,
           queryable: this.layer.wms.queryable,
+          srs: 'EPSG:4674',
         };
 
         if (this.layer.wms && this.layer.wms.geoserver_layer_options) {
