@@ -491,7 +491,10 @@ export default {
     // Computed property to filter institutions for institution field
     institutionOptions() {
       return this.institutionList
-        .filter((institution) => institution.institution_type === 'Coordenação Regional')
+        .filter((institution) => (
+          institution.institution_type === 'Coordenação Regional'
+          || institution.institution_type === 'FUNAI Sede'
+        ))
         .map((institution) => ({
           text: institution.acronym ? `${institution.acronym} - ${institution.name}` : institution.name,
           value: institution.name,
@@ -503,7 +506,10 @@ export default {
     // Computed property to filter institutions for coordinator institution field
     coordinatorInstitutionOptions() {
       return this.institutionList
-        .filter((institution) => institution.institution_type === 'Coordenação Regional')
+        .filter((institution) => (
+          institution.institution_type === 'Coordenação Regional'
+          || institution.institution_type === 'FUNAI Sede'
+        ))
         .map((institution) => ({
           text: institution.acronym ? `${institution.acronym} - ${institution.name}` : institution.name,
           value: institution.name,
@@ -541,7 +547,7 @@ export default {
     },
     nextStep() {
       if (this.step < 3) {
-        this.step++;
+        this.step += 1;
       }
     },
     handleStepClick(stepNumber) {
@@ -554,7 +560,7 @@ export default {
     },
     prevStep() {
       if (this.step > 1) {
-        this.step--;
+        this.step -= 1;
       }
     },
     async submitForm() {
