@@ -389,6 +389,9 @@ export default {
       },
       set(value) {
         this.$store.commit('monitoring/setshowFeaturesMonitoring', value);
+        if (!value) {
+          this.$store.commit('monitoring/setHeatMap', false);
+        }
       },
     },
     ...mapState('monitoring', [

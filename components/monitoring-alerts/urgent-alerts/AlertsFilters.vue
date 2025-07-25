@@ -423,6 +423,9 @@ export default {
       },
       set(value) {
         this.$store.commit('urgent-alerts/setshowFeaturesAlerts', value);
+        if (!value) {
+          this.$store.commit('urgent-alerts/setHeatMap', false);
+        }
       },
     },
     legendItems() {
