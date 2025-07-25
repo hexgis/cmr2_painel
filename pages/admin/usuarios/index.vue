@@ -855,7 +855,13 @@
       </template>
 
       <template #item.institution="{ item }">
-        {{ item.institution.acronym }}
+        {{
+          item.institution && item.institution.acronym
+            ? item.institution.acronym
+            : (item.institution && item.institution.name
+              ? item.institution.name
+              : 'N/A')
+        }}
       </template>
 
       <template #item.actions="{ item }">
@@ -1109,14 +1115,24 @@ export default {
     },
 
     filteredByColumns() {
-      return this.filteredUsers.filter((user) =>
-        // para cada filtro de coluna
-        Object.entries(this.columnFilters).every(([col, vals]) => !vals.length || vals.includes(user[col])));
+      return this.filteredUsers.filter((user) => Object.entries(this.columnFilters).every(([col, vals]) => {
+        if (!vals.length) return true;
+
+        if (col === 'institution') {
+          const userInstitutionAcronym = user.institution && user.institution.acronym ? user.institution.acronym : 'N/A';
+          return vals.includes(userInstitutionAcronym);
+        }
+
+        return vals.includes(user[col]);
+      }));
     },
 
     filteredInstitutionList() {
       const term = (this.searchInstitution || '').toLowerCase();
-      return this.institutionList.filter((inst) => inst.acronym.toLowerCase().includes(term));
+      return this.institutionList.filter((inst) => (
+        (inst.acronym && inst.acronym.toLowerCase().includes(term))
+        || (inst.name && inst.name.toLowerCase().includes(term))
+      ));
     },
 
     filteredUsernameList() {
