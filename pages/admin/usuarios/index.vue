@@ -72,13 +72,27 @@
               <v-select
                 v-model="newUser.institution_id"
                 :label="$t('institution')"
-                :items="institutionList"
-                item-text="name"
+                :items="$store.state.admin.institutionList"
+                item-text="acronym"
                 outlined
                 item-value="id"
                 :rules="[requiredRule]"
                 required
-              />
+              >
+                <template #item="{ item }">
+                  <v-tooltip bottom>
+                    <template #activator="{ on, attrs }">
+                      <v-list-item-content
+                        v-bind="attrs"
+                        v-on="on"
+                      >
+                        <v-list-item-title>{{ item.acronym }}</v-list-item-title>
+                      </v-list-item-content>
+                    </template>
+                    <span>{{ item.name }}</span>
+                  </v-tooltip>
+                </template>
+              </v-select>
 
               <UserManager
                 :available-roles="rolesList"
@@ -362,13 +376,27 @@
               <v-select
                 v-model="editUserData.institution_id"
                 :label="$t('institution')"
-                :items="institutionList"
+                :items="$store.state.admin.institutionList"
                 outlined
-                item-text="name"
+                item-text="acronym"
                 item-value="id"
                 :rules="[requiredRule]"
                 required
-              />
+              >
+                <template #item="{ item }">
+                  <v-tooltip bottom>
+                    <template #activator="{ on, attrs }">
+                      <v-list-item-content
+                        v-bind="attrs"
+                        v-on="on"
+                      >
+                        <v-list-item-title>{{ item.acronym }}</v-list-item-title>
+                      </v-list-item-content>
+                    </template>
+                    <span>{{ item.name }}</span>
+                  </v-tooltip>
+                </template>
+              </v-select>
               <v-checkbox
                 v-model="editUserData.is_inactive"
                 label="Inativo"
