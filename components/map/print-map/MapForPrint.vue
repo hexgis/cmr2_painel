@@ -112,9 +112,18 @@ export default {
 
             return options
         },
+        ...mapState('monitoring', {
+            monitoringHeatMap: 'heatMap',
+            monitoringResultsHeatmap: 'resultsHeatmap',
+            monitoringResultsHeatmapOptions: 'resultsHeatmapOptions',
+        }),
+        ...mapState('urgent-alerts', {
+            alertsHeatMap: 'heatMap',
+            alertsResultsHeatmap: 'resultsHeatmap',
+            alertsResultsHeatmapOptions: 'resultsHeatmapOptions',
+        }),
+        
         ...mapState('map', ['bounds', 'tmsToPrint']),
-        ...mapState('monitoring', ['heatMap', 'resultsHeatmap', 'resultsHeatmapOptions']),
-        ...mapState('urgent-alerts', ['heatMap', 'resultsHeatmap', 'resultsHeatmapOptions']),
         ...mapState('supportLayers', ['supportLayers']),
         ...mapState('land-use', ['showFeaturesLandUse', 'features']),
     },
@@ -161,27 +170,31 @@ export default {
         },
 
         cloneLayersFromMainMap() {
-            if (this.mainMap) {
-                this.mainMap.eachLayer((layer) => {
-                    if (layer && layer._events) {
-                        try {
-                            const clonedLayer = cloneLayer(layer)
-                            if (clonedLayer) {
-                                this.map.addLayer(clonedLayer)
-                            } else {
-                                console.warn('Falha ao clonar camada:', layer)
-                            }
-                        } catch (cloneError) {
-                            console.error('Erro ao clonar camada:', cloneError)
-                        }
+            if (!this.mainMap) return;
+            this.mainMap.eachLayer(layer => {
+                if (!layer?._events) return;
+                try {
+                    const clonedLayer = cloneLayer(layer);
+                    if (clonedLayer) {
+                        this.map.addLayer(clonedLayer);
+                    } else {
+                        console.warn('Falha ao clonar camada:', layer);
                     }
-                })
-                if (this.heatMap && this.resultsHeatmap && this.resultsHeatmap.length) {
-                  this.map.addLayer(this.$L.heatLayer(this.resultsHeatmap, this.resultsHeatmapOptions))
+                } catch (cloneError) {
+                    console.error('Erro ao clonar camada:', cloneError);
                 }
-            }
+            });
+            const heatmaps = [
+                { active: this.monitoringHeatMap, data: this.monitoringResultsHeatmap, options: this.monitoringResultsHeatmapOptions },
+                { active: this.alertsHeatMap, data: this.alertsResultsHeatmap, options: this.alertsResultsHeatmapOptions }
+            ];
+            heatmaps.forEach(({ active, data, options }) => {
+                if (active && data?.length && options) {
+                    this.map.addLayer(this.$L.heatLayer(data, options));
+                }
+            });
         },
-
+        
         async createMap() {
     try {
         require('@/plugins/L.SimpleGraticule')
