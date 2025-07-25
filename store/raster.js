@@ -23,6 +23,12 @@ export const state = () => ({
   filteredLayers: [],
   filteredLayersId: [],
   orderedLayers: [],
+  // Compare layers functionality
+  layersToCompare: {
+    left: null,
+    right: null,
+  },
+  openCompare: false,
 });
 
 export const getters = {
@@ -91,7 +97,7 @@ export const mutations = {
             visible: false,
             sublayers: false,
             opacity: (layer.wms && layer.wms.default_opacity)
-                            || (layer.vector && layer.vector.default_opacity) || 100,
+              || (layer.vector && layer.vector.default_opacity) || 100,
             loading: false,
             data: [],
             cql: null,
@@ -253,6 +259,39 @@ export const mutations = {
     });
 
     Vue.set(layer, 'cql', cql ? cql.slice(0, -4) : '1=2');
+  },
+
+  // Compare layers mutations
+  setLayerToCompare(state, layer) {
+    if (state.layersToCompare.left === null) {
+      state.layersToCompare.left = layer;
+    } else if (state.layersToCompare.left && state.layersToCompare.left.id === layer.id) {
+      state.layersToCompare.left = null;
+    } else if (state.layersToCompare.right === null) {
+      state.layersToCompare.right = layer;
+    } else if (state.layersToCompare.right && state.layersToCompare.right.id === layer.id) {
+      state.layersToCompare.right = null;
+    } else {
+      // Se ambos os slots estão ocupados e não é uma deseleção, substitui a camada left
+      state.layersToCompare.left = layer;
+    }
+
+    // Só abre o diálogo quando duas camadas estão selecionadas
+    if (state.layersToCompare.right && state.layersToCompare.left) {
+      state.openCompare = true;
+    } else {
+      state.openCompare = false;
+    }
+  },
+
+  clearLayersToCompare(state) {
+    state.layersToCompare.left = null;
+    state.layersToCompare.right = null;
+    state.openCompare = false;
+  },
+
+  setOpenCompare(state, value) {
+    state.openCompare = value;
   },
 };
 

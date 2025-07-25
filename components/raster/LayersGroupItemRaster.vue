@@ -27,6 +27,24 @@
           @change="toggleLayer"
         />
       </v-list-item-action>
+
+      <v-list-item-action @click.stop="">
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <v-btn
+              icon
+              small
+              :color="isSelected ? 'red' : 'grey'"
+              :disabled="disabled"
+              v-on="on"
+              @click="compareLayer"
+            >
+              <v-icon>mdi-compare</v-icon>
+            </v-btn>
+          </template>
+          <span>{{ $t('compare-label') }}</span>
+        </v-tooltip>
+      </v-list-item-action>
     </template>
 
     <v-container class="py-0">
@@ -81,6 +99,17 @@
   </v-list-group>
 </template>
 
+<i18n>
+  {
+    "en": {
+      "compare-label": "Compare layer"
+    },
+    "pt-br": {
+      "compare-label": "Comparar camada"
+    }
+  }
+</i18n>
+
 <script>
 import { mapState, mapMutations } from 'vuex';
 import tmsLegend from '@/assets/tmsLegend.png';
@@ -108,7 +137,7 @@ export default {
   }),
 
   computed: {
-    ...mapState('raster', ['supportLayersCategoryRaster']),
+    ...mapState('raster', ['supportLayersCategoryRaster', 'layersToCompare']),
 
     layer() {
       return this.supportLayersCategoryRaster[this.layerId] || null;
@@ -130,6 +159,22 @@ export default {
                 && Object.keys(this.layer.filters).length === 0
                 && !this.layer.loading
       );
+    },
+
+    isSelected() {
+      const isLeft = this.layersToCompare.left && this.layersToCompare.left.id === this.layerId;
+      const isRight = this.layersToCompare.right && this.layersToCompare.right.id === this.layerId;
+      return isLeft || isRight;
+    },
+
+    disabled() {
+      const hasLeft = this.layersToCompare.left !== null;
+      const hasRight = this.layersToCompare.right !== null;
+      const bothSelected = hasLeft && hasRight;
+      const isCurrentSelected = this.isSelected;
+
+      // Só desabilita se ambas as posições estão ocupadas E esta camada não está selecionada
+      return bothSelected && !isCurrentSelected;
     },
   },
 
@@ -154,10 +199,15 @@ export default {
       });
     },
 
+    compareLayer() {
+      this.setLayerToCompare(this.layer);
+    },
+
     ...mapMutations('raster', [
       'toggleLayerVisibilityRaster',
       'setshowFeaturesSupportLayersRaster',
       'setLayerOpacityRaster',
+      'setLayerToCompare',
     ]),
   },
 };

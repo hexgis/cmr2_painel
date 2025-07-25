@@ -165,6 +165,12 @@
         class="mx-4 my-5"
       />
     </div>
+
+    <!-- Compare Dialog -->
+    <RasterCompare
+      v-model="showCompareDialog"
+      @update="closeComparator"
+    />
   </v-container>
 </template>
 
@@ -191,10 +197,11 @@
 import { mapState, mapMutations } from 'vuex';
 import _ from 'lodash';
 import LayersGroupRaster from '@/components/raster/LayersGroupRaster';
+import RasterCompare from '@/components/raster/RasterCompare';
 
 export default {
   name: 'SupportRaster',
-  components: { LayersGroupRaster },
+  components: { LayersGroupRaster, RasterCompare },
 
   data: () => ({
     showFooter: process.env.SHOW_FOOTER === 'true',
@@ -326,11 +333,22 @@ export default {
 
       return yearFilteredGroups.filter((group) => layerFilteredGroups.includes(group));
     },
+
+    showCompareDialog: {
+      get() {
+        return this.$store.state.raster.openCompare;
+      },
+      set(value) {
+        this.$store.commit('raster/setOpenCompare', value);
+      },
+    },
+
     ...mapState('raster', [
       'supportCategoryGroupsRaster',
       'supportLayersCategoryRaster',
       'loading',
       'showFeaturesSupportLayersRaster',
+      'layersToCompare',
     ]),
   },
 
@@ -342,6 +360,10 @@ export default {
     clearInput() {
       this.selectedLayers = [];
       this.searchInput = '';
+    },
+
+    closeComparator() {
+      this.$store.commit('raster/clearLayersToCompare');
     },
   },
 };
