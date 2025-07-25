@@ -87,8 +87,6 @@ export default {
   methods: {
     filterItems(value) {
       if (value) {
-        // const res = this.items.filter((item) => item.name.toLowerCase().includes(value.toLowerCase()));
-        // console.log(res);
         this.itemsFiltered = this.items.filter((item) => {
           const layers = item.layers.filter((layer) => {
             const name = layer.name.toLowerCase();
@@ -96,19 +94,6 @@ export default {
             return name.includes(search);
           });
           return layers.length ? layers : false;
-          // const group = item.name.toLowerCase().includes(value.toLowerCase());
-
-          // if (group) return group;
-
-          // const layers = item.layers.filter((l) => l.name.toLowerCase().includes(value.toLowerCase()));
-
-          // if (layers.length) {
-          //   return {
-          //     ...item,
-          //     layers,
-          //   };
-          // }
-          // return this.items;
         });
       } else {
         this.itemsFiltered = this.items;

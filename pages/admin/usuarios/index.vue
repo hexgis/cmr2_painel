@@ -510,7 +510,7 @@
       dense
       :search="search"
     >
-      <!-- filtro Nome -->
+      <!-- Name Filter -->
       <template #header.username="{ header }">
         <v-menu
           v-model="usernameMenu"
@@ -562,7 +562,7 @@
         </v-menu>
       </template>
 
-      <!-- filtro Primeiro Nome -->
+      <!-- First Name Filter -->
       <template #header.first_name="{ header }">
         <v-menu
           v-model="firstNameMenu"
@@ -614,7 +614,7 @@
         </v-menu>
       </template>
 
-      <!-- filtro Último Nome -->
+      <!-- Last Name Filter -->
       <template #header.last_name="{ header }">
         <v-menu
           v-model="lastNameMenu"
@@ -666,7 +666,7 @@
         </v-menu>
       </template>
 
-      <!-- filtro Email -->
+      <!-- Email Filter -->
       <template #header.email="{ header }">
         <v-menu
           v-model="emailMenu"
@@ -718,7 +718,7 @@
         </v-menu>
       </template>
 
-      <!-- filtro Administrador -->
+      <!-- Administrator Filter -->
       <template #header.is_admin="{ header }">
         <v-menu offset-y>
           <template #activator="{ on, attrs }">
@@ -758,7 +758,7 @@
         </v-menu>
       </template>
 
-      <!-- filtro Acesso Permitido -->
+      <!-- Access Allowed Filter -->
       <template #header.is_active="{ header }">
         <v-menu offset-y>
           <template #activator="{ on, attrs }">
@@ -843,8 +843,8 @@
               >
                 <v-checkbox
                   v-model="columnFilters.institution"
-                  :value="inst.name"
-                  :label="inst.name"
+                  :value="inst.acronym"
+                  :label="inst.acronym"
                   dense
                   @change="institutionMenu = false"
                 />
@@ -852,6 +852,10 @@
             </v-list>
           </v-card>
         </v-menu>
+      </template>
+
+      <template #item.institution="{ item }">
+        {{ item.institution.acronym }}
       </template>
 
       <template #item.actions="{ item }">
@@ -1112,7 +1116,7 @@ export default {
 
     filteredInstitutionList() {
       const term = (this.searchInstitution || '').toLowerCase();
-      return this.institutionList.filter((inst) => inst.name.toLowerCase().includes(term));
+      return this.institutionList.filter((inst) => inst.acronym.toLowerCase().includes(term));
     },
 
     filteredUsernameList() {
@@ -1432,7 +1436,7 @@ export default {
         user.email,
         user.is_admin ? 'Sim' : 'Não',
         user.is_active ? 'Ativo' : 'Inativo',
-        user.institution || '',
+        user.institution && user.institution.acronym ? user.institution.acronym : user.institution || '',
       ]);
       const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
