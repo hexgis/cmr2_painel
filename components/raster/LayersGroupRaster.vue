@@ -58,6 +58,7 @@
             v-for="layer in orderedSupportLayers"
             :key="layer"
             :layer-id="layer"
+            @show-notification="showNotification"
           />
         </v-list>
       </v-container>
@@ -71,6 +72,7 @@
               v-if="includesLayers(layer)"
               :key="layer"
               :layer-id="layer"
+              @show-notification="showNotification"
             />
           </template>
         </v-list>
@@ -114,6 +116,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    searchLayer: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   data: () => ({
@@ -122,6 +128,9 @@ export default {
 
   computed: {
     supportLayers() {
+      if (!this.group || !this.supportCategoryGroupsRaster[this.group.id]) {
+        return [];
+      }
       return this.supportCategoryGroupsRaster[this.group.id].layers;
     },
 
@@ -157,6 +166,11 @@ export default {
 
     includesLayers(id) {
       return this.filteredLayersId.includes(id);
+    },
+
+    showNotification(notification) {
+      // Emit event to parent component (raster.vue)
+      this.$emit('show-notification', notification);
     },
   },
 };

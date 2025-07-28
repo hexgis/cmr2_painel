@@ -167,10 +167,27 @@
     </div>
 
     <!-- Compare Dialog -->
-    <RasterCompare
-      v-model="showCompareDialog"
-      @update="closeComparator"
-    />
+    <!-- Raster Compare Dialog -->
+    <raster-compare />
+
+    <!-- Notification Snackbar -->
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      :timeout="snackbar.timeout"
+      bottom
+      right
+    >
+      {{ snackbar.text }}
+      <template #action>
+        <v-btn
+          text
+          @click="snackbar.show = false"
+        >
+          {{ $t('common.close') }}
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -188,7 +205,7 @@
     "search-label-years": "Buscar camada por ano",
     "search-label-month": "Buscar camada por mês",
     "title": "Alta Resolução e Mosaicos",
-    "data-source-label": "Mosaicos de imagens de média resolução - satélites da série Landsat e Sentinel. Mosaicos de alta resolução - satélites Spot e Planet"
+    "data-source-label": "Datasource: Geoserver - FUNAI"
   }
 }
 </i18n>
@@ -196,8 +213,10 @@
 <script>
 import { mapState, mapMutations } from 'vuex';
 import _ from 'lodash';
-import LayersGroupRaster from '@/components/raster/LayersGroupRaster';
-import RasterCompare from '@/components/raster/RasterCompare';
+// eslint-disable-next-line import/no-unresolved
+import LayersGroupRaster from '@/components/raster/LayersGroupRaster.vue';
+// eslint-disable-next-line import/no-unresolved
+import RasterCompare from '@/components/raster/RasterCompare.vue';
 
 export default {
   name: 'SupportRaster',
@@ -212,6 +231,12 @@ export default {
     searchInputYears: '',
     searchInputMonths: '',
     tab: null,
+    snackbar: {
+      show: false,
+      text: '',
+      color: 'info',
+      timeout: 4000,
+    },
   }),
 
   async fetch() {
@@ -228,7 +253,7 @@ export default {
       const yearsWithContent = groupsWithContent
         .map((group) => {
           const match = group.name.match(/\d{4}$/);
-          return match ? parseInt(match[0]) : null;
+          return match ? parseInt(match[0], 10) : null;
         })
         .filter((year) => year !== null);
       return Array.from(new Set(yearsWithContent)).sort((a, b) => a - b);
@@ -244,7 +269,7 @@ export default {
       const yearsWithContent = groupsWithContent
         .map((group) => {
           const match = group.name.match(/\d{4}$/);
-          return match ? parseInt(match[0]) : null;
+          return match ? parseInt(match[0], 10) : null;
         })
         .filter((year) => year !== null);
 
@@ -266,7 +291,8 @@ export default {
         .value();
     },
     visibleLayers() {
-      const rasterLayers = this.$store.state.raster && this.$store.state.raster.supportLayersCategoryRaster;
+      const rasterLayers = this.$store.state.raster
+        && this.$store.state.raster.supportLayersCategoryRaster;
       if (Array.isArray(rasterLayers)) {
         return rasterLayers.filter((layer) => layer.visible);
       }
@@ -295,7 +321,7 @@ export default {
       return this.orderedSupportLayersGroups.filter((group) => {
         const groupYearMatch = group.name.match(/\d{4}$/);
         const groupYear = groupYearMatch
-          ? parseInt(groupYearMatch[0])
+          ? parseInt(groupYearMatch[0], 10)
           : null;
         return (
           groupYear
@@ -364,6 +390,12 @@ export default {
 
     closeComparator() {
       this.$store.commit('raster/clearLayersToCompare');
+    },
+
+    showNotification(notification) {
+      this.snackbar.text = notification.message;
+      this.snackbar.color = notification.type || 'info';
+      this.snackbar.show = true;
     },
   },
 };

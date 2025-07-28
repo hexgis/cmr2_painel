@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import Vue from 'vue';
 
 export const state = () => ({
@@ -32,9 +33,9 @@ export const state = () => ({
 });
 
 export const getters = {
-  activeLayerIds(state) {
+  activeLayerIds(rasterState) {
     const activeLayerIds = [];
-    Object.values(state.supportLayers).forEach((layer) => {
+    Object.values(rasterState.supportLayers).forEach((layer) => {
       if (layer.visible) {
         activeLayerIds.push(layer.id);
       }
@@ -42,47 +43,47 @@ export const getters = {
     return activeLayerIds;
   },
 
-  activeLayerIds(state) {
+  activeRasterLayerIds(rasterState) {
     const activeLayerIds = [];
-    for (const layer of Object.values(state.supportLayersCategoryRaster)) {
+    Object.values(rasterState.supportLayersCategoryRaster).forEach((layer) => {
       if (layer.visible) {
         activeLayerIds.push(layer.id);
       }
-    }
+    });
     return activeLayerIds;
   },
 };
 
 export const mutations = {
-  setretractAllLayers(state, value) {
-    state.retractAllLayers = value;
+  setretractAllLayers(currentState, value) {
+    currentState.retractAllLayers = value;
   },
 
-  toggleLayerActive(state, layerId) {
-    for (const group of Object.values(state.supportCategoryGroupsRaster)) {
+  toggleLayerActive(currentState, layerId) {
+    const groups = Object.values(currentState.supportCategoryGroupsRaster);
+    groups.forEach((group) => {
       const foundLayer = group.layers.find((l) => l.id === layerId);
       if (foundLayer) {
         foundLayer.active = !foundLayer.active;
-        break;
       }
-    }
+    });
   },
 
-  setFilteredLayers(state, layers) {
-    state.filteredLayersId = layers;
+  setFilteredLayers(currentState, layers) {
+    currentState.filteredLayersId = layers;
   },
 
-  setshowFeaturesSupportLayers(state, showFeaturesSupportLayers) {
-    state.showFeaturesSupportLayers = showFeaturesSupportLayers;
+  setshowFeaturesSupportLayers(currentState, showFeaturesSupportLayers) {
+    currentState.showFeaturesSupportLayers = showFeaturesSupportLayers;
   },
 
-  setshowFeaturesSupportLayersRaster(state, showFeaturesSupportLayersRaster) {
-    state.showFeaturesSupportLayersRaster = showFeaturesSupportLayersRaster;
+  setshowFeaturesSupportLayersRaster(currentState, showFeaturesSupportLayersRaster) {
+    currentState.showFeaturesSupportLayersRaster = showFeaturesSupportLayersRaster;
   },
 
-  setSupportLayersGroups(state, layersGroups) {
-    Vue.set(state, 'supportLayersGroups', {});
-    Vue.set(state, 'supportLayers', {});
+  setSupportLayersGroups(currentState, layersGroups) {
+    Vue.set(currentState, 'supportLayersGroups', {});
+    Vue.set(currentState, 'supportLayers', {});
 
     layersGroups.forEach((group) => {
       if (group.layers) {
@@ -104,75 +105,79 @@ export const mutations = {
           };
 
           currentGroup.layers.push(layer.id);
-          Vue.set(state.supportLayers, layer.id, currentLayer);
+          Vue.set(currentState.supportLayers, layer.id, currentLayer);
         });
 
-        Vue.set(state.supportLayersGroups, group.id, currentGroup);
+        Vue.set(currentState.supportLayersGroups, group.id, currentGroup);
       }
     });
   },
 
-  setSupportCategoryGroupsRaster(state, categoryGroups) {
-    state.supportCategoryGroupsRaster = {};
-    state.supportLayersCategoryRaster = {};
+  setSupportCategoryGroupsRaster(currentState, categoryGroups) {
+    currentState.supportCategoryGroupsRaster = {};
+    currentState.supportLayersCategoryRaster = {};
 
     categoryGroups.forEach((group) => {
       const { layers } = group;
-      group.layers = [];
+      const modifiedGroup = { ...group };
+      modifiedGroup.layers = [];
 
       layers.forEach((layer) => {
-        layer.visible = false;
+        const modifiedLayer = { ...layer };
+        modifiedLayer.visible = false;
 
-        if (layer.layer_type === 'wms' && layer.wms.default_opacity) {
-          layer.opacity = layer.wms.default_opacity;
+        if (modifiedLayer.layer_type === 'wms' && modifiedLayer.wms.default_opacity) {
+          modifiedLayer.opacity = modifiedLayer.wms.default_opacity;
         } else {
-          layer.opacity = 100;
+          modifiedLayer.opacity = 100;
         }
 
-        layer.loading = false;
-        layer.filters = [];
-        layer.data = [];
+        modifiedLayer.loading = false;
+        modifiedLayer.filters = [];
+        modifiedLayer.data = [];
 
-        group.layers.push(layer.id);
-        Vue.set(state.supportLayersCategoryRaster, layer.id, layer);
+        modifiedGroup.layers.push(modifiedLayer.id);
+        Vue.set(currentState.supportLayersCategoryRaster, modifiedLayer.id, modifiedLayer);
       });
 
-      Vue.set(state.supportCategoryGroupsRaster, group.id, group);
+      Vue.set(currentState.supportCategoryGroupsRaster, modifiedGroup.id, modifiedGroup);
     });
   },
 
-  setSupportCategoryGroupsBase(state, categoryGroups) {
-    state.supportCategoryGroupsBase = {};
-    state.supportLayers = {};
+  setSupportCategoryGroupsBase(currentState, categoryGroups) {
+    currentState.supportCategoryGroupsBase = {};
+    currentState.supportLayers = {};
 
     categoryGroups.forEach((group) => {
       const { layers } = group;
-      group.layers = [];
+      const modifiedGroup = { ...group };
+      modifiedGroup.layers = [];
 
       layers.forEach((layer) => {
-        layer.visible = false;
+        const modifiedLayer = { ...layer };
+        modifiedLayer.visible = false;
 
-        if (layer.layer_type === 'wms' && layer.wms.default_opacity) {
-          layer.opacity = layer.wms.default_opacity;
+        if (modifiedLayer.layer_type === 'wms' && modifiedLayer.wms.default_opacity) {
+          modifiedLayer.opacity = modifiedLayer.wms.default_opacity;
         } else {
-          layer.opacity = 100;
+          modifiedLayer.opacity = 100;
         }
 
-        layer.loading = false;
-        layer.data = [];
+        modifiedLayer.loading = false;
+        modifiedLayer.data = [];
 
-        group.layers.push({ layer: layer.id, name: layer.name });
-        Vue.set(state.supportLayers, layer.id, layer);
+        modifiedGroup.layers.push({ layer: modifiedLayer.id, name: modifiedLayer.name });
+        Vue.set(currentState.supportLayers, modifiedLayer.id, modifiedLayer);
       });
 
-      Vue.set(state.supportCategoryGroupsBase, group.id, group);
+      Vue.set(currentState.supportCategoryGroupsBase, modifiedGroup.id, modifiedGroup);
     });
   },
 
-  setLayerFilters(state, { id, filters }) {
-    state.supportLayers[id].filters = state.supportLayers[id].filters.map((item) => {
+  setLayerFilters(currentState, { id, filters }) {
+    currentState.supportLayers[id].filters = currentState.supportLayers[id].filters.map((item) => {
       const filterKey = item.type;
-      if (filters.hasOwnProperty(filterKey)) {
+      if (Object.prototype.hasOwnProperty.call(filters, filterKey)) {
         return {
           ...item,
           [filterKey]: filters[filterKey],
@@ -182,70 +187,70 @@ export const mutations = {
     });
   },
 
-  setLayerFiltersRaster(state, { id, filters }) {
-    state.supportLayersCategoryRaster[id].filters = {
-      ...state.supportLayersCategoryRaster[id].filters,
+  setLayerFiltersRaster(currentState, { id, filters }) {
+    currentState.supportLayersCategoryRaster[id].filters = {
+      ...currentState.supportLayersCategoryRaster[id].filters,
       ...filters,
     };
   },
 
-  setFilterOptions(state, data) {
-    state.filterOptions = data;
+  setFilterOptions(currentState, data) {
+    currentState.filterOptions = data;
   },
 
-  toggleLayerVisibility(state, { id, visible }) {
-    state.supportLayers[id].visible = visible;
+  toggleLayerVisibility(currentState, { id, visible }) {
+    currentState.supportLayers[id].visible = visible;
   },
 
-  toggleLayerVisibilityRaster(state, { id, visible }) {
-    state.supportLayersCategoryRaster[id].visible = visible;
+  toggleLayerVisibilityRaster(currentState, { id, visible }) {
+    currentState.supportLayersCategoryRaster[id].visible = visible;
   },
 
-  setLayerOpacity(state, { id, opacity }) {
-    state.supportLayers[id].opacity = opacity;
+  setLayerOpacity(currentState, { id, opacity }) {
+    currentState.supportLayers[id].opacity = opacity;
   },
 
-  setLayerOpacityRaster(state, { id, opacity }) {
-    state.supportLayersCategoryRaster[id].opacity = opacity;
+  setLayerOpacityRaster(currentState, { id, opacity }) {
+    currentState.supportLayersCategoryRaster[id].opacity = opacity;
   },
 
-  setLayerLoading(state, { id, loading }) {
-    state.supportLayers[id].loading = loading;
+  setLayerLoading(currentState, { id, loading }) {
+    currentState.supportLayers[id].loading = loading;
   },
 
-  setLayerLoadingRaster(state, { id, loading }) {
-    state.supportLayersCategoryRaster[id].loading = loading;
+  setLayerLoadingRaster(currentState, { id, loading }) {
+    currentState.supportLayersCategoryRaster[id].loading = loading;
   },
 
-  setHeatLayerData(state, { id, data }) {
-    state.supportLayers[id].data = data;
-    state.supportLayers[id].visible = true;
+  setHeatLayerData(currentState, { id, data }) {
+    currentState.supportLayers[id].data = data;
+    currentState.supportLayers[id].visible = true;
   },
 
-  setHeatLayerDataRaster(state, { id, data }) {
-    state.supportLayersCategoryRaster[id].data = data;
-    state.supportLayersCategoryRaster[id].visible = true;
+  setHeatLayerDataRaster(currentState, { id, data }) {
+    currentState.supportLayersCategoryRaster[id].data = data;
+    currentState.supportLayersCategoryRaster[id].visible = true;
   },
 
-  setLoading(state, loading) {
-    state.loading = loading;
+  setLoading(currentState, loading) {
+    currentState.loading = loading;
   },
 
-  setSearchLayer(state, search) {
-    state.searchLayer = search;
+  setSearchLayer(currentState, search) {
+    currentState.searchLayer = search;
   },
 
-  setOrderedLayers(state, layers) {
-    state.orderedLayers = layers;
+  setOrderedLayers(currentState, layers) {
+    currentState.orderedLayers = layers;
   },
 
-  setSublayers(state, { id, sublayers }) {
-    state.supportLayers[id].sublayers = sublayers;
+  setSublayers(currentState, { id, sublayers }) {
+    currentState.supportLayers[id].sublayers = sublayers;
   },
 
-  setCqlLayer(state, { id, category }) {
+  setCqlLayer(currentState, { id, category }) {
     let cql = '';
-    const layer = state.supportLayers[id];
+    const layer = currentState.supportLayers[id];
     const { sublayers } = layer;
 
     Object.keys(sublayers).forEach((key) => {
@@ -262,36 +267,42 @@ export const mutations = {
   },
 
   // Compare layers mutations
-  setLayerToCompare(state, layer) {
-    if (state.layersToCompare.left === null) {
-      state.layersToCompare.left = layer;
-    } else if (state.layersToCompare.left && state.layersToCompare.left.id === layer.id) {
-      state.layersToCompare.left = null;
-    } else if (state.layersToCompare.right === null) {
-      state.layersToCompare.right = layer;
-    } else if (state.layersToCompare.right && state.layersToCompare.right.id === layer.id) {
-      state.layersToCompare.right = null;
+  setLayerToCompare(currentState, layer) {
+    if (currentState.layersToCompare.left === null) {
+      currentState.layersToCompare.left = layer;
+    } else if (
+      currentState.layersToCompare.left
+      && currentState.layersToCompare.left.id === layer.id
+    ) {
+      currentState.layersToCompare.left = null;
+    } else if (currentState.layersToCompare.right === null) {
+      currentState.layersToCompare.right = layer;
+    } else if (
+      currentState.layersToCompare.right
+      && currentState.layersToCompare.right.id === layer.id
+    ) {
+      currentState.layersToCompare.right = null;
     } else {
-      // Se ambos os slots estão ocupados e não é uma deseleção, substitui a camada left
-      state.layersToCompare.left = layer;
+      // If both slots are occupied and it's not a deselection, replace the left layer
+      currentState.layersToCompare.left = layer;
     }
 
-    // Só abre o diálogo quando duas camadas estão selecionadas
-    if (state.layersToCompare.right && state.layersToCompare.left) {
-      state.openCompare = true;
+    // Only open the dialog when two layers are selected
+    if (currentState.layersToCompare.right && currentState.layersToCompare.left) {
+      currentState.openCompare = true;
     } else {
-      state.openCompare = false;
+      currentState.openCompare = false;
     }
   },
 
-  clearLayersToCompare(state) {
-    state.layersToCompare.left = null;
-    state.layersToCompare.right = null;
-    state.openCompare = false;
+  clearLayersToCompare(currentState) {
+    currentState.layersToCompare.left = null;
+    currentState.layersToCompare.right = null;
+    currentState.openCompare = false;
   },
 
-  setOpenCompare(state, value) {
-    state.openCompare = value;
+  setOpenCompare(currentState, value) {
+    currentState.openCompare = value;
   },
 };
 
@@ -319,7 +330,7 @@ export const actions = {
       commit('setLoading', false);
     }
   },
-  async getTiOptions({ commit, state }, cr) {
+  async getTiOptions({ commit, state: currentState }, cr) {
     const params = {
       co_cr: cr.toString(),
     };
@@ -328,7 +339,7 @@ export const actions = {
 
     if (tis) {
       commit('setFilterOptions', {
-        ...state.filterOptions,
+        ...currentState.filterOptions,
         tiFilters: tis.sort((a, b) => a.no_ti > b.no_ti),
       });
     }
@@ -389,8 +400,8 @@ export const actions = {
     }
   },
 
-  async getHeatMapLayer({ state, commit }, { id, filters }) {
-    const heatLayer = state.supportLayers[id];
+  async getHeatMapLayer({ state: currentState, commit }, { id, filters }) {
+    const heatLayer = currentState.supportLayers[id];
     const params = {
       ...filters,
       type: heatLayer.heatmap.heatmap_type.identifier,
@@ -419,8 +430,8 @@ export const actions = {
       );
     }
   },
-  async getHeatMapLayerRaster({ state, commit }, { id, filters }) {
-    const heatLayer = state.supportLayersCategoryRaster[id];
+  async getHeatMapLayerRaster({ state: currentState, commit }, { id, filters }) {
+    const heatLayer = currentState.supportLayersCategoryRaster[id];
     const params = {
       ...filters,
       type: heatLayer.heatmap.heatmap_type.identifier,

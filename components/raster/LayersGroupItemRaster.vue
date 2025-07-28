@@ -100,20 +100,28 @@
 </template>
 
 <i18n>
-  {
-    "en": {
-      "compare-label": "Compare layer"
-    },
-    "pt-br": {
-      "compare-label": "Comparar camada"
-    }
+{
+  "en": {
+    "compare-label": "Compare layer",
+    "first-layer-selected": "First layer selected for comparison. Select another layer to compare.",
+    "second-layer-selected": "Second layer selected! Click 'Compare' again to cancel selection.",
+    "layer-deselected": "Layer removed from comparison.",
+    "comparison-ready": "Two layers selected! The comparison dialog will open shortly."
+  },
+  "pt-br": {
+    "compare-label": "Comparar camada",
+    "first-layer-selected": "Primeira camada selecionada. Selecione outra para comparar.",
+    "second-layer-selected": "Segunda camada selecionada! Clique novamente para cancelar.",
+    "layer-deselected": "Camada removida da comparação.",
+    "comparison-ready": "Duas camadas selecionadas! O diálogo será aberto em breve."
   }
+}
 </i18n>
 
 <script>
 import { mapState, mapMutations } from 'vuex';
-import tmsLegend from '@/assets/tmsLegend.png';
-import SupportLayerFilters from '@/components/raster/SupportLayerFilters';
+import tmsLegend from '../../assets/tmsLegend.png';
+import SupportLayerFilters from './SupportLayerFilters.vue';
 
 export default {
   name: 'LayersGroupItemRaster',
@@ -200,7 +208,59 @@ export default {
     },
 
     compareLayer() {
+      const wasSelected = this.isSelected;
+
+      // Execute the mutation first
       this.setLayerToCompare(this.layer);
+
+      // Wait for next tick to get updated state
+      this.$nextTick(() => {
+        const hasLeft = this.layersToCompare.left !== null;
+        const hasRight = this.layersToCompare.right !== null;
+        const bothSelected = hasLeft && hasRight;
+
+        let message = '';
+        let color = 'info';
+
+        if (wasSelected) {
+          // Layer was deselected
+          message = this.$t('layer-deselected');
+          color = 'warning';
+        } else if (bothSelected) {
+          // Two layers are now selected
+          message = this.$t('comparison-ready');
+          color = 'success';
+          // Open the comparison modal
+          this.$store.commit('raster/setOpenCompare', true);
+        } else if (hasLeft || hasRight) {
+          // First layer selected
+          message = this.$t('first-layer-selected');
+          color = 'info';
+        }
+
+        if (message) {
+          this.showNotification(message, color);
+        }
+      });
+    },
+
+    showNotification(message, color = 'info') {
+      // Emit event to parent to show notification
+      this.$emit('show-notification', { message, color });
+
+      // Also try to show via global snackbar if available
+      if (this.$store.commit) {
+        try {
+          this.$store.commit('alert/addAlert', {
+            message,
+            type: color,
+            timeout: 4000,
+          });
+        } catch (error) {
+          // Fallback to console if alert store doesn't exist
+          console.log(`[${color.toUpperCase()}] ${message}`);
+        }
+      }
     },
 
     ...mapMutations('raster', [
