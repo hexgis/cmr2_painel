@@ -24,7 +24,7 @@
         <div class="container-compare">
           <v-row
             no-gutters
-            style="height: 80vh;"
+            style="height: calc(100vh - 64px);"
           >
             <!-- Map Container - Left Side -->
             <v-col cols="9">
@@ -424,12 +424,12 @@ export default {
           center,
           zoom,
           zoomControl: true,
+          attributionControl: false, // Remove attribution control completely
         });
 
         // Add base tile layer
         const baseLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-        const attribution = '© OpenStreetMap contributors';
-        const baseLayer = window.L.tileLayer(baseLayerUrl, { attribution });
+        const baseLayer = window.L.tileLayer(baseLayerUrl, { attribution: '' });
         baseLayer.addTo(map);
 
         // Create layers for comparison
@@ -499,11 +499,6 @@ export default {
       }
     },
 
-    addLayerToMap(map, layer) {
-      // This method is no longer needed as we use createLayer instead
-      console.warn('addLayerToMap is deprecated, use createLayer instead');
-    },
-
     createWmsLayer(layer) {
       try {
         const { wms } = layer;
@@ -515,7 +510,7 @@ export default {
           format: 'image/png',
           transparent: true,
           version: '1.1.0',
-          attribution: wms.attribution || '',
+          attribution: '',
           opacity: 1, // Force full opacity for comparison
         };
 
@@ -549,7 +544,7 @@ export default {
       try {
         const tmsLayer = window.L.tileLayer(layer.tms.url, {
           tms: true,
-          attribution: layer.attribution || '',
+          attribution: '',
           opacity: 1, // Force full opacity for comparison
         });
 

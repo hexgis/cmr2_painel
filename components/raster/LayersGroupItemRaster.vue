@@ -20,15 +20,10 @@
         </v-list-item-title>
       </v-list-item-content>
 
-      <v-list-item-action @click.stop="">
-        <v-switch
-          :input-value="layer.visible"
-          :loading="layer.loading"
-          @change="toggleLayer"
-        />
-      </v-list-item-action>
-
-      <v-list-item-action @click.stop="">
+      <v-list-item-action
+        v-if="layer.visible"
+        @click.stop=""
+      >
         <v-tooltip bottom>
           <template #activator="{ on }">
             <v-btn
@@ -44,6 +39,14 @@
           </template>
           <span>{{ $t('compare-label') }}</span>
         </v-tooltip>
+      </v-list-item-action>
+
+      <v-list-item-action @click.stop="">
+        <v-switch
+          :input-value="layer.visible"
+          :loading="layer.loading"
+          @change="toggleLayer"
+        />
       </v-list-item-action>
     </template>
 
