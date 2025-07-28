@@ -139,9 +139,12 @@
 
                         <!-- Layer Details -->
                         <div class="layer-details-compact">
-                          <div class="detail-item-compact">
-                            <strong>Tipo:</strong><br>
-                            {{ getLayerTypeShort(layersToCompare.left) }}
+                          <div class="text-caption grey--text">
+                            <strong>Tipo:</strong> {{ getLayerType(layersToCompare.left) }}
+                          </div>
+                          <div class="text-caption grey--text">
+                            <strong>Grupo:</strong>
+                            {{ leftLayerGroup ? leftLayerGroup.name : 'N/A' }}
                           </div>
                           <div
                             v-if="layersToCompare.left.wms && layersToCompare.left.wms.attribution"
@@ -194,13 +197,13 @@
                           text-color="white"
                           class="mb-2"
                         >
+                          Direita
                           <v-icon
-                            left
+                            right
                             x-small
                           >
                             mdi-arrow-right
                           </v-icon>
-                          Direita
                         </v-chip>
 
                         <div class="layer-name-compact mb-2">
@@ -233,16 +236,21 @@
 
                         <!-- Layer Details -->
                         <div class="layer-details-compact">
-                          <div class="detail-item-compact">
-                            <strong>Tipo:</strong><br>
-                            {{ getLayerTypeShort(layersToCompare.right) }}
+                          <div class="text-caption grey--text">
+                            <strong>Tipo:</strong> {{ getLayerType(layersToCompare.right) }}
+                          </div>
+                          <div class="text-caption grey--text">
+                            <strong>Grupo:</strong>
+                            {{ rightLayerGroup ? rightLayerGroup.name : 'N/A' }}
                           </div>
                           <div
-                            v-if="layersToCompare.right.wms && layersToCompare.right.wms.attribution"
-                            class="detail-item-compact"
+                            v-if="
+                              layersToCompare.right.wms &&
+                                layersToCompare.right.wms.attribution
+                            "
+                            class="text-caption grey--text"
                           >
-                            <strong>Fonte:</strong><br>
-                            {{ truncateText(layersToCompare.right.wms.attribution, 25) }}
+                            <strong>Fonte:</strong> {{ layersToCompare.right.wms.attribution }}
                           </div>
                         </div>
                       </v-card>
@@ -338,7 +346,7 @@ export default {
   }),
 
   computed: {
-    ...mapState('raster', ['layersToCompare', 'openCompare']),
+    ...mapState('raster', ['layersToCompare', 'openCompare', 'supportCategoryGroupsRaster']),
 
     dialogValue: {
       get() {
@@ -351,6 +359,16 @@ export default {
         }
         this.$store.commit('raster/setOpenCompare', value);
       },
+    },
+
+    leftLayerGroup() {
+      if (!this.layersToCompare.left) return null;
+      return this.findGroupForLayer(this.layersToCompare.left.id);
+    },
+
+    rightLayerGroup() {
+      if (!this.layersToCompare.right) return null;
+      return this.findGroupForLayer(this.layersToCompare.right.id);
     },
   },
 
@@ -653,6 +671,12 @@ export default {
         default:
           return layer.layer_type ? layer.layer_type.toUpperCase() : 'Desconhecido';
       }
+    },
+
+    findGroupForLayer(layerId) {
+      // Find the group that contains this layer
+      const groups = Object.values(this.supportCategoryGroupsRaster || {});
+      return groups.find((group) => group.layers && group.layers.includes(layerId)) || null;
     },
 
     getLayerTypeShort(layer) {
