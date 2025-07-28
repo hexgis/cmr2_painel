@@ -95,6 +95,15 @@
           >
             <div class="header-actions d-flex align-center ga-3">
               <v-btn
+                :class="['custom-button', active ? 'active' : '']"
+                @click="toggleActive"
+              >
+                <span class="tab">AGÊNCIAS</span>
+                <span class="tab">FUNAI</span>
+                <span :class="['active-tab', active ? 'active' : '']" />
+              </v-btn>
+
+              <v-btn
                 color="primary"
                 outlined
                 class="filter-btn"
@@ -558,10 +567,25 @@ export default {
     MapUserViews,
   },
   layout: 'fullPage',
-  async created() {
-    await this.getDataChart;
-    await this.citiesList;
-  },
+
+  data: () => ({
+    logo_funai: process.env.DEFAULT_LOGO_IMAGE_CMR,
+    activatorProps: false,
+    viewLabelsTitle: ['Período', 'Visitas'],
+    startDate: '',
+    endDate: '',
+    selectedCity: null,
+    selectedDevice: null,
+    selectedBrowser: null,
+    startDateKey: 0,
+    endDateKey: 0,
+    showModal: false,
+    showDownloadModal: false,
+    downloadSuccess: true,
+    downloading: null,
+    active: true,
+  }),
+
   computed: {
     ...mapGetters('charts', [
       'getDataChart',
@@ -586,24 +610,18 @@ export default {
       return browserList;
     },
   },
-  data: () => ({
-    logo_funai: process.env.DEFAULT_LOGO_IMAGE_CMR,
-    activatorProps: false,
-    viewLabelsTitle: ['Período', 'Visitas'],
-    startDate: '',
-    endDate: '',
-    selectedCity: null,
-    selectedDevice: null,
-    selectedBrowser: null,
-    startDateKey: 0,
-    endDateKey: 0,
-    showModal: false,
-    showDownloadModal: false,
-    downloadSuccess: true,
-    downloading: null,
-  }),
+
+  async created() {
+    await this.getDataChart;
+    await this.citiesList;
+  },
+
   methods: {
     ...mapActions('charts', ['dataChart']),
+
+    toggleActive() {
+      this.active = !this.active;
+    },
 
     closeDownloadModal() {
       this.showDownloadModal = false;
@@ -774,6 +792,62 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.custom-button {
+  background-color: #f5f5f5;
+  border-radius: 20px;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  width: 230px;
+  height: 35px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.tab {
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 2;
+  padding: 8px 0;
+  width: 50%;
+  text-align: center;
+  position: relative;
+  color: #757575; /* Cor padrão cinza */
+  transition: color 0.2s ease;
+}
+
+.active-tab {
+  background-color: #D92B3F; /* Vermelho Funai */
+  border-radius: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  transition: transform 0.3s ease;
+  z-index: 1;
+}
+
+.active-tab.active {
+  transform: translateX(100%);
+}
+
+/* Regra corrigida - funciona para ambos os estados */
+.custom-button .tab {
+  color: #757575; /* Padrão para ambos */
+}
+
+.custom-button .tab:last-child {
+  color: v-bind('active ? "white" : "#757575"');
+}
+.custom-button .tab:first-child {
+  color: v-bind('active ? "#757575" : "white"');
+}
+
+</style>
 
 <style scoped lang="sass">
 .position-relative
