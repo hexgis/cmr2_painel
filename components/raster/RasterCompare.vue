@@ -6,7 +6,7 @@
   >
     <v-card>
       <v-toolbar color="secondary">
-        <v-toolbar-title>
+        <v-toolbar-title class="white--text">
           {{ $t('compare') }}
         </v-toolbar-title>
 
@@ -117,7 +117,6 @@
                         <v-img
                           v-if="getLayerPreview(layersToCompare.left)"
                           :src="getLayerPreview(layersToCompare.left)"
-                          :lazy-src="getLayerPreview(layersToCompare.left)"
                           height="80"
                           class="mb-2 rounded"
                           contain
@@ -135,8 +134,37 @@
                               />
                             </v-row>
                           </template>
+                          <template #error>
+                            <v-row
+                              class="fill-height ma-0"
+                              align="center"
+                              justify="center"
+                            >
+                              <v-icon
+                                size="32"
+                                color="grey lighten-2"
+                              >
+                                mdi-image-off-outline
+                              </v-icon>
+                            </v-row>
+                          </template>
                         </v-img>
 
+                        <!-- Fallback when no preview available -->
+                        <div
+                          v-else
+                          class="preview-fallback mb-2"
+                        >
+                          <v-icon
+                            size="32"
+                            color="grey lighten-2"
+                          >
+                            mdi-layers-outline
+                          </v-icon>
+                          <div class="caption grey--text mt-1">
+                            Preview não disponível
+                          </div>
+                        </div>
                         <!-- Layer Details -->
                         <div class="layer-details-compact">
                           <div class="text-caption grey--text">
@@ -145,13 +173,6 @@
                           <div class="text-caption grey--text">
                             <strong>Grupo:</strong>
                             {{ leftLayerGroup ? leftLayerGroup.name : 'N/A' }}
-                          </div>
-                          <div
-                            v-if="layersToCompare.left.wms && layersToCompare.left.wms.attribution"
-                            class="detail-item-compact"
-                          >
-                            <strong>Fonte:</strong><br>
-                            {{ truncateText(layersToCompare.left.wms.attribution, 25) }}
                           </div>
                         </div>
                       </v-card>
@@ -232,8 +253,37 @@
                               />
                             </v-row>
                           </template>
+                          <template #error>
+                            <v-row
+                              class="fill-height ma-0"
+                              align="center"
+                              justify="center"
+                            >
+                              <v-icon
+                                size="32"
+                                color="grey lighten-2"
+                              >
+                                mdi-image-off-outline
+                              </v-icon>
+                            </v-row>
+                          </template>
                         </v-img>
 
+                        <!-- Fallback when no preview available -->
+                        <div
+                          v-else
+                          class="preview-fallback mb-2"
+                        >
+                          <v-icon
+                            size="32"
+                            color="grey lighten-2"
+                          >
+                            mdi-layers-outline
+                          </v-icon>
+                          <div class="caption grey--text mt-1">
+                            Preview não disponível
+                          </div>
+                        </div>
                         <!-- Layer Details -->
                         <div class="layer-details-compact">
                           <div class="text-caption grey--text">
@@ -242,15 +292,6 @@
                           <div class="text-caption grey--text">
                             <strong>Grupo:</strong>
                             {{ rightLayerGroup ? rightLayerGroup.name : 'N/A' }}
-                          </div>
-                          <div
-                            v-if="
-                              layersToCompare.right.wms &&
-                                layersToCompare.right.wms.attribution
-                            "
-                            class="text-caption grey--text"
-                          >
-                            <strong>Fonte:</strong> {{ layersToCompare.right.wms.attribution }}
                           </div>
                         </div>
                       </v-card>
@@ -335,6 +376,7 @@
 
 <script>
 import { mapState } from 'vuex';
+import tmsLegend from '../../assets/tmsLegend.png';
 // Note: Leaflet should be available globally in the CMR2 project
 
 export default {
@@ -456,19 +498,27 @@ export default {
 
         // Add left layer
         if (this.layersToCompare.left) {
+          console.log('Creating left layer:', this.layersToCompare.left.name);
           this.ensureLayerVisibility(this.layersToCompare.left);
           leftLayer = this.createLayer(this.layersToCompare.left);
           if (leftLayer) {
             leftLayer.addTo(map);
+            console.log('Left layer added to map successfully');
+          } else {
+            console.warn('Failed to create left layer');
           }
         }
 
         // Add right layer
         if (this.layersToCompare.right) {
+          console.log('Creating right layer:', this.layersToCompare.right.name);
           this.ensureLayerVisibility(this.layersToCompare.right);
           rightLayer = this.createLayer(this.layersToCompare.right);
           if (rightLayer) {
             rightLayer.addTo(map);
+            console.log('Right layer added to map successfully');
+          } else {
+            console.warn('Failed to create right layer');
           }
         }
 
@@ -520,7 +570,20 @@ export default {
     createWmsLayer(layer) {
       try {
         const { wms } = layer;
+
+        // Validate required WMS data
+        if (!wms || !wms.geoserver || !wms.geoserver_layer_name) {
+          console.warn('Invalid WMS layer data:', { layer: layer.name, wms });
+          return null;
+        }
+
         const baseUrl = wms.geoserver.base_url || process.env.GEOSERVER_URL;
+
+        if (!baseUrl) {
+          console.warn('No base URL available for WMS layer:', layer.name);
+          return null;
+        }
+
         const url = `${baseUrl}/wms`;
 
         const options = {
@@ -539,16 +602,18 @@ export default {
 
         const wmsLayer = window.L.tileLayer.wms(url, options);
 
-        wmsLayer.on('loading', () => {
-          console.log('WMS layer loading...');
+        // Reduce error logging to avoid console spam
+        wmsLayer.on('tileerror', () => {
+          // Only log unique errors, not every tile error
+          if (!wmsLayer.errorLogged) {
+            console.warn(`WMS tiles failed to load for layer: ${layer.name}. URL: ${url}`);
+            wmsLayer.errorLogged = true;
+          }
         });
 
-        wmsLayer.on('load', () => {
-          console.log('WMS layer loaded successfully');
-        });
-
-        wmsLayer.on('tileerror', (error) => {
-          console.error('WMS tile error:', error);
+        wmsLayer.on('tileload', () => {
+          // Reset error flag when tiles load successfully
+          wmsLayer.errorLogged = false;
         });
 
         return wmsLayer;
@@ -560,22 +625,28 @@ export default {
 
     createTmsLayer(layer) {
       try {
+        if (!layer.tms || !layer.tms.url) {
+          console.warn('Invalid TMS layer data:', { layer: layer.name, tms: layer.tms });
+          return null;
+        }
+
         const tmsLayer = window.L.tileLayer(layer.tms.url, {
           tms: true,
           attribution: '',
           opacity: 1, // Force full opacity for comparison
+          errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', // Transparent 1x1 pixel
         });
 
-        tmsLayer.on('loading', () => {
-          console.log('TMS layer loading...');
+        // Reduce error logging to avoid console spam
+        tmsLayer.on('tileerror', () => {
+          if (!tmsLayer.errorLogged) {
+            console.warn(`TMS tiles failed to load for layer: ${layer.name}. URL: ${layer.tms.url}`);
+            tmsLayer.errorLogged = true;
+          }
         });
 
-        tmsLayer.on('load', () => {
-          console.log('TMS layer loaded successfully');
-        });
-
-        tmsLayer.on('tileerror', (error) => {
-          console.error('TMS tile error:', error);
+        tmsLayer.on('tileload', () => {
+          tmsLayer.errorLogged = false;
         });
 
         return tmsLayer;
@@ -639,16 +710,38 @@ export default {
     getLayerPreview(layer) {
       try {
         if (!layer) return null;
-
+        console.log('Getting preview for layer:', layer);
+        // For TMS layers, check if it has thumbnail_blob first, then fallback to legend
         if (layer.layer_type === 'tms') {
-          // For TMS layers, we might not have a preview, so return a placeholder or try to get one
-          return null; // Could return a generic TMS icon or try to construct a preview URL
+          if (layer.thumbnail_blob) {
+            return `data:image/png;base64,${layer.thumbnail_blob}`;
+          }
+          return tmsLegend;
         }
 
-        if (layer.layer_type === 'wms' && layer.wms) {
-          return (
-            layer.wms.geoserver.preview_url + layer.wms.geoserver_layer_name
-          );
+        // For WMS layers, check if it has thumbnail_blob first
+        if (layer.layer_type === 'wms') {
+          if (layer.thumbnail_blob) {
+            return `data:image/png;base64,${layer.thumbnail_blob}`;
+          }
+
+          // Fallback to geoserver preview URL if no thumbnail_blob
+          if (layer.wms) {
+            const hasRequiredData = layer.wms.geoserver
+              && layer.wms.geoserver.thumbnail_url
+              && layer.wms.geoserver_layer_namespace
+              && layer.wms.geoserver_layer_name;
+
+            if (hasRequiredData) {
+              const layerName = `${layer.wms.geoserver_layer_namespace}:${layer.wms.geoserver_layer_name}`;
+
+              // Check if URL already has authkey parameter
+              if (layer.wms.geoserver.thumbnail_url.includes('authkey=')) {
+                return `${layer.wms.geoserver.thumbnail_url}&layers=${layerName}&width=80`;
+              }
+              return `${layer.wms.geoserver.thumbnail_url}?layers=${layerName}&width=80`;
+            }
+          }
         }
 
         return null;
