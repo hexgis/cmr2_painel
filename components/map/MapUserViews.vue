@@ -24,7 +24,12 @@ export default {
     },
   },
   mounted() {
-    this.initMap();
+    this.$nextTick(() => {
+      const mapElement = document.getElementById('map');
+      if (mapElement) {
+        this.initMap();
+      }
+    });
   },
   methods: {
     initMap() {
