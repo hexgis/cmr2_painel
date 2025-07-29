@@ -449,20 +449,17 @@ export default {
 
         // Check if Leaflet is available
         if (typeof window.L === 'undefined') {
-          console.error('Leaflet not available');
           return;
         }
 
         // Check if Leaflet WMS plugin is available
         if (typeof window.L.tileLayer.wms === 'undefined') {
-          console.error('Leaflet WMS plugin not available');
           return;
         }
 
         const mapElement = document.getElementById('mapContainer');
 
         if (!mapElement) {
-          console.error('Map container not found');
           return;
         }
 
@@ -475,7 +472,7 @@ export default {
             center = [window.map.getCenter().lat, window.map.getCenter().lng];
             zoom = window.map.getZoom();
           } catch (e) {
-            console.warn('Could not get main map center/zoom, using defaults');
+            // Use defaults if main map is not accessible
           }
         }
 
@@ -498,27 +495,19 @@ export default {
 
         // Add left layer
         if (this.layersToCompare.left) {
-          console.log('Creating left layer:', this.layersToCompare.left.name);
           this.ensureLayerVisibility(this.layersToCompare.left);
           leftLayer = this.createLayer(this.layersToCompare.left);
           if (leftLayer) {
             leftLayer.addTo(map);
-            console.log('Left layer added to map successfully');
-          } else {
-            console.warn('Failed to create left layer');
           }
         }
 
         // Add right layer
         if (this.layersToCompare.right) {
-          console.log('Creating right layer:', this.layersToCompare.right.name);
           this.ensureLayerVisibility(this.layersToCompare.right);
           rightLayer = this.createLayer(this.layersToCompare.right);
           if (rightLayer) {
             rightLayer.addTo(map);
-            console.log('Right layer added to map successfully');
-          } else {
-            console.warn('Failed to create right layer');
           }
         }
 
@@ -529,7 +518,7 @@ export default {
             sideBySideControl = window.L.control.sideBySide(leftLayer, rightLayer);
             sideBySideControl.addTo(map);
           } catch (error) {
-            console.warn('Failed to create side-by-side control:', error);
+            // Side-by-side control failed to initialize
           }
         }
 
@@ -544,7 +533,7 @@ export default {
 
         this.mapsInitialized = true;
       } catch (error) {
-        console.error('Error initializing maps:', error);
+        // Error initializing comparison maps
       }
     },
 
@@ -555,14 +544,10 @@ export default {
         } if (layer.layer_type === 'tms' && layer.tms) {
           return this.createTmsLayer(layer);
         }
-        console.warn('Unsupported layer type or missing layer data:', {
-          layer_type: layer.layer_type,
-          has_wms: !!layer.wms,
-          has_tms: !!layer.tms,
-        });
+        // Unsupported layer type or missing layer data
         return null;
       } catch (error) {
-        console.error('Error creating layer:', error);
+        // Error creating layer
         return null;
       }
     },
@@ -573,14 +558,14 @@ export default {
 
         // Validate required WMS data
         if (!wms || !wms.geoserver || !wms.geoserver_layer_name) {
-          console.warn('Invalid WMS layer data:', { layer: layer.name, wms });
+          // Invalid WMS layer data
           return null;
         }
 
         const baseUrl = wms.geoserver.base_url || process.env.GEOSERVER_URL;
 
         if (!baseUrl) {
-          console.warn('No base URL available for WMS layer:', layer.name);
+          // No base URL available for WMS layer
           return null;
         }
 
@@ -602,11 +587,10 @@ export default {
 
         const wmsLayer = window.L.tileLayer.wms(url, options);
 
-        // Reduce error logging to avoid console spam
+        // Handle tile loading errors
         wmsLayer.on('tileerror', () => {
-          // Only log unique errors, not every tile error
+          // Mark error state to avoid repeated logging
           if (!wmsLayer.errorLogged) {
-            console.warn(`WMS tiles failed to load for layer: ${layer.name}. URL: ${url}`);
             wmsLayer.errorLogged = true;
           }
         });
@@ -618,7 +602,7 @@ export default {
 
         return wmsLayer;
       } catch (error) {
-        console.error('Error creating WMS layer:', error);
+        // Error creating WMS layer
         return null;
       }
     },
@@ -626,7 +610,7 @@ export default {
     createTmsLayer(layer) {
       try {
         if (!layer.tms || !layer.tms.url) {
-          console.warn('Invalid TMS layer data:', { layer: layer.name, tms: layer.tms });
+          // Invalid TMS layer data
           return null;
         }
 
@@ -637,10 +621,9 @@ export default {
           errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', // Transparent 1x1 pixel
         });
 
-        // Reduce error logging to avoid console spam
+        // Handle tile loading errors
         tmsLayer.on('tileerror', () => {
           if (!tmsLayer.errorLogged) {
-            console.warn(`TMS tiles failed to load for layer: ${layer.name}. URL: ${layer.tms.url}`);
             tmsLayer.errorLogged = true;
           }
         });
@@ -651,37 +634,32 @@ export default {
 
         return tmsLayer;
       } catch (error) {
-        console.error('Error creating TMS layer:', error);
+        // Error creating TMS layer
         return null;
       }
     },
     ensureLayerVisibility(layer) {
       try {
-        console.log('Ensuring layer visibility:', layer.name, 'Current visible:', layer.visible);
-
         // If layer is not visible, make it visible temporarily for comparison
         if (!layer.visible) {
-          console.log('Making layer visible for comparison:', layer.name);
           this.$store.commit('raster/toggleLayerVisibilityRaster', {
             id: layer.id,
             visible: true,
           });
         }
 
-        // If layer has blocking CQL filter, temporarily remove it
+        // If layer has blocking CQL filter, note for potential issues
         if (layer.cql === '1=2') {
-          console.log('Layer has blocking CQL filter, this may cause issues:', layer.name);
+          // Layer has blocking CQL filter, this may cause display issues
         }
       } catch (error) {
-        console.error('Error ensuring layer visibility:', error);
+        // Error ensuring layer visibility
       }
     },
 
     cleanupMaps() {
       try {
         if (window.compareMaps) {
-          console.log('Cleaning up comparison maps...');
-
           if (window.compareMaps.sideBySideControl) {
             window.compareMaps.sideBySideControl.remove();
           }
@@ -703,14 +681,13 @@ export default {
 
         this.mapsInitialized = false;
       } catch (error) {
-        console.error('Error cleaning up maps:', error);
+        // Error cleaning up maps
       }
     },
 
     getLayerPreview(layer) {
       try {
         if (!layer) return null;
-        console.log('Getting preview for layer:', layer);
         // For TMS layers, check if it has thumbnail_blob first, then fallback to legend
         if (layer.layer_type === 'tms') {
           if (layer.thumbnail_blob) {
@@ -746,7 +723,7 @@ export default {
 
         return null;
       } catch (error) {
-        console.error('Error getting layer preview:', error);
+        // Error getting layer preview
         return null;
       }
     },
