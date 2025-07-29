@@ -503,8 +503,17 @@
       </v-btn>
     </div>
 
+    <template v-if="loadingUsers">
+      <v-skeleton-loader
+        v-for="n in 8"
+        :key="n"
+        type="table-row"
+        class="ma-1"
+      />
+    </template>
+
     <v-data-table
-      v-if="filteredUsers.length"
+      v-else-if="filteredUsers.length"
       :headers="filteredHeaders"
       :items="filteredByColumns"
       class="elevation-1 mt-4"
@@ -1010,6 +1019,7 @@ export default {
       showModal: false,
       formValid: false,
       loadingRoles: false,
+      loadingUsers: false,
       newUser: {
         username: '',
         first_name: '',
@@ -1243,6 +1253,7 @@ export default {
     },
 
     async fetchUsers() {
+      this.loadingUsers = true;
       try {
         const response = await this.$api.get('/user/');
         if (Array.isArray(response.data) && response.data.length > 0) {
@@ -1254,6 +1265,8 @@ export default {
         }
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
+      } finally {
+        this.loadingUsers = false;
       }
     },
 
