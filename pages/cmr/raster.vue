@@ -166,11 +166,8 @@
       />
     </div>
 
-    <!-- Compare Dialog -->
-    <!-- Raster Compare Dialog -->
     <raster-compare />
 
-    <!-- Notification Snackbar -->
     <v-snackbar
       v-model="snackbar.show"
       :color="snackbar.color"
