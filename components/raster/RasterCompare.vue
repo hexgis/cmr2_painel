@@ -377,8 +377,6 @@
 <script>
 import { mapState } from 'vuex';
 import tmsLegend from '../../assets/tmsLegend.png';
-import 'leaflet-side-by-side';
-// Note: Leaflet should be available globally in the CMR2 project
 
 export default {
   name: 'RasterCompare',
@@ -386,6 +384,11 @@ export default {
   data: () => ({
     mapsInitialized: false,
     syncingMaps: false,
+    map: null,
+    baseLayer: null,
+    leftLayer: null,
+    rightLayer: null,
+    sideBySideControl: null,
   }),
 
   computed: {
@@ -434,6 +437,11 @@ export default {
     // Component mounted
   },
 
+  beforeDestroy() {
+    // Clean up maps when component is destroyed
+    this.cleanupMaps();
+  },
+
   methods: {
     closeDialog() {
       this.cleanupMaps();
@@ -449,12 +457,12 @@ export default {
         await this.$nextTick();
 
         // Check if Leaflet is available
-        if (typeof window.L === 'undefined') {
+        if (typeof this.$L === 'undefined') {
           return;
         }
 
         // Check if Leaflet WMS plugin is available
-        if (typeof window.L.tileLayer.wms === 'undefined') {
+        if (typeof this.$L.tileLayer.wms === 'undefined') {
           return;
         }
 
@@ -477,8 +485,8 @@ export default {
           }
         }
 
-        // Create single map
-        const map = window.L.map('mapContainer', {
+        // Create single map as component instance
+        this.map = this.$L.map('mapContainer', {
           center,
           zoom,
           zoomControl: true,
@@ -487,50 +495,40 @@ export default {
 
         // Add base tile layer
         const baseLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-        const baseLayer = window.L.tileLayer(baseLayerUrl, { attribution: '' });
-        baseLayer.addTo(map);
+        this.baseLayer = this.$L.tileLayer(baseLayerUrl, { attribution: '' });
+        this.baseLayer.addTo(this.map);
 
         // Create layers for comparison
-        let leftLayer = null;
-        let rightLayer = null;
+        this.leftLayer = null;
+        this.rightLayer = null;
 
         // Add left layer
         if (this.layersToCompare.left) {
           this.ensureLayerVisibility(this.layersToCompare.left);
-          leftLayer = this.createLayer(this.layersToCompare.left);
-          if (leftLayer) {
-            leftLayer.addTo(map);
+          this.leftLayer = this.createLayer(this.layersToCompare.left);
+          if (this.leftLayer) {
+            this.leftLayer.addTo(this.map);
           }
         }
 
         // Add right layer
         if (this.layersToCompare.right) {
           this.ensureLayerVisibility(this.layersToCompare.right);
-          rightLayer = this.createLayer(this.layersToCompare.right);
-          if (rightLayer) {
-            rightLayer.addTo(map);
+          this.rightLayer = this.createLayer(this.layersToCompare.right);
+          if (this.rightLayer) {
+            this.rightLayer.addTo(this.map);
           }
         }
 
         // Create side-by-side control if both layers exist
-        let sideBySideControl = null;
-        if (leftLayer && rightLayer && window.L.control && window.L.control.sideBySide) {
+        if (this.leftLayer && this.rightLayer && this.$L.control && this.$L.control.sideBySide) {
           try {
-            sideBySideControl = window.L.control.sideBySide(leftLayer, rightLayer);
-            sideBySideControl.addTo(map);
+            this.sideBySideControl = this.$L.control.sideBySide(this.leftLayer, this.rightLayer);
+            this.sideBySideControl.addTo(this.map);
           } catch (error) {
             // Side-by-side control failed to initialize
           }
         }
-
-        // Store maps globally for cleanup
-        window.compareMaps = {
-          map,
-          baseLayer,
-          leftLayer,
-          rightLayer,
-          sideBySideControl,
-        };
 
         this.mapsInitialized = true;
       } catch (error) {
@@ -586,7 +584,7 @@ export default {
           options.cql_filter = layer.cql;
         }
 
-        const wmsLayer = window.L.tileLayer.wms(url, options);
+        const wmsLayer = this.$L.tileLayer.wms(url, options);
 
         // Handle tile loading errors
         wmsLayer.on('tileerror', () => {
@@ -615,7 +613,7 @@ export default {
           return null;
         }
 
-        const tmsLayer = window.L.tileLayer(layer.tms.url, {
+        const tmsLayer = this.$L.tileLayer(layer.tms.url, {
           tms: true,
           attribution: '',
           opacity: 1, // Force full opacity for comparison
@@ -660,24 +658,29 @@ export default {
 
     cleanupMaps() {
       try {
-        if (window.compareMaps) {
-          if (window.compareMaps.sideBySideControl) {
-            window.compareMaps.sideBySideControl.remove();
-          }
+        if (this.sideBySideControl) {
+          this.sideBySideControl.remove();
+          this.sideBySideControl = null;
+        }
 
-          if (window.compareMaps.leftLayer) {
-            window.compareMaps.map.removeLayer(window.compareMaps.leftLayer);
-          }
+        if (this.leftLayer && this.map) {
+          this.map.removeLayer(this.leftLayer);
+          this.leftLayer = null;
+        }
 
-          if (window.compareMaps.rightLayer) {
-            window.compareMaps.map.removeLayer(window.compareMaps.rightLayer);
-          }
+        if (this.rightLayer && this.map) {
+          this.map.removeLayer(this.rightLayer);
+          this.rightLayer = null;
+        }
 
-          if (window.compareMaps.map) {
-            window.compareMaps.map.remove();
-          }
+        if (this.baseLayer && this.map) {
+          this.map.removeLayer(this.baseLayer);
+          this.baseLayer = null;
+        }
 
-          window.compareMaps = null;
+        if (this.map) {
+          this.map.remove();
+          this.map = null;
         }
 
         this.mapsInitialized = false;
