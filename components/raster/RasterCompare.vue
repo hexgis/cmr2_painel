@@ -377,6 +377,7 @@
 <script>
 import { mapState } from 'vuex';
 import tmsLegend from '../../assets/tmsLegend.png';
+import 'leaflet-side-by-side';
 // Note: Leaflet should be available globally in the CMR2 project
 
 export default {
