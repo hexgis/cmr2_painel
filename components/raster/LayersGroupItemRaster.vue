@@ -20,6 +20,27 @@
         </v-list-item-title>
       </v-list-item-content>
 
+      <v-list-item-action
+        v-if="layer.visible"
+        @click.stop=""
+      >
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <v-btn
+              icon
+              small
+              :color="isSelected ? 'red' : 'grey'"
+              :disabled="disabled"
+              v-on="on"
+              @click="compareLayer"
+            >
+              <v-icon>mdi-compare</v-icon>
+            </v-btn>
+          </template>
+          <span>{{ $t('compare-label') }}</span>
+        </v-tooltip>
+      </v-list-item-action>
+
       <v-list-item-action @click.stop="">
         <v-switch
           :input-value="layer.visible"
@@ -81,10 +102,29 @@
   </v-list-group>
 </template>
 
+<i18n>
+{
+  "en": {
+    "compare-label": "Compare layer",
+    "first-layer-selected": "First layer selected for comparison. Select another layer to compare.",
+    "second-layer-selected": "Second layer selected! Click 'Compare' again to cancel selection.",
+    "layer-deselected": "Layer removed from comparison.",
+    "comparison-ready": "Two layers selected! The comparison dialog will open shortly."
+  },
+  "pt-br": {
+    "compare-label": "Comparar camada",
+    "first-layer-selected": "Primeira camada selecionada. Selecione outra para comparar.",
+    "second-layer-selected": "Segunda camada selecionada! Clique novamente para cancelar.",
+    "layer-deselected": "Camada removida da comparação.",
+    "comparison-ready": "Duas camadas selecionadas! O diálogo será aberto em breve."
+  }
+}
+</i18n>
+
 <script>
 import { mapState, mapMutations } from 'vuex';
-import tmsLegend from '@/assets/tmsLegend.png';
-import SupportLayerFilters from '@/components/raster/SupportLayerFilters';
+import tmsLegend from '../../assets/tmsLegend.png';
+import SupportLayerFilters from './SupportLayerFilters.vue';
 
 export default {
   name: 'LayersGroupItemRaster',
@@ -108,7 +148,7 @@ export default {
   }),
 
   computed: {
-    ...mapState('raster', ['supportLayersCategoryRaster']),
+    ...mapState('raster', ['supportLayersCategoryRaster', 'layersToCompare']),
 
     layer() {
       return this.supportLayersCategoryRaster[this.layerId] || null;
@@ -130,6 +170,22 @@ export default {
                 && Object.keys(this.layer.filters).length === 0
                 && !this.layer.loading
       );
+    },
+
+    isSelected() {
+      const isLeft = this.layersToCompare.left && this.layersToCompare.left.id === this.layerId;
+      const isRight = this.layersToCompare.right && this.layersToCompare.right.id === this.layerId;
+      return isLeft || isRight;
+    },
+
+    disabled() {
+      const hasLeft = this.layersToCompare.left !== null;
+      const hasRight = this.layersToCompare.right !== null;
+      const bothSelected = hasLeft && hasRight;
+      const isCurrentSelected = this.isSelected;
+
+      // Only disables if both positions are occupied AND this layer is not selected
+      return bothSelected && !isCurrentSelected;
     },
   },
 
@@ -154,10 +210,67 @@ export default {
       });
     },
 
+    compareLayer() {
+      const wasSelected = this.isSelected;
+
+      // Execute the mutation first
+      this.setLayerToCompare(this.layer);
+
+      // Wait for next tick to get updated state
+      this.$nextTick(() => {
+        const hasLeft = this.layersToCompare.left !== null;
+        const hasRight = this.layersToCompare.right !== null;
+        const bothSelected = hasLeft && hasRight;
+
+        let message = '';
+        let color = 'info';
+
+        if (wasSelected) {
+          // Layer was deselected
+          message = this.$t('layer-deselected');
+          color = 'warning';
+        } else if (bothSelected) {
+          // Two layers are now selected
+          message = this.$t('comparison-ready');
+          color = 'success';
+          // Open the comparison modal
+          this.$store.commit('raster/setOpenCompare', true);
+        } else if (hasLeft || hasRight) {
+          // First layer selected
+          message = this.$t('first-layer-selected');
+          color = 'info';
+        }
+
+        if (message) {
+          this.showNotification(message, color);
+        }
+      });
+    },
+
+    showNotification(message, color = 'info') {
+      // Emit event to parent to show notification
+      this.$emit('show-notification', { message, color });
+
+      // Also try to show via global snackbar if available
+      if (this.$store.commit) {
+        try {
+          this.$store.commit('alert/addAlert', {
+            message,
+            type: color,
+            timeout: 4000,
+          });
+        } catch (error) {
+          // Fallback to console if alert store doesn't exist
+          console.log(`[${color.toUpperCase()}] ${message}`);
+        }
+      }
+    },
+
     ...mapMutations('raster', [
       'toggleLayerVisibilityRaster',
       'setshowFeaturesSupportLayersRaster',
       'setLayerOpacityRaster',
+      'setLayerToCompare',
     ]),
   },
 };
