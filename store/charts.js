@@ -1,5 +1,10 @@
 import axios from 'axios';
-// Date=2023-06-21
+/**
+ * Formats a date object to YYYY-MM-DD string format
+ * Date=2023-06-21
+ * @param {Date} date - The date object to format
+ * @returns {string} The formatted date string
+ */
 export const formatDate = (date) => {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -7,6 +12,11 @@ export const formatDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+/**
+ * Normalizes object keys to uppercase and consolidates duplicate keys
+ * @param {Object} obj - Object with keys to normalize
+ * @returns {Object} Object with normalized and consolidated keys
+ */
 const normalizeObjectKeys = (obj) => {
   const normalizedObj = {};
   Object.keys(obj).forEach((key) => {
@@ -16,6 +26,11 @@ const normalizeObjectKeys = (obj) => {
   return normalizedObj;
 };
 
+/**
+ * Processes API response data to extract and organize metrics
+ * @param {Object} response - API response containing user access data
+ * @returns {Object} Processed data with dates, device types, browsers, and locations
+ */
 const processResponseData = (response) => {
   const datesSet = new Set();
   const dateCounts = {};
@@ -119,6 +134,11 @@ export const mutations = {
 };
 
 export const actions = {
+  /**
+   * Fetches and processes dashboard chart data with filters
+   * @param {Object} context - Vuex action context
+   * @param {Object} data - Filter parameters including dates, location, device type, and browser
+   */
   async dataChart({ commit, state, dispatch }, data) {
     await dispatch('captureDates');
     const [startDate, endDate, location, typeDevice, browser] = [
@@ -150,18 +170,15 @@ export const actions = {
           }),
         };
 
-        // Recalcular monthly_counts com validação robusta
         const monthlyCounts = {};
         filteredData.data.forEach((item) => {
           if (item.last_date_login) {
-            // Tentar parsear a data no formato DD/MM/YYYY
             const dateParts = item.last_date_login.split('/');
             let date;
             if (dateParts.length === 3) {
               const [day, month, year] = dateParts.map(Number);
               date = new Date(year, month - 1, day);
             } else {
-              // Tentar formato alternativo (ex.: YYYY-MM-DD)
               date = new Date(item.last_date_login);
             }
 
