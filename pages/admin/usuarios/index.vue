@@ -97,6 +97,7 @@
               <UserManager
                 :available-roles="rolesList"
                 :selected-roles="newUser.roles || []"
+                :loading="loadingRoles"
                 mode="create"
                 @add-role="addRoleToNewUser"
                 @remove-role="removeRoleFromNewUser"
@@ -530,8 +531,17 @@
       </v-btn>
     </div>
 
+    <template v-if="loadingUsers">
+      <v-skeleton-loader
+        v-for="n in 8"
+        :key="n"
+        type="table-row"
+        class="ma-1"
+      />
+    </template>
+
     <v-data-table
-      v-if="filteredUsers.length"
+      v-else-if="filteredUsers.length"
       :headers="filteredHeaders"
       :items="filteredByColumns"
       class="elevation-1 mt-4"
@@ -1046,6 +1056,8 @@ export default {
       showFilters: false,
       showModal: false,
       formValid: false,
+      loadingRoles: false,
+      loadingUsers: false,
       newUser: {
         username: '',
         first_name: '',
@@ -1248,10 +1260,17 @@ export default {
     },
     async fetchRoles() {
       try {
+        this.loadingRoles = true;
         const response = await this.$api.get('/user/role/');
         this.$store.commit('admin/setRolesList', response.data);
       } catch (error) {
         console.error('Erro ao carregar roles:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: 'Erro ao carregar papéis',
+        });
+      } finally {
+        this.loadingRoles = false;
       }
     },
 
@@ -1282,6 +1301,7 @@ export default {
     },
 
     async fetchUsers() {
+      this.loadingUsers = true;
       try {
         const response = await this.$api.get('/user/');
         if (Array.isArray(response.data) && response.data.length > 0) {
@@ -1293,6 +1313,8 @@ export default {
         }
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
+      } finally {
+        this.loadingUsers = false;
       }
     },
 
@@ -1349,16 +1371,30 @@ export default {
           this.showModal = false;
           this.fetchUsers();
           this.resetForm();
+
+          // Notificação de sucesso detalhada
           this.$store.commit('alert/addAlert', {
-            timeout: 3000,
-            message: this.$t('add-user'),
+            timeout: 5000,
+            message: `Usuário "${this.newUser.username}" foi criado com sucesso! ${this.newUser.roles.length > 0 ? `Papéis atribuídos: ${this.newUser.roles.map((r) => r.name).join(', ')}.` : ''}`,
           });
         }
       } catch (error) {
         console.error('Erro ao criar usuário:', error);
+
+        let errorMessage = 'Erro ao criar usuário.';
+        if (error.response && error.response.data) {
+          if (error.response.data.email && error.response.data.email.includes('already exists')) {
+            errorMessage = 'Este e-mail já está sendo usado por outro usuário.';
+          } else if (error.response.data.username && error.response.data.username.includes('already exists')) {
+            errorMessage = 'Este nome de usuário já está sendo usado.';
+          } else if (error.response.data.detail) {
+            errorMessage = error.response.data.detail;
+          }
+        }
+
         this.$store.commit('alert/addAlert', {
-          timeout: 3000,
-          message: this.$t('erro-add-user'),
+          timeout: 5000,
+          message: errorMessage,
         });
       }
     },
@@ -1411,18 +1447,31 @@ export default {
           this.showModalEdit = false;
           this.fetchUsers();
           this.resetForm();
+
           this.$store.commit('alert/addAlert', {
-            timeout: 3000,
-            message: this.$t('changed-user'),
+            timeout: 5000,
+            message: `Usuário "${this.editUserData.username}" foi atualizado com sucesso! ${this.editUserData.roles.length > 0 ? `Papéis: ${this.editUserData.roles.map((r) => r.name).join(', ')}.` : 'Nenhum papel atribuído.'}`,
           });
         } else {
           throw new Error('Resposta inesperada da API.');
         }
       } catch (error) {
         console.error('Erro ao editar usuário:', error);
+
+        let errorMessage = 'Erro ao atualizar usuário.';
+        if (error.response && error.response.data) {
+          if (error.response.data.email && error.response.data.email.includes('already exists')) {
+            errorMessage = 'Este e-mail já está sendo usado por outro usuário.';
+          } else if (error.response.data.username && error.response.data.username.includes('already exists')) {
+            errorMessage = 'Este nome de usuário já está sendo usado.';
+          } else if (error.response.data.detail) {
+            errorMessage = error.response.data.detail;
+          }
+        }
+
         this.$store.commit('alert/addAlert', {
-          timeout: 3000,
-          message: this.$t('erro-create-user'),
+          timeout: 5000,
+          message: errorMessage,
         });
       }
     },

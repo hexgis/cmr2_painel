@@ -11,16 +11,28 @@
       </v-btn>
     </span>
     <span class="card--wrapper mt-4">
-      <CardGroup
-        v-for="group in response"
-        :key="group.id"
-        :card="group"
-        label="Camada"
-        :granted-permissions="grantedPermissions"
-        :revoked-permissions="revokedPermissions"
-        :is-permission-changed="isPermissionChanged"
-        @update-permissions="updatePermissions"
-      />
+      <template v-if="loadingLayers">
+        <v-skeleton-loader
+          v-for="n in 6"
+          :key="n"
+          type="card"
+          class="ma-2"
+          height="200"
+          width="300"
+        />
+      </template>
+      <template v-else>
+        <CardGroup
+          v-for="group in response"
+          :key="group.id"
+          :card="group"
+          label="Camada"
+          :granted-permissions="grantedPermissions"
+          :revoked-permissions="revokedPermissions"
+          :is-permission-changed="isPermissionChanged"
+          @update-permissions="updatePermissions"
+        />
+      </template>
     </span>
     <div class="add--btn">
       <v-btn
@@ -85,10 +97,12 @@ export default {
       grantedPermissions: [],
       revokedPermissions: [],
       isPermissionChanged: false,
+      loadingLayers: false,
       id: '',
     };
   },
   async mounted() {
+    this.loadingLayers = true;
     this.$store.dispatch('admin/fetchGroupList');
     try {
       const responsePermissions = await this.$api.get('layer/');
@@ -97,6 +111,8 @@ export default {
       this.revokedPermissions = responsePermissions.data;
     } catch (e) {
       console.error(e);
+    } finally {
+      this.loadingLayers = false;
     }
   },
   computed: {
