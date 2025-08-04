@@ -83,7 +83,7 @@ export default {
 
       this.legendItems = labels.map((label, index) => ({
         label,
-        count: ((data[index] / total) * 100).toFixed(0),
+        count: total ? ((data[index] / total) * 100).toFixed(0) : 0,
         color: backgroundColors[index],
       }));
       this.$refs.pieChart.renderChart(
@@ -108,6 +108,7 @@ export default {
   },
 };
 </script>
+
 <style lang="sass" scoped>
 .chart-wrapper
   width: 300px
