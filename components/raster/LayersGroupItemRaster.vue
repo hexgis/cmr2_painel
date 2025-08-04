@@ -184,7 +184,7 @@ export default {
       const bothSelected = hasLeft && hasRight;
       const isCurrentSelected = this.isSelected;
 
-      // Só desabilita se ambas as posições estão ocupadas E esta camada não está selecionada
+      // Only disables if both positions are occupied AND this layer is not selected
       return bothSelected && !isCurrentSelected;
     },
   },
