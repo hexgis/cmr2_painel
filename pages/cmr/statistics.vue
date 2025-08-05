@@ -1,114 +1,132 @@
 <template>
-  <v-container
-    fluid
-    class="pa-0 overflow-hidden"
-  >
-    <div class="mb-4 tab-header">
-      <h4 class="subtitle-2 text-uppercase font-weight-regular">
-        {{ $t('analytics-tab') }}
-      </h4>
-    </div>
-    <v-row class="pa-4">
-      <v-col
-        v-for="(analytic, index) in cards"
-        :key="index"
-        cols="12"
-        md="6"
-        class="pa-3"
-      >
-        <v-hover v-slot="{ isHovering, props }">
-          <v-card
-            class="card-analytic"
-            :elevation="isHovering ? 8 : 2"
-            v-bind="props"
-            @click="openMenu(analytic)"
-          >
-            <v-img
-              class="img-analytic"
-              cover
-              height="100%"
-              :src="`data:image/png;base64,${analytic.image}`"
+  <div>
+    <v-container
+      fluid
+      class="pa-0 overflow-hidden"
+    >
+      <div class="mb-4 tab-header">
+        <h4 class="subtitle-2 text-uppercase font-weight-regular">
+          {{ $t('analytics-tab') }}
+        </h4>
+      </div>
+      <v-row class="pa-4">
+        <v-col
+          v-for="(analytic, index) in analytics"
+          :key="index"
+          cols="12"
+          md="6"
+          class="pa-3"
+        >
+          <v-hover v-slot="{ isHovering, props }">
+            <v-card
+              class="card-analytic"
+              :elevation="isHovering ? 8 : 2"
+              v-bind="props"
+              @click="openModal(analytic)"
             >
-              <div class="overlay-title">
-                <p class="ma-0 px-2 text-white text-body-2 font-weight-medium text-truncate">
-                  {{ analytic.name }}
-                </p>
-              </div>
-            </v-img>
-          </v-card>
-        </v-hover>
-      </v-col>
-    </v-row>
-  </v-container>
+              <v-img
+                class="img-analytic"
+                cover
+                height="100%"
+                :src="`data:image/png;base64,${analytic.image}`"
+              >
+                <div class="overlay-title">
+                  <p class="ma-0 px-2 text-white text-body-2 font-weight-medium text-truncate">
+                    {{ analytic.name }}
+                  </p>
+                </div>
+              </v-img>
+            </v-card>
+          </v-hover>
+        </v-col>
+      </v-row>
+      <v-row
+        v-if="isLoading"
+        justify="center"
+      >
+        <v-progress-circular
+          indeterminate
+          color="primary"
+        />
+      </v-row>
+    </v-container>
+
+    <v-dialog
+      v-model="isModalOpen"
+      max-width="100%"
+      @click:outside="closeModal"
+    >
+      <v-card>
+        <v-card-title
+          class="headline d-flex justify-space-between align-center"
+        >
+          <span>{{ $t('analytics-tab') }}</span>
+          <v-btn
+            icon
+            @click="closeModal"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text>
+          <iframe
+            :src="selectedAnalytic ? selectedAnalytic.url : ''"
+            class="container-iframe"
+          />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <i18n>
 {
     "en": {
-        "analytics-tab": "Statistics"
+        "analytics-tab": "Statistics",
+        "no-url": "No URL available for this analytic.",
+        "failed-to-load-analytics": "Failed to load analytics data."
     },
     "pt-br": {
-        "analytics-tab": "Estatísticas"
+        "analytics-tab": "Estatísticas",
+        "no-url": "Nenhuma URL disponível para esta análise.",
+        "failed-to-load-analytics": "Falha ao carregar os dados de análise."
     }
 }
 </i18n>
 
 <script>
+import { mapState, mapActions } from 'vuex';
+
 export default {
   name: 'PageAnalytics',
   layout: 'analytics',
   data() {
     return {
-      cards: [
-        {
-          name: 'Sales Analytics',
-          image: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', // placeholder base64 image
-          url: `${process.env.URL_POWER_BI}/analytics/sales`,
-        },
-        {
-          name: 'Performance Metrics',
-          image: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', // placeholder base64 image
-          url: `${process.env.URL_POWER_BI}/analytics/performance`,
-        },
-        {
-          name: 'Revenue Reports',
-          image: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', // placeholder base64 image
-          url: `${process.env.URL_POWER_BI}/analytics/revenue`,
-        },
-        {
-          name: 'Customer Insights',
-          image: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', // placeholder base64 image
-          url: `${process.env.URL_POWER_BI}/analytics/customers`,
-        },
-      ],
+      isModalOpen: false,
+      selectedAnalytic: null,
     };
   },
   computed: {
-    getUrl() {
-      return process.env.URL_POWER_BI;
-    },
-  },
-  watch: {
-    $route(to, from) {
-      this.checkModal();
+    ...mapState('statistics', ['data', 'isLoading']),
+    analytics() {
+      return this.data || [];
     },
   },
   mounted() {
-    this.checkModal();
+    this.getAnalytics(this.$t('failed-to-load-analytics'));
   },
   methods: {
-    openModal() {
+    ...mapActions('statistics', ['getAnalytics']),
+    openModal(analytic) {
+      this.selectedAnalytic = analytic;
       this.isModalOpen = true;
     },
-    navigateHome() {
+    closeModal() {
       this.isModalOpen = false;
-
-      this.$router.push('/cmr');
+      this.selectedAnalytic = null;
     },
-    checkModal() {
-      if (this.$route.path === '/cmr/statistics') {
-        this.openModal();
-      }
+    navigateHome() {
+      this.closeModal();
     },
   },
 };
@@ -116,10 +134,10 @@ export default {
 
 <style scoped>
 .container-iframe {
-  display: inline-block;
-  width: 100%;
-  height: calc(100vh - 48px);
-  border: 0;
+    display: inline-block;
+    width: 90vw;
+    height: 90vh;
+    border: 0;
 }
 
 .card-analytic {

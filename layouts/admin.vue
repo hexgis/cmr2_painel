@@ -42,7 +42,8 @@
     "manage_permissions": "Gerenciar Permissões",
     "manage_layers": "Gerenciar Camadas",
     "manage_documents": "Gerenciar Documentos",
-    "feedback": "Críticas e Sugestões"
+    "feedback": "Críticas e Sugestões",
+    "analytics-tab": "Análises"
   },
   "en": {
     "dashboard": "View Accesses",
@@ -51,7 +52,8 @@
     "manage_permissions": "Manage Permissions",
     "manage_layers": "Manage Layers",
     "manage_documents": "Manage Documents",
-    "feedback": "Feedback and Suggestions"
+    "feedback": "Feedback and Suggestions",
+    "analytics-tab": "Analytics"
   }
 }
 </i18n>
@@ -110,6 +112,7 @@ export default {
         { route: '/admin/permissoes', label: this.$t('manage_permissions') },
         { route: '/admin/usuarios', label: this.$t('manage_users') },
         { route: '/views-chart', label: this.$t('dashboard') },
+        { route: '/admin/analytics', label: this.$t('analytics-tab') },
       ];
 
       // Se for Administrador, mostra todos os campos
