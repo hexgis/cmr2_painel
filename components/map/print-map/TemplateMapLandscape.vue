@@ -42,9 +42,10 @@
             >
               <template
                 v-if="showFeaturesMonitoring
-                  && hasActiveMonitoringStages && selectedItemsCount >= 0 && selectedItemsCount <= 7"
+                  && hasActiveMonitoringStages
+                  && selectedItemsCount >= 0 && selectedItemsCount <= 7"
               >
-                <!-- Bloco para Monitoramento -->
+                <!-- Bloco para Monitoramento com dados da API -->
                 <div
                   v-for="(item, index) in filteredMonitoringData"
                   :key="'monitoring-' + index"
@@ -53,19 +54,19 @@
                   <p>
                     <strong>TI {{ item.no_ti }}</strong>
                   </p>
-                  <p v-if="parseFloat(item.nu_area_ha) > 0">
-                    Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                  <p v-if="parseFloat(item.monitoring.ti_nu_area_ha) > 0">
+                    Área da TI: {{ formatNumber(item.monitoring.ti_nu_area_ha) }} ha
                   </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_cr_ha) > 0">
+                  <p v-if="parseFloat(item.monitoring.nu_area_cr_ha) >= 0">
                     CR: {{ formatNumber(item.monitoring.nu_area_cr_ha) }} ha
                   </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_dg_ha) > 0">
+                  <p v-if="parseFloat(item.monitoring.nu_area_dg_ha) >= 0">
                     DG: {{ formatNumber(item.monitoring.nu_area_dg_ha) }} ha
                   </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_dr_ha) > 0">
+                  <p v-if="parseFloat(item.monitoring.nu_area_dr_ha) >= 0">
                     DR: {{ formatNumber(item.monitoring.nu_area_dr_ha) }} ha
                   </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_ff_ha) > 0">
+                  <p v-if="parseFloat(item.monitoring.nu_area_ff_ha) >= 0">
                     FF: {{ formatNumber(item.monitoring.nu_area_ff_ha) }} ha
                   </p>
                 </div>
@@ -612,6 +613,9 @@ export default {
     showWarningMessage: false,
     activeMonitoringLabel: [],
     loadingPrintImage: false,
+    printMonitoringData: [],
+    printLandUseData: [],
+    printAlertsData: [],
 
     deterItems: [
       { label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' },
@@ -638,6 +642,19 @@ export default {
       return Object.values(this.legendVisibilityalerts).some((visible) => visible);
     },
     filteredMonitoringData() {
+      if (this.printMonitoringData && this.printMonitoringData.length > 0) {
+        return this.printMonitoringData.map((item) => ({
+          no_ti: item.no_ti || item.co_funai,
+          monitoring: {
+            ti_nu_area_ha: item.ti_nu_area_ha || 0,
+            nu_area_cr_ha: item.cr_nu_area_ha || 0,
+            nu_area_dg_ha: item.dg_nu_area_ha || 0,
+            nu_area_dr_ha: item.dr_nu_area_ha || 0,
+            nu_area_ff_ha: item.ff_nu_area_ha || 0,
+          },
+        }));
+      }
+
       return this.combinedTableData.filter(
         (item) => item.monitoring
         && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0),
@@ -685,6 +702,7 @@ export default {
       });
       const addValue = (target, key, value) => {
         const updatedValue = (target[key] || 0) + (parseFloat(value) || 0);
+        // eslint-disable-next-line no-param-reassign
         target[key] = updatedValue;
       };
       const combined = {};
@@ -840,8 +858,9 @@ export default {
   },
 
   async mounted() {
+    // Para impressão, busca dados agrupados da API ao invés do geoserver
     if (this.showFeaturesMonitoring) {
-      await this.getDataTableMonitoring();
+      await this.fetchPrintMonitoringData();
     }
     if (this.showFeaturesLandUse) {
       await this.getDataTableLandUse();
@@ -1010,6 +1029,53 @@ export default {
         infoControlRight.setAttribute('style', 'width: auto');
         mapBounds.style.width = 'auto';
         mapControlZoom.style.display = 'block';
+      }
+    },
+
+    /**
+     * Fetches monitoring data grouped by TI from the database API
+     */
+    async fetchPrintMonitoringData() {
+      try {
+        const { monitoringFilters } = this;
+
+        const params = new URLSearchParams();
+
+        if (monitoringFilters.startDate) {
+          params.append('start_date', monitoringFilters.startDate);
+        }
+        if (monitoringFilters.endDate) {
+          params.append('end_date', monitoringFilters.endDate);
+        }
+
+        params.append('grouping', 'monitoring_by_co_funai');
+
+        if (monitoringFilters.ti && monitoringFilters.ti.length > 0) {
+          monitoringFilters.ti.forEach((tiItem) => {
+            params.append('co_funai', tiItem.co_funai);
+          });
+        }
+
+        if (monitoringFilters.cr && monitoringFilters.cr.length > 0) {
+          monitoringFilters.cr.forEach((crItem) => {
+            params.append('co_cr', crItem.co_cr);
+          });
+        }
+
+        const response = await this.$api.$get(
+          `monitoring/consolidated/table-stats/?${params.toString()}`,
+        );
+
+        if (response && Array.isArray(response)) {
+          this.printMonitoringData = response;
+        } else {
+          this.printMonitoringData = [];
+        }
+      } catch (error) {
+        console.error('Error fetching print monitoring data:', error);
+        this.printMonitoringData = [];
+
+        await this.getDataTableMonitoring();
       }
     },
 
