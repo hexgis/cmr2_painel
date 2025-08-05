@@ -129,7 +129,7 @@ export default {
   },
   async mounted() {
     this.id = this.$route.params.id;
-    if (this.id && !isNaN(this.id)) {
+    if (this.id && !Number.isNaN(Number(this.id))) {
       await this.loadAnalytic();
     } else {
       this.$router.push(this.localePath('/admin/analytics'));
@@ -140,12 +140,10 @@ export default {
       this.$router.push(this.localePath('/admin/analytics'));
     },
     async loadAnalytic() {
-      // First get all analytics if not loaded
       if (!this.$store.state.statistics.data.length) {
         await this.$store.dispatch('statistics/getAnalytics', this.$t('error-message-getAnalytics'));
       }
 
-      // Find the analytic by ID
       const analytic = this.$store.state.statistics.data.find((item) => item.id == this.id);
 
       if (analytic) {
@@ -153,8 +151,6 @@ export default {
         this.name = analytic.name;
         this.url = analytic.url;
         this.tooltip = analytic.tooltip;
-        // Note: For editing, we don't pre-populate the file input
-        // User can upload a new image or keep the existing one
       } else {
         this.$router.push(this.localePath('/admin/analytics'));
       }
@@ -173,39 +169,23 @@ export default {
 
       this.isSubmitting = true;
 
-      let imageBase64 = '';
-      if (this.imageFile) {
-        // New image uploaded
-        imageBase64 = await this.toBase64(this.imageFile);
-        imageBase64 = imageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
-      } else if (this.currentAnalytic && this.currentAnalytic.image) {
-        // Keep existing image
-        imageBase64 = this.currentAnalytic.image;
-      }
+      const formData = new FormData();
+      formData.append('name', this.name);
+      formData.append('url', this.url);
+      formData.append('tooltip', this.tooltip);
 
-      const analytic = {
-        name: this.name,
-        url: this.url,
-        tooltip: this.tooltip,
-        image: imageBase64,
-      };
+      if (this.imageFile) {
+        formData.append('image_preview', this.imageFile);
+      }
 
       await this.$store.dispatch('statistics/updateAnalytics', {
         id: this.id,
-        analytic,
+        analytic: formData,
         messageError: this.$t('message-error-update-analytic'),
       });
 
       this.isSubmitting = false;
       this.$router.push(this.localePath('/admin/analytics'));
-    },
-    toBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = (e) => reject(e);
-        reader.readAsDataURL(file);
-      });
     },
   },
 };

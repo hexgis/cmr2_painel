@@ -139,31 +139,25 @@ export default {
     async onSubmit() {
       this.errors = this.validate();
       if (Object.keys(this.errors).length) return;
+
       this.isSubmitting = true;
-      let imageBase64 = '';
+
+      const formData = new FormData();
+      formData.append('name', this.name);
+      formData.append('url', this.url);
+      formData.append('tooltip', this.tooltip);
+
       if (this.imageFile) {
-        imageBase64 = await this.toBase64(this.imageFile);
+        formData.append('image_preview', this.imageFile);
       }
-      const analytic = {
-        name: this.name,
-        url: this.url,
-        tooltip: this.tooltip,
-        image: imageBase64.replace(/^data:image\/[a-z]+;base64,/, ''),
-      };
+
       await this.$store.dispatch('statistics/createAnalytics', {
-        analytic,
+        analytic: formData,
         messageError: this.$t('message-error-register'),
       });
+
       this.isSubmitting = false;
       this.$router.push(this.localePath('/admin/analytics'));
-    },
-    toBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = (e) => reject(e);
-        reader.readAsDataURL(file);
-      });
     },
   },
 };
