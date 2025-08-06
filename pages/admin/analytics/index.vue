@@ -1,66 +1,73 @@
+<!-- eslint-disable vue/valid-v-slot -->
 <template>
-  <div style="width: 100%;">
-    <div class="pa-4 px-8">
-      <div class="d-flex align-center justify-end mx-4 mb-4">
-        <v-btn
-          color="primary"
-          @click="navigateTo(localePath('/admin/analytics/add'))"
+  <v-container
+    fluid
+    class="fill-height"
+  >
+    <v-row class="fill-height">
+      <v-col cols="12">
+        <div class="d-flex align-center justify-end mb-4">
+          <v-btn
+            color="primary"
+            @click="navigateTo(getLocalePath('/admin/analytics/add'))"
+          >
+            <v-icon left>
+              mdi-plus
+            </v-icon>
+            {{ $t('add-button-label') }}
+          </v-btn>
+        </div>
+
+        <v-data-table
+          class="fill-width"
+          fixed-header
+          :headers="headers"
+          :items="analytics"
+          :loading="loadingAnalytics"
+          height="calc(100vh - 200px)"
         >
-          <v-icon left>
-            mdi-plus
-          </v-icon>
-          {{ $t('add-button-label') }}
-        </v-btn>
-      </div>
+          <template #loading>
+            <v-skeleton-loader type="table-row@10" />
+          </template>
 
-      <v-data-table
-        class="table"
-        fixed-header
-        :headers="headers"
-        :items="analytics"
-        :loading="loadingAnalytics"
-      >
-        <template #loading>
-          <v-skeleton-loader type="table-row@10" />
-        </template>
+          <template #item.name="{ item }">
+            {{ item.name }}
+          </template>
 
-        <template #item.name="{ item }">
-          {{ item.name }}
-        </template>
+          <template #item.url="{ item }">
+            {{ item.url }}
+          </template>
 
-        <template #item.url="{ item }">
-          {{ item.url }}
-        </template>
+          <template #item.date_created="{ item }">
+            {{ formatDate(item.date_created) }}
+          </template>
 
-        <template #item.date_created="{ item }">
-          {{ formatDate(item.date_created) }}
-        </template>
-
-        <template #item.actions="{ item }">
-          <v-btn
-            color="accent"
-            icon
-            small
-            @click="openModal(item)"
-          >
-            <v-icon>mdi-trash-can-outline</v-icon>
-          </v-btn>
-          <v-btn
-            icon
-            small
-            @click="handleEdit(item.id)"
-          >
-            <v-icon>mdi-eye-outline</v-icon>
-          </v-btn>
-        </template>
-      </v-data-table>
-    </div>
+          <template #item.actions="{ item }">
+            <v-btn
+              color="accent"
+              icon
+              small
+              @click="openModal(item)"
+            >
+              <v-icon>mdi-trash-can-outline</v-icon>
+            </v-btn>
+            <v-btn
+              icon
+              small
+              @click="handleEdit(item.id)"
+            >
+              <v-icon>mdi-eye-outline</v-icon>
+            </v-btn>
+          </template>
+        </v-data-table>
+      </v-col>
+    </v-row>
 
     <v-dialog
       v-model="dialog"
-      width="auto"
+      max-width="400"
     >
-      <v-card max-width="400">
+      <v-card>
         <v-card-title>
           <v-icon left>
             mdi-alert
@@ -86,7 +93,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </div>
+  </v-container>
 </template>
 
 <i18n>
@@ -138,9 +145,6 @@ export default {
     loadingAnalytics() {
       return this.$store.state.statistics.isLoading;
     },
-    localePath() {
-      return this.$nuxt.$localePath || ((path) => path);
-    },
   },
   mounted() {
     this.$store.dispatch(
@@ -149,6 +153,9 @@ export default {
     );
   },
   methods: {
+    getLocalePath(path) {
+      return this.$nuxt.$localePath ? this.$nuxt.$localePath(path) : path;
+    },
     formatDate(date) {
       if (!date) return '';
       const locale = this.$i18n.locale === 'pt-BR' ? 'pt-BR' : 'en-US';
@@ -171,7 +178,7 @@ export default {
       this.closeModal();
     },
     async handleEdit(id) {
-      this.$router.push(this.localePath(`/admin/analytics/edit/${id}`));
+      this.$router.push(this.getLocalePath(`/admin/analytics/edit/${id}`));
     },
     navigateTo(path) {
       this.$router.push(path);
@@ -179,10 +186,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.table {
-  width: 100%;
-  height: calc(100vh - 200px) !important;
-}
-</style>

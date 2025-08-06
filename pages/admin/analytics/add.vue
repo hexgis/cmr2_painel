@@ -1,76 +1,73 @@
 <template>
-  <div
-    style="width: 100%"
-    class="d-flex align-center justify-center flex-column px-8 mt-8"
+  <v-container
+    fluid
+    class="d-flex align-center justify-center"
   >
-    <!-- Back Button -->
-    <div
-      class="d-flex justify-start"
-      style="width: 500px;"
+    <v-col
+      cols="6"
     >
-      <v-btn
-        color="grey"
-        text
-        @click="navigateBack"
-      >
-        <v-icon left>
-          mdi-arrow-left
-        </v-icon>
-        {{ $t('back-button') }}
-      </v-btn>
-    </div>
+      <div class="d-flex justify-start mb-4">
+        <v-btn
+          color="grey"
+          text
+          @click="navigateBack"
+        >
+          <v-icon left>
+            mdi-arrow-left
+          </v-icon>
+          {{ $t('back-button') }}
+        </v-btn>
+      </div>
 
-    <form
-      style="width: 500px"
-      @submit.prevent="onSubmit"
-    >
-      <v-text-field
-        v-model="name"
-        class="mt-4"
-        :error-messages="errors.name"
-        :label="$t('name')"
-        outlined
-      />
+      <v-form @submit.prevent="onSubmit">
+        <v-text-field
+          v-model="name"
+          class="mt-4"
+          :error-messages="errors.name"
+          :label="$t('name')"
+          outlined
+        />
 
-      <v-text-field
-        v-model="url"
-        class="mt-4"
-        :error-messages="errors.url"
-        :label="$t('url')"
-        outlined
-      />
+        <v-text-field
+          v-model="url"
+          class="mt-4"
+          :error-messages="errors.url"
+          :label="$t('url')"
+          outlined
+        />
 
-      <v-file-input
-        v-model="imageFile"
-        accept="image/*"
-        class="mt-4"
-        :error-messages="errors.image_file"
-        :label="$t('image-file')"
-        outlined
-        prepend-icon=""
-      />
+        <v-file-input
+          v-model="imageFile"
+          accept="image/*"
+          class="mt-4"
+          :error-messages="errors.image_file"
+          :label="$t('image-file')"
+          outlined
+          prepend-icon=""
+        />
 
-      <v-text-field
-        v-model="tooltip"
-        class="mt-4"
-        :error-messages="errors.tooltip"
-        :label="$t('tooltip')"
-        single-line
-        outlined
-      />
+        <v-text-field
+          v-model="tooltip"
+          class="mt-4"
+          :error-messages="errors.tooltip"
+          :label="$t('tooltip')"
+          single-line
+          outlined
+        />
 
-      <v-btn
-        block
-        class="mt-4"
-        color="accent"
-        :disabled="isSubmitting"
-        :loading="isLoading"
-        type="submit"
-      >
-        {{ $t('label-button-edit') }}
-      </v-btn>
-    </form>
-  </div>
+        <v-btn
+          block
+          class="mt-4"
+          color="accent"
+          :disabled="isSubmitting"
+          :loading="isLoading"
+          type="submit"
+        >
+          {{ $t('label-button-edit') }}
+        </v-btn>
+      </v-form>
+    </v-col>
+  </v-container>
 </template>
 
 <i18n>
@@ -120,13 +117,13 @@ export default {
     isLoading() {
       return this.$store.state.statistics.isLoading;
     },
-    localePath() {
-      return this.$nuxt.$localePath || ((path) => path);
-    },
   },
   methods: {
+    getLocalePath(path) {
+      return this.$nuxt.$localePath ? this.$nuxt.$localePath(path) : path;
+    },
     navigateBack() {
-      this.$router.push(this.localePath('/admin/analytics'));
+      this.$router.push(this.getLocalePath('/admin/analytics'));
     },
     validate() {
       const errors = {};
@@ -157,7 +154,7 @@ export default {
       });
 
       this.isSubmitting = false;
-      this.$router.push(this.localePath('/admin/analytics'));
+      this.$router.push(this.getLocalePath('/admin/analytics'));
     },
   },
 };

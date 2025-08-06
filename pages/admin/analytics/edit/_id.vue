@@ -132,12 +132,15 @@ export default {
     if (this.id && !Number.isNaN(Number(this.id))) {
       await this.loadAnalytic();
     } else {
-      this.$router.push(this.localePath('/admin/analytics'));
+      this.$router.push(this.getLocalePath('/admin/analytics'));
     }
   },
   methods: {
+    getLocalePath(path) {
+      return this.$nuxt.$localePath ? this.$nuxt.$localePath(path) : path;
+    },
     navigateBack() {
-      this.$router.push(this.localePath('/admin/analytics'));
+      this.$router.push(this.getLocalePath('/admin/analytics'));
     },
     async loadAnalytic() {
       if (!this.$store.state.statistics.data.length) {
@@ -152,7 +155,7 @@ export default {
         this.url = analytic.url;
         this.tooltip = analytic.tooltip;
       } else {
-        this.$router.push(this.localePath('/admin/analytics'));
+        this.$router.push(this.getLocalePath('/admin/analytics'));
       }
     },
     validate() {
@@ -185,7 +188,7 @@ export default {
       });
 
       this.isSubmitting = false;
-      this.$router.push(this.localePath('/admin/analytics'));
+      this.$router.push(this.getLocalePath('/admin/analytics'));
     },
   },
 };

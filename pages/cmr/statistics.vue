@@ -4,7 +4,7 @@
       fluid
       class="pa-0 overflow-hidden"
     >
-      <div class="mb-4 tab-header">
+      <div class="mb-4 pa-4">
         <h4 class="subtitle-2 text-uppercase font-weight-regular">
           {{ $t('analytics-tab') }}
         </h4>
@@ -19,19 +19,24 @@
         >
           <v-hover v-slot="{ isHovering, props }">
             <v-card
-              class="card-analytic"
+              class="rounded-lg overflow-hidden"
+              width="158"
+              height="140"
               :elevation="isHovering ? 8 : 2"
               v-bind="props"
               @click="openModal(analytic)"
             >
               <v-img
-                class="img-analytic"
+                class="fill-height position-relative"
                 cover
                 height="100%"
                 :src="`data:image/png;base64,${analytic.image}`"
               >
-                <div class="overlay-title">
-                  <p class="ma-0 px-2 text-white text-body-2 font-weight-medium text-truncate">
+                <div
+                  class="overlay-title"
+                  style="background: rgba(0, 0, 0, 0.5);"
+                >
+                  <p class="ma-0 text-body-2 font-weight-medium text-truncate white--text">
                     {{ analytic.name }}
                   </p>
                 </div>
@@ -71,7 +76,8 @@
         <v-card-text>
           <iframe
             :src="selectedAnalytic ? selectedAnalytic.url : ''"
-            class="container-iframe"
+            class="d-inline-block border-0"
+            style="width: 90vw; height: 90vh;"
           />
         </v-card-text>
       </v-card>
@@ -133,24 +139,6 @@ export default {
 </script>
 
 <style scoped>
-.container-iframe {
-    display: inline-block;
-    width: 90vw;
-    height: 90vh;
-    border: 0;
-}
-
-.card-analytic {
-  width: 158px;
-  height: 140px;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.img-analytic {
-  height: 100%;
-  position: relative;
-}
 
 .overlay-title {
   position: absolute;

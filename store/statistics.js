@@ -16,7 +16,7 @@ export const actions = {
   async getAnalytics({ commit }, messageError) {
     commit('setLoading', true);
     try {
-      const data = await this.$api.$get('http://localhost:8080/adm-panel/analytics/');
+      const data = await this.$api.$get('adm-panel/analytics/');
       commit('setData', data);
     } catch (error) {
       commit(
@@ -36,7 +36,7 @@ export const actions = {
   async deleteAnalytics({ commit }, { id, messageError }) {
     commit('setLoading', true);
     try {
-      await this.$api.$delete(`http://localhost:8080/adm-panel/analytics/${id}`);
+      await this.$api.$delete(`adm-panel/analytics/${id}`);
       commit('setData', this.state.statistics.data.filter((item) => item.id !== id));
     } catch (error) {
       commit(
@@ -56,7 +56,7 @@ export const actions = {
   async createAnalytics({ commit }, { analytic, messageError }) {
     commit('setLoading', true);
     try {
-      const data = await this.$api.$post('http://localhost:8080/adm-panel/analytics/', analytic);
+      const data = await this.$api.$post('adm-panel/analytics/', analytic);
       commit('setData', [...this.state.statistics.data, data]);
     } catch (error) {
       commit(
@@ -76,7 +76,7 @@ export const actions = {
   async updateAnalytics({ commit, state }, { id, analytic, messageError }) {
     commit('setLoading', true);
     try {
-      const data = await this.$api.$put(`http://localhost:8080/adm-panel/analytics/${id}`, analytic);
+      const data = await this.$api.$put(`adm-panel/analytics/${id}`, analytic);
       const index = state.data.findIndex((item) => item.id === id);
       if (index !== -1) {
         const updatedData = [...state.data];
