@@ -19,7 +19,7 @@
         <span>{{ $t('criticisms-suggestions-tooltip') }}</span>
       </v-tooltip>
     </v-btn>
- 
+
     <!-- Button Restricted Area -->
     <div
       v-if="isLoggedIn"
@@ -43,7 +43,7 @@
           <span>{{ $t('restricted-area-tooltip') }}</span>
         </v-tooltip>
       </v-btn>
- 
+
       <!-- Badge com contador de solicitações pendentes -->
       <span
         v-if="pendingRequestsCount > 0"
@@ -52,7 +52,7 @@
         {{ pendingRequestsCount }}
       </span>
     </div>
- 
+
     <!-- Botão Administrador -->
     <v-btn
       v-if="userCanAccess('admin_panel')"
@@ -73,7 +73,7 @@
         <span>{{ $t('admin-panel-tooltip') }}</span>
       </v-tooltip>
     </v-btn>
- 
+
     <v-menu
       v-if="isLoggedIn"
       left
@@ -127,11 +127,11 @@
           </span>
         </v-list-item>
         <v-list-item @click="openNews()">
-        <v-icon> mdi-plus </v-icon>
-        <span class="pl-2">
-          {{ $t('news-button') }}
-        </span>
-      </v-list-item>
+          <v-icon> mdi-plus </v-icon>
+          <span class="pl-2">
+            {{ $t('news-button') }}
+          </span>
+        </v-list-item>
         <v-list-item @click="openSettings()">
           <v-icon> mdi-cog </v-icon>
           <span class="pl-2">
@@ -152,7 +152,7 @@
         </v-list-item>
       </v-card>
     </v-menu>
- 
+
     <!-- Botão Login -->
     <v-btn
       v-if="!isLoggedIn"
@@ -173,7 +173,7 @@
         <span>{{ $t('login-button') }}</span>
       </v-tooltip>
     </v-btn>
- 
+
     <ProfilePanelSettings
       v-if="settingsOpened"
       @onDialogClose="settingsOpened = false"
@@ -181,14 +181,14 @@
     <ProfileNews
       v-if="newsOpened"
       v-model="newsOpened"
-      :showAllNews="true"
+      :userId="user?.id || 'defaultUser'"
+      :showAllNews="showAllNews"
       @onDialogClose="newsOpened = false"
     />
   </div>
 </template>
- 
+
 <i18n>
- 
 {
   "en": {
     "criticisms-suggestions-tooltip": "Criticisms and suggestions",
@@ -203,7 +203,7 @@
     "manual-button": "Manual"
   },
   "pt-br": {
-    "criticisms-suggestions-tooltip":"Criticas e sugestões",
+    "criticisms-suggestions-tooltip": "Críticas e sugestões",
     "profile-tooltip": "Perfil",
     "news-button": "Notícias",
     "preferences-button": "Preferências",
@@ -216,56 +216,63 @@
   }
 }
 </i18n>
- 
+
 <script>
 import { mapActions, mapState, mapGetters } from 'vuex';
- 
 import ProfilePanelSettings from '@/components/profile/ProfilePanelSettings';
 import ProfileNews from '@/components/profile/ProfileNews';
- 
+
 export default {
   name: 'ProfileButtons',
- 
+
   components: {
     ProfilePanelSettings,
     ProfileNews
   },
- 
+
   model: {
     prop: 'settings',
     event: 'update',
   },
- 
+
   props: {
     settings: {
       type: Boolean,
       default: false,
     },
   },
- 
+
   data: () => ({
     settingsOpened: false,
     newsOpened: false,
+    showAllNews: false,
     hasAnalytics: process.env.ANALYTICS === 'true',
     pendingRequestsCount: 0,
   }),
- 
+
   watch: {
     settings(value) {
       this.settingsOpened = value;
     },
- 
+
     settingsOpened(value) {
       this.$emit('update', value);
     },
+
+    isLoggedIn(newVal) {
+      if (newVal) {
+        this.checkUnreadNews();
+      }
+    },
   },
- 
+
   async mounted() {
     if (this.isLoggedIn && this.user) {
       await this.fetchPendingRequestsCount();
+      this.checkUnreadNews();
     }
   },
- 
+
   methods: {
     userCanAccess(componentKey) {
       if (this.user?.is_superuser || this.user?.is_staff) {
@@ -276,58 +283,74 @@ export default {
       }
       return this.user?.components?.[componentKey] === true;
     },
- 
+
     goToAdmin() {
       this.$router.push(this.localePath('/admin'));
     },
- 
+
     goToRestrictedArea() {
       this.$router.push(this.localePath('/admin/area-restrita'));
     },
- 
+
     openNews() {
+      this.showAllNews = true;
       this.newsOpened = true;
     },
- 
+
     openSettings() {
       this.settingsOpened = true;
     },
- 
+
+    async checkUnreadNews() {
+  const userId = this.user?.id || 'defaultUser';
+  const savedReadNews = localStorage.getItem(`readNews_${userId}`);
+  const readNews = savedReadNews ? JSON.parse(savedReadNews) : [];
+
+  try {
+    const response = await this.$axios.get('/api/news/');
+    const allNews = response.data || [];
+    const unreadNews = allNews.filter((news) => !readNews.includes(news.id));
+
+    if (unreadNews.length > 0) {
+      this.showAllNews = false;
+      this.newsOpened = true;
+    }
+  } catch (error) {
+    console.error('Erro ao verificar notícias não lidas:', error);
+  }
+},
+
     async fetchPendingRequestsCount() {
       try {
- 
         if (!this.user) {
           this.pendingRequestsCount = 0;
           return;
         }
- 
         const url = `/user/restricted-access/pending-count/`;
- 
         const response = await this.$axios.get(url);
- 
         this.pendingRequestsCount = response.data.count || 0;
       } catch (error) {
         console.error('Erro ao buscar contador de solicitações pendentes:', error);
         this.pendingRequestsCount = 0;
       }
     },
- 
+
     async goToMain() {
       await this.fetchPendingRequestsCount();
       this.$router.replace(this.localePath('/'));
     },
- 
+
     async goToManual() {
       window.location.href = `${process.env.API_URL}adm-panel/manual/`;
     },
- 
+
     goToCriticisms() {
       this.$router.push(this.localePath('/admin/criticas'));
     },
- 
+
     ...mapActions('auth', ['logout']),
   },
- 
+
   computed: {
     hasFirstOrLastName() {
       return this.user && (this.user.first_name || this.user.last_name);
@@ -337,7 +360,7 @@ export default {
   },
 };
 </script>
- 
+
 <style lang="sass">
 .bottom-buttons
   position: absolute
@@ -345,7 +368,7 @@ export default {
   width: 100%
   bottom: 0
   padding: 3px 0
- 
+
 .pending-count-badge
   position: absolute
   top: -5px
@@ -364,7 +387,7 @@ export default {
   z-index: 1000
   box-shadow: 0 2px 8px rgba(0,0,0,0.5)
   border: 2px solid white
- 
+
 .username
   pointer-events: none
   padding: 12px
