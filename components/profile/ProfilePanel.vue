@@ -127,7 +127,7 @@
           </span>
         </v-list-item>
         <v-list-item @click="openNews()">
-          <v-icon> mdi-plus </v-icon>
+          <v-icon> mdi-newspaper-variant-multiple-outline </v-icon>
           <span class="pl-2">
             {{ $t('news-button') }}
           </span>

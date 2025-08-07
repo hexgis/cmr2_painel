@@ -15,6 +15,19 @@
           {{ $t('news.title') }}
         </v-toolbar-title>
         <v-spacer />
+        <v-checkbox
+          v-if="hasUnreadNews"
+          v-model="allReadChecked"
+          :label="$t('news.markAllAsRead')"
+          color="green"
+          hide-details
+          class="mr-2 mt-1 mark-all-checkbox"
+          @change="markAllAsRead"
+        >
+          <template #label>
+            <span style="color: white">{{ $t('news.markAllAsRead') }}</span>
+          </template>
+        </v-checkbox>
         <v-btn
           icon
           @click="closeDialog"
@@ -26,11 +39,11 @@
       <v-card-text class="pa-0">
         <v-carousel
           v-model="carouselIndex"
-          height="500"
-          :show-arrows="displayedNews.length > 1"
-          hide-delimiter-background
+          reverse
+          height="60vh"
+          :show-arrows="false"
+          hide-delimiters
           delimiter-icon="mdi-circle"
-          :class="{ 'single-item': displayedNews.length <= 1 }"
         >
           <v-carousel-item
             v-for="news in displayedNews"
@@ -38,7 +51,7 @@
           >
             <div class="news-content-wrapper">
               <div class="news-content">
-                <h2 class="text-h6 px-14 pt-4">
+                <h2>
                   {{ news.title }}
                   <v-chip
                     v-if="isNewsRead(news.id)"
@@ -56,23 +69,22 @@
                     {{ $t('news.read') }}
                   </v-chip>
                 </h2>
-                <p class="text-subtitle-1 px-14 mt-n4">
-                  {{ formatDate(news.date) }}
-                </p>
-
                 <div class="d-flex justify-end px-14">
                   <v-switch
                     v-if="!isNewsRead(news.id)"
                     :label="$t('news.markAsRead')"
                     color="green"
                     hide-details
-                    class="mt-n6 mb-0"
+                    class="mt-n10"
                     @change="updateReadStatus(news.id, $event)"
                   />
                 </div>
+                <p>
+                  {{ formatDate(news.date) }}
+                </p>
 
                 <div
-                  class="text-body-1 mt-4 px-4 px-14 pt-2 scrollable-content"
+                  class="scrollable-content"
                   v-html="renderMarkdown(news.content)"
                 />
               </div>
@@ -80,6 +92,33 @@
           </v-carousel-item>
         </v-carousel>
       </v-card-text>
+      <v-card-actions class="navigation-actions">
+        <v-btn
+          color="#d92b3f"
+          text
+          :disabled="nextDisabled"
+          @click="carouselIndex++"
+        >
+          <v-icon left>
+            mdi-chevron-left
+          </v-icon>
+          {{ $t('news.next') }}
+        </v-btn>
+
+        <v-spacer />
+
+        <v-btn
+          color="#d92b3f"
+          text
+          :disabled="prevDisabled"
+          @click="carouselIndex--"
+        >
+          {{ $t('news.previous') }}
+          <v-icon right>
+            mdi-chevron-right
+          </v-icon>
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
@@ -90,6 +129,7 @@
     "news": {
       "title": "News",
       "markAsRead": "Mark as Read",
+      "markAllAsRead": "Mark all as read",
       "read": "Read",
       "close": "Close",
       "previous": "Previous",
@@ -100,6 +140,7 @@
     "news": {
       "title": "Novidades",
       "markAsRead": "Marcar como lida",
+      "markAllAsRead": "Marcar todas como lidas",
       "read": "Notícia lida",
       "close": "Fechar",
       "previous": "Próxima novidade",
@@ -138,6 +179,7 @@ export default {
       carouselIndex: 0,
       loading: false,
       error: null,
+      allReadChecked: false,
     };
   },
 
@@ -159,6 +201,9 @@ export default {
     },
     nextDisabled() {
       return this.carouselIndex === this.displayedNews.length - 1;
+    },
+    hasUnreadNews() {
+      return this.unreadNews.length > 0;
     },
   },
 
@@ -257,6 +302,23 @@ export default {
       }
     },
 
+    markAllAsRead(checked) {
+      if (checked) {
+        const unreadIds = this.unreadNews.map((news) => news.id);
+        this.readNews = [...this.readNews, ...unreadIds];
+        localStorage.setItem(`readNews_${this.userId}`, JSON.stringify(this.readNews));
+        this.$forceUpdate();
+
+        if (!this.showAllNews) {
+          this.closeDialog();
+        }
+      }
+      // Resetar o checkbox após um pequeno delay para melhor feedback visual
+      setTimeout(() => {
+        this.allReadChecked = false;
+      }, 500);
+    },
+
     closeDialog() {
       this.dialog = false;
     },
@@ -267,17 +329,14 @@ export default {
     },
 
     renderMarkdown(content) {
-    // Configura o marked para sanitizar o HTML e permitir imagens/tabelas
       marked.setOptions({
         breaks: true,
-        gfm: true, // Habilita GitHub Flavored Markdown (para tabelas)
-        sanitize: false, // Permite HTML (necessário para algumas funcionalidades)
+        gfm: true,
+        sanitize: false,
       });
 
-      // Processa o conteúdo markdown
       let html = marked(content || '');
 
-      // Adiciona classes CSS às tabelas para estilização
       html = html.replace(/<table>/g, '<table class="markdown-table">');
 
       return html;
@@ -288,8 +347,8 @@ export default {
 
 <style lang="scss">
 .fixed-size-dialog {
-  max-width: 800px !important;
-  width: 800px !important;
+  max-width: 800px;
+  width: 800px;
 }
 
 .dialog-card {
@@ -297,7 +356,7 @@ export default {
   flex-direction: column;
   max-height: 90vh;
 
-  .news-content-wrapper {
+  .news-content-wrapper, .news-content {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -305,96 +364,64 @@ export default {
 
   .news-content {
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    padding: 12px 8px 0 35px;
 
     .scrollable-content {
       overflow-y: auto;
-      max-height: 350px;
-      padding-right: 8px;
+      max-height: 60vh;
+      padding: 5px 0 100px;
 
       &::-webkit-scrollbar {
         width: 6px;
-      }
-      &::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 3px;
-      }
-      &::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 3px;
-      }
-      &::-webkit-scrollbar-thumb:hover {
-        background: #555;
+        &-track { background: #f1f1f1; border-radius: 3px; }
+        &-thumb {
+          background: #888;
+          border-radius: 3px;
+          &:hover { background: #555; }
+        }
       }
     }
   }
 }
 
-/* Estilos para as setas do carrossel */
-.v-carousel__controls {
-  .v-btn--icon {
-    background: rgba(0, 0, 0, 0.3);
-    color: white !important;
-
-    &:hover {
-      background: rgba(0, 0, 0, 0.5);
-    }
-
-    &[disabled] {
-      opacity: 0.3;
-      pointer-events: none;
-    }
-  }
-}
-
-/* Esconde controles quando só tem um item */
-.v-carousel.single-item .v-carousel__controls {
-  display: none;
-}
-
-/* Estilo das setas ativas */
-.v-carousel__controls .v-btn--icon:not(.v-btn--disabled) {
-  color: var(--v-primary-base) !important;
-  background: rgba(255, 255, 255, 0.8);
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.9);
-  }
-}
-
-.navigation-controls {
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-  padding: 12px 16px;
-
+.v-toolbar {
   .v-btn {
-    min-width: 120px;
+    margin-right: 4px;
+    &:last-child { margin-right: 0; }
+    &--active::before { opacity: 0; }
   }
+}
+
+.v-carousel__controls .v-btn--icon {
+  background: rgba(0, 0, 0, 0.3);
+  color: white !important;
+  &:hover { background: rgba(0, 0, 0, 0.5); }
+  &[disabled] { opacity: 0.3; pointer-events: none; }
 }
 
 .news-content {
   h1, h2, h3 {
-    margin-bottom: 12px;
+    margin: 0 12px 12px 0;
     font-weight: bold;
+    line-height: 30px;
   }
-  p {
-    margin-bottom: 16px;
-  }
+  p { margin-bottom: 16px; }
   ul {
     list-style-type: disc;
-    margin-left: 20px;
-    margin-bottom: 16px;
-  }
-  li {
-    margin-bottom: 8px;
+    margin: 0 0 16px 20px;
+    li { margin-bottom: 8px; }
   }
   img {
     max-width: 100%;
     border-radius: 8px;
     margin-top: 10px;
   }
-  strong {
-    font-weight: bold;
+  strong { font-weight: bold; }
+}
+
+.mark-all-checkbox {
+  .v-input--selection-controls__input, .v-icon {
+    color: white !important;
   }
 }
 </style>
