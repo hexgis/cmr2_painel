@@ -14,278 +14,314 @@
       v-model="valid"
       lazy-validation
     >
-      <v-stepper v-model="step">
-        <v-stepper-header style="justify-content: center;">
-          <v-stepper-step
-            :complete="step > 1"
-            step="1"
-            @click="handleStepClick(1)"
-          >
-            {{ $t('server') }}
-          </v-stepper-step>
-          <v-stepper-step
-            :complete="step > 2"
-            step="2"
-            @click="handleStepClick(2)"
-          >
-            {{ $t('coordinator') }}
-          </v-stepper-step>
-          <v-stepper-step
-            :complete="step > 3"
-            step="3"
-            @click="handleStepClick(3)"
-          >
-            {{ $t('review') }}
-          </v-stepper-step>
-        </v-stepper-header>
-
-        <v-stepper-items>
-          <!-- STEP 1 -->
-          <v-stepper-content step="1">
-            <v-container>
-              <v-row>
-                <p class="text-h6 pt-4">
-                  {{ $t('server') }}
-                </p>
-              </v-row>
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-text-field
-                    v-model="formData.name"
-                    :label="$t('name')"
-                    :rules="[v => !!v || $t('name-required')]"
-                    required
-                    @input="validateStep1"
-                  />
-                </v-col>
-
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-text-field
-                    v-model="formData.email"
-                    :label="$t('email')"
-                    :rules="[
-                      v => !!v || $t('email-required'),
-                      v => /.+@.+\..+/.test(v) || $t('email-valid')
-                    ]"
-                    required
-                    @input="validateStep1"
-                  />
-                </v-col>
-
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-autocomplete
-                    v-model="formData.institution"
-                    :label="$t('institution')"
-                    :items="institutionOptions"
-                    item-text="text"
-                    item-value="value"
-                    :rules="[v => !!v || $t('institution-required')]"
-                    required
-                    clearable
-                    @input="validateStep1"
-                  />
-                </v-col>
-
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-text-field
-                    v-model="formData.user_siape_registration"
-                    :label="$t('registration')"
-                    type="number"
-                    :rules="[v => !!v || $t('registration-required')]"
-                    required
-                    @input="validateStep1"
-                  />
-                </v-col>
-              </v-row>
-              <v-btn
-                color="primary"
-                class="mt-8"
-                :disabled="!isStep1Valid"
-                @click="nextStep"
+      <div v-if="showUserTypeSelection">
+        <v-container>
+          <v-row>
+            <p class="text-h6 pt-4">
+              {{ $t('user-type-question') }}
+            </p>
+          </v-row>
+          <v-row>
+            <v-col cols="12">
+              <v-radio-group
+                v-model="userType"
+                :rules="[v => !!v || $t('user-type-required')]"
               >
-                {{ $t('next') }}
-              </v-btn>
-            </v-container>
-          </v-stepper-content>
+                <v-radio
+                  :label="$t('funai-user')"
+                  value="funai"
+                />
+                <v-radio
+                  :label="$t('external-user')"
+                  value="external"
+                />
+              </v-radio-group>
+            </v-col>
+          </v-row>
+          <v-btn
+            color="primary"
+            class="mt-8"
+            :disabled="!userType"
+            @click="startForm"
+          >
+            {{ $t('next') }}
+          </v-btn>
+        </v-container>
+      </div>
+      <div v-else>
+        <v-stepper v-model="step">
+          <v-stepper-header style="justify-content: center;">
+            <v-stepper-step
+              :complete="step > 1"
+              step="1"
+              @click="handleStepClick(1)"
+            >
+              {{ $t('server') }}
+            </v-stepper-step>
+            <v-stepper-step
+              :complete="step > 2"
+              step="2"
+              @click="handleStepClick(2)"
+            >
+              {{ $t('coordinator') }}
+            </v-stepper-step>
+            <v-stepper-step
+              :complete="step > 3"
+              step="3"
+              @click="handleStepClick(3)"
+            >
+              {{ $t('review') }}
+            </v-stepper-step>
+          </v-stepper-header>
 
-          <!-- STEP 2 -->
-          <v-stepper-content step="2">
-            <v-container>
-              <v-row class="align-center">
-                <p class="text-h6 pt-4">
-                  {{ $t('coordinator') }}
+          <v-stepper-items>
+            <!-- STEP 1 -->
+            <v-stepper-content step="1">
+              <v-container>
+                <v-row>
+                  <p class="text-h6 pt-4">
+                    {{ $t('server') }}
+                  </p>
+                </v-row>
+                <v-row>
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <v-text-field
+                      v-model="formData.name"
+                      :label="$t('name')"
+                      :rules="[v => !!v || $t('name-required')]"
+                      required
+                      @input="validateStep1"
+                    />
+                  </v-col>
+
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <v-text-field
+                      v-model="formData.email"
+                      :label="$t('email')"
+                      :rules="[
+                        v => !!v || $t('email-required'),
+                        v => /.+@.+\..+/.test(v) || $t('email-valid')
+                      ]"
+                      required
+                      @input="validateStep1"
+                    />
+                  </v-col>
+
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <v-autocomplete
+                      v-model="formData.institution"
+                      :label="$t('institution')"
+                      :items="institutionOptions"
+                      item-text="text"
+                      item-value="value"
+                      :rules="[v => !!v || $t('institution-required')]"
+                      required
+                      clearable
+                      @input="validateStep1"
+                    />
+                  </v-col>
+
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <v-text-field
+                      v-model="formData.user_siape_registration"
+                      :label="$t('registration')"
+                      type="number"
+                      :rules="[v => !!v || $t('registration-required')]"
+                      required
+                      @input="validateStep1"
+                    />
+                  </v-col>
+                </v-row>
+                <v-btn
+                  color="primary"
+                  class="mt-8"
+                  :disabled="!isStep1Valid"
+                  @click="nextStep"
+                >
+                  {{ $t('next') }}
+                </v-btn>
+              </v-container>
+            </v-stepper-content>
+
+            <!-- STEP 2 -->
+            <v-stepper-content step="2">
+              <v-container>
+                <v-row class="align-center">
+                  <p class="text-h6 pt-4">
+                    {{ $t('coordinator') }}
+                  </p>
+                  <v-spacer />
+                  <v-btn
+                    color="primary"
+                    text
+                    @click="prevStep"
+                  >
+                    <v-icon>mdi-arrow-left</v-icon>{{ $t('back') }}
+                  </v-btn>
+                </v-row>
+                <v-row>
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <v-text-field
+                      v-model="formData.coordinator_name"
+                      :label="$t('coordinator-name')"
+                      :rules="[v => !!v || $t('coordinator-name-required')]"
+                      required
+                      @input="validateStep2"
+                    />
+                  </v-col>
+
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <v-text-field
+                      v-model="formData.coordinator_email"
+                      :label="$t('coordinator-email')"
+                      :rules="[
+                        v => !!v || $t('coordinator-email-required'),
+                        v => /.+@.+\..+/.test(v) || $t('email-valid')
+                      ]"
+                      required
+                      @input="validateStep2"
+                    />
+                  </v-col>
+
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <v-autocomplete
+                      v-model="formData.coordinator_institution"
+                      :label="$t('coordinator-institution')"
+                      :items="coordinatorInstitutionOptions"
+                      item-text="text"
+                      item-value="value"
+                      :rules="[v => !!v || $t('coordinator-institution-required')]"
+                      required
+                      clearable
+                      @input="validateStep2"
+                    />
+                  </v-col>
+
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <v-text-field
+                      v-model="formData.coordinator_siape_registration"
+                      :label="$t('siape-registration')"
+                      type="number"
+                      :rules="[v => !!v || $t('siape-registration-required')]"
+                      required
+                      @input="validateStep2"
+                    />
+                  </v-col>
+                </v-row>
+                <v-btn
+                  color="primary"
+                  class="mt-8"
+                  :disabled="!isStep2Valid"
+                  @click="nextStep"
+                >
+                  {{ $t('next') }}
+                </v-btn>
+              </v-container>
+            </v-stepper-content>
+
+            <!-- STEP 3 -->
+            <v-stepper-content step="3">
+              <v-container>
+                <p style="font-size: 18px;">
+                  {{ $t('review-data') }}
                 </p>
-                <v-spacer />
+                <v-divider />
+                <p>{{ $t('server') }}</p>
+                <v-row>
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <p><strong>{{ $t('name') }}:</strong> {{ formData.name }}</p>
+                    <p><strong>{{ $t('email') }}:</strong> {{ formData.email }}</p>
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <p>
+                      <strong>{{ $t('institution') }}:</strong> {{ formData.institution }}
+                    </p>
+                    <p>
+                      <strong>{{ $t('registration') }}:</strong>
+                      {{ formData.user_siape_registration }}
+                    </p>
+                  </v-col>
+                </v-row>
+                <v-divider />
+                <p>{{ $t('coordinator') }}</p>
+                <v-row>
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <p>
+                      <strong>{{ $t('coordinator-name') }}:</strong>
+                      {{ formData.coordinator_name }}
+                    </p>
+                    <p>
+                      <strong>{{ $t('coordinator-email') }}:</strong>
+                      {{ formData.coordinator_email }}
+                    </p>
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
+                    <p>
+                      <strong>{{ $t('coordinator-institution') }}:</strong>
+                      {{ formData.coordinator_institution }}
+                    </p>
+                    <p>
+                      <strong>{{ $t('siape-registration') }}:</strong>
+                      {{ formData.coordinator_siape_registration }}
+                    </p>
+                  </v-col>
+                </v-row>
+                <v-btn
+                  color="primary"
+                  class="mt-4"
+                  @click="submitForm"
+                >
+                  {{ $t('submit-request') }}
+                </v-btn>
                 <v-btn
                   color="primary"
                   text
-                  @click="prevStep"
+                  class="mt-4"
+                  @click="step = 1"
                 >
-                  <v-icon>mdi-arrow-left</v-icon>{{ $t('back') }}
+                  {{ $t('review-info') }}
                 </v-btn>
-              </v-row>
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-text-field
-                    v-model="formData.coordinator_name"
-                    :label="$t('coordinator-name')"
-                    :rules="[v => !!v || $t('coordinator-name-required')]"
-                    required
-                    @input="validateStep2"
-                  />
-                </v-col>
-
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-text-field
-                    v-model="formData.coordinator_email"
-                    :label="$t('coordinator-email')"
-                    :rules="[
-                      v => !!v || $t('coordinator-email-required'),
-                      v => /.+@.+\..+/.test(v) || $t('email-valid')
-                    ]"
-                    required
-                    @input="validateStep2"
-                  />
-                </v-col>
-
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-autocomplete
-                    v-model="formData.coordinator_institution"
-                    :label="$t('coordinator-institution')"
-                    :items="coordinatorInstitutionOptions"
-                    item-text="text"
-                    item-value="value"
-                    :rules="[v => !!v || $t('coordinator-institution-required')]"
-                    required
-                    clearable
-                    @input="validateStep2"
-                  />
-                </v-col>
-
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-text-field
-                    v-model="formData.coordinator_siape_registration"
-                    :label="$t('siape-registration')"
-                    type="number"
-                    :rules="[v => !!v || $t('siape-registration-required')]"
-                    required
-                    @input="validateStep2"
-                  />
-                </v-col>
-              </v-row>
-              <v-btn
-                color="primary"
-                class="mt-8"
-                :disabled="!isStep2Valid"
-                @click="nextStep"
-              >
-                {{ $t('next') }}
-              </v-btn>
-            </v-container>
-          </v-stepper-content>
-
-          <!-- STEP 3 -->
-          <v-stepper-content step="3">
-            <v-container>
-              <p style="font-size: 18px;">
-                {{ $t('review-data') }}
-              </p>
-              <v-divider />
-              <p>{{ $t('server') }}</p>
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <p><strong>{{ $t('name') }}:</strong> {{ formData.name }}</p>
-                  <p><strong>{{ $t('email') }}:</strong> {{ formData.email }}</p>
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <p>
-                    <strong>{{ $t('institution') }}:</strong> {{ formData.institution }}
-                  </p>
-                  <p>
-                    <strong>{{ $t('registration') }}:</strong>
-                    {{ formData.user_siape_registration }}
-                  </p>
-                </v-col>
-              </v-row>
-              <v-divider />
-              <p>{{ $t('coordinator') }}</p>
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <p>
-                    <strong>{{ $t('coordinator-name') }}:</strong>
-                    {{ formData.coordinator_name }}
-                  </p>
-                  <p>
-                    <strong>{{ $t('coordinator-email') }}:</strong>
-                    {{ formData.coordinator_email }}
-                  </p>
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <p>
-                    <strong>{{ $t('coordinator-institution') }}:</strong>
-                    {{ formData.coordinator_institution }}
-                  </p>
-                  <p>
-                    <strong>{{ $t('siape-registration') }}:</strong>
-                    {{ formData.coordinator_siape_registration }}
-                  </p>
-                </v-col>
-              </v-row>
-              <v-btn
-                color="primary"
-                class="mt-4"
-                @click="submitForm"
-              >
-                {{ $t('submit-request') }}
-              </v-btn>
-              <v-btn
-                color="primary"
-                text
-                class="mt-4"
-                @click="step = 1"
-              >
-                {{ $t('review-info') }}
-              </v-btn>
-            </v-container>
-          </v-stepper-content>
-        </v-stepper-items>
-      </v-stepper>
+              </v-container>
+            </v-stepper-content>
+          </v-stepper-items>
+        </v-stepper>
+      </div>
     </v-form>
 
     <!-- DIALOGS -->
@@ -402,7 +438,11 @@
       "sucess-message": "will be sent to your e-mail",
       "sucess-message2": "confirmation to access CMR, once it will be approved by the coordinator.",
       "restricted-area-request": "The request for access to the restricted area of CMR must be made exclusively by the interested server.",
-      "important": "Important!"
+      "important": "Important!",
+      "user-type-question": "What is your user type?",
+      "funai-user": "Funai User",
+      "external-user": "External User",
+      "user-type-required": "User type is required"
     },
     "pt-br": {
       "restricted-access-request": "Solicitação de Acesso Restrito",
@@ -447,7 +487,11 @@
       "sucess-message": "será enviada ao seu email",
       "sucess-message2": "a confirmação de acesso ao CMR, uma vez que seja aprovada pelo gestor.",
       "restricted-area-request": "O envio de solicitação de acesso à área restrita do CMR deve ser realizado, exclusivamente, pelo servidor interessado.",
-      "important": "Importante!"
+      "important": "Importante!",
+      "user-type-question": "Qual o seu tipo de usuário?",
+      "funai-user": "Usuário Funai",
+      "external-user": "Usuário Externo",
+      "user-type-required": "Tipo de usuário é obrigatório"
     }
   }
 </i18n>
@@ -461,6 +505,8 @@ export default {
   data() {
     return {
       valid: false,
+      showUserTypeSelection: true, // Mostrar seleção de tipo de usuário inicialmente
+      userType: null, // 'funai' ou 'external'
       step: 1,
       pdfLink:
         'https://cmr.funai.gov.br/api/media/Documentos/formulario_solicitacao_area_restrita_cmr_23abr2018_v1.4.pdf',
@@ -533,6 +579,10 @@ export default {
     this.$store.dispatch('admin/fetchInstitutionList');
   },
   methods: {
+    startForm() {
+      this.showUserTypeSelection = false;
+      // Você pode adicionar lógica aqui para modificar o formulário com base no userType selecionado
+    },
     validateStep1() {
       this.isStep1Valid = this.formData.name
         && this.formData.email
