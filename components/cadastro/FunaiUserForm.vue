@@ -47,7 +47,6 @@
                   @input="validateStep1"
                 />
               </v-col>
-
               <v-col
                 cols="12"
                 md="6"
@@ -63,7 +62,6 @@
                   @input="validateStep1"
                 />
               </v-col>
-
               <v-col
                 cols="12"
                 md="6"
@@ -80,7 +78,6 @@
                   @input="validateStep1"
                 />
               </v-col>
-
               <v-col
                 cols="12"
                 md="6"
@@ -135,7 +132,6 @@
                   @input="validateStep2"
                 />
               </v-col>
-
               <v-col
                 cols="12"
                 md="6"
@@ -151,7 +147,6 @@
                   @input="validateStep2"
                 />
               </v-col>
-
               <v-col
                 cols="12"
                 md="6"
@@ -168,7 +163,6 @@
                   @input="validateStep2"
                 />
               </v-col>
-
               <v-col
                 cols="12"
                 md="6"
@@ -274,6 +268,65 @@
     </v-stepper>
   </div>
 </template>
+
+<i18n>
+  {
+    "en": {
+      "server": "Server",
+      "coordinator": "Coordinator",
+      "name": "Name",
+      "email": "Email",
+      "institution": "Institution",
+      "registration": "Registration",
+      "name-required": "Name is required",
+      "email-required": "Email is required",
+      "email-valid": "Email must be valid",
+      "institution-required": "Institution is required",
+      "registration-required": "Registration is required",
+      "next": "Next",
+      "back": "Back",
+      "coordinator-name": "Coordinator's Name",
+      "coordinator-email": "Coordinator's Email",
+      "coordinator-institution": "Coordinator's Institution",
+      "siape-registration": "Siape Registration",
+      "coordinator-name-required": "Coordinator Name is required",
+      "coordinator-email-required": "Coordinator Email is required",
+      "coordinator-institution-required": "Coordinator Institution is required",
+      "siape-registration-required": "Siape Registration is required",
+      "submit-request": "Submit Request",
+      "review": "Review",
+      "review-data": "Review the data entered before submitting the request:",
+      "review-info": "Review Information"
+    },
+    "pt-br": {
+      "server": "Servidor",
+      "coordinator": "Coordenador",
+      "name": "Nome do servidor",
+      "email": "Email do servidor",
+      "institution": "Lotação",
+      "registration": "Matrícula Siape",
+      "name-required": "Nome é obrigatório",
+      "email-required": "Email é obrigatório",
+      "email-valid": "Email deve ser válido",
+      "institution-required": "Lotação é obrigatória",
+      "registration-required": "Matrícula é obrigatória",
+      "next": "Próximo",
+      "back": "Voltar",
+      "coordinator-name": "Nome do Coordenador responsável",
+      "coordinator-email": "Email do Coordenador responsável",
+      "coordinator-institution": "Lotação do Coordenador",
+      "siape-registration": "Matrícula Siape",
+      "coordinator-name-required": "Nome do Coordenador é obrigatório",
+      "coordinator-email-required": "Email do Coordenador é obrigatório",
+      "coordinator-institution-required": "Lotação do Coordenador é obrigatória",
+      "siape-registration-required": "Matrícula Siape é obrigatória",
+      "submit-request": "Enviar Solicitação",
+      "review": "Revisar informações",
+      "review-data": "Revise os dados inseridos antes de enviar a solicitação:",
+      "review-info": "Revisar Informações"
+    }
+  }
+</i18n>
 
 <script>
 export default {

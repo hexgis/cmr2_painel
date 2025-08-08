@@ -192,6 +192,57 @@
   </div>
 </template>
 
+<i18n>
+  {
+    "en": {
+      "name": "Name",
+      "email": "Email",
+      "name-required": "Name is required",
+      "email-required": "Email is required",
+      "email-valid": "Email must be valid",
+      "next": "Next",
+      "back": "Back",
+      "submit-request": "Submit Request",
+      "review": "Review",
+      "review-data": "Review the data entered before submitting the request:",
+      "review-info": "Review Information",
+      "personal-info": "Personal Information",
+      "institutional-info": "Institutional Information",
+      "organization": "Organization",
+      "organization-required": "Organization is required",
+      "position": "Position",
+      "position-required": "Position is required",
+      "justification": "Justification",
+      "justification-required": "Justification is required",
+      "institutional-letter": "Institutional Letter",
+      "letter-required": "Institutional Letter is required"
+    },
+    "pt-br": {
+      "name": "Nome do servidor",
+      "email": "Email do servidor",
+      "name-required": "Nome é obrigatório",
+      "email-required": "Email é obrigatório",
+      "email-valid": "Email deve ser válido",
+      "next": "Próximo",
+      "back": "Voltar",
+      "submit-request": "Enviar Solicitação",
+      "review": "Revisar informações",
+      "review-data": "Revise os dados inseridos antes de enviar a solicitação:",
+      "review-info": "Revisar Informações",
+      "personal-info": "Informações Pessoais",
+      "institutional-info": "Informações Institucionais",
+      "organization": "Organização",
+      "organization-required": "Organização é obrigatória",
+      "position": "Cargo",
+      "position-required": "Cargo é obrigatório",
+      "justification": "Justificativa",
+      "justification-required": "Justificativa é obrigatória",
+      "institutional-letter": "Carta Institucional",
+      "letter-required": "Carta Institucional é obrigatória"
+    }
+  }
+</i18n>
+
 <script>
 export default {
   data() {
