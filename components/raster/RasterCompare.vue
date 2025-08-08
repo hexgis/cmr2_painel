@@ -613,10 +613,22 @@ export default {
           return null;
         }
 
-        const tmsLayer = this.$L.tileLayer(layer.tms.url, {
-          tms: true,
+        let { url } = layer.tms;
+
+        if (url.includes('/planet/')) {
+          if (url.includes('{z}/{x}/{y}')) {
+            url = url.replace('{z}/{x}/{y}', '{z}/{x}/{-y}');
+          }
+        }
+
+        const tmsLayer = this.$L.tileLayer(url, {
+          tms: layer.tms.is_tms !== false, // Default to true unless explicitly false
           attribution: '',
           opacity: 1, // Force full opacity for comparison
+          maxNativeZoom: layer.tms.max_native_zoom || 18,
+          maxZoom: 22,
+          minZoom: 0,
+          crossOrigin: true,
           errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', // Transparent 1x1 pixel
         });
 
