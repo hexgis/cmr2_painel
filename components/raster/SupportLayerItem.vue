@@ -18,10 +18,14 @@
 
   <l-tile-layer
     v-else-if="layer.layer_type == 'tms'"
-    :url="processedTmsUrl"
+    :url="layer.tms?.url"
     :visible="layer.visible"
     :z-index="3"
-    :options="tmsOptions"
+    :options="{
+            maxNativeZoom: layer.tms?.max_native_zoom
+                ? layer.tms.max_native_zoom
+                : 15,
+        }"
     :pane="'tms-support-layers-map'"
   />
 
@@ -180,40 +184,6 @@ export default {
         });
         return wmsUrl;
       }
-    },
-
-    processedTmsUrl() {
-      if (!this.layer.tms || !this.layer.tms.url) return '';
-
-      // Handle different TMS URL patterns
-      let url = this.layer.tms.url;
-
-      // Planet Labs style URLs often need special handling
-      if (url.includes('/planet/')) {
-        // For Planet TMS, ensure proper coordinate format
-        // TMS uses inverted Y coordinates
-        if (url.includes('{z}/{x}/{y}')) {
-          url = url.replace('{z}/{x}/{y}', '{z}/{x}/{-y}');
-        }
-      }
-
-      return url;
-    },
-
-     tmsOptions() {
-      // Check if it's Planet Labs or similar XYZ service
-      const url = this.layer.tms?.url || '';
-      const isPlanetLabs = url.includes('planet/') || url.includes('tileserver-pf.sccon.com.br');
-
-      return {
-        tms: !isPlanetLabs, // Planet Labs uses XYZ, not TMS
-        maxNativeZoom: 18,
-        maxZoom: 22,
-        minZoom: 0,
-        errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
-        crossOrigin: true,
-        opacity: this.layerOpacity,
-      };
     },
   },
 
