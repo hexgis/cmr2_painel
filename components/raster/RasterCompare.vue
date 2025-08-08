@@ -613,24 +613,33 @@ export default {
           return null;
         }
 
-        let { url } = layer.tms;
+        const { url } = layer.tms;
 
-        if (url.includes('/planet/')) {
-          if (url.includes('{z}/{x}/{y}')) {
-            url = url.replace('{z}/{x}/{y}', '{z}/{x}/{-y}');
-          }
-        }
+        // Planet Labs specific handling
+        const isPlanetLabs = url.includes('planet/') || url.includes('tileserver-pf.sccon.com.br');
 
-        const tmsLayer = this.$L.tileLayer(url, {
-          tms: layer.tms.is_tms !== false, // Default to true unless explicitly false
+        // Create TMS layer with proper options
+        const options = {
           attribution: '',
           opacity: 1, // Force full opacity for comparison
-          maxNativeZoom: layer.tms.max_native_zoom || 18,
+          errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', // Transparent 1x1 pixel
+          maxNativeZoom: 18,
           maxZoom: 22,
           minZoom: 0,
           crossOrigin: true,
-          errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', // Transparent 1x1 pixel
-        });
+        };
+
+        // Planet Labs tiles are XYZ format, not TMS
+        // TMS has Y coordinate inverted compared to XYZ
+        if (isPlanetLabs) {
+          // Planet Labs uses XYZ scheme, not TMS
+          options.tms = false;
+        } else {
+          // Other providers might use actual TMS
+          options.tms = true;
+        }
+
+        const tmsLayer = this.$L.tileLayer(url, options);
 
         // Handle tile loading errors
         tmsLayer.on('tileerror', () => {
