@@ -1,106 +1,192 @@
 <template>
   <div>
-    <v-stepper v-model="step">
-      <v-stepper-header style="justify-content: center;">
-        <v-stepper-step
-          :complete="step > 1"
-          step="1"
-          @click="handleStepClick(1)"
-        >
-          {{ $t('personal-info') }}
-        </v-stepper-step>
-        <v-stepper-step
-          :complete="step > 2"
-          step="2"
-          @click="handleStepClick(2)"
-        >
-          {{ $t('institutional-info') }}
-        </v-stepper-step>
-        <v-stepper-step
-          :complete="step > 3"
-          step="3"
-          @click="handleStepClick(3)"
-        >
-          {{ $t('review') }}
-        </v-stepper-step>
-      </v-stepper-header>
+    <!-- Tela inicial de boas-vindas (fora do stepper) -->
+    <v-container v-if="step === 0">
+      <v-row>
+        <p class="text-h6 pt-10">
+          {{ $t('welcome') }}
+        </p>
+      </v-row>
+      <v-row>
+        <v-col cols="12">
+          <v-div
+            type="info"
+            border="left"
+            text
+          >
+            Usuários externos devem preencher um formulário específico. Você pode baixá-lo no link abaixo, preenchê-lo e digitalizá-lo. Caso já possua o documento preenchido e digitalizado, poderá continuar o cadastro.
+            <br>
+            <v-list-item @click="goToForm()">
+              <v-icon> mdi-list-box </v-icon>
+              <span class="pl-2">
+                {{ $t('download-form') }}
+              </span>
+            </v-list-item>
+          </v-div>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12">
+          <v-checkbox
+            v-model="hasDownloadedForm"
+            :label="$t('confirm-download')"
+            :rules="[v => !!v || $t('confirm-download-required')]"
+            required
+          />
+        </v-col>
+      </v-row>
+      <v-btn
+        color="primary"
+        class="mt-8"
+        :disabled="!hasDownloadedForm"
+        @click="nextStep"
+      >
+        {{ $t('continue') }}
+      </v-btn>
+    </v-container>
 
-      <v-stepper-items>
-        <!-- STEP 1 -->
-        <v-stepper-content step="1">
-          <v-container>
-            <v-row>
-              <p class="text-h6 pt-4">
-                {{ $t('personal-info') }}
-              </p>
-            </v-row>
-            <v-row>
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <v-text-field
-                  v-model="formData.name"
-                  :label="$t('name')"
-                  :rules="[v => !!v || $t('name-required')]"
-                  required
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <v-text-field
-                  v-model="formData.email"
-                  :label="$t('email')"
-                  :rules="[
-                    v => !!v || $t('email-required'),
-                    v => /.+@.+\..+/.test(v) || $t('email-valid')
-                  ]"
-                  required
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <v-text-field
-                  v-model="formData.organization"
-                  :label="$t('organization')"
-                  :rules="[v => !!v || $t('organization-required')]"
-                  required
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <v-text-field
-                  v-model="formData.position"
-                  :label="$t('position')"
-                  :rules="[v => !!v || $t('position-required')]"
-                  required
-                />
-              </v-col>
-            </v-row>
-            <v-btn
-              color="primary"
-              class="mt-8"
-              @click="nextStep"
+    <!-- Stepper para as demais etapas -->
+    <v-card
+      v-else
+      class="no-border"
+      style="border: none !important; box-shadow: none !important; outline: none !important;"
+    >
+      <v-stepper v-model="step">
+        <v-stepper-header style="justify-content: center;">
+          <v-stepper-step
+            :complete="step > 1"
+            step="1"
+            @click="handleStepClick(1)"
+          >
+            {{ $t('user') }}
+          </v-stepper-step>
+          <v-stepper-step
+            :complete="step > 2"
+            step="2"
+            @click="handleStepClick(2)"
+          >
+            {{ $t('institutional-info') }}
+          </v-stepper-step>
+          <v-stepper-step
+            :complete="step > 3"
+            step="3"
+            @click="handleStepClick(3)"
+          >
+            {{ $t('review') }}
+          </v-stepper-step>
+        </v-stepper-header>
+
+        <v-stepper-items>
+          <!-- STEP 1 -->
+          <v-stepper-content step="1">
+            <v-container class="step-content">
+              <v-row>
+                <p class="text-h6">
+                  {{ $t('user') }}
+                </p>
+              </v-row>
+              <v-row>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-text-field
+                    v-model="formData.name"
+                    :label="$t('name')"
+                    :rules="[v => !!v || $t('name-required')]"
+                    required
+                    outlined
+                    @input="validateStep1"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-text-field
+                    v-model="formData.email"
+                    :label="$t('email')"
+                    :rules="[
+                      v => !!v || $t('email-required'),
+                      v => /.+@.+\..+/.test(v) || $t('email-valid')
+                    ]"
+                    required
+                    outlined
+                    @input="validateStep1"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-autocomplete
+                    v-model="formData.institution"
+                    :label="$t('institution')"
+                    :items="institutionOptions"
+                    item-text="text"
+                    item-value="value"
+                    :rules="[v => !!v || $t('institution-required')]"
+
+                    clearable
+                    outlined
+                    @input="validateStep1"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <v-text-field
+                    v-model="formData.user_siape_registration"
+                    :label="$t('registration')"
+                    type="number"
+                    :rules="[v => !!v || $t('registration-required')]"
+
+                    outlined
+                    @input="validateStep1"
+                  />
+                </v-col>
+              </v-row>
+            </v-container>
+            <v-row
+              justify="end"
+              class="px-4 py-4"
             >
-              {{ $t('next') }}
-            </v-btn>
-          </v-container>
-        </v-stepper-content>
+              <v-btn
+                color="primary"
+                :disabled="!isStep1Valid"
+                @click="nextStep"
+              >
+                {{ $t('next') }}
+              </v-btn>
+            </v-row>
+          </v-stepper-content>
 
-        <!-- STEP 2 -->
-        <v-stepper-content step="2">
-          <v-container>
-            <v-row class="align-center">
-              <p class="text-h6 pt-4">
-                {{ $t('institutional-info') }}
-              </p>
-              <v-spacer />
+          <!-- STEP 2 -->
+
+          <v-stepper-content step="2">
+            <v-container class="step-content">
+              <v-row>
+                <p class="text-h6">
+                  {{ $t('institutional-info') }}
+                </p>
+              </v-row>
+              <v-row>
+                <v-col cols="12">
+                  <v-file-input
+                    v-model="formData.letter"
+                    :label="$t('institutional-letter')"
+                    :rules="[v => !!v || $t('letter-required')]"
+                    accept=".pdf,.doc,.docx"
+                    required
+                  />
+                </v-col>
+              </v-row>
+            </v-container>
+            <v-row
+              justify="space-between"
+              class="px-4 py-4"
+            >
               <v-btn
                 color="primary"
                 text
@@ -108,157 +194,230 @@
               >
                 <v-icon>mdi-arrow-left</v-icon>{{ $t('back') }}
               </v-btn>
+              <v-btn
+                color="primary"
+                :disabled="!isStep2Valid"
+                @click="nextStep"
+              >
+                {{ $t('next') }}
+              </v-btn>
             </v-row>
-            <v-row>
-              <v-col cols="12">
-                <v-textarea
-                  v-model="formData.justification"
-                  :label="$t('justification')"
-                  :rules="[v => !!v || $t('justification-required')]"
-                  required
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-file-input
-                  v-model="formData.letter"
-                  :label="$t('institutional-letter')"
-                  :rules="[v => !!v || $t('letter-required')]"
-                  accept=".pdf,.doc,.docx"
-                  required
-                />
-              </v-col>
-            </v-row>
-            <v-btn
-              color="primary"
-              class="mt-8"
-              @click="nextStep"
-            >
-              {{ $t('next') }}
-            </v-btn>
-          </v-container>
-        </v-stepper-content>
+          </v-stepper-content>
 
-        <!-- STEP 3 -->
-        <v-stepper-content step="3">
-          <v-container>
-            <p style="font-size: 18px;">
-              {{ $t('review-data') }}
-            </p>
-            <v-divider />
-            <p>{{ $t('personal-info') }}</p>
-            <v-row>
-              <v-col
-                cols="12"
-                md="6"
+          <!-- STEP 3 -->
+          <v-stepper-content step="3">
+            <v-container class="step-content">
+              <v-row class="mb-2">
+                <p style="font-size: 18px;">
+                  {{ $t('review-data') }}
+                </p>
+              </v-row>
+              <v-divider />
+              <v-row>
+                <p>{{ $t('user') }}</p>
+              </v-row>
+              <v-row>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <p><strong>{{ $t('name') }}:</strong> {{ formData.name }}</p>
+                  <p><strong>{{ $t('email') }}:</strong> {{ formData.email }}</p>
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <p>
+                    <strong>{{ $t('institution') }}:</strong> {{ formData.institution }}
+                  </p>
+                  <p>
+                    <strong>{{ $t('registration') }}:</strong>
+                    {{ formData.user_siape_registration }}
+                  </p>
+                </v-col>
+              </v-row>
+              <v-divider />
+              <v-row>
+                <p>{{ $t('coordinator') }}</p>
+              </v-row>
+              <v-row>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <p>
+                    <strong>{{ $t('coordinator-name') }}:</strong>
+                    {{ formData.coordinator_name }}
+                  </p>
+                  <p>
+                    <strong>{{ $t('coordinator-email') }}:</strong>
+                    {{ formData.coordinator_email }}
+                  </p>
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <p>
+                    <strong>{{ $t('coordinator-institution') }}:</strong>
+                    {{ formData.coordinator_institution }}
+                  </p>
+                  <p>
+                    <strong>{{ $t('siape-registration') }}:</strong>
+                    {{ formData.coordinator_siape_registration }}
+                  </p>
+                </v-col>
+              </v-row>
+              <v-row
+                justify="space-between"
+                class="px-4 py-4"
               >
-                <p><strong>{{ $t('name') }}:</strong> {{ formData.name }}</p>
-                <p><strong>{{ $t('email') }}:</strong> {{ formData.email }}</p>
-              </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <p><strong>{{ $t('organization') }}:</strong> {{ formData.organization }}</p>
-                <p><strong>{{ $t('position') }}:</strong> {{ formData.position }}</p>
-              </v-col>
-            </v-row>
-            <v-divider />
-            <p>{{ $t('institutional-info') }}</p>
-            <v-row>
-              <v-col cols="12">
-                <p><strong>{{ $t('justification') }}:</strong> {{ formData.justification }}</p>
-                <p><strong>{{ $t('institutional-letter') }}:</strong> {{ formData.letter ? formData.letter.name : '' }}</p>
-              </v-col>
-            </v-row>
-            <v-btn
-              color="primary"
-              class="mt-4"
-              @click="$emit('submit', formData)"
-            >
-              {{ $t('submit-request') }}
-            </v-btn>
-            <v-btn
-              color="primary"
-              text
-              class="mt-4"
-              @click="step = 1"
-            >
-              {{ $t('review-info') }}
-            </v-btn>
-          </v-container>
-        </v-stepper-content>
-      </v-stepper-items>
-    </v-stepper>
+                <v-btn
+                  color="primary"
+                  text
+                  @click="step = 1"
+                >
+                  {{ $t('review-info') }}
+                </v-btn>
+                <v-btn
+                  color="primary"
+                  @click="$emit('submit', formData)"
+                >
+                  {{ $t('submit-request') }}
+                </v-btn>
+              </v-row>
+            </v-container>
+          </v-stepper-content>
+        </v-stepper-items>
+      </v-stepper>
+    </v-card>
   </div>
 </template>
 
 <i18n>
-  {
-    "en": {
-      "name": "Name",
-      "email": "Email",
-      "name-required": "Name is required",
-      "email-required": "Email is required",
-      "email-valid": "Email must be valid",
-      "next": "Next",
-      "back": "Back",
-      "submit-request": "Submit Request",
-      "review": "Review",
-      "review-data": "Review the data entered before submitting the request:",
-      "review-info": "Review Information",
-      "personal-info": "Personal Information",
-      "institutional-info": "Institutional Information",
-      "organization": "Organization",
-      "organization-required": "Organization is required",
-      "position": "Position",
-      "position-required": "Position is required",
-      "justification": "Justification",
-      "justification-required": "Justification is required",
-      "institutional-letter": "Institutional Letter",
-      "letter-required": "Institutional Letter is required"
-    },
-    "pt-br": {
-      "name": "Nome do servidor",
-      "email": "Email do servidor",
-      "name-required": "Nome é obrigatório",
-      "email-required": "Email é obrigatório",
-      "email-valid": "Email deve ser válido",
-      "next": "Próximo",
-      "back": "Voltar",
-      "submit-request": "Enviar Solicitação",
-      "review": "Revisar informações",
-      "review-data": "Revise os dados inseridos antes de enviar a solicitação:",
-      "review-info": "Revisar Informações",
-      "personal-info": "Informações Pessoais",
-      "institutional-info": "Informações Institucionais",
-      "organization": "Organização",
-      "organization-required": "Organização é obrigatória",
-      "position": "Cargo",
-      "position-required": "Cargo é obrigatório",
-      "justification": "Justificativa",
-      "justification-required": "Justificativa é obrigatória",
-      "institutional-letter": "Carta Institucional",
-      "letter-required": "Carta Institucional é obrigatória"
-    }
+{
+  "en": {
+    "welcome": "Welcome",
+    "download-form": "Download the form",
+    "continue": "Continue",
+    "user": "User",
+    "name": "Name",
+    "email": "Email",
+    "institution": "Institution",
+    "registration": "Registration",
+    "name-required": "Name is required",
+    "email-required": "Email is required",
+    "email-valid": "Email must be valid",
+    "next": "Next",
+    "back": "Back",
+    "institutional-info": "Institutional Information",
+    "institutional-letter": "Institutional Letter",
+    "letter-required": "Letter is required",
+    "review": "Review",
+    "review-data": "Review the data entered before submitting the request:",
+     "coordinator": "Coordinator",
+    "coordinator-name": "Coordinator Name",
+    "coordinator-email": "Coordinator Email",
+    "coordinator-institution": "Coordinator Institution",
+    "siape-registration": "Registration",
+    "submit-request": "Submit Request",
+    "review-info": "Review Information",
+    "confirm-download": "I confirm that I have downloaded or already have the required form",
+    "confirm-download-required": "You must confirm that you have the form"
+  },
+  "pt-br": {
+    "welcome": "Bem-vindo",
+    "download-form": "Baixar o formulário",
+    "continue": "Continuar",
+    "user": "Usuário",
+    "name": "Nome",
+    "email": "Email",
+    "institution": "Lotação",
+    "registration": "Matrícula Siape",
+    "name-required": "Nome é obrigatório",
+    "email-required": "Email é obrigatório",
+    "email-valid": "Email deve ser válido",
+    "next": "Próximo",
+    "back": "Voltar",
+    "institutional-info": "Informações Institucionais",
+    "institutional-letter": "Carta Institucional",
+    "letter-required": "Carta é obrigatória",
+    "review": "Revisar",
+    "review-data": "Revise os dados inseridos antes de enviar a solicitação:",
+    "coordinator": "Coordenador",
+    "coordinator-name": "Nome do Coordenador",
+    "coordinator-email": "Email do Coordenador",
+    "coordinator-institution": "Instituição do Coordenador",
+    "siape-registration": "Matrícula SIAPE",
+    "submit-request": "Enviar Solicitação",
+    "review-info": "Revisar Informações",
+    "confirm-download": "Confirmo que baixei ou já possuo o formulário necessário",
+    "confirm-download-required": "Você deve confirmar que possui o formulário"
   }
+}
 </i18n>
 
 <script>
 export default {
+  props: {
+    institutionOptions: {
+      type: Array,
+      required: true,
+    },
+    coordinatorInstitutionOptions: {
+      type: Array,
+      required: true,
+    },
+  },
   data() {
     return {
-      step: 1,
+      step: 0,
+      hasDownloadedForm: false,
+      formLink: 'https://example.com/external-user-form.pdf',
       formData: {
         name: '',
         email: '',
-        organization: '',
-        position: '',
-        justification: '',
-        letter: null,
+        institution: '',
+        user_siape_registration: '',
+        letter: null, // Arquivo do Step 2
+        coordinator_name: '',
+        coordinator_email: '',
+        coordinator_institution: '',
+        coordinator_siape_registration: '',
       },
+      isStep1Valid: false,
+      isStep2Valid: false,
     };
   },
+  watch: {
+    formData: {
+      handler() {
+        this.validateStep1();
+        this.validateStep2();
+      },
+      deep: true,
+    },
+  },
   methods: {
+    async goToForm() {
+      window.location.href = `${process.env.API_URL}adm-panel/manual/`;
+    },
+
+    validateStep1() {
+      // Apenas nome e email obrigatórios no Step 1
+      this.isStep1Valid = Boolean(
+        this.formData.name
+        && this.formData.email
+        && /.+@.+\..+/.test(this.formData.email), // valida formato
+      );
+    },
+
+    validateStep2() {
+      // Apenas arquivo obrigatório no Step 2
+      this.isStep2Valid = Boolean(this.formData.letter);
+    },
+
     nextStep() {
       if (this.step < 3) {
         this.step += 1;
@@ -270,10 +429,49 @@ export default {
       }
     },
     prevStep() {
-      if (this.step > 1) {
+      if (this.step > 0) {
         this.step -= 1;
       }
+    },
+    submitForm() {
+      this.$emit('submit', {
+        ...this.formData,
+        status: 'pending_cmr_validation',
+      });
+      console.log('Formulário enviado:', this.formData);
     },
   },
 };
 </script>
+
+<style scoped>
+.no-border :deep(.v-card__title),
+.no-border :deep(.v-card__text),
+.no-border :deep(.v-stepper),
+.no-border :deep(.v-stepper__content) {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+:deep(.v-stepper__content) {
+  width: 85vh; /* mesma largura do Step 1 */
+  max-width: 800px;
+}
+
+.step-content {
+  min-height: 200px; /* Altura mínima para todos os passos */
+  width: 100%; /* Largura total para consistência */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.step-content .v-row {
+  flex: 1;
+}
+
+.step-content .v-col {
+  padding: 4px; /* Espaçamento interno consistente */
+}
+</style>

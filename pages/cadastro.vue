@@ -1,5 +1,5 @@
 <template>
-  <v-card style="max-width: 1100px; margin: auto; top: 5%;">
+  <v-card style="max-width: 800px; margin: auto; top: 25%;">
     <!-- Barra de título exibida apenas quando a modal não está exibindo formulários -->
     <v-card-title
       v-if="modalContent === 'welcome'"
@@ -19,52 +19,121 @@
       <!-- Seleção de tipo de usuário -->
       <div v-if="showUserTypeSelection && modalContent === 'welcome'">
         <v-container>
-          <v-row>
-            <p class="text-h6 pt-4 ml-4">
+          <v-row
+            justify="center"
+          >
+            <p class="text-h6 pt-4">
               {{ $t('user-type-question') }}
             </p>
           </v-row>
-          <v-row>
-            <v-col cols="12">
-              <v-radio-group
-                v-model="userType"
-                :rules="[v => !!v || $t('user-type-required')]"
-                class="mt-n4 mb-n4"
+          <v-row
+            justify="center"
+            class="mt-2"
+          >
+            <v-col
+              cols="12"
+              md="5"
+              class="text-center"
+            >
+              <v-btn
+                x-large
+                height="200"
+                class="selection-button"
+                block
+                @click="openForm('funai')"
               >
-                <v-radio
-                  :label="$t('funai-user')"
-                  value="funai"
-                />
-                <v-radio
-                  :label="$t('external-user')"
-                  value="external"
-                />
-              </v-radio-group>
+                <v-row
+                  align="center"
+                  justify="center"
+                  class="flex-column button-content"
+                >
+                  <div class="logo-container">
+                    <v-img
+                      :src="logo_funai"
+                      contain
+                      max-height="80"
+                      max-width="120"
+                      alt="Funai Logo"
+                    />
+                  </div>
+                  <div class="text-h6 button-label">
+                    {{ $t('funai-user') }}
+                  </div>
+                  <v-icon
+                    v-if="userType === 'funai'"
+                    large
+                    class="mt-2"
+                  >
+                    mdi-check-circle
+                  </v-icon>
+                </v-row>
+              </v-btn>
+            </v-col>
+
+            <v-col
+              cols="12"
+              md="5"
+              class="text-center"
+            >
+              <v-btn
+                x-large
+                class="selection-button"
+                height="200"
+                block
+                @click="openForm('external')"
+              >
+                <v-row
+                  align="center"
+                  justify="center"
+                  class="flex-column button-content"
+                >
+                  <div class="logo-container">
+                    <v-img
+                      :src="logo_external"
+                      contain
+                      max-height="80"
+                      max-width="120"
+                      alt="External User Logo"
+                    />
+                  </div>
+                  <div class="text-h6 button-label">
+                    {{ $t('external-user') }}
+                  </div>
+                  <v-icon
+                    v-if="userType === 'external'"
+                    large
+                    class="mt-2"
+                  >
+                    mdi-check-circle
+                  </v-icon>
+                </v-row>
+              </v-btn>
             </v-col>
           </v-row>
-          <v-btn
-            color="primary"
-            class="mt-8"
-            :disabled="!userType"
-            @click="openFormModal"
-          >
-            {{ $t('next') }}
-          </v-btn>
         </v-container>
       </div>
 
       <!-- Modal de Boas-Vindas/Formulários -->
       <v-dialog
         v-model="welcomeModal"
-        max-width="1100"
+        max-width="800"
         persistent
       >
         <v-card :style="{ background: modalContent === 'welcome' ? '#ffce03' : '' }">
           <v-card-title
-            class="pb-0"
+            class="pb-2"
             :style="modalContent !== 'welcome' ? { background: '#D92B3F', color: 'white' } : {}"
           >
             {{ modalContent === 'welcome' ? $t('important') : userType === 'funai' ? $t('funai-user') : $t('external-user') }}
+            <v-spacer />
+            <v-btn
+              icon
+              color="white"
+              class="pb-2"
+              @click="closeFormModal"
+            >
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
           </v-card-title>
           <v-card-text>
             <!-- Conteúdo de boas-vindas -->
@@ -83,27 +152,11 @@
             <!-- Formulário Externo -->
             <ExternalForm
               v-if="modalContent === 'form' && userType === 'external'"
+              :institution-options="institutionOptions"
+              :coordinator-institution-options="coordinatorInstitutionOptions"
               @submit="handleFormSubmit"
             />
           </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn
-              v-if="modalContent === 'welcome'"
-              text
-              @click="welcomeModal = false"
-            >
-              {{ $t('ok') }}
-            </v-btn>
-            <v-btn
-              v-if="modalContent === 'form'"
-              color="primary"
-              text
-              @click="closeFormModal"
-            >
-              {{ $t('close') }}
-            </v-btn>
-          </v-card-actions>
         </v-card>
       </v-dialog>
 
@@ -118,6 +171,13 @@
             class="pb-0"
           >
             {{ modalTitle }}
+            <v-spacer />
+            <v-btn
+              icon
+              @click="closeModal"
+            >
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
           </v-card-title>
           <v-card-text :style="{ background: isSuccess ? '#ffce03' : '' }">
             {{ modalMessage }}
@@ -139,13 +199,6 @@
               @click="redirectToPortal"
             >
               {{ $t('ok') }}
-            </v-btn>
-            <v-btn
-              v-else
-              color="primary"
-              @click="closeModal"
-            >
-              {{ $t('close') }}
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -301,7 +354,9 @@ export default {
       modalTitle: '',
       modalMessage: '',
       isSuccess: false,
-      welcomeModal: true,
+      welcomeModal: false, // Alterado para false inicialmente
+      logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
+      logo_external: process.env.DEFAULT_LOGO_IMAGE_EXTERNAL,
     };
   },
   computed: {
@@ -320,35 +375,22 @@ export default {
         .sort((a, b) => a.text.localeCompare(b.text));
     },
     coordinatorInstitutionOptions() {
-      return this.institutionList
-        .filter((institution) => (
-          institution.institution_type === 'Coordenação Regional'
-          || institution.institution_type === 'FUNAI Sede'
-        ))
-        .map((institution) => ({
-          text: institution.acronym ? `${institution.acronym} - ${institution.name}` : institution.name,
-          value: institution.name,
-          ...institution,
-        }))
-        .sort((a, b) => a.text.localeCompare(b.text));
+      return this.institutionOptions; // Reutiliza a mesma lógica
     },
   },
   mounted() {
     this.$store.dispatch('admin/fetchInstitutionList');
   },
   methods: {
-    openFormModal() {
-      if (this.userType) {
-        this.showUserTypeSelection = false;
-        this.modalContent = 'form';
-        this.welcomeModal = true; // Mantém a modal aberta
-      }
+    openForm(type) {
+      this.userType = type;
+      this.modalContent = 'form';
+      this.welcomeModal = true;
     },
     closeFormModal() {
-      this.modalContent = 'welcome';
-      this.showUserTypeSelection = true;
+      this.welcomeModal = false;
       this.userType = null;
-      this.welcomeModal = true; // Volta para a mensagem de boas-vindas
+      this.modalContent = 'welcome';
     },
     async handleFormSubmit(formData) {
       this.formData = { ...formData };
@@ -405,8 +447,6 @@ export default {
         } finally {
           this.welcomeModal = false;
           this.showModal = true;
-          this.modalContent = 'welcome'; // Reseta para boas-vindas
-          this.showUserTypeSelection = true;
           this.userType = null;
         }
       }
@@ -416,10 +456,31 @@ export default {
     },
     closeModal() {
       this.showModal = false;
-      this.showUserTypeSelection = true;
-      this.modalContent = 'welcome';
       this.userType = null;
     },
   },
 };
 </script>
+
+<style scoped>
+/* Estilo base para todos os botões */
+.selection-button {
+  border-radius: 12px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  padding: 20px;
+  text-transform: none;
+  letter-spacing: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white !important; /* Fundo branco */
+  border: 2px solid #e0e0e0 !important; /* Borda cinza claro padrão */
+}
+
+/* Efeito hover - para ambos os estados */
+.selection-button:hover {
+  border-color: #D92B3F !important; /* Borda vermelha */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(217, 43, 63, 0.25) !important;
+}
+</style>
