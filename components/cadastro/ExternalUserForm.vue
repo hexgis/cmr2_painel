@@ -226,9 +226,9 @@
                   md="6"
                 >
                   <p>
-                    <strong>{{ $t('institution') }}:</strong> {{ formData.institution }}
-                  </p>
-                  <p>
+                    <strong>{{ $t('institution') }}:</strong>
+                    {{ formData.institution?.text || formData.institution }}
+                  </p><p>
                     <strong>{{ $t('registration') }}:</strong>
                     {{ formData.user_siape_registration }}
                   </p>
@@ -409,7 +409,6 @@ export default {
         ...this.formData,
         status: 'pending_cmr_validation',
       });
-      console.log('Formulário enviado:', this.formData);
     },
   },
 };
