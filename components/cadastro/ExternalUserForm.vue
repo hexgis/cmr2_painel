@@ -426,13 +426,13 @@ export default {
 }
 
 :deep(.v-stepper__content) {
-  width: 85vh; /* mesma largura do Step 1 */
+  width: 80vh; /* mesma largura do Step 1 */
   max-width: 800px;
 }
 
 .step-content {
   min-height: 200px; /* Altura mínima para todos os passos */
-  width: 100%; /* Largura total para consistência */
+  width: 75vh; /* Largura total para consistência */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
