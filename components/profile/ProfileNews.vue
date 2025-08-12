@@ -294,9 +294,11 @@ export default {
               if (this.unreadNews.length === 0) {
                 this.closeDialog();
               } else if (this.carouselIndex > 0) {
-                this.carouselIndex--;
+                this.carouselIndex++;
               }
             });
+          } else if (this.carouselIndex > 0) {
+            this.carouselIndex++;
           }
         }
       }
