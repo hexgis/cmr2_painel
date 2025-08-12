@@ -23,7 +23,9 @@
       "downloadError": "Download Failed",
       "downloadSuccessMessage": "The download was completed successfully.",
       "downloadErrorMessage": "An error occurred during the download. Please try again.",
-      "close": "Close"
+      "close": "Close",
+      "agencias": "Agencies",
+      "funai": "Funai"
     },
     "pt-br": {
       "searchLabel": "Pesquisar",
@@ -48,7 +50,9 @@
       "downloadError": "Falha no Download",
       "downloadSuccessMessage": "O download foi concluído com sucesso.",
       "downloadErrorMessage": "Ocorreu um erro durante o download. Por favor, tente novamente.",
-      "close": "Fechar"
+      "close": "Fechar",
+      "agencias": "Agências",
+      "funai": "Funai"
     }
   }
 </i18n>
@@ -94,6 +98,43 @@
             class="d-flex align-center justify-end"
           >
             <div class="header-actions d-flex align-center ga-3">
+              <div class="toggle_container d-flex align-center ga-4 mr-2">
+                <div class="toggle_wrapper">
+                  <input
+                    id="agencias"
+                    v-model="institutionType"
+                    class="toggle_input"
+                    type="radio"
+                    value="AGÊNCIAS"
+                    @change="updateInstitution"
+                  >
+                  <label
+                    class="toggle_button"
+                    for="agencias"
+                  >
+                    {{ $t('agencias') }}
+                  </label>
+                  <input
+                    id="funai"
+                    v-model="institutionType"
+                    class="toggle_input"
+                    type="radio"
+                    value="FUNAI"
+                    @change="updateInstitution"
+                  >
+                  <label
+                    class="toggle_button"
+                    for="funai"
+                  >
+                    {{ $t('funai') }}
+                  </label>
+                  <div
+                    class="toggle_slider"
+                    :class="{ right: institutionType === 'FUNAI' }"
+                  />
+                </div>
+              </div>
+
               <v-btn
                 color="primary"
                 outlined
@@ -470,6 +511,7 @@
                 :labels="viewLabelsTitle"
                 :monthly-counts="getDataChart.monthly_counts"
                 :total="true"
+                :institution-type="institutionType"
               />
             </v-card-text>
           </v-card>
@@ -558,34 +600,7 @@ export default {
     MapUserViews,
   },
   layout: 'fullPage',
-  async created() {
-    await this.getDataChart;
-    await this.citiesList;
-  },
-  computed: {
-    ...mapGetters('charts', [
-      'getDataChart',
-      'getDateCounts',
-      'getTypeDeviceCounts',
-      'getBrowserCounts',
-      'getLocations',
-    ]),
-    citiesList() {
-      const citiesSet = new Set();
-      this.getLocations.forEach((item) => {
-        citiesSet.add(item.city);
-      });
-      return Array.from(citiesSet);
-    },
-    devicesList() {
-      const devicesList = Object.keys(this.getTypeDeviceCounts);
-      return devicesList;
-    },
-    browserList() {
-      const browserList = Object.keys(this.getBrowserCounts);
-      return browserList;
-    },
-  },
+
   data: () => ({
     logo_funai: process.env.DEFAULT_LOGO_IMAGE_CMR,
     activatorProps: false,
@@ -601,9 +616,51 @@ export default {
     showDownloadModal: false,
     downloadSuccess: true,
     downloading: null,
+    institutionType: 'AGÊNCIAS',
   }),
+
+  computed: {
+    ...mapGetters('charts', [
+      'getDataChart',
+      'getDateCounts',
+      'getTypeDeviceCounts',
+      'getBrowserCounts',
+      'getLocations',
+      'getInstitutionFilter',
+    ]),
+    citiesList() {
+      const citiesSet = new Set();
+      this.getLocations.forEach((item) => {
+        citiesSet.add(item.city);
+      });
+      return Array.from(citiesSet);
+    },
+    devicesList() {
+      return Object.keys(this.getTypeDeviceCounts);
+    },
+    browserList() {
+      return Object.keys(this.getBrowserCounts);
+    },
+  },
+
+  async created() {
+    await this.dataChart({
+      startDate: this.startDate,
+      endDate: this.endDate,
+      location: this.selectedCity,
+      typeDevice: this.selectedDevice,
+      browser: this.selectedBrowser,
+    });
+  },
+
   methods: {
-    ...mapActions('charts', ['dataChart']),
+    ...mapActions('charts', ['dataChart', 'setInstitutionFilter']),
+
+    updateInstitution() {
+      this.setInstitutionFilter(this.institutionType).then(() => {
+        this.filter();
+      });
+    },
 
     closeDownloadModal() {
       this.showDownloadModal = false;
@@ -644,16 +701,12 @@ export default {
       this.showModal = false;
     },
     filter() {
-      const [startDate, endDate, location, typeDevice, browser] = [
-        this.formatStartDate(),
-        this.formatEndDate(),
-        this.selectedCity || '',
-        this.selectedDevice || '',
-        this.selectedBrowser || '',
-      ];
-
       const data = {
-        startDate, endDate, location, typeDevice, browser,
+        startDate: this.formatStartDate(),
+        endDate: this.formatEndDate(),
+        location: this.selectedCity || '',
+        typeDevice: this.selectedDevice || '',
+        browser: this.selectedBrowser || '',
       };
       this.$store.dispatch('charts/dataChart', data);
     },
@@ -774,6 +827,62 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.toggle_wrapper {
+  display: flex;
+  position: relative;
+  width: 230px;
+  height: 35px;
+  background-color: #f5f5f5;
+  padding: 4px;
+  border-radius: 200px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.toggle_button {
+  flex: 1;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  color: #757575;
+  z-index: 2;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.toggle_slider {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  border: 1px solid rgba(0, 0, 0, 0.33);
+  border-radius: 11.5px;
+  background: #D92B3F;
+  box-shadow: 0 1px 2.2px 0 rgba(0, 0, 0, 0.33);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1;
+}
+
+.toggle_slider.right {
+  transform: translateX(100%);
+}
+
+.toggle_input {
+  display: none;
+}
+
+.toggle_input:checked + .toggle_button {
+  color: white;
+  font-weight: 500;
+}
+</style>
 
 <style scoped lang="sass">
 .position-relative

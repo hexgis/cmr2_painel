@@ -7,9 +7,11 @@ export default {
   props: {
     startDate: {
       type: String,
+      default: '',
     },
     endDate: {
       type: String,
+      default: '',
     },
   },
   computed: {
@@ -22,6 +24,23 @@ export default {
       'getBrowserCounts',
     ]),
   },
+
+  watch: {
+    getDates: 'updateChart',
+    getDateCounts: 'updateChart',
+  },
+  mounted() {
+    this.dataChart({
+      startDate: this.startDate || '',
+      endDate: this.endDate || this.getTodayDate,
+      location: '',
+      typeDevice: '',
+      browser: '',
+    }).then(() => {
+      this.updateChart();
+    });
+  },
+
   methods: {
     ...mapActions('charts', ['dataChart']),
     updateChart() {
@@ -46,20 +65,6 @@ export default {
       );
     },
   },
-  watch: {
-    getDates: 'updateChart',
-    getDateCounts: 'updateChart',
-  },
-  mounted() {
-    this.dataChart({
-      startDate: this.startDate || '',
-      endDate: this.endDate || this.getTodayDate,
-      location: '',
-      typeDevice: '',
-      browser: '',
-    }).then(() => {
-      this.updateChart();
-    });
-  },
+
 };
 </script>

@@ -74,34 +74,34 @@ export default {
      ** vuetify module configuration
      ** https://github.com/nuxt-community/vuetify-module
      */
-     vuetify: {
-      customVariables: ['~/assets/variables.scss'],
-      theme: {  
-        options: { customProperties: true },
-        dark: false,
-        themes: {
-          light: {
-            primary: '#D92B3F',
-            secondary: '#D92B3F',
-            accent: '#D92B3F',
-            error: '#da2a3f',
-            warning: '#FFCE03',
-            info: '#FFFFFF',
-            success: '#26A69A',
-            btn_login: '#D92B3F',
-          },
-          dark: {
-            primary: '#D92B3F',
-            secondary: '#D92B3F',
-            accent: '#D92B3F',
-            error: '#2F4D6A',
-            warning: '#FFCE03',
-            info: '#1e1e1e',
-            success: '#26A69A',
-          },
+  vuetify: {
+    customVariables: ['~/assets/variables.scss'],
+    theme: {
+      options: { customProperties: true },
+      dark: false,
+      themes: {
+        light: {
+          primary: '#D92B3F',
+          secondary: '#D92B3F',
+          accent: '#D92B3F',
+          error: '#da2a3f',
+          warning: '#FFCE03',
+          info: '#FFFFFF',
+          success: '#26A69A',
+          btn_login: '#D92B3F',
+        },
+        dark: {
+          primary: '#D92B3F',
+          secondary: '#D92B3F',
+          accent: '#D92B3F',
+          error: '#2F4D6A',
+          warning: '#FFCE03',
+          info: '#1e1e1e',
+          success: '#26A69A',
         },
       },
-    },    
+    },
+  },
 
   i18n: {
     vueI18nLoader: true,

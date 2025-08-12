@@ -531,7 +531,7 @@ export default {
           if (!state.filters.currentView) {
             let bbox;
             if (arrayCR.length || arrayTI.length) {
-              bbox = await this.$api.$post('alerts/consolidated/bbox/', {
+              bbox = await this.$api.$post('monitoring/consolidated/bbox/', {
                 co_cr: [...arrayCR],
                 co_funai: [...arrayTI],
               });
