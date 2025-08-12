@@ -3,46 +3,46 @@
     <!-- Tela inicial de boas-vindas (fora do stepper) -->
     <v-container v-if="step === 0">
       <v-row>
-        <p class="text-h6 pt-10">
-          {{ $t('welcome') }}
-        </p>
-      </v-row>
-      <v-row>
         <v-col cols="12">
-          <v-div
-            type="info"
-            border="left"
-            text
+          <v-card
+            outlined
+            color="info"
           >
-            Usuários externos devem preencher um formulário específico. Você pode baixá-lo no link abaixo, preenchê-lo e digitalizá-lo. Caso já possua o documento preenchido e digitalizado, poderá continuar o cadastro.
-            <br>
-            <v-list-item @click="goToForm()">
-              <v-icon> mdi-list-box </v-icon>
-              <span class="pl-2">
-                {{ $t('download-form') }}
-              </span>
-            </v-list-item>
-          </v-div>
+            <p class="text-h6">
+              {{ $t('welcome') }}
+            </p>
+            <v-card-text>
+              {{ $t('text') }}
+              <br>
+              <v-list-item
+                class="ml-n4 mt-4"
+                @click="goToForm()"
+              >
+                <v-icon> mdi-list-box </v-icon>
+                <span class="ml-2">
+                  {{ $t('download-form') }}
+                </span>
+              </v-list-item>
+              <v-checkbox
+                v-model="hasDownloadedForm"
+                :label="$t('confirm-download')"
+                :rules="[v => !!v || $t('confirm-download-required')]"
+                required
+              />
+              <div class="d-flex justify-end">
+                <v-btn
+                  color="primary"
+                  :disabled="!hasDownloadedForm"
+                  class="mt-4"
+                  @click="nextStep"
+                >
+                  {{ $t('continue') }}
+                </v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
         </v-col>
       </v-row>
-      <v-row>
-        <v-col cols="12">
-          <v-checkbox
-            v-model="hasDownloadedForm"
-            :label="$t('confirm-download')"
-            :rules="[v => !!v || $t('confirm-download-required')]"
-            required
-          />
-        </v-col>
-      </v-row>
-      <v-btn
-        color="primary"
-        class="mt-8"
-        :disabled="!hasDownloadedForm"
-        @click="nextStep"
-      >
-        {{ $t('continue') }}
-      </v-btn>
     </v-container>
 
     <!-- Stepper para as demais etapas -->
@@ -119,14 +119,11 @@
                   cols="12"
                   md="6"
                 >
-                  <v-autocomplete
+                  <v-combobox
                     v-model="formData.institution"
                     :label="$t('institution')"
                     :items="institutionOptions"
-                    item-text="text"
-                    item-value="value"
                     :rules="[v => !!v || $t('institution-required')]"
-
                     clearable
                     outlined
                     @input="validateStep1"
@@ -212,9 +209,9 @@
                   {{ $t('review-data') }}
                 </p>
               </v-row>
-              <v-divider />
-              <v-row>
+              <v-row class="mb-n8">
                 <p>{{ $t('user') }}</p>
+                <v-divider class="mt-3 ml-2" />
               </v-row>
               <v-row>
                 <v-col
@@ -234,38 +231,6 @@
                   <p>
                     <strong>{{ $t('registration') }}:</strong>
                     {{ formData.user_siape_registration }}
-                  </p>
-                </v-col>
-              </v-row>
-              <v-divider />
-              <v-row>
-                <p>{{ $t('coordinator') }}</p>
-              </v-row>
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <p>
-                    <strong>{{ $t('coordinator-name') }}:</strong>
-                    {{ formData.coordinator_name }}
-                  </p>
-                  <p>
-                    <strong>{{ $t('coordinator-email') }}:</strong>
-                    {{ formData.coordinator_email }}
-                  </p>
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <p>
-                    <strong>{{ $t('coordinator-institution') }}:</strong>
-                    {{ formData.coordinator_institution }}
-                  </p>
-                  <p>
-                    <strong>{{ $t('siape-registration') }}:</strong>
-                    {{ formData.coordinator_siape_registration }}
                   </p>
                 </v-col>
               </v-row>
@@ -305,7 +270,9 @@
     "name": "Name",
     "email": "Email",
     "institution": "Institution",
+    "institution-required": "Institution is required",
     "registration": "Registration",
+    "registration-required": "Registration is required",
     "name-required": "Name is required",
     "email-required": "Email is required",
     "email-valid": "Email must be valid",
@@ -324,7 +291,8 @@
     "submit-request": "Submit Request",
     "review-info": "Review Information",
     "confirm-download": "I confirm that I have downloaded or already have the required form",
-    "confirm-download-required": "You must confirm that you have the form"
+    "confirm-download-required": "You must confirm that you have the form",
+    "text":"External users must complete a specific form. You can download it from the link below, fill it out, and scan it. If you already have the completed and scanned document, you can continue with the registration process."
   },
   "pt-br": {
     "welcome": "Bem-vindo",
@@ -334,7 +302,9 @@
     "name": "Nome",
     "email": "Email",
     "institution": "Lotação",
+    "institution-required": "Lotação é obrigatória",
     "registration": "Matrícula Siape",
+    "registration-required": "Matrícula é obrigatória",
     "name-required": "Nome é obrigatório",
     "email-required": "Email é obrigatório",
     "email-valid": "Email deve ser válido",
@@ -353,7 +323,8 @@
     "submit-request": "Enviar Solicitação",
     "review-info": "Revisar Informações",
     "confirm-download": "Confirmo que baixei ou já possuo o formulário necessário",
-    "confirm-download-required": "Você deve confirmar que possui o formulário"
+    "confirm-download-required": "Você deve confirmar que possui o formulário",
+    "text": "Usuários externos devem preencher um formulário específico. Você pode baixá-lo no link abaixo, preenchê-lo e digitalizá-lo. Caso já possua o documento preenchido e digitalizado, poderá continuar o cadastro."
   }
 }
 </i18n>
@@ -380,7 +351,7 @@ export default {
         email: '',
         institution: '',
         user_siape_registration: '',
-        letter: null, // Arquivo do Step 2
+        letter: null,
         coordinator_name: '',
         coordinator_email: '',
         coordinator_institution: '',
@@ -401,7 +372,7 @@ export default {
   },
   methods: {
     async goToForm() {
-      window.location.href = `${process.env.API_URL}adm-panel/manual/`;
+      window.location.href = `${process.env.API_URL}adm-panel/formulario/`;
     },
 
     validateStep1() {
@@ -409,7 +380,7 @@ export default {
       this.isStep1Valid = Boolean(
         this.formData.name
         && this.formData.email
-        && /.+@.+\..+/.test(this.formData.email), // valida formato
+        && /.+@.+\..+/.test(this.formData.email),
       );
     },
 

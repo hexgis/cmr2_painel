@@ -28,7 +28,7 @@
           </v-row>
           <v-row
             justify="center"
-            class="mt-2"
+            class="mt-2 pb-6"
           >
             <v-col
               cols="12"
@@ -88,24 +88,16 @@
                   class="flex-column button-content"
                 >
                   <div class="logo-container">
-                    <v-img
-                      :src="logo_external"
-                      contain
-                      max-height="80"
-                      max-width="120"
-                      alt="External User Logo"
-                    />
+                    <v-icon
+                      size="80"
+                      color="primary"
+                    >
+                      mdi-account-circle
+                    </v-icon>
                   </div>
                   <div class="text-h6 button-label">
                     {{ $t('external-user') }}
                   </div>
-                  <v-icon
-                    v-if="userType === 'external'"
-                    large
-                    class="mt-2"
-                  >
-                    mdi-check-circle
-                  </v-icon>
                 </v-row>
               </v-btn>
             </v-col>
@@ -119,12 +111,12 @@
         max-width="800"
         persistent
       >
-        <v-card :style="{ background: modalContent === 'welcome' ? '#ffce03' : '' }">
+        <v-card>
           <v-card-title
             class="pb-2"
             :style="modalContent !== 'welcome' ? { background: '#D92B3F', color: 'white' } : {}"
           >
-            {{ modalContent === 'welcome' ? $t('important') : userType === 'funai' ? $t('funai-user') : $t('external-user') }}
+            {{ modalContent === 'funai' ? $t('funai-user') : $t('external-user') }}
             <v-spacer />
             <v-btn
               icon
@@ -137,11 +129,7 @@
           </v-card-title>
           <v-card-text>
             <!-- Conteúdo de boas-vindas -->
-            <div v-if="modalContent === 'welcome'">
-              <p class="pa-6 pt-2 pb-0">
-                {{ $t('restricted-area-request') }}
-              </p>
-            </div>
+
             <!-- Formulário Funai -->
             <FunaiForm
               v-if="modalContent === 'form' && userType === 'funai'"
@@ -157,50 +145,6 @@
               @submit="handleFormSubmit"
             />
           </v-card-text>
-        </v-card>
-      </v-dialog>
-
-      <!-- Modal de Sucesso/Erro -->
-      <v-dialog
-        v-model="showModal"
-        max-width="400"
-      >
-        <v-card>
-          <v-card-title
-            :style="{ background: isSuccess ? '#ffce03' : '' }"
-            class="pb-0"
-          >
-            {{ modalTitle }}
-            <v-spacer />
-            <v-btn
-              icon
-              @click="closeModal"
-            >
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-card-title>
-          <v-card-text :style="{ background: isSuccess ? '#ffce03' : '' }">
-            {{ modalMessage }}
-          </v-card-text>
-          <p
-            v-if="isSuccess"
-            class="pa-6 pt-2 pb-0"
-          >
-            <strong>{{ formData.name }}</strong>,<br>
-            {{ $t('sucess-message') }}
-            <strong>{{ formData.email }}</strong>
-            {{ $t('sucess-message2') }}
-          </p>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn
-              v-if="isSuccess"
-              color="primary"
-              @click="redirectToPortal"
-            >
-              {{ $t('ok') }}
-            </v-btn>
-          </v-card-actions>
         </v-card>
       </v-dialog>
     </v-form>
@@ -245,7 +189,6 @@
       "close": "Close",
       "sucess-message": "will be sent to your e-mail",
       "sucess-message2": "confirmation to access CMR, once it will be approved by the coordinator.",
-      "restricted-area-request": "The request for access to the restricted area of CMR must be made exclusively by the interested server.",
       "important": "Important!",
       "user-type-question": "What is your user type?",
       "funai-user": "Funai User",
@@ -298,7 +241,6 @@
       "close": "Fechar",
       "sucess-message": "será enviada ao seu email",
       "sucess-message2": "a confirmação de acesso ao CMR, uma vez que seja aprovada pelo gestor.",
-      "restricted-area-request": "O envio de solicitação de acesso à área restrita do CMR deve ser realizado, exclusivamente, pelo servidor interessado.",
       "important": "Importante!",
       "user-type-question": "Qual o seu tipo de usuário?",
       "funai-user": "Usuário Funai",
@@ -350,11 +292,7 @@ export default {
         justification: '',
         letter: null,
       },
-      showModal: false,
-      modalTitle: '',
-      modalMessage: '',
-      isSuccess: false,
-      welcomeModal: false, // Alterado para false inicialmente
+      welcomeModal: false,
       logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
       logo_external: process.env.DEFAULT_LOGO_IMAGE_EXTERNAL,
     };
@@ -437,26 +375,17 @@ export default {
               'Content-Type': 'multipart/form-data',
             },
           });
-          this.isSuccess = true;
-          this.modalTitle = this.$t('success');
-          this.modalMessage = this.$t('request-submitted-successfully');
-        } catch (error) {
-          this.isSuccess = false;
-          this.modalTitle = this.$t('error');
-          this.modalMessage = this.$t('request-failed');
-        } finally {
           this.welcomeModal = false;
-          this.showModal = true;
+          this.userType = null;
+          this.redirectToPortal();
+        } catch (error) {
+          this.welcomeModal = false;
           this.userType = null;
         }
       }
     },
     redirectToPortal() {
       this.$router.push('/');
-    },
-    closeModal() {
-      this.showModal = false;
-      this.userType = null;
     },
   },
 };
