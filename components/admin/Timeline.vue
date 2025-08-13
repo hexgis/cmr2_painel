@@ -238,6 +238,8 @@ export default {
           return '#12A844';
         case 'Em Teste':
           return '#FFCE03';
+        case 'Aprovado':
+          return '#1976D2'; // Azul para aprovado
         case 'Inviável':
           return '#D92B3F';
         case 'Indeferido':
