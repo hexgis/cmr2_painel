@@ -22,6 +22,7 @@ export default {
         Desenvolvido: '#1A535C',
         'Aguardando Gestor': '#D66A00',
         Deferido: '#FFCE03',
+        Aprovado: '#1976D2',
         'Em Andamento': '#F58A1F',
         'Em Desenvolvimento': '#F58A1F',
         Recusada: '#D92B3F',
