@@ -37,6 +37,12 @@ export const getters = {
 };
 
 export const mutations = {
+  setLayerCql(state, { id, cql }) {
+    if (state.supportLayers[id]) {
+      Vue.set(state.supportLayers[id], 'cql', cql);
+    }
+  },
+
   setretractAllLayers(state, value) {
     state.retractAllLayers = value;
   },
