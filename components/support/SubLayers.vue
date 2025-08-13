@@ -147,7 +147,6 @@ export default {
       }
     },
 
-    // Métodos auxiliares:
     async fetchLegendData() {
       const url = `${this.layer.wms.geoserver.wms_url}&service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${this.layer.wms.geoserver_layer_namespace}:${this.layer.wms.geoserver_layer_name}&format=application/json`;
       const response = await this.$axios.get(url);
