@@ -134,78 +134,94 @@ export default {
     async getCategory() {
       try {
         this.loading = true;
-        const url = `${this.layer.wms.geoserver.wms_url}&service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${this.layer.wms.geoserver_layer_namespace}:${this.layer.wms.geoserver_layer_name}&format=application/json`;
-        await this.$axios.get(url).then(({ data }) => {
-          if (
-            data.Legend
-                        && data.Legend[0]
-                        && data.Legend[0].rules.length > 1
-          ) {
-            const sublayers = {};
-            data.Legend[0].rules.forEach((fill, index) => {
-              if (fill.filter && fill.name) {
-                const cql = fill.filter.slice(1, -1);
-                const geomType = Object.keys(
-                  fill.symbolizers[0],
-                )[0];
-                const image = this.layer.wms.wms_layer_type
-                                        === 'Point-Icon' && geomType !== 'Polygon'
-                  ? this.getImg(fill.symbolizers)
-                  : this.createImg(fill.symbolizers);
-                const label = this.capitalizeFirstLetter(
-                  fill.name.toLowerCase(),
-                );
-                sublayers[`field${index}`] = {
-                  name: fill.name,
-                  label,
-                  visible: true,
-                  image,
-                  cql,
-                };
-              }
-              if (fill.filter && (fill.name || fill.title)) {
-                const cql = fill.filter.slice(1, -1);
-                const geomType = Object.keys(fill.symbolizers[0])[0];
-                const image = this.layer.wms.wms_layer_type === 'Point-Icon' && geomType !== 'Polygon'
-                  ? this.getImg(fill.symbolizers)
-                  : this.createImg(fill.symbolizers);
-                const rawName = fill.name || fill.title || '';
-                const label = this.capitalizeFirstLetter(rawName.toLowerCase());
-                const key = rawName.toLowerCase().replace(/\s/g, '_');
-                const tooltipText = this.descriptions[key] || 'Sem dados/descrição disponível.';
+        const legendData = await this.fetchLegendData();
 
-                sublayers[`field${index}`] = {
-                  name: rawName,
-                  label,
-                  visible: true,
-                  image,
-                  cql,
-                  tooltip: tooltipText,
-                };
-              }
-            });
-            this.setSublayers({
-              id: this.layer.id,
-              sublayers,
-            });
-          }
-        });
+        if (this.hasValidLegend(legendData)) {
+          const sublayers = this.processLegendRules(legendData.Legend[0].rules);
+          this.updateLayerWithSublayers(sublayers);
+        }
       } catch (error) {
-        console.error('Error fetching sublayers:', error);
-        this.$store.commit(
-          'alert/addAlert',
-          {
-            message: this.$i18n.t('default-error', {
-              action: this.$i18n.t('retrieve'),
-              resource: this.$t('legend'),
-            }),
-          },
-          { root: true },
-        );
+        this.handleLegendError(error);
       } finally {
         this.loading = false;
       }
     },
+
+    // Métodos auxiliares:
+    async fetchLegendData() {
+      const url = `${this.layer.wms.geoserver.wms_url}&service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${this.layer.wms.geoserver_layer_namespace}:${this.layer.wms.geoserver_layer_name}&format=application/json`;
+      const response = await this.$axios.get(url);
+      return response.data;
+    },
+
+    hasValidLegend(data) {
+      return data.Legend?.[0]?.rules?.length > 1;
+    },
+
+    processLegendRules(rules) {
+      const sublayers = {};
+
+      rules.forEach((rule, index) => {
+        if (!rule.filter || (!rule.name && !rule.title)) return;
+
+        const sublayer = this.createSublayerFromRule(rule, index);
+        sublayers[`field${index}`] = sublayer;
+      });
+
+      return sublayers;
+    },
+
+    createSublayerFromRule(rule, index) {
+      const cql = rule.filter.slice(1, -1);
+      const rawName = rule.name || rule.title || '';
+      const geomType = Object.keys(rule.symbolizers[0])[0];
+
+      return {
+        name: rawName,
+        label: this.capitalizeFirstLetter(rawName.toLowerCase()),
+        visible: rawName === '2km', // Ativa apenas o 2km
+        image: this.getSublayerImage(rule.symbolizers, geomType),
+        cql,
+        tooltip: this.getSublayerTooltip(rawName)
+      };
+    },
+
+    getSublayerImage(symbolizers, geomType) {
+      const isPointIcon = this.layer.wms.wms_layer_type === 'Point-Icon' && geomType !== 'Polygon';
+      return isPointIcon
+        ? this.getImg(symbolizers)
+        : this.createImg(symbolizers);
+    },
+
+    getSublayerTooltip(rawName) {
+      const key = rawName.toLowerCase().replace(/\s/g, '_');
+      return this.descriptions[key] || 'Sem dados/descrição disponível.';
+    },
+
+    updateLayerWithSublayers(sublayers) {
+      // Encontra o CQL do sublayer '2km'
+      const activeCql = Object.values(sublayers).find(s => s.name === '2km')?.cql || '';
+
+      this.setSublayers({
+        id: this.layer.id,
+        sublayers,
+      });
+
+      this.$store.commit('supportLayers/setLayerCql', {
+        id: this.layer.id,
+        cql: activeCql
+      });
+    },
+
+    handleLegendError(error) {
+      console.error('Error fetching sublayers:', error);
+      this.$store.commit('alert/addAlert', {
+        message: this.$i18n.t('default-error', {
+          action: this.$i18n.t('retrieve'),
+          resource: this.$t('legend'),
+        }),
+      }, { root: true });
+},
 
     createImg(obj) {
       const canvas = document.createElement('canvas');
