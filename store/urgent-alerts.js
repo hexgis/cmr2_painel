@@ -323,7 +323,7 @@ export default {
     },
 
     // Busca estilos do GeoServer para a legenda
-    async getAlertsStyleFromGeoserver({ commit, state }) {
+    async getAlertsStyleFromGeoserver({ commit, state, rootState }) {
       try {
         const params = {
           service: 'WMS',
