@@ -6,9 +6,8 @@ export default {
   // Estado inicial do módulo
   state: () => ({
     features: null,
-   urlWmsMonitoring: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
+    urlWmsMonitoring: '',
     geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
-    urlWmsMonitoringHeatmap: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
     geoserverLayerMonitoringHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
     resultsHeatmap: [],
     resultsHeatmapOptions: {
@@ -249,7 +248,7 @@ export default {
   // Ações para operações assíncronas e lógicas complexas
   actions: {
     // Busca dados para a tabela de monitoramento
-    async getDataTableMonitoring({ commit, state }) {
+    async getDataTableMonitoring({ commit, state, rootState }) {
       commit('setLoadingTable', true);
       try {
         const params = {
@@ -283,7 +282,8 @@ export default {
         }
         if (filters.length) params.CQL_FILTER = filters.join(' AND ');
 
-        const url = `${state.urlWmsMonitoring}${new URLSearchParams(params)}`;
+        const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
+        
         const response = await this.$api.$get(url);
 
         if (!response?.features) {
@@ -323,7 +323,7 @@ export default {
     },
 
     // Busca estilos do GeoServer para a legenda
-    async getMonitoringStyleFromGeoserver({ commit, state }) {
+    async getMonitoringStyleFromGeoserver({ commit, state, rootState }) {
       try {
         const params = {
           service: 'WMS',
@@ -332,7 +332,7 @@ export default {
           layer: state.geoserverLayerMonitoring,
           format: 'application/json',
         };
-        const url = `${state.urlWmsMonitoring}${new URLSearchParams(params)}`;
+        const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
         const response = await this.$api.$get(url);
         const styles = {};
         if (response.Legend?.[0]?.rules) {
@@ -360,7 +360,7 @@ export default {
     },
 
     // Gera URL para o WMS de monitoramento
-    async generateUrlWmsMonitoring({ state, commit }) {
+    async generateUrlWmsMonitoring({ state, commit, rootState }) {
       const visibleEstagios = Object.keys(state.legendVisibility).filter(
         estagio => state.legendVisibility[estagio]
       );
@@ -396,7 +396,7 @@ export default {
 
       if (filters.length) params.CQL_FILTER = filters.join(' AND ');
 
-      const fullUrl = `${state.urlWmsMonitoring}${new URLSearchParams(params)}`;
+      const fullUrl = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
       commit('setUrlCurrentWmsMonitoring', fullUrl);
     },
 
@@ -408,7 +408,7 @@ export default {
     },
 
     // Busca features de monitoramento
-    async fetchMonitoringFeatures({ state, commit, dispatch }) {
+    async fetchMonitoringFeatures({ state, commit, dispatch, rootState }) {
       commit('setLoadingFeatures', true);
       try {
         await dispatch('getMonitoringStyleFromGeoserver');
@@ -459,7 +459,7 @@ export default {
           params.CQL_FILTER = cqlFilters.join(' AND ');
         }
 
-        const url = `${state.urlWmsMonitoring}${new URLSearchParams(params)}`;
+        const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
         const response = await this.$api.$get(url);
 
         if (response?.features) {
@@ -573,7 +573,7 @@ export default {
     },
 
     // Busca estágios iniciais disponíveis
-    async fetchInitialEstagios({ state, commit }) {
+    async fetchInitialEstagios({ state, commit, rootState }) {
       try {
         const params = {
           service: 'WFS',
@@ -601,7 +601,7 @@ export default {
 
         if (filters.length) params.CQL_FILTER = filters.join(' AND ');
 
-        const url = `${state.urlWmsMonitoring}${new URLSearchParams(params)}`;
+        const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
         const response = await this.$api.$get(url);
 
         if (response?.features) {
@@ -664,7 +664,7 @@ export default {
     },
 
     // Baixa GeoJSON de monitoramento
-    async downloadGeoJsonMonitoring({ commit, state }) {
+    async downloadGeoJsonMonitoring({ commit, state, rootState }) {
       commit('setLoadingMonitoring', true);
       try {
         const params = {
@@ -694,7 +694,7 @@ export default {
 
         if (filters.length) params.CQL_FILTER = filters.join(' AND ');
 
-        const url = `${state.urlWmsMonitoring}${new URLSearchParams(params)}`;
+        const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
         const response = await this.$api.$get(url);
 
         const blob = new Blob([JSON.stringify({
@@ -905,8 +905,8 @@ export default {
     },
 
     // Verifica total de features para download de GeoJSON
-    async checkHitsDownloadGeojsonMonitoring({ commit, state }) {
-      let url = state.urlWmsMonitoring;
+    async checkHitsDownloadGeojsonMonitoring({ commit, state, rootState }) {
+      let url = rootState.map.geoserverUrl;
       const params = {
         service: 'WFS',
         version: '1.1.0',
@@ -961,11 +961,11 @@ export default {
     },
 
     // Gera mapa de calor (heatmap)
-    async generateHeatmapMonitoring({ commit, state }, value) {
+    async generateHeatmapMonitoring({ commit, state, rootState }, value) {
       try {
         if (value) {
           commit('setLoadingHeatmap', true);
-          let url = state.urlWmsMonitoringHeatmap;
+          let url = rootState.map.geoserverUrl;
           const params = {
             service: 'WFS',
             version: '1.0.0',

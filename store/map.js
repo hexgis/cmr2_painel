@@ -1,4 +1,5 @@
 export const state = () => ({
+  // state map
   activeMenu: '',
   openDrawPopup: null,
   startDrawPopup: false,
@@ -30,6 +31,8 @@ export const state = () => ({
   indigenousLand: [],
   savedSelectedItems: [],
   selectedItems: [],
+  // geoserver config
+  geoserverUrl: '',
 });
 
 export const getters = {
@@ -203,8 +206,11 @@ export const mutations = {
 
   setIndigenousLand(state, indigenousLand) {
     state.indigenousLand = indigenousLand;
-  }
-  ,
+  },
+
+  setGeoserverConfig(state, { url }) {
+    state.geoserverUrl = url;
+  },
 };
 
 export const actions = {
@@ -353,4 +359,17 @@ export const actions = {
     }
   },
 
+  async getGeoserverConfig({ commit, rootState }) {
+    try {
+      const idGeoserver = rootState.userProfile.user 
+        ? process.env.GEOSERVER_PRIVATE
+        : process.env.GEOSERVER_PUBLICO;
+      const response = await this.$api.$get(`layer/geoserver/${idGeoserver}/`);      
+      commit('setGeoserverConfig', {
+        url: `${response.wms_url.replace('wms', 'ows')}&`,
+      });
+    } catch (error) {
+      console.error('Error fetching Geoserver configuration:', error);
+    }
+  },
 };
