@@ -345,7 +345,7 @@ export const actions = {
         throw new Error('Informações da camada inválidas.');
       }
       const layerName = layer.wms.geoserver_layer_name;
-      const baseUrl = rootState.map.geoserverUrl ? rootState.map.geoserverUrl.replace('wms', 'wfs') : '';
+      const baseUrl = rootState.map.geoserverUrl ? rootState.map.geoserverUrl.replace('ows', 'wfs') : '';
       const params = new URLSearchParams({
         service: 'WFS',
         version: '1.1.0',
