@@ -35,7 +35,7 @@ export const state = () => ({
       intersectsWms: '',
     },
   },
-  urlWmsBase: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
+  urlWmsBase: '',
   wmsOptions: {
     maxZoom: 21,
     maxNativeZoom: 19,
@@ -104,7 +104,7 @@ export const mutations = {
 };
 
 export const actions = {
-  async generateUrlWms({ state, commit }, layer) {
+  async generateUrlWms({ state, commit, rootState }, layer) {
     if (!state.layers[layer].geoserverLayer) return;
 
     const params = {
@@ -114,7 +114,12 @@ export const actions = {
       opacity: state.layers[layer].opacity,
     };
 
-    const url = state.urlWmsBase;
+    let url = rootState.map.geoserverUrl;
+
+    if (!url) return;
+
+    // change wms for ows
+    url = url.replace('wms', 'ows');
 
     // Apply intersects filter
     if (state.layers[layer].intersectsWms) {

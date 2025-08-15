@@ -561,7 +561,7 @@ export default {
           return null;
         }
 
-        const baseUrl = wms.geoserver.base_url || process.env.GEOSERVER_URL;
+        const baseUrl = wms.geoserver.geoserver_url;
 
         if (!baseUrl) {
           // No base URL available for WMS layer

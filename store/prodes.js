@@ -2,7 +2,7 @@ const { stringify } = require('wkt');
 
 export const state = () => ({
   features: null,
-  urlWmsProdes: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
+  urlWmsProdes: '',
   geoserverLayerProdes: process.env.GEOSERVER_PRODES,
   currentUrlWmsProdes: '',
   showFeaturesProdes: false,
@@ -109,7 +109,7 @@ export const mutations = {
 };
 
 export const actions = {
-  async getProdesStyleFromGeoserver({ commit, state }) {
+  async getProdesStyleFromGeoserver({ commit, state, rootState }) {
     try {
       const params = {
         service: 'WMS',
@@ -118,7 +118,7 @@ export const actions = {
         layer: state.geoserverLayerProdes,
         format: 'application/json',
       };
-      const url = `${state.urlWmsProdes}${new URLSearchParams(params)}`;
+      const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
       const response = await this.$api.$get(url);
       const styles = {};
       if (response.Legend && response.Legend[0] && response.Legend[0].rules) {
@@ -148,7 +148,7 @@ export const actions = {
     }
   },
 
-  async generateUrlWmsProdes({ state, commit }, newBbox = false) {
+  async generateUrlWmsProdes({ state, commit, rootState }, newBbox = false) {
     const params = {
       layers: state.geoserverLayerProdes,
       env: `fill-opacity:${state.opacity / 100}`,
@@ -156,7 +156,7 @@ export const actions = {
       opacity: state.opacity,
     };
 
-    let url = state.urlWmsProdes;
+    let url = rootState.map.geoserverUrl;
 
     // Apply intersects filter
     if (state.intersectsWmsProdes) {
@@ -201,7 +201,7 @@ export const actions = {
     commit('setUrlCurrentWmsProdes', fullUrl);
   },
 
-  async fetchProdesFeatures({ state, commit, dispatch }) {
+  async fetchProdesFeatures({ state, commit, dispatch, rootState }) {
     commit('setLoadingFeatures', true);
     commit('clearFeatures');
     try {
@@ -280,7 +280,7 @@ export const actions = {
       }
 
       // 5. Faz a requisição WFS
-      const url = `${state.urlWmsProdes}${new URLSearchParams(params)}`;
+      const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
       const response = await this.$api.$get(url);
 
       // 6. Processa a resposta
@@ -302,7 +302,7 @@ export const actions = {
           CQL_FILTER: params.CQL_FILTER,
         };
 
-        const wmsUrl = `${state.urlWmsProdes}${new URLSearchParams(wmsParams)}`;
+        const wmsUrl = `${rootState.map.geoserverUrl}&${new URLSearchParams(wmsParams)}`;
         commit('setUrlCurrentWmsProdes', wmsUrl);
       } else {
         throw new Error('Resposta do GeoServer sem features');
@@ -472,9 +472,9 @@ export const actions = {
     }
   },
 
-  async downloadGeoJsonProdes({ commit, state }) {
+  async downloadGeoJsonProdes({ commit, state, rootState }) {
     commit('setLoadingProdes', true);
-    let url = state.urlWmsProdes;
+    let url = rootState.map.geoserverUrl;
 
     const params = {
       service: 'WFS',

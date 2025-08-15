@@ -37,6 +37,12 @@ export const getters = {
 };
 
 export const mutations = {
+  setLayerCql(state, { id, cql }) {
+    if (state.supportLayers[id]) {
+      Vue.set(state.supportLayers[id], 'cql', cql);
+    }
+  },
+
   setretractAllLayers(state, value) {
     state.retractAllLayers = value;
   },
@@ -332,17 +338,15 @@ export const actions = {
     commit('setOrderedLayers', layers);
   },
 
-  async openTableDialog({ state }, { layerId, fieldConfig }) {
+  async openTableDialog({ state, rootState }, { layerId, fieldConfig }) {
     try {
       const layer = state.supportLayers[layerId];
       if (!layer || !layer.wms || !layer.wms.geoserver_layer_name) {
         throw new Error('Informações da camada inválidas.');
       }
       const layerName = layer.wms.geoserver_layer_name;
-      const baseUrl = process.env.GEOSERVER_URL_WFS;
-      const authkey = process.env.AUTHKEY;
+      const baseUrl = rootState.map.geoserverUrl ? rootState.map.geoserverUrl.replace('ows', 'wfs') : '';
       const params = new URLSearchParams({
-        authkey,
         service: 'WFS',
         version: '1.1.0',
         request: 'GetFeature',
