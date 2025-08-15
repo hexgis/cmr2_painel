@@ -86,7 +86,7 @@
         />
       </v-col>
       <!-- Botão Buscar -->
-      <v-col cols="12">
+      <v-col cols="12" class="mt-n6">
         <v-btn
           block
           small
@@ -393,6 +393,8 @@ export default {
         this.flattened.push({ header: regiao });
         this.flattened.push(...groups[regiao]);
       });
+
+      return this.flattened;
     },
 
     populateTiOptions(cr) {
