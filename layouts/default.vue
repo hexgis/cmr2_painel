@@ -38,6 +38,15 @@
         </v-btn>
       </template>
     </v-snackbar>
+
+    <!-- Modal do Termo de Sigilo -->
+    <TermoSigiloModal
+      v-model="showTermoModal"
+      @accepted="onTermoAccepted"
+      @rejected="onTermoRejected"
+      @closed-outside="onTermoClosedOutside"
+    />
+
     <div>
       <v-btn
         ripple
@@ -113,18 +122,16 @@ import { mapState, mapGetters, mapMutations } from 'vuex';
 import Map from '@/components/map/Map';
 import BaseAlert from '@/components/base/BaseAlert';
 import AnalyticsPCDashboard from '@/components/analytical-cmr/AnalyticsPriorConsolidDashboard';
+import TermoSigiloModal from '@/components/TermoSigiloModal';
 
 export default {
   name: 'App',
 
-  head: () => ({
-    title: 'CMR',
-  }),
-  
   components: {
     Map,
     BaseAlert,
     AnalyticsPCDashboard,
+    TermoSigiloModal,
   },
 
   data: () => ({
@@ -132,6 +139,8 @@ export default {
     snackbar: true,
     timeout: 3000,
     windowWidth: 0,
+    showTermoModal: false,
+    termoChecked: false, // Flag para evitar verificações desnecessárias
   }),
 
   async fetch() {
@@ -139,10 +148,28 @@ export default {
       await this.$store.dispatch('userProfile/getUserData');
     }
     await this.$store.dispatch('map/getGeoserverConfig');
+
+    // Removida a verificação do termo aqui - será feita apenas no created()
   },
 
-  created() {
+  head: () => ({
+    title: 'CMR',
+  }),
+
+  async created() {
     this.$store.dispatch('supportLayers/getCategoryGroupsBase');
+    
+    // Apenas verificar termo no carregamento inicial se estiver logado
+    // e não tiver sido verificado nos últimos 5 minutos
+    if (this.isLoggedIn) {
+      const needsCheck = this.$store.getters['termoSigilo/needsCheck'];
+      if (needsCheck) {
+        console.log('Layout criado - verificando termo de sigilo...');
+        await this.checkTermoSigilo();
+      } else {
+        console.log('Termo já verificado recentemente, pulando...');
+      }
+    }
   },
 
   computed: {
@@ -158,6 +185,11 @@ export default {
     hasFirstOrLastName() {
       return this.user && (this.user.first_name || this.user.last_name);
     },
+
+    isCheckingTermo() {
+      return this.$store.state.termoSigilo && this.$store.state.termoSigilo.isChecking;
+    },
+
     ...mapState('userProfile', ['user', 'showDrawer']),
     ...mapState('priority', ['visualizationStage']),
     ...mapState('monitoring', ['visualizationStageMonitoring']),
@@ -166,11 +198,22 @@ export default {
   },
 
   watch: {
-    user() {
-      if (this.user && this.user.settings.drawer_open_on_init) {
-        this.openDrawer();
+    // Só verificar termo quando o usuário fizer login (não a cada mudança)
+    isLoggedIn(newVal, oldVal) {
+      if (newVal && !oldVal) {
+        // Usuário acabou de fazer login
+        console.log('Usuário fez login - verificando termo');
+        this.termoChecked = false; // Reset da flag
+        this.checkTermoSigilo();
+      } else if (!newVal && oldVal) {
+        // Usuário fez logout - limpar estado
+        console.log('Usuário fez logout - limpando estado do termo');
+        this.$store.dispatch('termoSigilo/reset');
+        this.showTermoModal = false;
+        this.termoChecked = false; // Reset da flag
       }
     },
+
     windowWidth() {
       if (window.innerWidth > 768) {
         this.windowWidth = window.innerWidth;
@@ -203,6 +246,62 @@ export default {
 
   methods: {
     ...mapMutations('userProfile', ['openDrawer', 'closeDrawer']),
+
+    async checkTermoSigilo() {
+      if (!this.isLoggedIn) {
+        return;
+      }
+
+      // Se já foi verificado nesta sessão de layout, pular
+      if (this.termoChecked) {
+        console.log('Termo já verificado nesta sessão, pulando...');
+        return;
+      }
+
+      // Usar getter para verificar se realmente precisa fazer a verificação
+      const needsCheck = this.$store.getters['termoSigilo/needsCheck'];
+      
+      if (!needsCheck) {
+        console.log('Termo já verificado recentemente no store, pulando verificação');
+        this.termoChecked = true;
+        return;
+      }
+
+      try {
+        console.log('Verificando status do termo de sigilo...');
+        this.termoChecked = true; // Marcar como verificado ANTES da requisição
+        
+        const hasAccepted = await this.$store.dispatch('termoSigilo/checkStatus');
+        
+        if (!hasAccepted) {
+          this.showTermoModal = true;
+        }
+      } catch (error) {
+        console.error('Erro ao verificar termo de sigilo:', error);
+        // Em caso de erro, mostrar o modal por segurança apenas se não foi verificado antes
+        if (this.$store.state.termoSigilo.hasAccepted === null) {
+          this.showTermoModal = true;
+        }
+      }
+    },
+
+    onTermoAccepted() {
+      this.showTermoModal = false;
+      // Atualiza o estado no store
+      this.$store.dispatch('termoSigilo/markAsAccepted');
+    },
+
+    onTermoRejected() {
+      this.showTermoModal = false;
+      // O modal já cuida do logout, apenas limpa o estado
+      this.$store.dispatch('termoSigilo/markAsRejected');
+    },
+
+    onTermoClosedOutside() {
+      // Modal foi fechado clicando fora - mostra novamente
+      this.showTermoModal = true;
+    },
+
     getLeafletControlRef() {
       this.leafletRightControl = document.getElementsByClassName('leaflet-right');
     },

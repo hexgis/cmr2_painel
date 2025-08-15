@@ -1,5 +1,5 @@
-export default function ({
-  store, redirect, route, getRouteBaseName, localePath,
+export default async function ({
+  store, redirect, route, getRouteBaseName, localePath, $axios,
 }) {
   if (route.path.startsWith('/pt-br/')) {
     const newPath = route.path.replace('/pt-br', '');
@@ -17,6 +17,7 @@ export default function ({
     'como-funciona',
     'video',
     'contato'].includes(baseName);
+
   if (!store.state.auth.token) {
     if (getRouteBaseName() === 'auth-confirmar') {
       const { code } = route.query;
@@ -32,4 +33,6 @@ export default function ({
   } else if (baseName === 'login') {
     return redirect(localePath('/cmr'));
   }
+  // Removida a verificação do termo de sigilo do middleware
+  // A verificação será feita apenas no layout principal usando o store Vuex
 }
