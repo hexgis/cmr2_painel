@@ -34,7 +34,7 @@
               class="mx-2 my-2"
               color="secondary"
               :loading="loadingCSV"
-              @click="handleDownloadCSV"
+              @click="handleDownloadClick"
             >
               <v-icon>mdi-download</v-icon>
             </v-btn>
@@ -75,6 +75,41 @@
             </template>
           </v-data-table>
         </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-if="value.length >= 10000"
+      v-model="confirmDialog"
+      max-width="500"
+    >
+      <v-card>
+        <v-card-title class="headline">
+          {{ $t('confirm-dialog-title') }}
+        </v-card-title>
+        <v-card-text class="mt-4">
+          {{ $t('confirm-dialog-message1') }}
+        </v-card-text>
+        <v-card-text>
+          {{ $t('confirm-dialog-message2') }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            text
+            @click="confirmDialog = false"
+          >
+            {{ $t('cancel') }}
+          </v-btn>
+          <v-btn
+            color="green darken-1"
+            text
+            @click="handleDownloadConfirmed"
+          >
+            <v-icon>mdi-download</v-icon>
+            {{ $t('download-label') }}
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-row>
@@ -122,10 +157,16 @@ export default {
       required: true,
       default: '',
     },
+    fDownloadCSV: {
+      type: Function,
+      required: true,
+      default: () => () => {},
+    },
   },
 
   data() {
     return {
+      confirmDialog: false,
       row: null,
       dialogPrint: false,
       selected: [],
@@ -169,38 +210,39 @@ export default {
       }
     },
 
-    closeAnalyticalDialog(value) {
-      this.dialog = value;
-    },
-
-    escapeCSVValue(value) {
-      if (value === null || value === undefined) return '';
-      const stringValue = value.toString();
-      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
+    handleDownloadClick() {
+      if (this.value.length >= 10000) {
+        this.confirmDialog = true;
+      } else {
+        this.fDownloadCSV();
       }
-      return stringValue;
     },
 
-    handleDownloadCSV() {
-      const headers = this.headers.map((header) => this.escapeCSVValue(header.text));
-      const headerRow = headers.join(',');
-
-      const dataRows = this.value.map((item) => this.headers.map((header) => this.escapeCSVValue(item[header.value])).join(','));
-
-      const csvContent = [headerRow, ...dataRows].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-
-      link.setAttribute('href', url);
-      link.setAttribute('download', `${this.tableName || 'tabela'}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+    handleDownloadConfirmed() {
+      this.confirmDialog = false;
+      this.fDownloadCSV();
     },
   },
 };
 </script>
+
+<i18n>
+{
+  "en": {
+    "confirm-dialog-title": "Confirmation",
+    "confirm-dialog-message1": "This action will load the table data. Do you want to continue?",
+    "confirm-dialog-message2": "This action will load the table data. Do you want to continue?",
+    "confirm": "Confirm",
+    "download-label": "Download",
+    "cancel": "Cancel"
+  },
+  "pt-br": {
+    "confirm-dialog-title": "Atenção",
+    "confirm-dialog-message1": "Devido a limitações técnicas, o arquivo gerado possui um limite máximo de 10.000 feições. A consulta realizada gerou um número superior de polígonos, de forma que nem todos poderão estar disponíveis no arquivo gerado.",
+    "confirm-dialog-message2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail",
+    "confirm": "Confirmar",
+    "download-label": "Baixar",
+    "cancel": "Cancelar"
+  }
+}
+</i18n>

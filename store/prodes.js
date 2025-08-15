@@ -26,6 +26,10 @@ export const state = () => ({
   opacity: 100,
   intersectsWmsProdes: '',
   prodesStyles: {},
+  tableProdes: [],
+  isLoadingTable: false,
+  loadingCSV: false
+
 });
 
 export const getters = {
@@ -40,8 +44,7 @@ export const getters = {
     return state.showFeaturesProdes;
   },
   getLegendItems: (state) => {
-    if (!state.features || !state.prodesStyles) return [];
-
+    if (!state.prodesStyles || typeof state.prodesStyles !== 'object') return [];
     // Obter anos únicos dos features que existem no prodesStyles
     const years = Array.from(
       new Set(
@@ -59,6 +62,10 @@ export const getters = {
 };
 
 export const mutations = {
+  setLoadingCSV(state, isLoading) {
+    state.loadingCSV = isLoading;
+  },
+
   setIntersectsWmsProdes(state, intersectsWmsProdes) {
     state.intersectsWmsProdes = intersectsWmsProdes;
   },
@@ -106,9 +113,192 @@ export const mutations = {
   setProdesStyles(state, styles) {
     state.prodesStyles = styles;
   },
+
+  setTableProdes(state, data) {
+    state.tableProdes = data;
+  },
+
+  setLoadingTable(state, payload) {
+    state.isLoadingTable = payload;
+  },
 };
 
 export const actions = {
+  async getDataTableProdes({ commit, state, rootState }) {
+
+  commit('setLoadingTable', true);
+  try {
+    const params = {
+      service: 'WFS',
+      version: '1.0.0',
+      request: 'GetFeature',
+      typeName: state.geoserverLayerProdes,
+      outputFormat: 'application/json',
+      CQL_FILTER: '',
+      maxFeatures: 10000,
+    };
+
+    const filters = [];
+
+    if (state.filters.currentView && state.intersectsWmsProdes) {
+      filters.push(state.intersectsWmsProdes);
+    }
+    if (state.filters.ti?.length) {
+      filters.push(`co_funai IN (${state.filters.ti.map(ti => ti.co_funai).join(',')})`);
+    }
+    if (state.filters.cr?.length) {
+      filters.push(`co_cr IN (${state.filters.cr.map(cr => cr.co_cr).join(',')})`);
+    }
+    if (state.filters.startYear && state.filters.endYear) {
+      filters.push(`(nu_ano >= ${state.filters.startYear} AND nu_ano <= ${state.filters.endYear})`);
+    }
+    if (filters.length) params.CQL_FILTER = filters.join(' AND ');
+
+    const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
+
+    const response = await this.$api.$get(url);
+
+    if (!response?.features) {
+      commit('setTableProdes', []);
+      throw new Error('Nenhum dado encontrado');
+    }
+
+    const tableData = response.features.map(({ properties }) => ({
+      origin_id: properties.id || properties.origin_id || '',
+      co_funai: properties.co_funai || '',
+      co_cr: properties.co_cr || '',
+      ds_cr: properties.ds_cr || '',
+      no_ti: properties.no_ti || '',
+      nu_ano: properties.nu_ano || '',
+      nu_area_ha: parseFloat(properties.nu_area_ha) || 0,
+      nu_area_km2: parseFloat(properties.nu_area_km2) || 0,
+      no_classe: properties.no_classe || '',
+      sg_uf: properties.sg_uf || '',
+      dt_imagem: properties.dt_imagem || '',
+      nu_orbita: properties.nu_orbita || '',
+      nu_ponto: properties.nu_ponto || '',
+    }));
+    commit('setTableProdes', tableData);
+  } catch (error) {
+    console.error('Erro ao buscar dados da tabela:', error);
+    commit('setTableProdes', []);
+    commit('alert/addAlert', {
+      message: this.$i18n.t('default-error', {
+        action: this.$i18n.t('retrieve'),
+        resource: this.$i18n.t('table'),
+      }),
+      type: 'error',
+    }, { root: true });
+  } finally {
+    commit('setLoadingTable', false);
+  }
+},
+
+ async downloadCSV({ commit, state, rootGetters }, { grouping, defaultFileName }) {
+      commit('setLoadingCSV', true);
+      function convertToCSV(data) {
+        if (!data || !data.length) return '';
+        const headers = Object.keys(data[0]);
+        const csvRows = [headers.join(';')];
+        data.forEach(row => {
+          const values = headers.map(header => `"${('' + row[header]).replace(/"/g, '\\"')}"`);
+          csvRows.push(values.join(';'));
+        });
+        return csvRows.join('\n');
+      }
+
+      function saveData(data, filename) {
+        const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+
+      try {
+        const params = {
+          start_date: state.filters.startDate,
+          end_date: state.filters.endDate,
+          grouping
+        };
+        const analyticsMonitoringcsv = await this.$api.$get(
+          'monitoring/consolidated/table-stats/',
+          { params },
+        );
+
+        if (!analyticsMonitoringcsv?.length) {
+          throw new Error('Nenhum dado disponível para exportação');
+        }
+
+        const csvString = convertToCSV(analyticsMonitoringcsv);
+        saveData(csvString, defaultFileName);
+      } catch (error) {
+        console.error('Erro ao gerar CSV:', error);
+      } finally {
+        commit('setLoadingCSV', false);
+      }
+    },
+
+
+   async downloadTableProdes() {
+      try {
+        // Usando a mutação do Vuex
+        this.$store.commit('prodes/setLoadingCSV', true);
+
+        if (!this.tableProdes?.length) {
+          throw new Error('Nenhum dado disponível para exportação');
+        }
+
+        const headers = [
+          'ID', 'Código Funai', 'Terra Indígena',
+          'Coordenação Regional', 'Ano', 'Área (ha)',
+          'Latitude', 'Longitude'
+        ];
+
+        const csvContent = [
+          headers.join(';'),
+          ...this.tableProdes.map(item => [
+            item.origin_id || '',
+            item.co_funai || '',
+            `"${(item.no_ti || '').replace(/"/g, '""')}"`,
+            `"${(item.ds_cr || '').replace(/"/g, '""')}"`,
+            item.nu_ano || '',
+            this.formatFieldValue(item.nu_area_ha, 'nu_area_ha'),
+            item.nu_latitude || '',
+            item.nu_longitude || ''
+          ].join(';'))
+        ].join('\r\n');
+
+        const blob = new Blob(["\uFEFF" + csvContent], {
+          type: 'text/csv;charset=utf-8;'
+        });
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `dados_prodes_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(link.href);
+        }, 100);
+
+      } catch (error) {
+        console.error('Erro na exportação:', error);
+        this.$store.dispatch('snackbar/showSnackbar', {
+          message: 'Falha ao gerar o arquivo CSV',
+          color: 'error'
+        }, { root: true });
+
+      } finally {
+        this.$store.commit('prodes/setLoadingCSV', false);
+      }
+    },
+
+
+
   async getProdesStyleFromGeoserver({ commit, state, rootState }) {
     try {
       const params = {
