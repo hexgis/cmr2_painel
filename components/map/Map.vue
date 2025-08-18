@@ -12,6 +12,7 @@
         :max-bounds-viscosity="1"
         :options="mapOptions"
         @update:bounds="updateBounds"
+        @ready="mapReady = true"
       >
         <l-control position="topleft">
           <div class="pa-1 map-action-buttons">
@@ -184,7 +185,7 @@
 
         <MapIndigenousLand />
 
-        <SupportLayers />
+        <SupportLayers v-if="mapReady" />
 
         <LayersRaster />
 
@@ -348,6 +349,7 @@ export default {
     logo_cmr: process.env.DEFAULT_LOGO_IMAGE_CMR,
     logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
     map: null,
+    mapReady: false,
     zoom: 4,
     minZoom: 2,
     maxBounds: [
@@ -641,6 +643,7 @@ export default {
           const map = this.$refs.map.mapObject;
           map.invalidateSize();
           map.setZoom(map.getZoom() + 1);
+          this.mapReady = true;
         }, 100);
       } else {
         this.localBounds = this.initialBounds;
