@@ -40,7 +40,7 @@
     </v-snackbar>
 
     <!-- Modal do Termo de Sigilo -->
-    <TermoSigiloModal
+    <PrivacyAgreementModal
       v-model="showTermoModal"
       @accepted="onTermoAccepted"
       @rejected="onTermoRejected"
@@ -121,7 +121,7 @@ import { mapState, mapGetters, mapMutations } from 'vuex';
 import Map from '@/components/map/Map';
 import BaseAlert from '@/components/base/BaseAlert';
 import AnalyticsPCDashboard from '@/components/analytical-cmr/AnalyticsPriorConsolidDashboard';
-import TermoSigiloModal from '@/components/TermoSigiloModal';
+import PrivacyAgreementModal from '@/components/privacy-agreement/PrivacyAgreementModal';
 
 export default {
   name: 'App',
@@ -130,7 +130,7 @@ export default {
     Map,
     BaseAlert,
     AnalyticsPCDashboard,
-    TermoSigiloModal,
+    PrivacyAgreementModal,
   },
 
   data: () => ({
