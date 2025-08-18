@@ -99,7 +99,7 @@ export const mutations = {
 };
 
 export const actions = {
-   async getDataTableDeter({ commit, state, rootState }) {
+  async getDataTableDeter({ commit, state, rootState }) {
 
 
   commit('setLoadingTable', true);
