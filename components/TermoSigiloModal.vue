@@ -157,7 +157,7 @@ export default {
   data() {
     return {
       termoTitle: 'Termo de Sigilo e Confidencialidade',
-      termoText: this.getTermoText(),
+      termoText: '',
       loading: false,
       accepting: false,
       rejecting: false,
@@ -182,28 +182,26 @@ export default {
     },
   },
 
+  async mounted() {
+    await this.loadTermoFromStore();
+  },
+
   methods: {
     /**
-     * Returns the hardcoded confidentiality agreement text
+     * Loads confidentiality agreement text from store
      */
-    getTermoText() {
-      return `Para utilizar o serviço do Centro de Monitoramento Remoto da Fundação Nacional do Índio o servidor deve ler e concordar com o Termo de Serviço:
-
-1. Cada servidor designado poderá criar apenas uma conta, de uso pessoal e intransferível. É expressamente proibida a utilização por mais de uma pessoa, empréstimo, divulgação, cessão ou qualquer forma de transferência de conta, NOME DE USUÁRIO e SENHA DE ACESSO.
-
-2. O SERVIDOR se compromete a notificar o CMR imediatamente, mediante envio de correio eletrônico ao endereço "cmr@funai.gov.br", sempre que tiver ciência de qualquer uso não autorizado de seu NOME DE USUÁRIO, e-mail e/ou SENHA DE ACESSO.
-
-3. O SERVIDOR assume o compromisso de manter confidencialidade e sigilo sobre todas as informações técnicas, científicas, metodológicas, processos e observações apresentadas e discutidas no âmbito do Centro de Monitoramento Remoto da Fundação Nacional do Índio.
-
-4. As informações e dados disponibilizados no sistema são de propriedade da FUNAI e são fornecidos exclusivamente para fins de trabalho oficial.
-
-5. É vedado o uso das informações para fins comerciais, pessoais ou qualquer outro propósito que não seja relacionado às atividades oficiais da FUNAI.
-
-6. O descumprimento deste termo pode resultar em medidas disciplinares e/ou legais conforme a legislação vigente.
-
-7. O acesso às informações está condicionado ao cumprimento integral dos termos aqui estabelecidos e à legislação vigente sobre proteção de dados e informações públicas.
-
-8. Este termo entra em vigor na data de sua aceitação e permanece válido enquanto o usuário mantiver acesso ao sistema.`;
+    async loadTermoFromStore() {
+      try {
+        this.loading = true;
+        const termoData = await this.$store.dispatch('termoSigilo/loadTermoText');
+        this.termoText = termoData.text;
+        this.termoTitle = termoData.title;
+      } catch (error) {
+        console.error('Error loading agreement text:', error);
+        this.error = 'Error loading agreement text.';
+      } finally {
+        this.loading = false;
+      }
     },
 
     /**
