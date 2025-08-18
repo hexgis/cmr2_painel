@@ -1,6 +1,6 @@
 // store/termoSigilo.js
 export const state = () => ({
-  hasAccepted: null, // null = não verificado, true = aceito, false = não aceito
+  hasAccepted: null, // null = not selected, true = accepted, false = not accepted
   isChecking: false,
   lastCheck: null,
   checkInterval: 5 * 60 * 1000,
@@ -64,9 +64,8 @@ export const actions = {
       return state.hasAccepted;
     }
 
-    // Se não precisa verificar, retornar estado atual
+    // If no need to check, return current state
     if (!getters.needsCheck) {
-      console.log('Não precisa verificar termo, usando cache');
       return state.hasAccepted;
     }
 
@@ -125,7 +124,7 @@ export const actions = {
   async acceptTermo({ commit }, { version }) {
     try {
       const response = await this.$axios.post('/user/termo-sigilo/accept/', {
-        accepted: true, // Campo obrigatório
+        accepted: true,
         version: version || '2.0',
       });
       commit('SET_HAS_ACCEPTED', true);

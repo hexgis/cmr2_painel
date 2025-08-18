@@ -26,18 +26,12 @@
       <v-card-text class="pa-6">
         <!-- Alert -->
         <v-alert
-          type="warning"
+          type="error"
           outlined
           prominent
           class="mb-4 important-alert"
         >
           <div class="text-h6 font-weight-bold mb-2">
-            <v-icon
-              left
-              color="warning"
-            >
-              mdi-alert-circle
-            </v-icon>
             Atenção
           </div>
           <div class="text-body-1">
@@ -96,6 +90,7 @@
                 outlined
                 color="error"
                 :loading="rejecting"
+                :disabled="isProcessing"
                 @click="rejectTermo"
               >
                 <v-icon left>
@@ -108,7 +103,7 @@
                 large
                 color="success"
                 :loading="accepting"
-                :disabled="loading"
+                :disabled="isProcessing"
                 @click="acceptTermo"
               >
                 <v-icon left>
@@ -126,7 +121,7 @@
       </v-card-actions>
     </v-card>
 
-    <!-- Modal de Confirmação para Recusa -->
+    <!-- Confirmation Modal for Rejection -->
     <ConfirmModal
       v-model="showConfirmReject"
       title="Confirmar Recusa"
@@ -162,23 +157,7 @@ export default {
   data() {
     return {
       termoTitle: 'Termo de Sigilo e Confidencialidade',
-      termoText: `Para utilizar o serviço do Centro de Monitoramento Remoto da Fundação Nacional do Índio o servidor deve ler e concordar com o Termo de Serviço:
-
-1. Cada servidor designado poderá criar apenas uma conta, de uso pessoal e intransferível. É expressamente proibida a utilização por mais de uma pessoa, empréstimo, divulgação, cessão ou qualquer forma de transferência de conta, NOME DE USUÁRIO e SENHA DE ACESSO.
-
-2. O SERVIDOR se compromete a notificar o CMR imediatamente, mediante envio de correio eletrônico ao endereço "cmr@funai.gov.br", sempre que tiver ciência de qualquer uso não autorizado de seu NOME DE USUÁRIO, e-mail e/ou SENHA DE ACESSO.
-
-3. O SERVIDOR assume o compromisso de manter confidencialidade e sigilo sobre todas as informações técnicas, científicas, metodológicas, processos e observações apresentadas e discutidas no âmbito do Centro de Monitoramento Remoto da Fundação Nacional do Índio.
-
-4. As informações e dados disponibilizados no sistema são de propriedade da FUNAI e são fornecidos exclusivamente para fins de trabalho oficial.
-
-5. É vedado o uso das informações para fins comerciais, pessoais ou qualquer outro propósito que não seja relacionado às atividades oficiais da FUNAI.
-
-6. O descumprimento deste termo pode resultar em medidas disciplinares e/ou legais conforme a legislação vigente.
-
-7. O acesso às informações está condicionado ao cumprimento integral dos termos aqui estabelecidos e à legislação vigente sobre proteção de dados e informações públicas.
-
-8. Este termo entra em vigor na data de sua aceitação e permanece válido enquanto o usuário mantiver acesso ao sistema.`,
+      termoText: this.getTermoText(),
       loading: false,
       accepting: false,
       rejecting: false,
@@ -197,12 +176,42 @@ export default {
         this.$emit('input', value);
       },
     },
+
+    isProcessing() {
+      return this.accepting || this.rejecting;
+    },
   },
 
   methods: {
+    /**
+     * Returns the hardcoded confidentiality agreement text
+     */
+    getTermoText() {
+      return `Para utilizar o serviço do Centro de Monitoramento Remoto da Fundação Nacional do Índio o servidor deve ler e concordar com o Termo de Serviço:
+
+1. Cada servidor designado poderá criar apenas uma conta, de uso pessoal e intransferível. É expressamente proibida a utilização por mais de uma pessoa, empréstimo, divulgação, cessão ou qualquer forma de transferência de conta, NOME DE USUÁRIO e SENHA DE ACESSO.
+
+2. O SERVIDOR se compromete a notificar o CMR imediatamente, mediante envio de correio eletrônico ao endereço "cmr@funai.gov.br", sempre que tiver ciência de qualquer uso não autorizado de seu NOME DE USUÁRIO, e-mail e/ou SENHA DE ACESSO.
+
+3. O SERVIDOR assume o compromisso de manter confidencialidade e sigilo sobre todas as informações técnicas, científicas, metodológicas, processos e observações apresentadas e discutidas no âmbito do Centro de Monitoramento Remoto da Fundação Nacional do Índio.
+
+4. As informações e dados disponibilizados no sistema são de propriedade da FUNAI e são fornecidos exclusivamente para fins de trabalho oficial.
+
+5. É vedado o uso das informações para fins comerciais, pessoais ou qualquer outro propósito que não seja relacionado às atividades oficiais da FUNAI.
+
+6. O descumprimento deste termo pode resultar em medidas disciplinares e/ou legais conforme a legislação vigente.
+
+7. O acesso às informações está condicionado ao cumprimento integral dos termos aqui estabelecidos e à legislação vigente sobre proteção de dados e informações públicas.
+
+8. Este termo entra em vigor na data de sua aceitação e permanece válido enquanto o usuário mantiver acesso ao sistema.`;
+    },
+
+    /**
+     * Processes the acceptance of the confidentiality agreement
+     */
     async acceptTermo() {
-      if (this.accepting) {
-        console.warn('Já está processando aceitação, ignorando...');
+      if (this.isProcessing) {
+        console.warn('Operation already in progress, ignoring...');
         return;
       }
 
@@ -210,44 +219,37 @@ export default {
         this.accepting = true;
         this.error = null;
 
-        console.log('Aceitando termo de sigilo...');
-
         await this.$store.dispatch('termoSigilo/acceptTermo', {
           version: this.version,
         });
 
-        console.log('Termo aceito com sucesso');
-
         this.showDialog = false;
         this.$emit('accepted');
       } catch (error) {
-        console.error('Erro ao aceitar termo:', error);
-
-        let errorMessage = 'Erro ao processar a aceitação.';
-
-        if (error.response) {
-          if (error.response.status === 401) {
-            errorMessage = 'Sessão expirada. Faça login novamente.';
-          } else if (error.response.data && error.response.data.message) {
-            errorMessage = error.response.data.message;
-          }
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-
-        this.error = errorMessage;
+        console.error('Error accepting agreement:', error);
+        this.error = this.formatErrorMessage(error);
       } finally {
         this.accepting = false;
       }
     },
 
-    async rejectTermo() {
+    /**
+     * Initiates the agreement rejection process
+     */
+    rejectTermo() {
+      if (this.isProcessing) {
+        console.warn('Operation already in progress, ignoring...');
+        return;
+      }
       this.showConfirmReject = true;
     },
 
+    /**
+     * Confirms the agreement rejection and performs logout
+     */
     async confirmReject() {
-      if (this.rejecting) {
-        console.warn('Já está processando rejeição, ignorando...');
+      if (this.isProcessing) {
+        console.warn('Operation already in progress, ignoring...');
         return;
       }
 
@@ -256,80 +258,108 @@ export default {
         this.error = null;
         this.showConfirmReject = false;
 
-        console.log('Rejeitando termo de sigilo...');
+        console.log('Rejecting confidentiality agreement...');
 
         await this.$store.dispatch('termoSigilo/rejectTermo');
 
-        console.log('Termo rejeitado com sucesso, iniciando logout...');
+        console.log('Agreement rejected successfully, starting logout...');
 
         this.showDialog = false;
-
         this.$emit('rejected');
 
-        this.$store.dispatch('termoSigilo/reset');
-
-        if (process.client) {
-          try {
-            localStorage.removeItem('termo-aceito');
-            localStorage.clear();
-            sessionStorage.clear();
-          } catch (storageError) {
-            console.warn('Erro ao limpar storage:', storageError);
-          }
-        }
-
-        // Force logout
-        try {
-          if (this.$auth && this.$auth.logout) {
-            await this.$auth.logout();
-          }
-        } catch (logoutError) {
-          console.warn('Erro no logout padrão:', logoutError);
-        }
-
-        // redirect to landing page
-        if (process.client) {
-          try {
-            await this.$router.push('/');
-          } catch (routerError) {
-            console.warn('Erro no router:', routerError);
-            window.location.replace('/');
-          }
-
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 1500);
-        }
+        await this.performLogout();
       } catch (error) {
-        console.error('Erro ao recusar termo:', error);
+        console.error('Error rejecting agreement:', error);
+        this.error = 'Error processing rejection.';
 
-        let errorMessage = 'Erro ao processar a recusa.';
-
-        if (error.response && error.response.data && error.response.data.message) {
-          errorMessage = error.response.data.message;
-        }
-
-        this.error = errorMessage;
-
-        if (process.client) {
-          try {
-            localStorage.clear();
-            sessionStorage.clear();
-          } catch (storageError) {
-            console.warn('Erro ao limpar storage após falha:', storageError);
-          }
-
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 2000);
-        }
+        await this.performLogout();
       } finally {
         this.rejecting = false;
       }
     },
 
+    /**
+     * Cancels the rejection confirmation
+     */
     cancelReject() {
       this.showConfirmReject = false;
+    },
+
+    /**
+     * Formats error messages consistently
+     */
+    formatErrorMessage(error) {
+      if (error.response && error.response.status === 401) {
+        return 'Session expired. Please log in again.';
+      }
+
+      if (error.response && error.response.data && error.response.data.message) {
+        return error.response.data.message;
+      }
+
+      if (error.message) {
+        return error.message;
+      }
+
+      return 'Unexpected error. Please try again.';
+    },
+
+    /**
+     * Executes the complete logout process
+     */
+    async performLogout() {
+      this.$store.dispatch('termoSigilo/reset');
+
+      if (process.client) {
+        this.clearLocalStorage();
+      }
+
+      await this.executeAuthLogout();
+
+      this.redirectToHome();
+    },
+
+    /**
+     * Clears all localStorage and sessionStorage data
+     */
+    clearLocalStorage() {
+      try {
+        localStorage.removeItem('termo-aceito');
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch (storageError) {
+        console.warn('Error clearing storage:', storageError);
+      }
+    },
+
+    /**
+     * Executes logout via authentication system
+     */
+    async executeAuthLogout() {
+      try {
+        if (this.$auth && this.$auth.logout) {
+          await this.$auth.logout();
+        }
+      } catch (logoutError) {
+        console.warn('Logout error:', logoutError);
+      }
+    },
+
+    /**
+     * Redirects to home page with fallbacks
+     */
+    redirectToHome() {
+      if (!process.client) return;
+
+      this.$router.push('/').catch((routerError) => {
+        console.warn('Router error:', routerError);
+
+        window.location.replace('/');
+      });
+
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
     },
   },
 };
@@ -354,8 +384,8 @@ export default {
 }
 
 .important-alert {
-  border-left: 4px solid #ff9800 !important;
-  background-color: #fff8e1 !important;
+  border-left: 4px solid #d92b3f !important;
+  background-color: #fafafa !important;
 }
 
 .termo-content {

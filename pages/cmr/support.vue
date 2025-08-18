@@ -99,29 +99,17 @@ export default {
   }),
 
  async fetch() {
-  console.log('🔍 [Support] Iniciando fetch de camadas...');
-  console.log('🔍 [Support] Route path:', this.$route.path);
-  console.log('🔍 [Support] Store state antes:', {
-    base: this.supportCategoryGroupsBase,
-    antropismo: this.supportCategoryGroupsAntropismo
-  });
 
   try {
     if (this.supportCategoryGroupsBase
       && Object.keys(this.supportCategoryGroupsBase).length === 0) {
-      console.log('🔍 [Support] Buscando categorias base...');
       await this.$store.dispatch('supportLayers/getCategoryGroupsBase');
     }
     if (this.supportCategoryGroupsAntropismo
       && Object.keys(this.supportCategoryGroupsAntropismo).length === 0) {
-      console.log('🔍 [Support] Buscando categorias antropismo...');
       await this.$store.dispatch('supportLayers/getCategoryGroupsAntropismo');
     }
 
-    console.log('🔍 [Support] Store state depois:', {
-      base: this.supportCategoryGroupsBase,
-      antropismo: this.supportCategoryGroupsAntropismo
-    });
   } catch (error) {
     console.error('❌ [Support] Erro ao buscar camadas:', error);
     this.$nuxt.error({ statusCode: error.response?.status || 500, message: error.message });
