@@ -33,6 +33,4 @@ export default async function ({
   } else if (baseName === 'login') {
     return redirect(localePath('/cmr'));
   }
-  // Removida a verificação do termo de sigilo do middleware
-  // A verificação será feita apenas no layout principal usando o store Vuex
 }

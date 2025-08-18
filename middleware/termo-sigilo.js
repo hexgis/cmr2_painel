@@ -1,38 +1,38 @@
 /**
- * Middleware para verificar se o usuário aceitou o termo de sigilo
+   * Middleware to verify if the user has accepted the confidentiality agreement
+   *
+   * Features:
+   * - Checks if the user is authenticated before proceeding
+   * - Defines routes exempt from agreement verification (/confidentiality-agreement, /login, /logout)
+   * - Queries the acceptance status of the agreement via API (/user/confidentiality-agreement/status/)
+   * - Redirects to /confidentiality-agreement if the user has not accepted
+   * - In case of an error during verification, redirects to the agreement for safety
  */
-export default async function ({
+export default async function termoSigiloMiddleware({
   $axios, redirect, route, store,
 }) {
-  // Verificar se o usuário está autenticado
   if (!store.state.auth.loggedIn) {
     return;
   }
 
-  // Rotas que não precisam de verificação do termo
   const exemptRoutes = [
     '/termo-sigilo',
     '/login',
     '/logout',
-    '/login',
   ];
 
-  // Se a rota atual está isenta, não verificar
-  if (exemptRoutes.some((route) => route.path === route.path)) {
+  if (exemptRoutes.some((exemptRoute) => exemptRoute === route.path)) {
     return;
   }
 
   try {
-    // Verificar se o usuário já aceitou o termo de sigilo
     const response = await $axios.get('/user/termo-sigilo/status/');
 
     if (!response.data.has_accepted) {
-      // Se não aceitou, redirecionar para a página do termo
-      return redirect('/termo-sigilo');
+      redirect('/termo-sigilo');
     }
   } catch (error) {
     console.error('Erro ao verificar status do termo de sigilo:', error);
-    // Em caso de erro, redirecionar para o termo por segurança
-    return redirect('/termo-sigilo');
+    redirect('/termo-sigilo');
   }
 }
