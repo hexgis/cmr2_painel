@@ -44,7 +44,6 @@
       v-model="showTermoModal"
       @accepted="onTermoAccepted"
       @rejected="onTermoRejected"
-      @closed-outside="onTermoClosedOutside"
     />
 
     <div>
@@ -140,7 +139,7 @@ export default {
     timeout: 3000,
     windowWidth: 0,
     showTermoModal: false,
-    termoChecked: false, // Flag para evitar verificações desnecessárias
+    termoChecked: false,
   }),
 
   async fetch() {
@@ -148,8 +147,6 @@ export default {
       await this.$store.dispatch('userProfile/getUserData');
     }
     await this.$store.dispatch('map/getGeoserverConfig');
-
-    // Removida a verificação do termo aqui - será feita apenas no created()
   },
 
   head: () => ({
@@ -158,9 +155,7 @@ export default {
 
   async created() {
     this.$store.dispatch('supportLayers/getCategoryGroupsBase');
-    
-    // Apenas verificar termo no carregamento inicial se estiver logado
-    // e não tiver sido verificado nos últimos 5 minutos
+
     if (this.isLoggedIn) {
       const needsCheck = this.$store.getters['termoSigilo/needsCheck'];
       if (needsCheck) {
@@ -198,19 +193,17 @@ export default {
   },
 
   watch: {
-    // Só verificar termo quando o usuário fizer login (não a cada mudança)
+    // verify term only when the user logs in (not on every change)
     isLoggedIn(newVal, oldVal) {
       if (newVal && !oldVal) {
-        // Usuário acabou de fazer login
         console.log('Usuário fez login - verificando termo');
-        this.termoChecked = false; // Reset da flag
+        this.termoChecked = false;
         this.checkTermoSigilo();
       } else if (!newVal && oldVal) {
-        // Usuário fez logout - limpar estado
         console.log('Usuário fez logout - limpando estado do termo');
         this.$store.dispatch('termoSigilo/reset');
         this.showTermoModal = false;
-        this.termoChecked = false; // Reset da flag
+        this.termoChecked = false;
       }
     },
 
@@ -252,15 +245,13 @@ export default {
         return;
       }
 
-      // Se já foi verificado nesta sessão de layout, pular
       if (this.termoChecked) {
         console.log('Termo já verificado nesta sessão, pulando...');
         return;
       }
 
-      // Usar getter para verificar se realmente precisa fazer a verificação
       const needsCheck = this.$store.getters['termoSigilo/needsCheck'];
-      
+
       if (!needsCheck) {
         console.log('Termo já verificado recentemente no store, pulando verificação');
         this.termoChecked = true;
@@ -269,16 +260,15 @@ export default {
 
       try {
         console.log('Verificando status do termo de sigilo...');
-        this.termoChecked = true; // Marcar como verificado ANTES da requisição
-        
+        this.termoChecked = true;
+
         const hasAccepted = await this.$store.dispatch('termoSigilo/checkStatus');
-        
+
         if (!hasAccepted) {
           this.showTermoModal = true;
         }
       } catch (error) {
         console.error('Erro ao verificar termo de sigilo:', error);
-        // Em caso de erro, mostrar o modal por segurança apenas se não foi verificado antes
         if (this.$store.state.termoSigilo.hasAccepted === null) {
           this.showTermoModal = true;
         }
@@ -287,19 +277,12 @@ export default {
 
     onTermoAccepted() {
       this.showTermoModal = false;
-      // Atualiza o estado no store
       this.$store.dispatch('termoSigilo/markAsAccepted');
     },
 
     onTermoRejected() {
       this.showTermoModal = false;
-      // O modal já cuida do logout, apenas limpa o estado
       this.$store.dispatch('termoSigilo/markAsRejected');
-    },
-
-    onTermoClosedOutside() {
-      // Modal foi fechado clicando fora - mostra novamente
-      this.showTermoModal = true;
     },
 
     getLeafletControlRef() {

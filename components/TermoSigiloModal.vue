@@ -3,7 +3,7 @@
     v-model="showDialog"
     max-width="800px"
     overlay-opacity="0.8"
-    @click:outside="onClickOutside"
+    persistent
   >
     <v-card class="termo-modal">
       <!-- Header -->
@@ -24,7 +24,7 @@
 
       <!-- Content -->
       <v-card-text class="pa-6">
-        <!-- Alert melhorado -->
+        <!-- Alert -->
         <v-alert
           type="warning"
           outlined
@@ -161,13 +161,29 @@ export default {
 
   data() {
     return {
-      termoTitle: '',
-      termoText: '',
-      loading: true,
+      termoTitle: 'Termo de Sigilo e Confidencialidade',
+      termoText: `Para utilizar o serviço do Centro de Monitoramento Remoto da Fundação Nacional do Índio o servidor deve ler e concordar com o Termo de Serviço:
+
+1. Cada servidor designado poderá criar apenas uma conta, de uso pessoal e intransferível. É expressamente proibida a utilização por mais de uma pessoa, empréstimo, divulgação, cessão ou qualquer forma de transferência de conta, NOME DE USUÁRIO e SENHA DE ACESSO.
+
+2. O SERVIDOR se compromete a notificar o CMR imediatamente, mediante envio de correio eletrônico ao endereço "cmr@funai.gov.br", sempre que tiver ciência de qualquer uso não autorizado de seu NOME DE USUÁRIO, e-mail e/ou SENHA DE ACESSO.
+
+3. O SERVIDOR assume o compromisso de manter confidencialidade e sigilo sobre todas as informações técnicas, científicas, metodológicas, processos e observações apresentadas e discutidas no âmbito do Centro de Monitoramento Remoto da Fundação Nacional do Índio.
+
+4. As informações e dados disponibilizados no sistema são de propriedade da FUNAI e são fornecidos exclusivamente para fins de trabalho oficial.
+
+5. É vedado o uso das informações para fins comerciais, pessoais ou qualquer outro propósito que não seja relacionado às atividades oficiais da FUNAI.
+
+6. O descumprimento deste termo pode resultar em medidas disciplinares e/ou legais conforme a legislação vigente.
+
+7. O acesso às informações está condicionado ao cumprimento integral dos termos aqui estabelecidos e à legislação vigente sobre proteção de dados e informações públicas.
+
+8. Este termo entra em vigor na data de sua aceitação e permanece válido enquanto o usuário mantiver acesso ao sistema.`,
+      loading: false,
       accepting: false,
       rejecting: false,
       error: null,
-      version: '1.0',
+      version: '2.0',
       showConfirmReject: false,
     };
   },
@@ -183,114 +199,129 @@ export default {
     },
   },
 
-  watch: {
-    value(newVal) {
-      if (newVal) {
-        this.loadTermoText();
-      }
-    },
-  },
-
   methods: {
-    async loadTermoText() {
-      try {
-        this.loading = true;
-        this.error = null;
-
-        // Usa o store Vuex para carregar o texto
-        const termoData = await this.$store.dispatch('termoSigilo/loadTermoText');
-
-        this.termoTitle = termoData.title;
-        this.termoText = termoData.text;
-        this.version = termoData.version;
-      } catch (error) {
-        console.error('Erro ao carregar termo:', error);
-        this.error = 'Erro ao carregar o termo. Tente novamente.';
-      } finally {
-        this.loading = false;
-      }
-    },
-
     async acceptTermo() {
+      if (this.accepting) {
+        console.warn('Já está processando aceitação, ignorando...');
+        return;
+      }
+
       try {
         this.accepting = true;
         this.error = null;
 
-        // Usa o store Vuex para aceitar o termo
+        console.log('Aceitando termo de sigilo...');
+
         await this.$store.dispatch('termoSigilo/acceptTermo', {
           version: this.version,
         });
+
+        console.log('Termo aceito com sucesso');
 
         this.showDialog = false;
         this.$emit('accepted');
       } catch (error) {
         console.error('Erro ao aceitar termo:', error);
-        this.error = (error.response && error.response.data && error.response.data.message)
-                    || 'Erro ao processar a aceitação.';
+
+        let errorMessage = 'Erro ao processar a aceitação.';
+
+        if (error.response) {
+          if (error.response.status === 401) {
+            errorMessage = 'Sessão expirada. Faça login novamente.';
+          } else if (error.response.data && error.response.data.message) {
+            errorMessage = error.response.data.message;
+          }
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        this.error = errorMessage;
       } finally {
         this.accepting = false;
       }
     },
 
     async rejectTermo() {
-      // Mostrar modal de confirmação
       this.showConfirmReject = true;
     },
 
     async confirmReject() {
+      if (this.rejecting) {
+        console.warn('Já está processando rejeição, ignorando...');
+        return;
+      }
+
       try {
         this.rejecting = true;
         this.error = null;
         this.showConfirmReject = false;
 
-        // Usa o store Vuex para rejeitar o termo
+        console.log('Rejeitando termo de sigilo...');
+
         await this.$store.dispatch('termoSigilo/rejectTermo');
 
-        // Close modal first
+        console.log('Termo rejeitado com sucesso, iniciando logout...');
+
         this.showDialog = false;
 
-        // Emit rejected event
         this.$emit('rejected');
 
-        // Clear store state
         this.$store.dispatch('termoSigilo/reset');
 
-        // Clear any stored data first
         if (process.client) {
-          localStorage.removeItem('termo-aceito');
-          localStorage.clear(); // Clear all localStorage
-          sessionStorage.clear(); // Clear all sessionStorage
+          try {
+            localStorage.removeItem('termo-aceito');
+            localStorage.clear();
+            sessionStorage.clear();
+          } catch (storageError) {
+            console.warn('Erro ao limpar storage:', storageError);
+          }
         }
 
         // Force logout
         try {
-          await this.$auth.logout();
+          if (this.$auth && this.$auth.logout) {
+            await this.$auth.logout();
+          }
         } catch (logoutError) {
           console.warn('Erro no logout padrão:', logoutError);
         }
 
-        // Force redirect to login page
+        // redirect to landing page
         if (process.client) {
-          // Use multiple methods to ensure redirect
-          this.$router.push('/auth/login').catch(() => {
-            window.location.replace('/auth/login');
-          });
+          try {
+            await this.$router.push('/');
+          } catch (routerError) {
+            console.warn('Erro no router:', routerError);
+            window.location.replace('/');
+          }
 
-          // Fallback redirect after a short delay
           setTimeout(() => {
-            window.location.href = '/auth/login';
-          }, 1000);
+            window.location.href = '/';
+          }, 1500);
         }
       } catch (error) {
         console.error('Erro ao recusar termo:', error);
-        this.error = (error.response && error.response.data && error.response.data.message)
-                    || 'Erro ao processar a recusa.';
 
-        // Even if there's an error, force logout and redirect
+        let errorMessage = 'Erro ao processar a recusa.';
+
+        if (error.response && error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
+        }
+
+        this.error = errorMessage;
+
         if (process.client) {
-          localStorage.clear();
-          sessionStorage.clear();
-          window.location.href = '/auth/login';
+          try {
+            localStorage.clear();
+            sessionStorage.clear();
+          } catch (storageError) {
+            console.warn('Erro ao limpar storage após falha:', storageError);
+          }
+
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 2000);
         }
       } finally {
         this.rejecting = false;
@@ -299,11 +330,6 @@ export default {
 
     cancelReject() {
       this.showConfirmReject = false;
-    },
-
-    onClickOutside() {
-      // Permite fechar clicando fora, mas emite evento para reabrir quando necessário
-      this.$emit('closed-outside');
     },
   },
 };

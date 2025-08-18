@@ -14,7 +14,7 @@ export default async function ({
     '/termo-sigilo',
     '/login',
     '/logout',
-    '/auth/login',
+    '/login',
   ];
 
   // Se a rota atual está isenta, não verificar
