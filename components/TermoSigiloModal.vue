@@ -17,7 +17,7 @@
             mdi-shield-lock
           </v-icon>
           <div class="text-h5 font-weight-bold text-center w-100">
-            {{ termoTitle || 'Termo de Sigilo e Confidencialidade' }}
+            {{ agreementTitle || 'Termo de Sigilo e Confidencialidade' }}
           </div>
         </div>
       </v-card-title>
@@ -61,7 +61,7 @@
             class="termo-text-container"
           >
             <div class="termo-text">
-              {{ termoText }}
+              {{ agreementText }}
             </div>
           </div>
         </div>
@@ -91,7 +91,7 @@
                 color="error"
                 :loading="rejecting"
                 :disabled="isProcessing"
-                @click="rejectTermo"
+                @click="rejectAgreement"
               >
                 <v-icon left>
                   mdi-close
@@ -104,7 +104,7 @@
                 color="success"
                 :loading="accepting"
                 :disabled="isProcessing"
-                @click="acceptTermo"
+                @click="acceptAgreement"
               >
                 <v-icon left>
                   mdi-check
@@ -141,7 +141,7 @@
 import ConfirmModal from '@/components/base/ConfirmModal.vue';
 
 export default {
-  name: 'TermoSigiloModal',
+  name: 'PrivacyAgreementModal',
 
   components: {
     ConfirmModal,
@@ -156,8 +156,8 @@ export default {
 
   data() {
     return {
-      termoTitle: 'Termo de Sigilo e Confidencialidade',
-      termoText: '',
+      agreementTitle: 'Termo de Sigilo e Confidencialidade',
+      agreementText: '',
       loading: false,
       accepting: false,
       rejecting: false,
@@ -183,19 +183,19 @@ export default {
   },
 
   async mounted() {
-    await this.loadTermoFromStore();
+    await this.loadAgreementFromStore();
   },
 
   methods: {
     /**
      * Loads confidentiality agreement text from store
      */
-    async loadTermoFromStore() {
+    async loadAgreementFromStore() {
       try {
         this.loading = true;
         const termoData = await this.$store.dispatch('termoSigilo/loadTermoText');
-        this.termoText = termoData.text;
-        this.termoTitle = termoData.title;
+        this.agreementText = termoData.text;
+        this.agreementTitle = termoData.title;
       } catch (error) {
         console.error('Error loading agreement text:', error);
         this.error = 'Error loading agreement text.';
@@ -207,7 +207,7 @@ export default {
     /**
      * Processes the acceptance of the confidentiality agreement
      */
-    async acceptTermo() {
+    async acceptAgreement() {
       if (this.isProcessing) {
         console.warn('Operation already in progress, ignoring...');
         return;
@@ -234,7 +234,7 @@ export default {
     /**
      * Initiates the agreement rejection process
      */
-    rejectTermo() {
+    rejectAgreement() {
       if (this.isProcessing) {
         console.warn('Operation already in progress, ignoring...');
         return;
