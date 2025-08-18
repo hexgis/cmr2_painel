@@ -203,61 +203,23 @@ export default {
   },
 
   mounted() {
-    this.initializeLayer();
+    if (this.layer.active_on_init) {
+      if (this.layer.layer_type === 'heatmap') {
+        this.getHeatMapLayer({
+          id: this.layer.id,
+          filters: this.defaultFilters,
+        });
+      }
+      if (this.layer.layer_type === 'wms') {
+        this.setLayerFilters({
+          id: this.layer.id,
+          filters: this.defaultFilters,
+        });
+      }
+    }
   },
 
   methods: {
-    async initializeLayer() {
-      await this.$nextTick();
-
-      if (this.layer && this.layer.active_on_init) {
-        try {
-          await this.delay(200);
-
-          if (this.layer.layer_type === 'heatmap') {
-            await this.getHeatMapLayer({
-              id: this.layer.id,
-              filters: this.defaultFilters,
-            });
-          } else {
-            if (this.layer.layer_type === 'wms') {
-              this.setLayerFilters({
-                id: this.layer.id,
-                filters: this.defaultFilters,
-              });
-            }
-
-            const delay = 300 + (this.layer.id * 50);
-            await this.delay(delay);
-
-            if (this.layer && this.layer.id && !this.$isDestroyed) {
-              this.safeToggleVisibility();
-            }
-          }
-        } catch (error) {
-          console.error(`Erro ao inicializar camada ${this.layer.id}:`, error);
-        }
-      }
-    },
-
-    safeToggleVisibility() {
-      try {
-        if (this.layer && this.layer.id) {
-          this.toggleLayerVisibility({
-            id: this.layer.id,
-            visible: true,
-          });
-        }
-      } catch (error) {
-        console.error(`Erro ao alternar visibilidade da camada ${this.layer.id}:`, error);
-      }
-    },
-
-    delay(ms) {
-      return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-      });
-    },
     createHeatLayer() {
       const areas = this.layer.data.map((data) => data.area_ha);
       const maxArea = Math.max.apply(null, areas);

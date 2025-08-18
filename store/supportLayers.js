@@ -104,7 +104,7 @@ export const mutations = {
       group.layers = [];
 
       layers.forEach((layer) => {
-        layer.visible = false;
+        layer.visible = layer.active_on_init;
 
         if (layer.layer_type === 'wms' && layer.wms.default_opacity) {
           layer.opacity = layer.wms.default_opacity;
@@ -143,9 +143,7 @@ export const mutations = {
   },
 
   toggleLayerVisibility(state, { id, visible }) {
-    if (state.supportLayers[id]) {
-      Vue.set(state.supportLayers[id], 'visible', visible);
-    }
+    state.supportLayers[id].visible = visible;
   },
 
   setLayerOpacity(state, { id, opacity }) {
@@ -245,22 +243,6 @@ export const actions = {
       const response = await this.$api.$get('layer/layers-groups/', {
         params,
       });
-
-      if (response) {
-        const indigenousKeys = Object.keys(response).filter((key) => key.toLowerCase().includes('indígena')
-          || key.toLowerCase().includes('indigena')
-          || (response[key].name && response[key].name.toLowerCase().includes('indígena')));
-
-        if (indigenousKeys.length > 0) {
-          indigenousKeys.forEach((key) => {
-            console.log(`  - ${key}:`, response[key]);
-          });
-        } else {
-          Object.entries(response).forEach(([key, value]) => {
-            console.log(`  - ${key}: ${value.name || 'sem nome'}`);
-          });
-        }
-      }
 
       commit('setSupportCategoryGroupsBase', response);
       commit('setshowFeaturesSupportLayers', true);
