@@ -104,7 +104,7 @@ export const mutations = {
       group.layers = [];
 
       layers.forEach((layer) => {
-        layer.visible = false;
+        layer.visible = layer.active_on_init;
 
         if (layer.layer_type === 'wms' && layer.wms.default_opacity) {
           layer.opacity = layer.wms.default_opacity;
@@ -238,6 +238,7 @@ export const actions = {
     const params = {
       category: 1,
     };
+
     try {
       const response = await this.$api.$get('layer/layers-groups/', {
         params,
