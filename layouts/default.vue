@@ -153,20 +153,6 @@ export default {
     title: 'CMR',
   }),
 
-  async created() {
-    this.$store.dispatch('supportLayers/getCategoryGroupsBase');
-
-    if (this.isLoggedIn) {
-      const needsCheck = this.$store.getters['termoSigilo/needsCheck'];
-      if (needsCheck) {
-        console.log('Layout criado - verificando termo de sigilo...');
-        await this.checkTermoSigilo();
-      } else {
-        console.log('Termo já verificado recentemente, pulando...');
-      }
-    }
-  },
-
   computed: {
     layerDrawer: {
       get() {
@@ -196,11 +182,9 @@ export default {
     // verify term only when the user logs in (not on every change)
     isLoggedIn(newVal, oldVal) {
       if (newVal && !oldVal) {
-        console.log('Usuário fez login - verificando termo');
         this.termoChecked = false;
         this.checkTermoSigilo();
       } else if (!newVal && oldVal) {
-        console.log('Usuário fez logout - limpando estado do termo');
         this.$store.dispatch('termoSigilo/reset');
         this.showTermoModal = false;
         this.termoChecked = false;
@@ -214,6 +198,19 @@ export default {
         this.windowWidth = window.innerWidth;
       }
     },
+  },
+
+  async created() {
+    this.$store.dispatch('supportLayers/getCategoryGroupsBase');
+
+    if (this.isLoggedIn) {
+      const needsCheck = this.$store.getters['termoSigilo/needsCheck'];
+      if (needsCheck) {
+        await this.checkTermoSigilo();
+      } else {
+        console.log('Termo já verificado recentemente, pulando...');
+      }
+    }
   },
 
   mounted() {

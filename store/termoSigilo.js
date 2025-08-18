@@ -82,13 +82,10 @@ export const actions = {
 
       return hasAccepted;
     } catch (error) {
-      console.error('Erro ao verificar termo de sigilo:', error);
-      // Em caso de erro, assumir que não aceitou apenas se nunca foi verificado
       if (state.hasAccepted === null) {
         commit('SET_HAS_ACCEPTED', false);
         return false;
       }
-      // Se já tinha um estado, manter o estado anterior
       return state.hasAccepted;
     } finally {
       commit('SET_IS_CHECKING', false);
@@ -97,7 +94,6 @@ export const actions = {
 
   async loadTermoText({ commit, state }) {
     if (state.termoData) {
-      console.log('usando cache do termo');
       return state.termoData;
     }
 
@@ -122,12 +118,7 @@ export const actions = {
 8. Este termo entra em vigor na data de sua aceitação e permanece válido enquanto o usuário mantiver acesso ao sistema.`,
       version: '2.0',
     };
-
-    console.log('[Store] Carregando termo hardcoded do frontend');
-
     commit('SET_TERMO_DATA', termoData);
-    console.log('[Store] Termo carregado e armazenado no cache');
-
     return termoData;
   },
 
