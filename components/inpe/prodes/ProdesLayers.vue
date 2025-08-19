@@ -19,14 +19,14 @@
 
 <script>
 import { mapState, mapGetters } from 'vuex';
-import BaseMetadataPopup from '@/components/base/BaseMetadataPopup';
+
 import BaseAlert from '@/components/base/BaseAlert.vue';
 
 export default {
   name: 'ProdesLayers',
 
   components: {
-    BaseMetadataPopup,
+
     BaseAlert,
   },
 

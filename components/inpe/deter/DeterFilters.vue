@@ -1,7 +1,6 @@
 <template>
   <v-col>
     <v-row>
-      <!-- Pesquisar nesta área -->
       <v-col cols="9" class="pt-0 mt-0">
         <v-checkbox
           v-model="filters.currentView"
@@ -10,8 +9,6 @@
           hide-details
         />
       </v-col>
-
-      <!-- Switch de camada -->
       <v-col cols="3" class="pt-0 mt-0">
         <v-tooltip top>
           <template #activator="{ props }">
@@ -29,8 +26,6 @@
           </span>
         </v-tooltip>
       </v-col>
-
-      <!-- Coordenação Regional -->
       <v-col cols="12">
         <v-combobox
           v-model="filters.cr"
@@ -46,8 +41,6 @@
           outlined
         />
       </v-col>
-
-      <!-- Terras Indígenas -->
       <v-col cols="12">
         <v-slide-y-transition>
           <v-combobox
@@ -65,8 +58,6 @@
           />
         </v-slide-y-transition>
       </v-col>
-
-      <!-- Anos -->
       <v-col cols="6" class="py-0">
         <BaseDateField
           v-model="filters.startDate"
@@ -85,8 +76,6 @@
           :min-date="'2015-01-01'"
         />
       </v-col>
-
-      <!-- Botão Buscar -->
       <v-col cols="12" class="mt-n6">
         <v-btn
           block
@@ -100,8 +89,6 @@
         </v-btn>
       </v-col>
     </v-row>
-
-    <!-- Loading Skeleton -->
     <div v-if="isLoadingFeatures" class="mt-1">
       <v-row no-gutters justify="center">
         <v-col cols="6">
@@ -126,10 +113,7 @@
         </v-row>
       </div>
     </div>
-
-    <!-- Resultados -->
     <v-row v-else-if="showFeaturesDeter && features && features.features && features.features.length > 0" no-gutters align="center" class="mt-3">
-      <!-- Botão Tabela -->
       <v-col cols="12" class="mt-n1 mb-1">
         <v-btn icon small color="accent" :loading="isLoadingTable" @click="showTableDialog(true)">
           <v-tooltip bottom>
@@ -143,8 +127,6 @@
       <v-col cols="12">
         <v-divider />
       </v-col>
-
-      <!-- Totais -->
       <v-col cols="12" class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4">
         <span>{{ $t('total-poligono-label') }}:</span>
         {{ features.features.length }}
@@ -156,8 +138,6 @@
       <v-col cols="12" class="mt-2">
         <v-divider />
       </v-col>
-
-      <!-- Opacidade -->
       <v-row class="mt-0">
         <v-col cols="4" class="grey--text text--darken-2">
           {{ $t('opacity-label') }}
@@ -170,8 +150,6 @@
         <v-divider />
       </v-col>
     </v-row>
-
-    <!-- Diálogo de Tabela -->
     <TableDialog
       :table="tableDialogDeter"
       :headers="dynamicHeaders"
@@ -268,7 +246,6 @@ export default {
             formattedItem[key] = this.formatFieldValue(props[key], key);
           }
         }
-
         return formattedItem;
       });
     },
@@ -305,18 +282,17 @@ export default {
   watch: {
   'filters.currentView'(val) {
     if (val) {
-      this.filters.cr = []; // Limpa as CRs quando o checkbox é marcado
+      this.filters.cr = [];
     }
   },
 
   'filters.cr': {
     handler(val) {
       if (val?.length) {
-        this.filters.currentView = false; // Desmarca o checkbox quando uma CR é selecionada
+        this.filters.currentView = false;
         const arrayCr = val.map((item) => item.co_cr);
         this.populateTiOptions(arrayCr);
       } else {
-        // Limpa as TIs se não houver CRs selecionadas
         this.filters.ti = null;
       }
     },
@@ -362,13 +338,9 @@ export default {
    formatFieldValue(value, field = '') {
   if (value === null || value === undefined) return 'N/A';
   const fieldName = field.toLowerCase();
-
-  // Formatação específica para publish_month (MM/AAAA)
   if (fieldName === 'publish_month' && this.$moment(value).isValid()) {
     return this.$moment(value).format('MM/YYYY');
-  }
-
-  // Formatação para áreas com 3 casas decimais
+  } 
   if (fieldName.includes('areamunkm') || fieldName.includes('areauckm')) {
     const parsed = parseFloat(value);
     if (isNaN(parsed)) return 'N/A';
@@ -378,7 +350,6 @@ export default {
     });
   }
 
-  // Formatação para outras datas (DD/MM/AAAA)
   const isDate =
     typeof value === 'string' &&
     (fieldName.startsWith('dt_') ||
@@ -473,9 +444,7 @@ export default {
         if (!this.features?.features?.length) {
           throw new Error('Nenhum dado disponível para exportar');
         }
-
         const headers = this.dynamicHeaders.map(h => h.text);
-
         const rows = this.features.features.map(feature => {
           const p = feature.properties;
           const row = [
@@ -484,15 +453,12 @@ export default {
             p.view_date ? this.$moment(p.view_date).format('DD/MM/YYYY') : '',
             p.areatotalkm ? (parseFloat(p.areatotalkm) * 100).toString() : ''
           ];
-
           this.dynamicHeaders.slice(4).forEach(header => {
             const value = p[header.value];
             row.push(typeof value === 'string' ? `"${value}"` : (value || ''));
           });
-
           return row.join(',');
         });
-
         const csvContent = [headers.join(','), ...rows].join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');

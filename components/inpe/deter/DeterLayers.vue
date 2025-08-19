@@ -18,15 +18,13 @@
 
 <script>
 import { mapState, mapGetters } from 'vuex';
-import BaseMetadataPopup from '@/components/base/BaseMetadataPopup';
 import BaseAlert from '@/components/base/BaseAlert.vue';
 
 export default {
   name: 'DeterLayers',
 
   components: {
-    BaseMetadataPopup,
-    BaseAlert,
+      BaseAlert,
   },
 
   props: {
@@ -51,13 +49,11 @@ export default {
   watch: {
     features() {
       if (!this.features) {
-        // Estado inicial, não faz nada
         return;
       }
       if (this.features.features && this.features.features.length > 0) {
         this.addFeatures();
       } else if (this.showFeaturesDeter) {
-        // Exibe alerta igual no MonitoringLayers
         this.$store.commit('alert/addAlert', {
           message: this.$t('no-data-message'),
           type: 'info',
