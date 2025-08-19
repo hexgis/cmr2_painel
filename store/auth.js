@@ -59,7 +59,6 @@ export const actions = {
           maxAge: 60 * 60 * 24 * 7,
         });
         dispatch('privacyAgreement/reset', null, { root: true });
-        console.log('Estado do termo de sigilo resetado para novo login');
       });
   },
 

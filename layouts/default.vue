@@ -207,8 +207,6 @@ export default {
       const needsCheck = this.$store.getters['privacyAgreement/needsCheck'];
       if (needsCheck) {
         await this.checkPrivacyAgreement();
-      } else {
-        console.log('Termo já verificado recentemente, pulando...');
       }
     }
   },
@@ -243,20 +241,17 @@ export default {
       }
 
       if (this.privacyAgreementChecked) {
-        console.log('Privacy agreement already checked in this session, skipping...');
         return;
       }
 
       const needsCheck = this.$store.getters['privacyAgreement/needsCheck'];
 
       if (!needsCheck) {
-        console.log('Privacy agreement recently verified in store, skipping verification');
         this.privacyAgreementChecked = true;
         return;
       }
 
       try {
-        console.log('Checking privacy agreement status...');
         this.privacyAgreementChecked = true;
 
         const hasAccepted = await this.$store.dispatch('privacyAgreement/checkStatus');
@@ -265,7 +260,6 @@ export default {
           this.showPrivacyAgreementModal = true;
         }
       } catch (error) {
-        console.error('Error checking privacy agreement:', error);
         if (this.$store.state.privacyAgreement.hasAccepted === null) {
           this.showPrivacyAgreementModal = true;
         }

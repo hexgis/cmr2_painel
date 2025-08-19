@@ -155,7 +155,6 @@ export const actions = {
       const response = await this.$api.$get(
         `dashboard/get-all/?startDate=${startDate}&endDate=${endDate}&location=${location}&type_device=${typeDevice}&browser=${browser}&institution=${state.institutionFilter}`,
       );
-      console.log('dados', response);
 
       if (response) {
         // Filtrar os dados brutos por instituição

@@ -56,7 +56,6 @@ export const getters = {
 export const actions = {
   async checkStatus({ commit, getters, state }) {
     if (state.isChecking) {
-      console.log('Já está verificando termo, aguardando...');
       while (state.isChecking) {
         await new Promise((resolve) => {
           setTimeout(resolve, 100);
@@ -65,20 +64,17 @@ export const actions = {
       return state.hasAccepted;
     }
 
-    // If no need to check, return current state
     if (!getters.needsCheck) {
       return state.hasAccepted;
     }
 
     try {
       commit('SET_IS_CHECKING', true);
-      console.log('Fazendo requisição para verificar termo...');
 
       const response = await this.$axios.get('/user/privacy-agreement/status/');
       const hasAccepted = response.data.has_accepted;
 
       commit('SET_HAS_ACCEPTED', hasAccepted);
-      console.log('Status do termo:', hasAccepted ? 'aceito' : 'não aceito');
 
       return hasAccepted;
     } catch (error) {
