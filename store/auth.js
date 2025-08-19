@@ -58,7 +58,7 @@ export const actions = {
           path: '/',
           maxAge: 60 * 60 * 24 * 7,
         });
-        dispatch('termoSigilo/reset', null, { root: true });
+        dispatch('privacyAgreement/reset', null, { root: true });
         console.log('Estado do termo de sigilo resetado para novo login');
       });
   },
@@ -108,7 +108,7 @@ export const actions = {
       { root: true },
     );
 
-    dispatch('termoSigilo/reset', null, { root: true });
+    dispatch('privacyAgreement/reset', null, { root: true });
 
     this.$router.replace(this.localePath('login'));
   },
@@ -123,12 +123,12 @@ export const actions = {
         if (decoded.exp > Date.now() / 1000) {
           commit('setTokens', { token, refresh });
           this.$api.setHeader('Authorization', `Bearer ${token}`);
-          dispatch('termoSigilo/reset', null, { root: true });
+          dispatch('privacyAgreement/reset', null, { root: true });
         } else {
           decoded = jwtDecode(refresh);
           if (decoded.exp > Date.now() / 1000) {
             commit('setTokens', { token, refresh });
-            dispatch('termoSigilo/reset', null, { root: true });
+            dispatch('privacyAgreement/reset', null, { root: true });
             return dispatch('refreshToken');
           }
         }

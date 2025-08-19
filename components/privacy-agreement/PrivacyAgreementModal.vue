@@ -193,7 +193,7 @@ export default {
     async loadAgreementFromStore() {
       try {
         this.loading = true;
-        const termoData = await this.$store.dispatch('termoSigilo/loadTermoText');
+        const termoData = await this.$store.dispatch('privacyAgreement/loadTermoText');
         this.agreementText = termoData.text;
         this.agreementTitle = termoData.title;
       } catch (error) {
@@ -217,7 +217,7 @@ export default {
         this.accepting = true;
         this.error = null;
 
-        await this.$store.dispatch('termoSigilo/acceptTermo', {
+        await this.$store.dispatch('privacyAgreement/acceptTermo', {
           version: this.version,
         });
 
@@ -258,7 +258,7 @@ export default {
 
         console.log('Rejecting confidentiality agreement...');
 
-        await this.$store.dispatch('termoSigilo/rejectTermo');
+        await this.$store.dispatch('privacyAgreement/rejectTermo');
 
         console.log('Agreement rejected successfully, starting logout...');
 
@@ -306,7 +306,7 @@ export default {
      * Executes the complete logout process
      */
     async performLogout() {
-      this.$store.dispatch('termoSigilo/reset');
+      this.$store.dispatch('privacyAgreement/reset');
 
       if (process.client) {
         this.clearLocalStorage();

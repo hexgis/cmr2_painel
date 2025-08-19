@@ -39,11 +39,11 @@
       </template>
     </v-snackbar>
 
-    <!-- Modal do Termo de Sigilo -->
+    <!-- Privacy Agreement Modal -->
     <PrivacyAgreementModal
-      v-model="showTermoModal"
-      @accepted="onTermoAccepted"
-      @rejected="onTermoRejected"
+      v-model="showPrivacyAgreementModal"
+      @accepted="onPrivacyAgreementAccepted"
+      @rejected="onPrivacyAgreementRejected"
     />
 
     <div>
@@ -138,8 +138,8 @@ export default {
     snackbar: true,
     timeout: 3000,
     windowWidth: 0,
-    showTermoModal: false,
-    termoChecked: false,
+    showPrivacyAgreementModal: false,
+    privacyAgreementChecked: false,
   }),
 
   async fetch() {
@@ -167,8 +167,8 @@ export default {
       return this.user && (this.user.first_name || this.user.last_name);
     },
 
-    isCheckingTermo() {
-      return this.$store.state.termoSigilo && this.$store.state.termoSigilo.isChecking;
+    isCheckingPrivacyAgreement() {
+      return this.$store.state.privacyAgreement && this.$store.state.privacyAgreement.isChecking;
     },
 
     ...mapState('userProfile', ['user', 'showDrawer']),
@@ -182,12 +182,12 @@ export default {
     // verify term only when the user logs in (not on every change)
     isLoggedIn(newVal, oldVal) {
       if (newVal && !oldVal) {
-        this.termoChecked = false;
-        this.checkTermoSigilo();
+        this.privacyAgreementChecked = false;
+        this.checkPrivacyAgreement();
       } else if (!newVal && oldVal) {
-        this.$store.dispatch('termoSigilo/reset');
-        this.showTermoModal = false;
-        this.termoChecked = false;
+        this.$store.dispatch('privacyAgreement/reset');
+        this.showPrivacyAgreementModal = false;
+        this.privacyAgreementChecked = false;
       }
     },
 
@@ -204,9 +204,9 @@ export default {
     this.$store.dispatch('supportLayers/getCategoryGroupsBase');
 
     if (this.isLoggedIn) {
-      const needsCheck = this.$store.getters['termoSigilo/needsCheck'];
+      const needsCheck = this.$store.getters['privacyAgreement/needsCheck'];
       if (needsCheck) {
-        await this.checkTermoSigilo();
+        await this.checkPrivacyAgreement();
       } else {
         console.log('Termo já verificado recentemente, pulando...');
       }
@@ -237,49 +237,49 @@ export default {
   methods: {
     ...mapMutations('userProfile', ['openDrawer', 'closeDrawer']),
 
-    async checkTermoSigilo() {
+    async checkPrivacyAgreement() {
       if (!this.isLoggedIn) {
         return;
       }
 
-      if (this.termoChecked) {
-        console.log('Termo já verificado nesta sessão, pulando...');
+      if (this.privacyAgreementChecked) {
+        console.log('Privacy agreement already checked in this session, skipping...');
         return;
       }
 
-      const needsCheck = this.$store.getters['termoSigilo/needsCheck'];
+      const needsCheck = this.$store.getters['privacyAgreement/needsCheck'];
 
       if (!needsCheck) {
-        console.log('Termo já verificado recentemente no store, pulando verificação');
-        this.termoChecked = true;
+        console.log('Privacy agreement recently verified in store, skipping verification');
+        this.privacyAgreementChecked = true;
         return;
       }
 
       try {
-        console.log('Verificando status do termo de sigilo...');
-        this.termoChecked = true;
+        console.log('Checking privacy agreement status...');
+        this.privacyAgreementChecked = true;
 
-        const hasAccepted = await this.$store.dispatch('termoSigilo/checkStatus');
+        const hasAccepted = await this.$store.dispatch('privacyAgreement/checkStatus');
 
         if (!hasAccepted) {
-          this.showTermoModal = true;
+          this.showPrivacyAgreementModal = true;
         }
       } catch (error) {
-        console.error('Erro ao verificar termo de sigilo:', error);
-        if (this.$store.state.termoSigilo.hasAccepted === null) {
-          this.showTermoModal = true;
+        console.error('Error checking privacy agreement:', error);
+        if (this.$store.state.privacyAgreement.hasAccepted === null) {
+          this.showPrivacyAgreementModal = true;
         }
       }
     },
 
-    onTermoAccepted() {
-      this.showTermoModal = false;
-      this.$store.dispatch('termoSigilo/markAsAccepted');
+    onPrivacyAgreementAccepted() {
+      this.showPrivacyAgreementModal = false;
+      this.$store.dispatch('privacyAgreement/markAsAccepted');
     },
 
-    onTermoRejected() {
-      this.showTermoModal = false;
-      this.$store.dispatch('termoSigilo/markAsRejected');
+    onPrivacyAgreementRejected() {
+      this.showPrivacyAgreementModal = false;
+      this.$store.dispatch('privacyAgreement/markAsRejected');
     },
 
     getLeafletControlRef() {

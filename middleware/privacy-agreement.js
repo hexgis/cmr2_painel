@@ -8,7 +8,7 @@
    * - Redirects to /confidentiality-agreement if the user has not accepted
    * - In case of an error during verification, redirects to the agreement for safety
  */
-export default async function termoSigiloMiddleware({
+export default async function privacyAgreementMiddleware({
   $axios, redirect, route, store,
 }) {
   if (!store.state.auth.loggedIn) {
@@ -16,7 +16,7 @@ export default async function termoSigiloMiddleware({
   }
 
   const exemptRoutes = [
-    '/termo-sigilo',
+    '/privacy-agreement',
     '/login',
     '/logout',
   ];
@@ -26,13 +26,13 @@ export default async function termoSigiloMiddleware({
   }
 
   try {
-    const response = await $axios.get('/user/termo-sigilo/status/');
+    const response = await $axios.get('/user/privacy-agreement/status/');
 
     if (!response.data.has_accepted) {
-      redirect('/termo-sigilo');
+      redirect('/privacy-agreement');
     }
   } catch (error) {
     console.error('Erro ao verificar status do termo de sigilo:', error);
-    redirect('/termo-sigilo');
+    redirect('/privacy-agreement');
   }
 }

@@ -1,4 +1,5 @@
-// store/termoSigilo.js
+// store/privacyAgreement.js
+// Termo de Sigilo e Confidencialidade
 export const state = () => ({
   hasAccepted: null, // null = not selected, true = accepted, false = not accepted
   isChecking: false,
@@ -73,7 +74,7 @@ export const actions = {
       commit('SET_IS_CHECKING', true);
       console.log('Fazendo requisição para verificar termo...');
 
-      const response = await this.$axios.get('/user/termo-sigilo/status/');
+      const response = await this.$axios.get('/user/privacy-agreement/status/');
       const hasAccepted = response.data.has_accepted;
 
       commit('SET_HAS_ACCEPTED', hasAccepted);
@@ -123,7 +124,7 @@ export const actions = {
 
   async acceptTermo({ commit }, { version }) {
     try {
-      const response = await this.$axios.post('/user/termo-sigilo/accept/', {
+      const response = await this.$axios.post('/user/privacy-agreement/accept/', {
         accepted: true,
         version: version || '2.0',
       });
@@ -141,7 +142,7 @@ export const actions = {
 
   async rejectTermo({ commit }) {
     try {
-      const response = await this.$axios.post('/user/termo-sigilo/reject/');
+      const response = await this.$axios.post('/user/privacy-agreement/reject/');
       commit('SET_HAS_ACCEPTED', false);
       return response.data;
     } catch (error) {
