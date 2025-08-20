@@ -142,9 +142,7 @@ export const actions = {
       }
 
       const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
-      console.log(`[getTableData] URL para ${layer}:`, url);
       const response = await this.$api.$get(url);
-      console.log(`[getTableData] Resposta para ${layer}:`, response);
       const tableData = response.features.map(({ properties }) => ({
         co_funai: properties.co_funai || '',
         id: properties.id || '',
@@ -154,8 +152,8 @@ export const actions = {
         sg_uf: properties.sg_uf || '',
         sg_regiao: properties.sg_regiao || '',
         nu_percentual: properties.nu_percentual || '',
-        nu_risco: properties.nu_risco || '',
-        nu_dias_sem_chuva: properties.nu_dias_sem_chuva || '',
+        nu_risco: properties.nu_risco || 'N/A',
+        nu_dias_sem_chuva: properties.nu_dias_sem_chuva || 'N/A',
         dt_foco_calor: properties.dt_foco_calor || '',
         hr_foco_calor: properties.hr_foco_calor || '',
         dt_cadastro: properties.dt_cadastro || '',
@@ -215,7 +213,6 @@ export const actions = {
     }
     const paramsUrl = new URLSearchParams(params);
     const fullUrl = `${url}?${paramsUrl}`;
-    console.log(`[generateUrlWms] URL gerada para ${layer}:`, fullUrl);
     commit('setUrlCurrentWms', { layer, url: fullUrl });
   },
 
@@ -267,8 +264,6 @@ export const actions = {
         cqlFilter += `(dt_foco_calor >= '${state.layers[layer].filters.startDate}' AND dt_foco_calor <= '${state.layers[layer].filters.endDate}')`;
       }
 
-      console.log(`[getFeatures] CQL_FILTER para ${layer}:`, cqlFilter);
-
       try {
         if (!state.layers[layer].filters.currentView && (arrayCR.length || arrayTI.length)) {
           const bbox = await this.$api.$post('monitoring/consolidated/bbox/', {
@@ -308,9 +303,7 @@ export const actions = {
       }
       url = url.replace('ows', 'wfs');
       const wfsUrl = `${url}?${new URLSearchParams(wfsParams)}`;
-      console.log(`[getFeatures] WFS URL para ${layer}:`, wfsUrl);
       const response = await this.$api.$get(wfsUrl);
-      console.log(`[getFeatures] Resposta WFS para ${layer}:`, response);
       commit('setFeatures', { layer, features: response });
 
       await dispatch('generateUrlWms', layer);
@@ -324,7 +317,6 @@ export const actions = {
         type: 'error',
         timeout: 5000,
       }, { root: true });
-      // Mesmo em caso de erro, gerar URL WMS para tentar exibir a camada
       await dispatch('generateUrlWms', layer);
     } finally {
       commit('setLoadingFeatures', false);

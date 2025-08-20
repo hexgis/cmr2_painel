@@ -38,7 +38,7 @@
           multiple
           :error="error"
           class="pa-0"
-          outlined          
+          outlined
         />
       </v-col>
       <v-col cols="12">
@@ -75,7 +75,7 @@
           outlined
           :min-date="'2015-01-01'"
         />
-      </v-col>    
+      </v-col>
       <v-col cols="12" class="mt-n6">
         <v-btn
           block
@@ -90,14 +90,13 @@
       </v-col>
     </v-row>
 
-    <!-- Loading Skeleton - CORREÇÃO: Removido o v-if desnecessário -->
     <div v-if="isLoadingFeatures" class="mt-1">
       <v-row no-gutters justify="center">
         <v-col cols="6">
           <v-skeleton-loader type="table-cell@4" />
         </v-col>
         <v-col cols="6">
-          <div class="d-flex justify-end">
+          <div class="d-flex justify-end ">
             <v-skeleton-loader type="table-cell@4" />
           </div>
         </v-col>
@@ -274,8 +273,6 @@ export default {
         cr: [],
         ti: null,
       },
-      checkNewFilters: false,
-      isLoadingTotal: false,
       error: false,
       flattened: [],
       tableDialog: false,
@@ -295,7 +292,7 @@ export default {
   computed: {
     ...mapState('foco', ['filterOptions', 'isLoadingFeatures', 'layers']),
     ...mapGetters('foco', ['featuresLoaded']),
-    
+
     showActiveFeatures: {
       get() {
         if (this.switchAquaMM) return this.layers.aquaMM.showFeatures;
@@ -315,16 +312,15 @@ export default {
     loading() {
       return this.layers.aquaMM.loading || this.layers.aquaMT.loading;
     },
-    
+
     currentUrlWms() {
       return this.layers.aquaMM.currentUrlWms || this.layers.aquaMT.currentUrlWms;
-    },    
+    },
   },
 
   watch: {
     'filters.currentView'(newVal) {
     if (newVal) {
-      // Se checkbox for marcado, limpa as CRs selecionadas
       this.filters.cr = [];
     }
   },
@@ -332,7 +328,6 @@ export default {
   'filters.cr': {
     handler(newVal) {
       if (newVal && newVal.length > 0) {
-        // Se CRs forem selecionadas, desmarca o checkbox
         this.filters.currentView = false;
       }
       const crCodes = newVal.map(item => item.co_cr);
@@ -341,13 +336,13 @@ export default {
     deep: true,
   },
 
-   
-    'filterOptions.regionalFilters': {
-      handler() {
-        this.populateCrOptions();
-      },
-      deep: true,
+
+  'filterOptions.regionalFilters': {
+    handler() {
+      this.populateCrOptions();
     },
+    deep: true,
+   },
   },
 
   mounted() {
@@ -372,7 +367,7 @@ export default {
       this.setOpacity({ layer, opacity: value });
     },
 
-   
+
     populateCrOptions() {
       this.flattened = [];
       const groups = {};
@@ -392,14 +387,14 @@ export default {
       });
     },
 
-    
+
     populateTiOptions(cr) {
       if (cr?.length) {
         this.getTiOptions(cr);
       }
     },
 
-    
+
     async searchFoco() {
       const { currentView, cr, startDate, endDate } = this.filters;
 
@@ -411,7 +406,7 @@ export default {
       if (new Date(endDate) < new Date(startDate)) {
         this.error = true;
         this.$store.commit('alert/addAlert', {
-          message: this.$i18n.t('A data final deve ser maior ou igual à data inicial'),
+          message: this.$i18n.t('end-date-must-be-greater-or-equal'),
         }, { root: true });
         return;
       }
@@ -431,8 +426,13 @@ export default {
             this.searchPerformed = true;
         } else{
             this.searchPerformed = false;
+             this.$store.commit('alert/addAlert', {
+                message: this.$i18n.t('no-data-message'),
+                type: 'info',
+                timeout: 5000
+              }, { root: true });
         }
- 
+
         this.switchAquaMM = true;
         this.switchAquaMT = true;
         this.setShowFeatures({ layer: 'aquaMM', showFeatures: true });
@@ -450,13 +450,13 @@ export default {
       }
     },
 
-  
+
     toggleLayer(layer) {
       const show = layer === 'aquaMM' ? this.switchAquaMM : this.switchAquaMT;
       this.setShowFeatures({ layer, showFeatures: show });
     },
 
-    
+
     async showTableDialog(layer) {
       this.isLoadingTable = true;
       this.tableDialog = true;
@@ -497,7 +497,7 @@ export default {
       }
     },
 
-   
+
     formatHeaderText(key) {
       const headerMap = {
         co_funai: 'Código Funai',
@@ -515,12 +515,12 @@ export default {
         dt_cadastro: 'Data de Cadastro',
         no_ti: 'Terra Indígena',
         co_cr: 'Código CR',
-        ds_cr: 'Coordenação Regional',     
+        ds_cr: 'Coordenação Regional',
       };
       return headerMap[key] || this.formatGenericFieldName(key);
     },
 
-    
+
     formatFieldValue(value, field = '') {
       if (value === null || value === undefined) return 'N/A';
       const fieldName = field.toLowerCase();
@@ -552,14 +552,14 @@ export default {
       return value;
     },
 
-    
+
     formatGenericFieldName(field) {
       return field
         .replace(/_/g, ' ')
         .replace(/(^|\s)\S/g, char => char.toUpperCase());
     },
 
-   
+
     closeTableDialog() {
       this.tableDialog = false;
       this.tableData = [];
@@ -567,10 +567,11 @@ export default {
       this.tableName = '';
     },
 
-    
+
     async downloadCSV() {
       this.isLoadingCSV = true;
       try {
+        await new Promise(resolve => setTimeout(resolve, 500));
         const headers = this.tableHeaders.map(h => h.text).join(',');
         const rows = this.tableData
           .map(row => Object.values(row)
@@ -623,7 +624,6 @@ export default {
     "current-view-label": "Search in current area?",
     "start-date-label": "Start Date",
     "end-date-label": "End Date",
-    "total-area-label": "Total Area",
     "regional-coordination-label": "Regional Coordination (All)",
     "indigenous-lands-label": "Indigenous Lands",
     "title-switch-disable-features": "Disable Foco Layer",
@@ -631,19 +631,12 @@ export default {
     "table-label": "View Table",
     "id": "ID",
     "date": "Date",
-    "latitude": "Latitude",
-    "longitude": "Longitude",
-    "municipality": "Municipality",
-    "state": "State",
-    "priority": "Priority",
     "default-error": "Error: Unable to {action} {resource}",
     "retrieve": "retrieve",
     "download": "download",
     "data": "data",
-    "foco": "foco",
-    "regional coordinators": "regional coordinators",
-    "indigenous territories": "indigenous territories",
-    "A data final deve ser maior ou igual à data inicial": "End date must be greater than or equal to start date"
+    "no-data-message": "No data available for the selected filters.",
+    "end-date-must-be-greater-or-equal": "End date must be greater than or equal to start date"
   },
   "pt-br": {
     "search-label": "Buscar",
@@ -651,7 +644,6 @@ export default {
     "current-view-label": "Pesquisar nesta área?",
     "start-date-label": "Data Início",
     "end-date-label": "Data Final",
-    "total-area-label": "Área total",
     "regional-coordination-label": "Coordenação Regional (Todas)",
     "indigenous-lands-label": "Terras Indígenas",
     "title-switch-disable-features": "Desabilitar Camada de Foco",
@@ -659,19 +651,12 @@ export default {
     "table-label": "Ver Tabela",
     "id": "ID",
     "date": "Data",
-    "latitude": "Latitude",
-    "longitude": "Longitude",
-    "municipality": "Município",
-    "state": "Estado",
-    "priority": "Prioridade",
     "default-error": "Erro: Não foi possível {action} {resource}",
     "retrieve": "recuperar",
     "download": "Baixar",
     "data": "dados",
-    "foco": "foco",
-    "regional coordinators": "coordenadores regionais",
-    "indigenous territories": "territórios indígenas",
-    "A data final deve ser maior ou igual à data inicial": "A data final deve ser maior ou igual à data inicial"
+    "no-data-message": "Nenhum dado disponível para os filtros selecionados.",
+    "end-date-must-be-greater-or-equal": "A data final deve ser maior ou igual à data inicial"
   }
 }
 </i18n>

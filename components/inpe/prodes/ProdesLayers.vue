@@ -52,13 +52,11 @@ export default {
   watch: {
     features() {
       if (!this.features) {
-        // Estado inicial, não faz nada
         return;
       }
       if (this.features.features && this.features.features.length > 0) {
         this.addFeatures();
       } else if (this.showFeaturesProdes) {
-        // Exibe alerta igual no MonitoringLayers
         this.$store.commit('alert/addAlert', {
           message: this.$t('no-data-message'),
           type: 'info',

@@ -25,6 +25,7 @@
         <v-skeleton-loader
           v-if="loadingTable"
           type="table-row-divider@8"
+          class="mx-6"
         />
         <v-card-text v-if="!loadingTable">
           <a class="d-flex justify-end">
@@ -33,7 +34,7 @@
               fab
               class="mx-2 my-2"
               color="secondary"
-              :loading="loadingCSV"
+              :loading="isDownloading"
               @click="handleDownloadClick"
             >
               <v-icon>mdi-download</v-icon>
@@ -104,9 +105,12 @@
           <v-btn
             color="green darken-1"
             text
+            :loading="isDownloading"
             @click="handleDownloadConfirmed"
           >
-            <v-icon>mdi-download</v-icon>
+            <v-icon v-if="!isDownloading">
+              mdi-download
+            </v-icon>
             {{ $t('download-label') }}
           </v-btn>
         </v-card-actions>
@@ -167,6 +171,7 @@ export default {
   data() {
     return {
       confirmDialog: false,
+      isDownloading: false, // Adicione esta variável
       row: null,
       dialogPrint: false,
       selected: [],
@@ -210,17 +215,28 @@ export default {
       }
     },
 
-    handleDownloadClick() {
+    async handleDownloadClick() {
       if (this.value.length >= 10000) {
         this.confirmDialog = true;
       } else {
-        this.fDownloadCSV();
+        await this.startDownload();
       }
     },
 
-    handleDownloadConfirmed() {
+    async handleDownloadConfirmed() {
       this.confirmDialog = false;
-      this.fDownloadCSV();
+      await this.startDownload();
+    },
+
+    async startDownload() {
+      this.isDownloading = true;
+      try {
+        await this.fDownloadCSV();
+      } catch (error) {
+        console.error('Erro durante o download:', error);
+      } finally {
+        this.isDownloading = false;
+      }
     },
   },
 };

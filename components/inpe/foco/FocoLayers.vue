@@ -87,16 +87,12 @@ export default {
 <i18n>
 {
   "en": {
-    "detail-api-error": "Error while retrieving polygon data, contact a system administrator in case it persists.",
     "name-layer-aqua-mm": "AQUA M-M - Heat Focus",
-    "name-layer-aqua-mt": "AQUA M-T - Heat Focus",
-    "no-data-message": "No data available for the selected filters."
+    "name-layer-aqua-mt": "AQUA M-T - Heat Focus"
   },
   "pt-br": {
-    "detail-api-error": "Não foi possível resgatar os dados do polígono, entre em contato com um administrador caso persista.",
     "name-layer-aqua-mm": "Foco de Calor - AQUA MODIS (M)",
-    "name-layer-aqua-mt": "Foco de Calor - AQUA MODIS (T)",
-    "no-data-message": "Nenhum dado disponível para os filtros selecionados."
+    "name-layer-aqua-mt": "Foco de Calor - AQUA MODIS (T)"
   }
 }
 </i18n>
