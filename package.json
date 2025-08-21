@@ -78,6 +78,7 @@
         "jest": "^26.4.2",
         "prettier": "^2.2.1",
         "ts-jest": "^26.3.0",
-        "vue-jest": "^4.0.1"
+        "vue-jest": "^4.0.1",
+        "vue-markdown-loader": "^2.5.0"
     }
 }

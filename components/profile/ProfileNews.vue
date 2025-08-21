@@ -83,10 +83,9 @@
                   {{ formatDate(news.date) }}
                 </p>
 
-                <div
-                  class="scrollable-content"
-                  v-html="renderMarkdown(news.content)"
-                />
+                <div class="scrollable-content">
+                  <MarkdownRenderer :content="news.content" />
+                </div>
               </div>
             </div>
           </v-carousel-item>
@@ -151,10 +150,14 @@
 </i18n>
 
 <script>
-import { marked } from 'marked';
+import MarkdownRenderer from './MarkdownRenderer.vue';
 
 export default {
   name: 'ProfileNews',
+
+  components: {
+    MarkdownRenderer
+  },
 
   props: {
     value: {
@@ -328,21 +331,7 @@ export default {
     formatDate(dateString) {
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return new Date(dateString).toLocaleDateString('pt-BR', options);
-    },
-
-    renderMarkdown(content) {
-      marked.setOptions({
-        breaks: true,
-        gfm: true,
-        sanitize: false,
-      });
-
-      let html = marked(content || '');
-
-      html = html.replace(/<table>/g, '<table class="markdown-table">');
-
-      return html;
-    },
+    }
   },
 };
 </script>
@@ -424,6 +413,117 @@ export default {
 .mark-all-checkbox {
   .v-input--selection-controls__input, .v-icon {
     color: white !important;
+  }
+}
+
+// Estilos para o conteúdo markdown
+.markdown-content {
+  line-height: 1.6;
+  color: #333;
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 1em 0 0.5em 0;
+    font-weight: bold;
+    color: #1976d2;
+  }
+
+  h1 { font-size: 1.8em; }
+  h2 { font-size: 1.5em; }
+  h3 { font-size: 1.3em; }
+
+  p {
+    margin: 0.5em 0;
+    line-height: 1.6;
+  }
+
+  ul, ol {
+    margin: 0.5em 0;
+    padding-left: 2em;
+  }
+
+  li {
+    margin: 0.25em 0;
+  }
+
+  table.markdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+    font-size: 0.9em;
+
+    th, td {
+      padding: 0.5em;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f5f5f5;
+      font-weight: bold;
+      color: #333;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+  }
+
+  img.markdown-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1em 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  a {
+    color: #1976d2;
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+      color: #1565c0;
+    }
+  }
+
+  strong {
+    font-weight: bold;
+    color: #000;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  blockquote {
+    border-left: 4px solid #1976d2;
+    padding-left: 1em;
+    margin: 1em 0;
+    background-color: #f9f9f9;
+    padding: 1em;
+    border-radius: 0 4px 4px 0;
+  }
+
+  code {
+    background-color: #f5f5f5;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9em;
+  }
+
+  pre {
+    background-color: #f5f5f5;
+    padding: 1em;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 1em 0;
+
+    code {
+      background: none;
+      padding: 0;
+    }
   }
 }
 </style>
