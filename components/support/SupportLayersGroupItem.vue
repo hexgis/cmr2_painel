@@ -25,6 +25,7 @@
           <v-img
             :src="layerPreview"
             :lazy-src="layerPreview"
+            @error="(event) => handleImageError(event, layer)"
           />
         </v-list-item-avatar>
         <v-list-item-content>
@@ -144,6 +145,7 @@
               :lazy-src="layerPreview"
               :max-width="layer.wms.detail_width"
               position="center center"
+              @error="(event) => handleImageError(event, layer)"
             />
           </v-col>
         </v-row>
@@ -167,7 +169,6 @@
 import { mapState, mapMutations, mapActions } from 'vuex';
 import moment from 'moment';
 import tmsLegend from '@/assets/tmsLegend.png';
-import ti from '@/assets/ti.png';
 
 import SupportLayerFilters from '@/components/support/SupportLayerFilters';
 import SupportLayerMetadata from '@/components/support/SupportLayerMetadata';
@@ -372,14 +373,24 @@ export default {
     layerPreview() {
       if (this.layer.layer_type === 'tms') return tmsLegend;
 
-      if (this.layer.wms.geoserver_layer_name === 'lim_terra_indigena_a') {
-        return ti;
+      if (this.layer.layer_type === 'wms') {
+        if (this.layer.wms && this.layer.wms.id) {
+          if (this.layer.wms.thumbnail_blob) {
+            return `data:image/png;base64,${this.layer.wms.thumbnail_blob}`;
+          }
+          const apiUrl = (this.$config && this.$config.API_URL) || process.env.API_URL || 'http://localhost:8080/';
+          const backendUrl = `${apiUrl}layer/${this.layer.wms.id}/image/`;
+          return backendUrl;
+        }
+
+        if (this.layer?.wms?.geoserver?.preview_url
+            && this.layer.wms.geoserver_layer_name) {
+          const geoUrl = this.layer.wms.geoserver.preview_url + this.layer.wms.geoserver_layer_name;
+          return geoUrl;
+        }
       }
 
-      return (
-        this.layer.wms.geoserver.preview_url
-        + this.layer.wms.geoserver_layer_name
-      );
+      return '';
     },
 
     transformTableData() {
@@ -400,6 +411,32 @@ export default {
   methods: {
     ...mapMutations('supportLayers', ['toggleLayerVisibility', 'setLayerOpacity']),
     ...mapActions('supportLayers', ['openTableDialog', 'downloadCSV']),
+
+    handleImageError(event, layer) {
+      if (!event || !event.target) {
+        console.warn('Erro no thumbnail: event inválido');
+        return;
+      }
+
+      const img = event.target;
+      const currentSrc = img.src || '';
+
+      if (currentSrc.includes('geoserver') || currentSrc.includes('preview_url')) {
+        img.style.display = 'none';
+        return;
+      }
+
+      if (layer?.wms?.geoserver?.preview_url
+          && layer.wms.geoserver_layer_name) {
+        const fallbackUrl = layer.wms.geoserver.preview_url + layer.wms.geoserver_layer_name;
+        if (fallbackUrl !== currentSrc) {
+          img.src = fallbackUrl;
+          return;
+        }
+      }
+
+      img.style.display = 'none';
+    },
 
     formatFieldValue(value, field = '') {
       if (value === null || value === undefined) return 'N/A';
