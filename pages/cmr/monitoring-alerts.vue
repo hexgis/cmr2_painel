@@ -1,111 +1,87 @@
 <template>
-  <v-container class="pa-0">
-    <div
-      v-if="tab === 'tab-1'"
-      class="tab-header justify-space-between"
-    >
-      <v-row>
-        <h6
-          class="subtitle-2 text-uppercase font-weight-regular header-title"
-        >
-          {{ $t('title') }}
-        </h6>
+    <v-container class="pa-0">
+        <div v-if="tab === 'tab-1'" class="tab-header justify-space-between">
+            <v-row>
+                <h6
+                    class="subtitle-2 text-uppercase font-weight-regular header-title"
+                >
+                    {{ $t('title') }}
+                </h6>
 
-        <v-tooltip
-          bottom
-          max-width="600"
-          color="grey darken-4"
-        >
-          <template #activator="{ on }">
-            <v-icon
-              class="infoIconMargin"
-              v-on="on"
-            >
-              mdi-information
-            </v-icon>
-          </template>
-          <span class="mt-10">
-            {{ $t('monitoring-info-part1') }}
-            <br>
-            {{ $t('monitoring-info-part2') }}
-            <br>
-            {{ $t('monitoring-info-part3') }}
-            <br>
-            {{ $t('monitoring-info-part4') }}
-          </span>
-        </v-tooltip>
-      </v-row>
-    </div>
-    <div
-      v-else-if="tab === 'tab-2'"
-      class="tab-header justify-space-between"
-    >
-      <v-row>
-        <h4
-          class="subtitle-2 text-uppercase font-weight-regular header-title"
-        >
-          {{ $t('title-alerts') }}
-        </h4>
-        <v-tooltip
-          bottom
-          max-width="600px"
-          color="grey darken-4"
-        >
-          <template #activator="{ on }">
-            <v-icon
-              class="infoIconMargin"
-              v-on="on"
-            >
-              mdi-information
-            </v-icon>
-          </template>
-          <span>
-            {{ $t('update-info') }}
-            <br>
-            {{ $t('data-source') }}
-          </span>
-        </v-tooltip>
-      </v-row>
-    </div>
+                <v-tooltip bottom max-width="600" color="grey darken-4">
+                    <template #activator="{ on }">
+                        <v-icon class="infoIconMargin" v-on="on">
+                            mdi-information
+                        </v-icon>
+                    </template>
+                    <span class="mt-10">
+                        {{ $t('monitoring-info-part1') }}
+                        <br />
+                        {{ $t('monitoring-info-part2') }}
+                        <br />
+                        {{ $t('monitoring-info-part3') }}
+                        <br />
+                        {{ $t('monitoring-info-part4') }}
+                    </span>
+                </v-tooltip>
+            </v-row>
+        </div>
 
-    <v-tabs
-      v-model="tab"
-      background-color="#D42A3E"
-      centered
-      dark
-      icons-and-text
-    >
-      <v-tabs-slider />
-      <v-tab
-        href="#tab-1"
-        class="tab-item"
-      >
-        Monitoramento<br>
-        Diário
-        <v-icon>mdi-map-search</v-icon>
-      </v-tab>
+        <div
+            v-else-if="tab === 'tab-2'"
+            class="tab-header justify-space-between"
+        >
+            <v-row>
+                <h4
+                    class="subtitle-2 text-uppercase font-weight-regular header-title"
+                >
+                    {{ $t('title-alerts') }}
+                </h4>
+                <v-tooltip bottom max-width="600px" color="grey darken-4">
+                    <template #activator="{ on }">
+                        <v-icon class="infoIconMargin" v-on="on">
+                            mdi-information
+                        </v-icon>
+                    </template>
+                    <span>
+                        {{ $t('update-info') }}
+                        <br />
+                        {{ $t('data-source') }}
+                    </span>
+                </v-tooltip>
+            </v-row>
+        </div>
 
-      <v-tab
-        href="#tab-2"
-        class="tab-item"
-      >
-        Alerta <br>
-        Urgente
-        <v-icon>mdi-alarm-light</v-icon>
-      </v-tab>
-    </v-tabs>
+        <v-tabs
+            v-model="tab"
+            background-color="#D42A3E"
+            centered
+            dark
+            icons-and-text
+        >
+            <v-tabs-slider />
+            <v-tab href="#tab-1" class="tab-item">
+                Monitoramento Diário
+                <v-icon>mdi-map-search</v-icon>
+            </v-tab>
 
-    <div class="list-container">
-      <v-tabs-items v-model="tab">
-        <v-tab-item value="tab-1">
-          <MonitoringFilters />
-        </v-tab-item>
-        <v-tab-item value="tab-2">
-          <AlertsFilters />
-        </v-tab-item>
-      </v-tabs-items>
-    </div>
-  </v-container>
+            <v-tab href="#tab-2" class="tab-item">
+                Alerta Urgente
+                <v-icon>mdi-alarm-light</v-icon>
+            </v-tab>
+        </v-tabs>
+
+        <div class="list-container">
+            <v-tabs-items v-model="tab">
+                <v-tab-item value="tab-1">
+                    <MonitoringFilters />
+                </v-tab-item>
+                <v-tab-item value="tab-2">
+                    <AlertsFilters />
+                </v-tab-item>
+            </v-tabs-items>
+        </div>
+    </v-container>
 </template>
 
 <i18n>
@@ -148,34 +124,37 @@
 </i18n>
 
 <script>
-
-import AlertsFilters from '~/components/monitoring-alerts/urgent-alerts/AlertsFilters.vue';
-import MonitoringFilters from '@/components/monitoring-alerts/monitoring/MonitoringFilters.vue';
+import AlertsFilters from '~/components/monitoring-alerts/urgent-alerts/AlertsFilters.vue'
+import MonitoringFilters from '@/components/monitoring-alerts/monitoring/MonitoringFilters.vue'
 
 export default {
-  name: 'MonitoringAlerts',
+    name: 'MonitoringAlerts',
 
-  components: {
-    AlertsFilters,
-    MonitoringFilters,
-  },
-  transition: 'scroll-y-transition',
+    components: {
+        AlertsFilters,
+        MonitoringFilters,
+    },
+    transition: 'scroll-y-transition',
 
-  data() {
-    return {
-      tab: 'tab-1',
-      dialog: false,
-    };
-  },
-};
+    data() {
+        return {
+            tab: 'tab-1',
+            dialog: false,
+        }
+    },
+
+    mounted() {
+        this.$store.dispatch('monitoring/getFilterOptions')
+    },
+}
 </script>
 
 <style scoped>
 .tab-item {
-  flex: 1; /* Distribui o espaço igualmente */
-  text-align: center;
-  white-space: nowrap; /* Evita que o texto quebre */
-  min-width: 100px; /* Define um tamanho mínimo */
-  max-width: 150px; /* Limita o tamanho */
+    flex: 1; /* Distribui o espaço igualmente */
+    text-align: center;
+    white-space: nowrap; /* Evita que o texto quebre */
+    min-width: 100px; /* Define um tamanho mínimo */
+    max-width: 150px; /* Limita o tamanho */
 }
 </style>
