@@ -170,6 +170,70 @@
                     </v-col>
                   </v-row>
                 </template>
+                <!-- Download buttons section -->
+                <template v-if="layerData.layers.length && hasDownloadEnabled(layerName)">
+                  <v-row class="mx-0 mt-3">
+                    <v-col
+                      cols="12"
+                      class="text-center"
+                    >
+                      <v-btn-toggle
+                        v-model="selectedDownloadFormat"
+                        mandatory
+                        dense
+                        class="mb-2"
+                      >
+                        <v-btn
+                          value="csv"
+                          small
+                          color="primary"
+                        >
+                          <v-icon
+                            small
+                            class="mr-1"
+                          >
+                            mdi-file-table
+                          </v-icon>
+                          CSV
+                        </v-btn>
+                        <v-btn
+                          value="json"
+                          small
+                          color="primary"
+                        >
+                          <v-icon
+                            small
+                            class="mr-1"
+                          >
+                            mdi-code-json
+                          </v-icon>
+                          JSON
+                        </v-btn>
+                      </v-btn-toggle>
+                    </v-col>
+                  </v-row>
+                  <v-row class="mx-0">
+                    <v-col
+                      cols="12"
+                      class="text-center"
+                    >
+                      <v-btn
+                        color="success"
+                        small
+                        :loading="isDownloading"
+                        @click="downloadFeatureData(layerName, layerData)"
+                      >
+                        <v-icon
+                          small
+                          class="mr-1"
+                        >
+                          mdi-download
+                        </v-icon>
+                        {{ $t('download-feature') }}
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+                </template>
                 <div v-else-if="!layerData.layers.length">
                   {{ $t('no-data') }}
                 </div>
@@ -186,11 +250,13 @@
   {
       "en": {
           "no-data": "There's no data at this point for the selected layer.",
-          "layer-api-error": "Unable to acquire support layer information."
+          "layer-api-error": "Unable to acquire support layer information.",
+          "download-feature": "Download Feature Data"
       },
       "pt-br": {
           "no-data": "Não há dados nesse ponto para a camada selecionada.",
-          "layer-api-error": "Não foi possível resgatar as informações das camadas de apoio."
+          "layer-api-error": "Não foi possível resgatar as informações das camadas de apoio.",
+          "download-feature": "Baixar Dados"
       }
   }
 </i18n>
@@ -219,6 +285,8 @@ export default {
     data: null,
     loadingData: false,
     currentLatLng: '',
+    selectedDownloadFormat: 'csv',
+    isDownloading: false,
     customTextParts: [
       {
         bold: 'Data T0*: ',
@@ -442,6 +510,10 @@ export default {
   },
 
   methods: {
+    hasDownloadEnabled(layerName) {
+      return true;
+    },
+
     shouldDisplayField(field) {
       return !this.fieldConfig.excludedFields.some(
         (excluded) => field.toLowerCase().includes(excluded),
@@ -663,6 +735,101 @@ export default {
       } finally {
         this.loadingData = false;
       }
+    },
+
+    async downloadFeatureData(layerName, layerData) {
+      this.isDownloading = true;
+
+      try {
+        const features = layerData.layers;
+        if (!features || features.length === 0) {
+          this.$store.commit('alert/addAlert', {
+            message: 'Não há dados para download',
+            type: 'warning',
+          });
+          return;
+        }
+
+        let downloadData;
+        let filename;
+        let mimeType;
+
+        if (this.selectedDownloadFormat === 'csv') {
+          downloadData = this.generateCSV(features, layerName);
+          filename = `${layerName}_${new Date().toISOString().split('T')[0]}.csv`;
+          mimeType = 'text/csv;charset=utf-8;';
+        } else {
+          downloadData = this.generateJSON(features, layerName);
+          filename = `${layerName}_${new Date().toISOString().split('T')[0]}.json`;
+          mimeType = 'application/json;charset=utf-8;';
+        }
+
+        // Criar e fazer download do arquivo
+        const blob = new Blob([downloadData], { type: mimeType });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        this.$store.commit('alert/addAlert', {
+          message: `Download realizado com sucesso: ${filename}`,
+          type: 'success',
+        });
+      } catch (error) {
+        console.error('Erro no download:', error);
+        this.$store.commit('alert/addAlert', {
+          message: 'Erro ao realizar download dos dados',
+          type: 'error',
+        });
+      } finally {
+        this.isDownloading = false;
+      }
+    },
+
+    generateCSV(features, layerName) {
+      if (!features || features.length === 0) return '';
+
+      const allKeys = new Set();
+      features.forEach((feature) => {
+        Object.keys(feature).forEach((key) => allKeys.add(key));
+      });
+
+      const headers = Array.from(allKeys);
+
+      let csvContent = `${headers.map((header) => `"${header}"`).join(',')}\n`;
+
+      features.forEach((feature) => {
+        const row = headers.map((header) => {
+          const value = feature[header];
+          return value !== null && value !== undefined ? `"${String(value).replace(/"/g, '""')}"` : '""';
+        });
+        csvContent += `${row.join(',')}\n`;
+      });
+
+      return csvContent;
+    },
+
+    generateJSON(features, layerName) {
+      const exportData = {
+        layer: layerName,
+        exportDate: new Date().toISOString(),
+        coordinates: this.currentLatLng ? {
+          lat: this.currentLatLng.lat,
+          lng: this.currentLatLng.lng,
+        } : null,
+        totalFeatures: features.length,
+        features: features.map((feature) => ({
+          properties: feature,
+          geometry: null,
+        })),
+      };
+
+      return JSON.stringify(exportData, null, 2);
     },
   },
 };
