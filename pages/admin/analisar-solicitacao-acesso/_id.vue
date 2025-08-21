@@ -198,9 +198,17 @@ export default {
   },
   async fetch() {
     try {
+      await this.$store.dispatch('userProfile/getUserData');
       const response = await this.$api.get(`/user/access-requests/${this.$route.params.id}`);
       this.accessRequest = response.data;
     } catch (error) {
+      this.$router.replace(this.localePath('/'));
+    }
+  },
+  mounted() {
+    const isGestor = this.$store.state.userProfile.user.roles.some((role) => role.name === 'Gestor');
+    const isAdministrador = this.$store.state.userProfile.user.roles.some((role) => role.name === 'Administrador');
+    if (!isGestor && !isAdministrador) {
       this.$router.replace(this.localePath('/'));
     }
   },
@@ -208,7 +216,15 @@ export default {
     async submitForm() {
       this.loadingSubmit = true;
       try {
-        await this.$api.post(`/user/access-requests/${this.accessRequest.id}/pending/`);
+        const isGestor = this.$store.state.userProfile.user.roles.some((role) => role.name === 'Gestor');
+        const isAdministrador = this.$store.state.userProfile.user.roles.some((role) => role.name === 'Administrador');
+        if (isGestor) {
+          await this.$api.post(`/user/access-requests/${this.accessRequest.id}/gestor-approve/`);
+        } else if (isAdministrador) {
+          await this.$api.post(`/user/access-requests/${this.accessRequest.id}/admin-approve/`);
+        } else {
+          throw new Error('Unauthorized');
+        }
         this.isSuccess = true;
         this.modalTitle = this.$t('success');
         this.modalMessage = this.$t('request-submitted-successfully');
