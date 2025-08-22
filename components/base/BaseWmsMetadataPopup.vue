@@ -12,19 +12,88 @@
         <v-card-title class="pa-0">
           <v-row
             no-gutters
-            class="fundo-primary pa-1"
+            class="fundo-primary pa-2 d-flex align-center"
           >
+            <!-- Export buttons section in header -->
+            <template v-for="(layerData, layerName) in data">
+              <template v-if="layerData.layers && layerData.layers.length && hasDownloadEnabled()">
+                <div
+                  :key="layerName"
+                  class="d-flex align-center mr-3"
+                >
+                  <span class="text-caption white--text mr-2">{{ $t('export') }}:</span>
+                  <v-tooltip bottom>
+                    <template #activator="{ on, attrs }">
+                      <v-btn
+                        fab
+                        x-small
+                        color="rgba(255,255,255,0.9)"
+                        elevation="1"
+                        class="mr-1"
+                        :loading="isDownloading && currentDownloadFormat === 'csv'"
+                        v-bind="attrs"
+                        v-on="on"
+                        @click="downloadFeatureData(layerName, layerData, 'csv')"
+                      >
+                        <v-icon
+                          small
+                          color="success"
+                        >
+                          mdi-file-table-outline
+                        </v-icon>
+                      </v-btn>
+                    </template>
+                    <span>{{ $t('export-csv') }}</span>
+                  </v-tooltip>
+                  <v-tooltip bottom>
+                    <template #activator="{ on, attrs }">
+                      <v-btn
+                        fab
+                        x-small
+                        color="rgba(255,255,255,0.9)"
+                        elevation="1"
+                        :loading="isDownloading && currentDownloadFormat === 'json'"
+                        v-bind="attrs"
+                        v-on="on"
+                        @click="downloadFeatureData(layerName, layerData, 'json')"
+                      >
+                        <v-icon
+                          small
+                          color="primary"
+                        >
+                          mdi-code-json
+                        </v-icon>
+                      </v-btn>
+                    </template>
+                    <span>{{ $t('export-json') }}</span>
+                  </v-tooltip>
+                </div>
+              </template>
+            </template>
             <v-spacer />
-            <v-btn
-              icon
-              x-small
-              color="white"
-              @click="$refs.popup.mapObject.closePopup()"
-            >
-              <v-icon small>
-                mdi-close
-              </v-icon>
-            </v-btn>
+            <!-- Enhanced close button -->
+            <v-tooltip bottom>
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  fab
+                  x-small
+                  color="rgba(255,255,255,0.1)"
+                  elevation="0"
+                  class="close-btn"
+                  v-bind="attrs"
+                  v-on="on"
+                  @click="$refs.popup.mapObject.closePopup()"
+                >
+                  <v-icon
+                    small
+                    color="white"
+                  >
+                    mdi-close
+                  </v-icon>
+                </v-btn>
+              </template>
+              <span>{{ $t('close') }}</span>
+            </v-tooltip>
           </v-row>
         </v-card-title>
         <v-tabs
@@ -170,70 +239,6 @@
                     </v-col>
                   </v-row>
                 </template>
-                <!-- Download buttons section -->
-                <template v-if="layerData.layers.length && hasDownloadEnabled(layerName)">
-                  <v-row class="mx-0 mt-3">
-                    <v-col
-                      cols="12"
-                      class="text-center"
-                    >
-                      <v-btn-toggle
-                        v-model="selectedDownloadFormat"
-                        mandatory
-                        dense
-                        class="mb-2"
-                      >
-                        <v-btn
-                          value="csv"
-                          small
-                          color="primary"
-                        >
-                          <v-icon
-                            small
-                            class="mr-1"
-                          >
-                            mdi-file-table
-                          </v-icon>
-                          CSV
-                        </v-btn>
-                        <v-btn
-                          value="json"
-                          small
-                          color="primary"
-                        >
-                          <v-icon
-                            small
-                            class="mr-1"
-                          >
-                            mdi-code-json
-                          </v-icon>
-                          JSON
-                        </v-btn>
-                      </v-btn-toggle>
-                    </v-col>
-                  </v-row>
-                  <v-row class="mx-0">
-                    <v-col
-                      cols="12"
-                      class="text-center"
-                    >
-                      <v-btn
-                        color="success"
-                        small
-                        :loading="isDownloading"
-                        @click="downloadFeatureData(layerName, layerData)"
-                      >
-                        <v-icon
-                          small
-                          class="mr-1"
-                        >
-                          mdi-download
-                        </v-icon>
-                        {{ $t('download-feature') }}
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </template>
                 <div v-else-if="!layerData.layers.length">
                   {{ $t('no-data') }}
                 </div>
@@ -251,12 +256,18 @@
       "en": {
           "no-data": "There's no data at this point for the selected layer.",
           "layer-api-error": "Unable to acquire support layer information.",
-          "download-feature": "Download Feature Data"
+          "export": "Export",
+          "export-csv": "Export CSV",
+          "export-json": "Export JSON",
+          "close": "Close"
       },
       "pt-br": {
           "no-data": "Não há dados nesse ponto para a camada selecionada.",
           "layer-api-error": "Não foi possível resgatar as informações das camadas de apoio.",
-          "download-feature": "Baixar Dados"
+          "export": "Exportar",
+          "export-csv": "Exportar CSV",
+          "export-json": "Exportar JSON",
+          "close": "Fechar"
       }
   }
 </i18n>
@@ -285,8 +296,8 @@ export default {
     data: null,
     loadingData: false,
     currentLatLng: '',
-    selectedDownloadFormat: 'csv',
     isDownloading: false,
+    currentDownloadFormat: null,
     customTextParts: [
       {
         bold: 'Data T0*: ',
@@ -510,7 +521,7 @@ export default {
   },
 
   methods: {
-    hasDownloadEnabled(layerName) {
+    hasDownloadEnabled() {
       return true;
     },
 
@@ -737,8 +748,9 @@ export default {
       }
     },
 
-    async downloadFeatureData(layerName, layerData) {
+    async downloadFeatureData(layerName, layerData, format = 'csv') {
       this.isDownloading = true;
+      this.currentDownloadFormat = format;
 
       try {
         const features = layerData.layers;
@@ -754,8 +766,8 @@ export default {
         let filename;
         let mimeType;
 
-        if (this.selectedDownloadFormat === 'csv') {
-          downloadData = this.generateCSV(features, layerName);
+        if (format === 'csv') {
+          downloadData = this.generateCSV(features);
           filename = `${layerName}_${new Date().toISOString().split('T')[0]}.csv`;
           mimeType = 'text/csv;charset=utf-8;';
         } else {
@@ -788,10 +800,11 @@ export default {
         });
       } finally {
         this.isDownloading = false;
+        this.currentDownloadFormat = null;
       }
     },
 
-    generateCSV(features, layerName) {
+    generateCSV(features) {
       if (!features || features.length === 0) return '';
 
       const allKeys = new Set();
@@ -859,4 +872,22 @@ export default {
 .v-card-text
   .v-row:not(:last-child)
     margin-bottom: 4px
+
+// Enhanced header styling
+.close-btn
+  transition: all 0.3s ease
+  &:hover
+    background-color: rgba(255, 255, 255, 0.2) !important
+    transform: scale(1.05)
+
+// Export buttons in header
+.fundo-primary
+  .v-btn--fab.v-size--x-small
+    transition: all 0.2s ease
+    &:hover
+      transform: scale(1.1)
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important
+    
+    &.v-btn--loading
+      transform: none
 </style>
