@@ -172,11 +172,31 @@
       </v-col>
       <v-col cols="12" class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4">
         <span>{{ $t('total-poligono-label') }}:</span>
-        {{ totalFeatures }}
+        <span v-if="loadingMonitoringStats">
+          {{ totalFeatures }}
+        </span>
+        <span v-else>
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            size="20"
+            width="2"
+          />
+        </span>
       </v-col>
       <v-col cols="12" class="grey--text text--darken-2 d-flex justify-space-between">
         <span>{{ $t('total-area-label') }}:</span>
-        {{ formatFieldValue(totalArea, 'nu_area_ha') }} ha
+        <span v-if="loadingMonitoringStats">
+          {{ formatFieldValue(totalArea, 'nu_area_ha') }} ha
+        </span>
+        <span v-else>
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            size="20"
+            width="2"
+          />
+        </span>
       </v-col>
       <v-col cols="12" class="mt-2">
         <v-divider />
@@ -211,11 +231,11 @@
         <v-divider />
       </v-col>
       <v-col cols="12">
-        <p class="font-weight-regular pt-2 grey--text text--darken-2 mb-n6">
+        <p class="font-weight-regular py-2 grey--text text--darken-2 mb-n6">
           {{ $t('legend') }}
         </p>
       </v-col>
-      <v-row v-if="legendItems.length" class="mt-2">
+      <v-row v-if="legendItems.length && loadingMonitoringStats" class="mt-2">
         <v-col>
           <v-list dense flat>
             <v-list-item
@@ -241,6 +261,16 @@
           </v-list>
         </v-col>
       </v-row>
+      <template v-else>
+        <v-col
+          v-for="i in 4"
+          :key="`skeleton-${i}`"
+          class="mt-6"
+          cols="12"
+        >
+          <v-skeleton-loader  height="12" type="text" />
+        </v-col>
+      </template>
     </v-row>
 
     <TableDialog
@@ -383,6 +413,7 @@ export default {
       'loadingHeatmap',
       'totalArea',
       'totalFeatures',
+      'loadingMonitoringStats',
     ]),
   },
   watch: {
@@ -482,7 +513,7 @@ export default {
         this.getDataAnalyticsMonitoring();
       }
     },
-    searchMonitoring() {
+    async searchMonitoring() {
       const { filters } = this;
       const { currentView, cr, startDate, endDate } = filters;
 
@@ -524,11 +555,18 @@ export default {
         this.setFilters(filtersForStore);
         this.isLoadingFeatures = true;
         this.getFeatures().then(() => {
-          this.getDataTableMonitoring();
+          // this.getDataTableMonitoring();
           this.isLoadingFeatures = false;
         }).catch(() => {
           this.isLoadingFeatures = false;
         });
+        await this.getMonitoringStats({
+          start_date: this.filters.startDate,
+          end_date: this.filters.endDate,
+          cr: this.filters.cr,
+          ti: this.filters.ti,
+          currentView: this.filters.currentView
+        })
       } else {
         this.error = true;
       }
@@ -585,6 +623,7 @@ export default {
       'getDataTableMonitoring',
       'downloadTableMonitoring',
       'getDataAnalyticsMonitoring',
+      'getMonitoringStats',
     ]),
   },
 };

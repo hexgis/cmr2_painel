@@ -63,6 +63,7 @@ export default {
     analyticsMonitoringcsv: [],
     legendVisibility: {},
     availableEstagios: [],
+    loadingMonitoringStats: false,
   }),
 
   // Getters para acessar e processar dados do estado
@@ -86,17 +87,6 @@ export default {
         });
       }
 
-      const tiCountMap = new Map();
-      if (state.features?.features) {
-        state.features.features.forEach(({ properties }) => {
-          const estagio = properties.no_estagio;
-          if (!estagio) return;
-          if (!tiCountMap.has(estagio)) {
-            tiCountMap.set(estagio, new Set());
-          }
-          tiCountMap.get(estagio).add(properties.co_funai);
-        });
-      }
       return state.availableEstagios
         .map((estagio) => {
           const mapped = legendMapping[estagio] || { name: estagio, acronym: '' };
@@ -104,7 +94,8 @@ export default {
           return {
             label,
             color: state.monitoringStyles[estagio] || '#000000',
-            count: tiCountMap.get(estagio)?.size || 0,
+            // count: tiCountMap.get(estagio)?.size || 0,
+            count: 0,
             estagio,
             visible: state.legendVisibility[estagio] !== false,
             active: activeEstagios.has(estagio),
@@ -157,6 +148,9 @@ export default {
     },
     setanalyticsMonitoringDialog(state, analyticsMonitoringDialog) {
       state.analyticsMonitoringDialog = analyticsMonitoringDialog;
+    },
+    setLoadingMonitoringStats(state, payload) {
+      state.loadingMonitoringStats = payload;
     },
     setLoadingFeatures(state, payload) {
       state.isLoadingFeatures = payload;
@@ -381,7 +375,6 @@ export default {
 
       const params = {
         layers: state.geoserverLayerMonitoring,
-
         env: `fill-opacity:${state.opacity / 100}`,
         CQL_FILTER: '',
         format: 'image/png',
@@ -561,11 +554,11 @@ export default {
             type: 'error',
           }, { root: true });
         }
-        commit('setAvailableEstagios', ['FF', 'CR', 'DR', 'DG']);
+        // commit('setAvailableEstagios', ['FF', 'CR', 'DR', 'DG']);
         // await dispatch('fetchInitialEstagios');
         await dispatch('getMonitoringStyleFromGeoserver');
         await dispatch('generateUrlWmsMonitoring');
-        await dispatch('fetchMonitoringFeatures');
+        // await dispatch('fetchMonitoringFeatures');
       } catch (exception) {
         console.error('Erro em getFeatures:', exception);
         commit('alert/addAlert', {
@@ -581,7 +574,41 @@ export default {
         commit('setLoadingMonitoring', false);
       }
     },
+    async getMonitoringStats({ commit }, params) {
+      try {
+        commit('setLoadingMonitoringStats', false);
+        // const response = await this.$api.$get('monitoring/consolidated/stats/', params);
+        // fakes this request after 5 sec
+        const response = await new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              total_area: 600.0,
+              total_features: 100,
+              stages: ["CR", "DG", "FF", "DR"]
+            });
+            console.log('terminei agora');
+          }, 100);
+        });
 
+        if (response) {
+          commit('setTotalArea', response.total_area || 0);
+          commit('setTotalFeatures', response.total_features || 0);
+          commit('setAvailableEstagios', response.stages || []);
+        }
+
+      } catch (error) {
+        console.error('Erro ao buscar estatísticas de monitoramento:', error);
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring statistics'),
+          }),
+          type: 'error',
+        }, { root: true });
+      } finally {
+        commit('setLoadingMonitoringStats', true);
+      }
+    },
     // Busca estágios iniciais disponíveis
     async fetchInitialEstagios({ state, commit, rootState }) {
       try {
