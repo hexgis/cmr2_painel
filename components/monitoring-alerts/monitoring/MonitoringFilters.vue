@@ -130,53 +130,53 @@
 
 
     <v-row
-      v-else-if="showFeaturesMonitoring && features.features.length > 0"
+      v-else-if="showFeaturesMonitoring && totalFeatures > 0"
       no-gutters
       align="center"
       class="mt-3"
     >
-      <v-col cols="12" class="mt-n3 mb-1">
-        <DialogConfirmDownload module="monitoring" />
-        <v-btn
-          :loading="isLoadingStatistic"
-          small
-          color="accent"
-          icon
-          @click="showTableDialogAnalytics(true), (dialog = true)"
-        >
-          <v-tooltip bottom>
-            <template #activator="{ on }">
-              <v-icon v-on="on">mdi-chart-box</v-icon>
-            </template>
-            <span>{{ $t('statistics-label') }}</span>
-          </v-tooltip>
-        </v-btn>
-        <v-btn
-          :loading="isLoadingTable"
-          icon
-          fab
-          small
-          color="accent"
-          @click="showTableDialog(true)"
-        >
-          <v-tooltip bottom>
-            <template #activator="{ on }">
-              <v-icon v-on="on">mdi-table</v-icon>
-            </template>
-            <span>{{ $t('table-label') }}</span>
-          </v-tooltip>
-        </v-btn>
-      </v-col>
+        <v-col cols="12" class="mt-n3 mb-1">
+          <DialogConfirmDownload module="monitoring" />
+          <v-btn
+            :loading="isLoadingStatistic"
+            small
+            color="accent"
+            icon
+            @click="showTableDialogAnalytics(true), (dialog = true)"
+          >
+            <v-tooltip bottom>
+              <template #activator="{ on }">
+                <v-icon v-on="on">mdi-chart-box</v-icon>
+              </template>
+              <span>{{ $t('statistics-label') }}</span>
+            </v-tooltip>
+          </v-btn>
+          <v-btn
+            :loading="isLoadingTable"
+            icon
+            fab
+            small
+            color="accent"
+            @click="showTableDialog(true)"
+          >
+            <v-tooltip bottom>
+              <template #activator="{ on }">
+                <v-icon v-on="on">mdi-table</v-icon>
+              </template>
+              <span>{{ $t('table-label') }}</span>
+            </v-tooltip>
+          </v-btn>
+        </v-col>
       <v-col cols="12">
         <v-divider />
       </v-col>
       <v-col cols="12" class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4">
         <span>{{ $t('total-poligono-label') }}:</span>
-        {{ totalVisiblePolygons }}
+        {{ totalFeatures }}
       </v-col>
       <v-col cols="12" class="grey--text text--darken-2 d-flex justify-space-between">
         <span>{{ $t('total-area-label') }}:</span>
-        {{ totalVisibleArea }} ha
+        {{ formatFieldValue(totalArea, 'nu_area_ha') }} ha
       </v-col>
       <v-col cols="12" class="mt-2">
         <v-divider />
@@ -316,29 +316,7 @@ export default {
   },
   computed: {
     hasFeatures() {
-      return this.features.features.length > 0;
-    },
-    totalVisiblePolygons() {
-      if (!this.features.features.length) return 0;
-      const visibleEstagios = Object.keys(this.$store.state.monitoring.legendVisibility)
-        .filter(estagio => this.$store.state.monitoring.legendVisibility[estagio]);
-      return this.features.features.filter(feature =>
-        visibleEstagios.includes(feature.properties.no_estagio)
-      ).length;
-    },
-    totalVisibleArea() {
-      if (!this.features.features.length) {
-        return this.formatFieldValue(0, 'nu_area_ha');
-      }
-      const visibleEstagios = Object.keys(this.$store.state.monitoring.legendVisibility)
-        .filter(estagio => this.$store.state.monitoring.legendVisibility[estagio]);
-      const total = this.features.features
-        .filter(feature => visibleEstagios.includes(feature.properties.no_estagio))
-        .reduce((sum, feature) =>
-          sum + ((feature.properties && feature.properties.nu_area_ha) || 0),
-          0
-        );
-      return this.formatFieldValue(total, 'nu_area_ha');
+      return this.totalFeatures > 0;
     },
     formattedTableMonitoring() {
       if (!this.tableMonitoring || !this.tableMonitoring.length) {
@@ -403,6 +381,8 @@ export default {
       'isLoadingStatistic',
       'showFeaturesMonitoring',
       'loadingHeatmap',
+      'totalArea',
+      'totalFeatures',
     ]),
   },
   watch: {

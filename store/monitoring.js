@@ -6,6 +6,8 @@ export default {
   // Estado inicial do módulo
   state: () => ({
     features: null,
+    totalArea: 0,
+    totalFeatures: 0,
     urlWmsMonitoring: '',
     geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
     geoserverLayerMonitoringHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
@@ -175,6 +177,12 @@ export default {
       state.features = features;
       state.isLoadingFeatures = false;
     },
+    setTotalArea(state, totalArea) {
+      state.totalArea = totalArea;
+    },
+    setTotalFeatures(state, totalFeatures) {
+      state.totalFeatures = totalFeatures;
+    },
     clearFeatures(state) {
       state.features = null;
     },
@@ -283,7 +291,7 @@ export default {
         if (filters.length) params.CQL_FILTER = filters.join(' AND ');
 
         const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
-        
+
         const response = await this.$api.$get(url);
 
         if (!response?.features) {
@@ -420,7 +428,7 @@ export default {
           typeName: state.geoserverLayerMonitoring,
           outputFormat: 'application/json',
           CQL_FILTER: '',
-          maxFeatures: 10000,
+          propertyName: 'co_cr,co_funai,no_estagio,nu_area_ha'
         };
 
         let cqlFilters = [];
@@ -463,13 +471,15 @@ export default {
         const response = await this.$api.$get(url);
 
         if (response?.features) {
-          const geojson = {
-            type: response.type,
-            features: response.features,
-          };
-          commit('setFeatures', geojson);
+          const totalArea = response.features.reduce(
+            (sum, { properties }) => sum + (properties?.nu_area_ha || 0),
+            0
+          );
+          const totalFeatures = response.features.length;
+          commit('setTotalArea', totalArea);
+          commit('setTotalFeatures', totalFeatures);
         } else {
-          throw new Error('Resposta do GeoServer sem features');
+          throw new Error('Nenhum polígono encontrado');
         }
       } catch (error) {
         console.error('Erro ao buscar features do MONITORING:', error);
@@ -551,8 +561,8 @@ export default {
             type: 'error',
           }, { root: true });
         }
-
-        await dispatch('fetchInitialEstagios');
+        commit('setAvailableEstagios', ['FF', 'CR', 'DR', 'DG']);
+        // await dispatch('fetchInitialEstagios');
         await dispatch('getMonitoringStyleFromGeoserver');
         await dispatch('generateUrlWmsMonitoring');
         await dispatch('fetchMonitoringFeatures');
@@ -714,9 +724,9 @@ export default {
           message: error.message === 'Nenhum estágio ativo selecionado'
             ? this.$i18n.t('no-active-stages-selected')
             : this.$i18n.t('default-error', {
-                action: this.$i18n.t('download'),
-                resource: this.$i18n.t('monitoring'),
-              }),
+              action: this.$i18n.t('download'),
+              resource: this.$i18n.t('monitoring'),
+            }),
           type: 'error',
         }, { root: true });
       } finally {
@@ -731,7 +741,7 @@ export default {
         if (!state.tableMonitoring.length) throw new Error('Nenhum dado disponível na tabela');
 
         const headers = [
-          'ID','Código Funai', 'Terra Indígena', 'Coordenação Regional', 'Classe',
+          'ID', 'Código Funai', 'Terra Indígena', 'Coordenação Regional', 'Classe',
           'Data da Imagem', 'Área do Polígono (ha)', 'Latitude', 'Longitude',
         ];
 
