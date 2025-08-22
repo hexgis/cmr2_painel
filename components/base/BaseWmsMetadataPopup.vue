@@ -16,7 +16,7 @@
           >
             <!-- Export buttons section in header -->
             <template v-if="hasExportableData">
-              <template v-for="([layerName, layerData]) in layersWithData.slice(0, 1)">
+              <template v-for="([layerName, layerData]) in layersWithDataAndDownload.slice(0, 1)">
                 <div
                   :key="layerName"
                   class="d-flex align-center mr-3"
@@ -292,11 +292,12 @@ export default {
   data: () => ({
     hasPopup: false,
     popup: null,
-    data: null,
+    data: {},
     loadingData: false,
     currentLatLng: '',
     isDownloading: false,
     currentDownloadFormat: null,
+    layerDownloadMap: {},
     customTextParts: [
       {
         bold: 'Data T0*: ',
@@ -509,11 +510,33 @@ export default {
     layersWithData() {
       if (!this.data) return [];
 
-      return Object.entries(this.data).filter(([, layerData]) => layerData.layers && layerData.layers.length > 0);
+      const result = Object.entries(this.data).filter(([, layerData]) => layerData.layers
+        && layerData.layers.length > 0);
+      return result;
+    },
+
+    layersWithDownload() {
+      if (!this.data) return [];
+
+      return Object.entries(this.data).filter(
+        ([layerName]) => this.layerDownloadMap[layerName] === true,
+      );
+    },
+
+    layersWithDataAndDownload() {
+      return this.layersWithData.filter(
+        ([layerName]) => this.layerDownloadMap[layerName] === true,
+      );
     },
 
     hasExportableData() {
-      return this.layersWithData.length > 0 && this.hasDownloadEnabled();
+      if (!this.data || !this.layerDownloadMap) {
+        return false;
+      }
+
+      const hasDownload = this.hasDownloadEnabled();
+
+      return hasDownload;
     },
 
     ...mapState('map', ['isDrawing']),
@@ -525,11 +548,30 @@ export default {
         this.map.on('click', this.getFeatureInfo, this);
       }
     },
+
+    data: {
+      handler(newData) {
+        if (newData) {
+          this.$nextTick(() => {
+            this.$forceUpdate();
+          });
+        }
+      },
+      deep: true,
+    },
   },
 
   methods: {
     hasDownloadEnabled() {
-      return true;
+      if (!this.data || !this.layerDownloadMap) {
+        return false;
+      }
+
+      const result = Object.keys(this.data).some(
+        (layerName) => this.layerDownloadMap[layerName] === true,
+      );
+
+      return result;
     },
 
     shouldDisplayField(field) {
@@ -645,17 +687,35 @@ export default {
     async getFeatureInfo(evt) {
       this.hasPopup = false;
       this.data = {};
+      this.layerDownloadMap = {}; // Limpar mapa de download
       this.currentLatLng = evt.latlng;
 
       await this.map.eachLayer(async (layer) => {
         if (Object.prototype.hasOwnProperty.call(layer, 'wmsParams')) {
           this.hasPopup = true;
           const layerName = layer.wmsParams.name;
+
+          let hasDownload = false;
+
+          // Try from main layer
+          if (layer.options && layer.options.hasDownload) {
+            hasDownload = layer.options.hasDownload;
+          } else if (layer.wmsParams && layer.wmsParams.hasDownload) {
+            // Try from wmsParams
+            hasDownload = layer.wmsParams.hasDownload;
+          } else if (layer.hasDownload !== undefined) {
+            // Try from custom properties
+            hasDownload = layer.hasDownload;
+          }
+
+          this.layerDownloadMap[layerName] = hasDownload;
+
           this.data[layerName] = {
             layers: [],
             loading: true,
           };
           const url = this.getFeatureInfoUrl(evt.latlng, layer);
+
           this.loadingData = true;
           this.$axios
             .get(url)
@@ -669,7 +729,8 @@ export default {
                 }
               }
             })
-            .catch(() => {
+            .catch((error) => {
+              console.log('❌ Erro no GetFeatureInfo:', error);
               this.$store.commit('alert/addAlert', {
                 message: this.$t('layer-api-error'),
               });
@@ -738,6 +799,7 @@ export default {
       return (
         // eslint-disable-next-line no-underscore-dangle
         layer._url
+                // eslint-disable-next-line no-underscore-dangle
                 + this.$L.Util.getParamString(params, layer._url, true)
       );
     },
