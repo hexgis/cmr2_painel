@@ -274,6 +274,7 @@
 <script>
 import { mapState } from 'vuex';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import { stringify } from 'wkt';
 import LoadingIconVue from '../map/file-loader/LoadingIcon.vue';
 
 export default {
@@ -723,9 +724,16 @@ export default {
               if (data && data.features && data.features.length) {
                 // eslint-disable-next-line no-restricted-syntax
                 for (const feature of data.features) {
-                  this.data[layerName].layers.push(
-                    feature.properties,
-                  );
+                  const enrichedProperties = { ...feature.properties };
+
+                  if (feature.geometry) {
+                    try {
+                      enrichedProperties.geometry_wkt = stringify(feature.geometry);
+                    } catch (error) {
+                      enrichedProperties.geometry_wkt = null;
+                    }
+                  }
+                  this.data[layerName].layers.push(enrichedProperties);
                 }
               }
             })
@@ -825,6 +833,7 @@ export default {
 
       try {
         const features = layerData && layerData.layers;
+
         if (!features || features.length === 0) {
           this.$store.commit('alert/addAlert', {
             message: this.$t('no-export-data'),
@@ -918,9 +927,10 @@ export default {
           return `"${this.escapeCSVValue(value)}"`;
         }).join(',')).join('\n');
 
-        return `${csvHeaders}\n${csvRows}`;
+        const csvContent = `${csvHeaders}\n${csvRows}`;
+
+        return csvContent;
       } catch (error) {
-        console.error('Error generating CSV:', error);
         return '';
       }
     },
@@ -941,10 +951,18 @@ export default {
           lng: this.currentLatLng.lng,
         } : null,
         totalFeatures: features.length,
-        features: features.map((feature) => ({
-          properties: feature,
-          geometry: null,
-        })),
+        features: features.map((feature) => {
+          const result = {
+            properties: { ...feature },
+          };
+
+          if (feature.geometry_wkt) {
+            result.geometry_wkt = feature.geometry_wkt;
+            delete result.properties.geometry_wkt;
+          }
+
+          return result;
+        }),
       };
 
       return JSON.stringify(exportData, null, 2);
