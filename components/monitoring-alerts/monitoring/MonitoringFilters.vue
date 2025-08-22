@@ -1,78 +1,104 @@
 <template>
+  <v-form ref="monitoringForm">
     <v-card>
-        <v-card-title class="d-flex justify-space-between">
-            <v-checkbox :label="$t('current-view')" />
-            <v-tooltip bottom :text="$t('title-switch-disable-features')">
-                <template v-slot:activator="{ props }">
-                    <v-switch v-bind="props" v-model="showFeaturesMonitoring" />
-                </template>
-            </v-tooltip>
-        </v-card-title>
-        <v-card-text>
-            <v-row no-gutters>
-                <v-combobox
-                    v-model="currentRegionalCoordinates"
-                    :label="$t('regional-coordination')"
-                    :items="getRegionalCoordinators"
-                    item-value="co_cr"
-                    item-text="ds_cr"
-                    hide-details
-                    clearable
-                    multiple
-                    class="pa-0"
-                    outlined
-                />
-                <v-combobox
-                    v-show="currentRegionalCoordinates.length"
-                    v-model="currentIndigenousLand"
-                    :label="$t('indigenous-land')"
-                    :items="getIndigenousLands"
-                    item-text="no_ti"
-                    :loading="loadingIndigenousLands"
-                    :disabled="loadingIndigenousLands"
-                    hide-details
-                    clearable
-                    multiple
-                    class="mt-4"
-                    outlined
-                />
-                <v-col cols="6" class="mt-5 pr-1">
-                    <BaseDateField
-                        v-model="getFilters.startDate"
-                        :label="$t('start-date')"
-                        required
-                        outlined
-                    />
-                </v-col>
-                <v-col cols="6" class="mt-5 pl-1">
-                    <BaseDateField
-                        v-model="getFilters.endDate"
-                        :label="$t('end-date')"
-                        required
-                        outlined
-                    />
-                </v-col>
-                <v-col cols="12" class="mt-4">
-                    <v-btn
-                        block
-                        small
-                        color="primary"
-                        outlined
-                        :loading="loadingMonitoring"
-                        class="pa-0 mt-n6"
-                        @click="searchMonitoring"
-                    >
-                        {{ $t('search-label') }}
-                    </v-btn>
-                </v-col>
-            </v-row>
-        </v-card-text>
+      <v-card-title class="d-flex justify-space-between">
+        <v-checkbox
+          v-model="currentViewArea"
+          :label="$t('current-view')"
+          :rules="currentViewRules"
+        />
+        <v-tooltip
+          bottom
+          :text="$t('title-switch-disable-features')"
+        >
+          <template #activator="{ props }">
+            <v-switch
+              v-bind="props"
+              v-model="showFeaturesMonitoring"
+            />
+          </template>
+        </v-tooltip>
+      </v-card-title>
+      <v-card-text>
+        <v-row no-gutters>
+          <v-combobox
+            v-model="currentRegionalCoordinates"
+            :label="$t('regional-coordination')"
+            :items="getRegionalCoordinators"
+            item-value="co_cr"
+            item-text="ds_cr"
+            hide-details
+            :rules="regionalCoordinationRules"
+            clearable
+            multiple
+            class="pa-0"
+            outlined
+          />
+          <v-combobox
+            v-show="currentRegionalCoordinates.length"
+            v-model="currentIndigenousLand"
+            :label="$t('indigenous-land')"
+            :items="getIndigenousLands"
+            item-text="no_ti"
+            :loading="loadingIndigenousLands"
+            :disabled="loadingIndigenousLands"
+            hide-details
+            clearable
+            multiple
+            class="mt-4"
+            outlined
+          />
+          <v-col
+            cols="6"
+            class="mt-5 pr-1"
+          >
+            <BaseDateField
+              v-model="currentStartDate"
+              :label="$t('start-date')"
+              :required="true"
+              outlined
+              :min-date="'2015-01-01'"
+            />
+          </v-col>
+          <v-col
+            cols="6"
+            class="mt-5 pl-1"
+          >
+            <BaseDateField
+              v-model="currentEndDate"
+              :label="$t('end-date')"
+              :required="true"
+              outlined
+              :min-date="'2015-01-01'"
+            />
+          </v-col>
+          <v-col
+            cols="12"
+            class="mt-4"
+          >
+            <v-btn
+              block
+              small
+              color="primary"
+              outlined
+              :disabled="!currentStartDate || !currentEndDate"
+              class="pa-0 mt-n6"
+              @click="searchMonitoring"
+            >
+              {{ $t('search-label') }}
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card-text>
     </v-card>
+  </v-form>
 </template>
 
 <i18n>
 {
   "en": {
+    "invalid-date": "Invalid date",
+    "date-format": "YYYY-MM-DD",
     "current-view": "Search in current area?",
     "title-switch-disable-features": "Disable Daily Monitoring",
     "title-switch-enable-features": "Enable Daily Monitoring",
@@ -83,6 +109,8 @@
     "search-label": "Search"
   },
   "pt-br": {
+    "invalid-date": "Data inválida",
+    "date-format": "DD/MM/YYYY",
     "current-view": "Pesquisar nesta área?",
     "title-switch-disable-features": "Desabilitar Monitoramento Diário",
     "title-switch-enable-features": "Habilitar Monitoramento Diário",
@@ -96,61 +124,133 @@
 </i18n>
 
 <script>
-import { mapMutations, mapState, mapActions, mapGetters } from 'vuex'
-import BaseDateField from '@/components/base/BaseDateField'
+import {
+  mapMutations, mapState, mapActions, mapGetters,
+} from 'vuex';
+import BaseDateField from '@/components/base/BaseDateField';
 
 export default {
-    name: 'MonitoringFilters',
+  name: 'MonitoringFilters',
 
-    components: {
-        BaseDateField,
-    },
+  components: {
+    BaseDateField,
+  },
 
-    data() {
-        return {}
-    },
+  data() {
+    return {
+      currentViewRules: [
+        (v) => (!!v || !!(this.filters.cr && this.filters.cr.length)) || false,
+      ],
+      regionalCoordinationRules: [
+        (v) => ((!!v && v.length) || !!this.filters.currentView) || false,
+      ],
+    };
+  },
 
-    computed: {
-        currentRegionalCoordinates: {
-            get() {
-                return this.filters.cr
-            },
-            set(value) {
-                this.$store.commit('monitoring/setFilters', { cr: value })
-                this.$store.dispatch('monitoring/getTiOptions')
-            },
-        },
-
-        currentIndigenousLand: {
-            get() {
-                return this.filters.ti
-            },
-            set(value) {
-                this.$store.commit('monitoring/setFilters', { ti: value })
-            },
-        },
-
-        ...mapGetters('monitoring', [
-          'getRegionalCoordinators', 
-          'getFilters',
-          'getIndigenousLands'
-        ]),
-        ...mapState('monitoring', [
-          'filters',
-          'showFeaturesMonitoring', 
-          'loadingIndigenousLands'
-        ]),
-    },
-
-    methods: {
-      searchMonitoring() {
-          this.$emit('search-monitoring')
+  computed: {
+    showFeaturesMonitoring: {
+      get() {
+        return this.$store.state.monitoring.showFeaturesMonitoring;
       },
-
-      ...mapActions('monitoring', ['getTiOptions']),
-      ...mapMutations('monitoring', ['setShowFeaturesMonitoring']),
+      set(value) {
+        this.setShowFeaturesMonitoring(value);
+      },
     },
-}
+
+    currentViewArea: {
+      get() {
+        return this.filters.currentView;
+      },
+      set(value) {
+        this.$store.commit('monitoring/setFilters', { currentView: value });
+      },
+    },
+
+    currentRegionalCoordinates: {
+      get() {
+        return this.filters.cr;
+      },
+      set(value) {
+        this.$store.commit('monitoring/setFilters', { cr: value });
+        this.$store.dispatch('monitoring/getTiOptions');
+        this.$store.commit('monitoring/setFilters', { currentView: false });
+      },
+    },
+
+    currentIndigenousLand: {
+      get() {
+        return this.filters.ti.toString();
+      },
+      set(value) {
+        this.$store.commit('monitoring/setFilters', { ti: value });
+      },
+    },
+
+    currentStartDate: {
+      get() {
+        return this.filters.startDate || '';
+      },
+      set(value) {
+        this.$store.commit('monitoring/setFilters', { startDate: value });
+      },
+    },
+
+    currentEndDate: {
+      get() {
+        return this.filters.endDate || '';
+      },
+      set(value) {
+        this.$store.commit('monitoring/setFilters', { endDate: value });
+      },
+    },
+
+    ...mapGetters('monitoring', [
+      'getRegionalCoordinators',
+      'getFilters',
+      'getIndigenousLands',
+    ]),
+    ...mapState('monitoring', [
+      'filters',
+      'loadingIndigenousLands',
+    ]),
+  },
+
+  created() {
+    this.initializeDates();
+  },
+
+  methods: {
+    initializeDates() {
+      // 1 month later
+      this.currentStartDate = this.$moment().subtract(1, 'month').format('YYYY-MM-DD') || '';
+      // current date
+      this.currentEndDate = this.$moment().format('YYYY-MM-DD') || '';
+    },
+
+    validCurrentViewArea(value) {
+      if (!value || (this.filters.cr && this.filters.cr.length)) {
+        return true;
+      }
+      return false;
+    },
+
+    validRegionalCoordination(value) {
+      if (!value || (this.filters.currentView)) {
+        return true;
+      }
+      return false;
+    },
+
+    searchMonitoring() {
+      if (this.$refs.monitoringForm.validate()) {
+        console.log('Form is valid');
+      }
+    },
+
+    ...mapActions('monitoring', ['getTiOptions']),
+    ...mapMutations('monitoring', ['setShowFeaturesMonitoring']),
+  },
+};
 </script>
 
 <style scoped lang="scss"></style>
