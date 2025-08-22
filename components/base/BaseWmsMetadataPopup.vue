@@ -14,64 +14,6 @@
             no-gutters
             class="fundo-primary pa-2 d-flex align-center"
           >
-            <!-- Export buttons section in header -->
-            <template v-if="hasExportableData">
-              <template v-for="([layerName, layerData]) in layersWithDataAndDownload.slice(0, 1)">
-                <div
-                  :key="layerName"
-                  class="d-flex align-center mr-3"
-                >
-                  <span class="text-caption white--text mr-2">{{ $t('export') }}:</span>
-                  <v-tooltip bottom>
-                    <template #activator="{ on, attrs }">
-                      <v-btn
-                        fab
-                        x-small
-                        color="rgba(255,255,255,0.9)"
-                        elevation="1"
-                        class="mr-1"
-                        :loading="isDownloading && currentDownloadFormat === 'csv'"
-                        :disabled="isDownloading"
-                        v-bind="attrs"
-                        v-on="on"
-                        @click="downloadFeatureData(layerName, layerData, 'csv')"
-                      >
-                        <v-icon
-                          small
-                          color="success"
-                        >
-                          mdi-file-table-outline
-                        </v-icon>
-                      </v-btn>
-                    </template>
-                    <span>{{ $t('export-csv') }}</span>
-                  </v-tooltip>
-                  <v-tooltip bottom>
-                    <template #activator="{ on, attrs }">
-                      <v-btn
-                        fab
-                        x-small
-                        color="rgba(255,255,255,0.9)"
-                        elevation="1"
-                        :loading="isDownloading && currentDownloadFormat === 'json'"
-                        :disabled="isDownloading"
-                        v-bind="attrs"
-                        v-on="on"
-                        @click="downloadFeatureData(layerName, layerData, 'json')"
-                      >
-                        <v-icon
-                          small
-                          color="primary"
-                        >
-                          mdi-code-json
-                        </v-icon>
-                      </v-btn>
-                    </template>
-                    <span>{{ $t('export-json') }}</span>
-                  </v-tooltip>
-                </div>
-              </template>
-            </template>
             <v-spacer />
             <!-- Enhanced close button -->
             <v-tooltip bottom>
@@ -112,6 +54,61 @@
               :key="layerName"
               class="fill-height"
             >
+              <!-- Export buttons section for this specific layer -->
+              <div
+                v-if="layerDownloadMap[layerName] && layerData.layers.length > 0"
+                class="d-flex justify-end pa-2 bg-grey-lighten-4 border-bottom"
+              >
+                <span class="text-caption mr-2 align-self-center">{{ $t('export') }}:</span>
+                <v-tooltip bottom>
+                  <template #activator="{ on, attrs }">
+                    <v-btn
+                      fab
+                      x-small
+                      color="success"
+                      elevation="1"
+                      class="mr-1"
+                      :loading="isDownloadingLayer(layerName, 'csv')"
+                      :disabled="isDownloading"
+                      v-bind="attrs"
+                      v-on="on"
+                      @click="downloadFeatureData(layerName, layerData, 'csv')"
+                    >
+                      <v-icon
+                        small
+                        color="white"
+                      >
+                        mdi-file-table-outline
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t('export-csv') }}</span>
+                </v-tooltip>
+                <v-tooltip bottom>
+                  <template #activator="{ on, attrs }">
+                    <v-btn
+                      fab
+                      x-small
+                      color="primary"
+                      elevation="1"
+                      :loading="isDownloadingLayer(layerName, 'json')"
+                      :disabled="isDownloading"
+                      v-bind="attrs"
+                      v-on="on"
+                      @click="downloadFeatureData(layerName, layerData, 'json')"
+                    >
+                      <v-icon
+                        small
+                        color="white"
+                      >
+                        mdi-code-json
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t('export-json') }}</span>
+                </v-tooltip>
+              </div>
+
               <v-card-text style="max-height: 312px; overflow-y: auto">
                 <template v-for="(feature, i) in layerData.layers">
                   <v-row
@@ -298,6 +295,7 @@ export default {
     currentLatLng: '',
     isDownloading: false,
     currentDownloadFormat: null,
+    currentDownloadLayer: null, // Track which layer is being downloaded
     layerDownloadMap: {},
     customTextParts: [
       {
@@ -320,6 +318,7 @@ export default {
         'ranking',
         'id_cr',
         'id_ti',
+        'geometry_wkt',
       ],
       fieldNames: {
         nu_buffer_distancia: 'Buffer Distância',
@@ -563,6 +562,12 @@ export default {
   },
 
   methods: {
+    isDownloadingLayer(layerName, format) {
+      return this.isDownloading
+        && this.currentDownloadFormat === format
+        && this.currentDownloadLayer === layerName;
+    },
+
     hasDownloadEnabled() {
       if (!this.data || !this.layerDownloadMap) {
         return false;
@@ -830,7 +835,7 @@ export default {
 
       this.isDownloading = true;
       this.currentDownloadFormat = format;
-
+      this.currentDownloadLayer = layerName;
       try {
         const features = layerData && layerData.layers;
 
@@ -878,13 +883,23 @@ export default {
       } finally {
         this.isDownloading = false;
         this.currentDownloadFormat = null;
+        this.currentDownloadLayer = null; // Clear the layer being downloaded
       }
     },
 
     downloadFile(data, filename, mimeType) {
       return new Promise((resolve, reject) => {
         try {
-          const blob = new Blob([data], { type: mimeType });
+          let blob;
+
+          if (filename.endsWith('.csv')) {
+            const BOM = '\uFEFF';
+            const csvData = BOM + data;
+            blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+          } else {
+            blob = new Blob([data], { type: mimeType });
+          }
+
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
 
@@ -920,11 +935,11 @@ export default {
 
         const headers = Array.from(allKeys);
 
-        const csvHeaders = headers.map((header) => `"${this.escapeCSVValue(header)}"`).join(',');
+        const csvHeaders = headers.map((header) => this.escapeCSVValue(header)).join(',');
 
         const csvRows = features.map((feature) => headers.map((header) => {
           const value = feature[header];
-          return `"${this.escapeCSVValue(value)}"`;
+          return this.escapeCSVValue(value);
         }).join(',')).join('\n');
 
         const csvContent = `${csvHeaders}\n${csvRows}`;
@@ -939,7 +954,15 @@ export default {
       if (value === null || value === undefined) return '';
 
       const stringValue = String(value);
-      return stringValue.replace(/"/g, '""');
+
+      let escapedValue = stringValue.replace(/"/g, '""');
+
+      if (escapedValue.includes(',') || escapedValue.includes('\n')
+          || escapedValue.includes('\r') || stringValue.includes('"')) {
+        escapedValue = `"${escapedValue}"`;
+      }
+
+      return escapedValue;
     },
 
     generateJSON(features, layerName) {
