@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    v-model="dialog"
+    v-model="newsDialog"
     width="800"
     persistent
     content-class="fixed-size-dialog"
@@ -150,13 +150,16 @@
 </i18n>
 
 <script>
+import {
+  mapState, mapGetters, mapActions, mapMutations,
+} from 'vuex';
 import MarkdownRenderer from './MarkdownRenderer.vue';
 
 export default {
   name: 'ProfileNews',
 
   components: {
-    MarkdownRenderer
+    MarkdownRenderer,
   },
 
   props: {
@@ -164,69 +167,63 @@ export default {
       type: Boolean,
       default: false,
     },
-    userId: {
-      type: [String, Number],
-      default: 'defaultUser',
-    },
     showAllNews: {
       type: Boolean,
       default: false,
     },
   },
 
-  data() {
-    return {
-      dialog: this.value,
-      allNews: [],
-      readNews: [],
-      carouselIndex: 0,
-      loading: false,
-      error: null,
-      allReadChecked: false,
-    };
-  },
-
   computed: {
-    sortedNews() {
-      return [...this.allNews].sort((a, b) => new Date(b.date) - new Date(a.date));
+    ...mapState('userProfile', ['news']),
+    ...mapGetters('userProfile', [
+      'displayedNews',
+      'hasUnreadNews',
+      'prevDisabled',
+      'nextDisabled',
+      'isNewsRead',
+    ]),
+
+    newsDialog: {
+      get() {
+        return this.news.dialog;
+      },
+      set(value) {
+        this.setNewsDialog(value);
+      },
     },
-    unreadNews() {
-      return this.sortedNews.filter((news) => !this.isNewsRead(news.id));
+
+    carouselIndex: {
+      get() {
+        return this.news.carouselIndex;
+      },
+      set(value) {
+        this.setCarouselIndex(value);
+      },
     },
-    displayedNews() {
-      return this.showAllNews ? this.sortedNews : this.unreadNews;
-    },
-    showArrows() {
-      return this.displayedNews.length > 1;
-    },
-    prevDisabled() {
-      return this.carouselIndex === 0;
-    },
-    nextDisabled() {
-      return this.carouselIndex === this.displayedNews.length - 1;
-    },
-    hasUnreadNews() {
-      return this.unreadNews.length > 0;
+
+    allReadChecked: {
+      get() {
+        return this.news.allReadChecked;
+      },
+      set(value) {
+        this.setAllReadChecked(value);
+      },
     },
   },
 
   watch: {
     value(newVal) {
-      this.dialog = newVal;
       if (newVal) {
-        this.carouselIndex = this.displayedNews.length - 1;
+        this.openNewsDialog(this.showAllNews);
+      } else {
+        this.closeNewsDialog();
       }
     },
-    dialog(newVal) {
+
+    newsDialog(newVal) {
       this.$emit('input', newVal);
       if (!newVal) {
         this.$emit('onDialogClose');
-      }
-    },
-    unreadNews(newVal) {
-      if (!this.showAllNews && newVal.length > 0 && !this.dialog) {
-        this.dialog = true;
-        this.carouselIndex = newVal.length - 1;
       }
     },
   },
@@ -235,103 +232,33 @@ export default {
     await this.loadNews();
     this.loadReadNews();
     this.checkFirstAccess();
-    this.checkUnreadNews();
+
+    if (this.value) {
+      this.openNewsDialog(this.showAllNews);
+    }
   },
 
   methods: {
-    isNewsRead(newsId) {
-      return this.readNews.includes(newsId);
-    },
+    ...mapActions('userProfile', [
+      'loadNews',
+      'loadReadNews',
+      'checkFirstAccess',
+      'updateReadStatus',
+      'markAllAsRead',
+      'openNewsDialog',
+      'closeNewsDialog',
+    ]),
 
-    async loadNews() {
-      this.loading = true;
-      this.error = null;
-      try {
-        const response = await this.$axios.get('/api/news/');
-        this.allNews = response.data;
-      } catch (error) {
-        console.error('Erro ao carregar notícias:', error);
-        this.error = 'Falha ao carregar notícias';
-        this.allNews = [];
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    loadReadNews() {
-      const savedReadNews = localStorage.getItem(`readNews_${this.userId}`);
-      try {
-        this.readNews = savedReadNews ? JSON.parse(savedReadNews) : [];
-        if (!Array.isArray(this.readNews)) {
-          this.readNews = [];
-        }
-      } catch (e) {
-        this.readNews = [];
-      }
-    },
-
-    checkFirstAccess() {
-      if (localStorage.getItem(`firstAccess_${this.userId}`) === null) {
-        localStorage.setItem(`firstAccess_${this.userId}`, 'false');
-      }
-    },
-
-    checkUnreadNews() {
-      const unread = this.unreadNews;
-      if (!this.showAllNews && unread.length > 0 && !this.dialog) {
-        this.dialog = true;
-        this.carouselIndex = unread.length - 1;
-      }
-    },
-
-    updateReadStatus(newsId, isChecked) {
-      if (isChecked) {
-        if (!this.isNewsRead(newsId)) {
-          this.readNews = [...this.readNews, newsId];
-          localStorage.setItem(`readNews_${this.userId}`, JSON.stringify(this.readNews));
-
-          this.$forceUpdate();
-
-          if (!this.showAllNews) {
-            this.$nextTick(() => {
-              if (this.unreadNews.length === 0) {
-                this.closeDialog();
-              } else if (this.carouselIndex > 0) {
-                this.carouselIndex++;
-              }
-            });
-          } else if (this.carouselIndex > 0) {
-            this.carouselIndex++;
-          }
-        }
-      }
-    },
-
-    markAllAsRead(checked) {
-      if (checked) {
-        const unreadIds = this.unreadNews.map((news) => news.id);
-        this.readNews = [...this.readNews, ...unreadIds];
-        localStorage.setItem(`readNews_${this.userId}`, JSON.stringify(this.readNews));
-        this.$forceUpdate();
-
-        if (!this.showAllNews) {
-          this.closeDialog();
-        }
-      }
-      // Resetar o checkbox após um pequeno delay para melhor feedback visual
-      setTimeout(() => {
-        this.allReadChecked = false;
-      }, 500);
-    },
+    ...mapMutations('userProfile', ['setNewsDialog', 'setCarouselIndex', 'setAllReadChecked']),
 
     closeDialog() {
-      this.dialog = false;
+      this.closeNewsDialog();
     },
 
     formatDate(dateString) {
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return new Date(dateString).toLocaleDateString('pt-BR', options);
-    }
+    },
   },
 };
 </script>
