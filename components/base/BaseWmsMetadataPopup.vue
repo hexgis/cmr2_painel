@@ -15,8 +15,8 @@
             class="fundo-primary pa-2 d-flex align-center"
           >
             <!-- Export buttons section in header -->
-            <template v-for="(layerData, layerName) in data">
-              <template v-if="layerData.layers && layerData.layers.length && hasDownloadEnabled()">
+            <template v-if="hasExportableData">
+              <template v-for="([layerName, layerData]) in layersWithData.slice(0, 1)">
                 <div
                   :key="layerName"
                   class="d-flex align-center mr-3"
@@ -31,6 +31,7 @@
                         elevation="1"
                         class="mr-1"
                         :loading="isDownloading && currentDownloadFormat === 'csv'"
+                        :disabled="isDownloading"
                         v-bind="attrs"
                         v-on="on"
                         @click="downloadFeatureData(layerName, layerData, 'csv')"
@@ -53,6 +54,7 @@
                         color="rgba(255,255,255,0.9)"
                         elevation="1"
                         :loading="isDownloading && currentDownloadFormat === 'json'"
+                        :disabled="isDownloading"
                         v-bind="attrs"
                         v-on="on"
                         @click="downloadFeatureData(layerName, layerData, 'json')"
@@ -217,27 +219,16 @@
                   </v-card>
                 </template>
                 <template v-if="layerData.loading">
-                  <v-row
-                    v-for="i in 3"
-                    :key="i"
-                    dense
-                  >
-                    <v-col
-                      cols="5"
-                      class="text-right"
-                    >
-                      <v-skeleton-loader
-                        class="pt-1"
-                        type="text"
-                      />
-                    </v-col>
-                    <v-col cols="7">
-                      <v-skeleton-loader
-                        class="pt-1"
-                        type="text"
-                      />
-                    </v-col>
-                  </v-row>
+                  <div class="text-center py-4">
+                    <v-progress-circular
+                      indeterminate
+                      color="primary"
+                      size="32"
+                    />
+                    <p class="text-caption mt-2 mb-0">
+                      {{ $t('loading-data') }}
+                    </p>
+                  </div>
                 </template>
                 <div v-else-if="!layerData.layers.length">
                   {{ $t('no-data') }}
@@ -259,7 +250,11 @@
           "export": "Export",
           "export-csv": "Export CSV",
           "export-json": "Export JSON",
-          "close": "Close"
+          "close": "Close",
+          "loading-data": "Loading data...",
+          "download-success": "Download completed successfully",
+          "download-error": "Download failed",
+          "no-export-data": "No data available for export"
       },
       "pt-br": {
           "no-data": "Não há dados nesse ponto para a camada selecionada.",
@@ -267,7 +262,11 @@
           "export": "Exportar",
           "export-csv": "Exportar CSV",
           "export-json": "Exportar JSON",
-          "close": "Fechar"
+          "close": "Fechar",
+          "loading-data": "Carregando dados...",
+          "download-success": "Download concluído com sucesso",
+          "download-error": "Falha no download",
+          "no-export-data": "Nenhum dado disponível para exportação"
       }
   }
 </i18n>
@@ -309,7 +308,6 @@ export default {
       },
     ],
     fieldConfig: {
-      // Campos que devem ser ignorados
       excludedFields: [
         'bbox',
         'path',
@@ -321,7 +319,6 @@ export default {
         'id_cr',
         'id_ti',
       ],
-      // Substituições completas de nomes de campos
       fieldNames: {
         nu_buffer_distancia: 'Buffer Distância',
         co_funai: 'Código Funai',
@@ -509,6 +506,16 @@ export default {
       };
     },
 
+    layersWithData() {
+      if (!this.data) return [];
+
+      return Object.entries(this.data).filter(([, layerData]) => layerData.layers && layerData.layers.length > 0);
+    },
+
+    hasExportableData() {
+      return this.layersWithData.length > 0 && this.hasDownloadEnabled();
+    },
+
     ...mapState('map', ['isDrawing']),
   },
 
@@ -606,11 +613,11 @@ export default {
         if (isLatLongField) {
           return value.toFixed(5);
         }
+        let numericValue = value;
         if (typeof value === 'string') {
-          // eslint-disable-next-line no-param-reassign
-          value = parseFloat(value);
+          numericValue = parseFloat(value);
         }
-        const rounded = value.toFixed(2);
+        const rounded = numericValue.toFixed(2);
         const [intPart, decimalPart] = rounded.split('.');
 
         return decimalPart !== '00'
@@ -749,18 +756,23 @@ export default {
     },
 
     async downloadFeatureData(layerName, layerData, format = 'csv') {
+      if (this.isDownloading) return;
+
       this.isDownloading = true;
       this.currentDownloadFormat = format;
 
       try {
-        const features = layerData.layers;
+        const features = layerData && layerData.layers;
         if (!features || features.length === 0) {
           this.$store.commit('alert/addAlert', {
-            message: 'Não há dados para download',
+            message: this.$t('no-export-data'),
             type: 'warning',
           });
           return;
         }
+
+        const sanitizedLayerName = layerName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const timestamp = new Date().toISOString().split('T')[0];
 
         let downloadData;
         let filename;
@@ -768,34 +780,28 @@ export default {
 
         if (format === 'csv') {
           downloadData = this.generateCSV(features);
-          filename = `${layerName}_${new Date().toISOString().split('T')[0]}.csv`;
+          filename = `${sanitizedLayerName}_${timestamp}.csv`;
           mimeType = 'text/csv;charset=utf-8;';
         } else {
           downloadData = this.generateJSON(features, layerName);
-          filename = `${layerName}_${new Date().toISOString().split('T')[0]}.json`;
+          filename = `${sanitizedLayerName}_${timestamp}.json`;
           mimeType = 'application/json;charset=utf-8;';
         }
 
-        // Criar e fazer download do arquivo
-        const blob = new Blob([downloadData], { type: mimeType });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
+        if (!downloadData) {
+          throw new Error('Failed to generate download data');
+        }
 
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        await this.downloadFile(downloadData, filename, mimeType);
 
         this.$store.commit('alert/addAlert', {
-          message: `Download realizado com sucesso: ${filename}`,
+          message: this.$t('download-success'),
           type: 'success',
         });
       } catch (error) {
         console.error('Erro no download:', error);
         this.$store.commit('alert/addAlert', {
-          message: 'Erro ao realizar download dos dados',
+          message: this.$t('download-error'),
           type: 'error',
         });
       } finally {
@@ -804,27 +810,64 @@ export default {
       }
     },
 
+    downloadFile(data, filename, mimeType) {
+      return new Promise((resolve, reject) => {
+        try {
+          const blob = new Blob([data], { type: mimeType });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+
+          link.setAttribute('href', url);
+          link.setAttribute('download', filename);
+          link.style.visibility = 'hidden';
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    },
+
     generateCSV(features) {
       if (!features || features.length === 0) return '';
 
-      const allKeys = new Set();
-      features.forEach((feature) => {
-        Object.keys(feature).forEach((key) => allKeys.add(key));
-      });
-
-      const headers = Array.from(allKeys);
-
-      let csvContent = `${headers.map((header) => `"${header}"`).join(',')}\n`;
-
-      features.forEach((feature) => {
-        const row = headers.map((header) => {
-          const value = feature[header];
-          return value !== null && value !== undefined ? `"${String(value).replace(/"/g, '""')}"` : '""';
+      try {
+        const allKeys = new Set();
+        features.forEach((feature) => {
+          if (feature && typeof feature === 'object') {
+            Object.keys(feature).forEach((key) => allKeys.add(key));
+          }
         });
-        csvContent += `${row.join(',')}\n`;
-      });
 
-      return csvContent;
+        if (allKeys.size === 0) return '';
+
+        const headers = Array.from(allKeys);
+
+        const csvHeaders = headers.map((header) => `"${this.escapeCSVValue(header)}"`).join(',');
+
+        const csvRows = features.map((feature) => headers.map((header) => {
+          const value = feature[header];
+          return `"${this.escapeCSVValue(value)}"`;
+        }).join(',')).join('\n');
+
+        return `${csvHeaders}\n${csvRows}`;
+      } catch (error) {
+        console.error('Error generating CSV:', error);
+        return '';
+      }
+    },
+
+    escapeCSVValue(value) {
+      if (value === null || value === undefined) return '';
+
+      const stringValue = String(value);
+      return stringValue.replace(/"/g, '""');
     },
 
     generateJSON(features, layerName) {
@@ -873,21 +916,54 @@ export default {
   .v-row:not(:last-child)
     margin-bottom: 4px
 
-// Enhanced header styling
 .close-btn
   transition: all 0.3s ease
   &:hover
     background-color: rgba(255, 255, 255, 0.2) !important
     transform: scale(1.05)
 
-// Export buttons in header
 .fundo-primary
   .v-btn--fab.v-size--x-small
     transition: all 0.2s ease
     &:hover
       transform: scale(1.1)
       box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important
-    
+
     &.v-btn--loading
       transform: none
+
+    &.v-btn--disabled
+      opacity: 0.5
+      transform: none !important
+
+.v-progress-circular
+  display: inline-block
+
+.card-popup
+  border-radius: 8px !important
+
+  .v-card
+    border-radius: 8px !important
+
+  .v-tabs
+    border-radius: 0 0 8px 8px !important
+
+.text-subtitle-2
+  word-break: break-word
+  hyphens: auto
+
+.list-separator
+  &:hover
+    background-color: rgba(0, 0, 0, 0.02)
+
+@media (max-width: 600px)
+  .fundo-primary
+    padding: 8px !important
+
+    .text-caption
+      display: none
+
+    .v-btn--fab.v-size--x-small
+      width: 28px !important
+      height: 28px !important
 </style>
