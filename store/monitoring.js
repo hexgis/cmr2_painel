@@ -87,7 +87,6 @@ export default {
           });
         });
       }
-
       return state.availableEstagios
         .map((estagio) => {
           const mapped = legendMapping[estagio] || { name: estagio, acronym: '' };
@@ -204,6 +203,13 @@ export default {
     },
     setLegendVisibility(state, { estagio, visible }) {
       Vue.set(state.legendVisibility, estagio, visible);
+    },
+    initializeLegendVisibility(state) {
+      state.availableEstagios.forEach((estagio) => {
+        if (!(estagio in state.legendVisibility)) {
+          Vue.set(state.legendVisibility, estagio, true);
+        }
+      });
     },
     resetLegendVisibility(state) {
       Object.keys(state.legendVisibility).forEach(key => {
@@ -374,10 +380,10 @@ export default {
       );
 
       // Se todos os estágios estão desabilitados, configurar uma URL que não retorna dados
-      if (visibleEstagios.length === 0) {
-        commit('setUrlCurrentWmsMonitoring', '');
-        return;
-      }
+      // if (visibleEstagios.length === 0) {
+      //   commit('setUrlCurrentWmsMonitoring', '');
+      //   return;
+      // }
 
       const params = {
         layers: state.geoserverLayerMonitoring,
@@ -605,7 +611,8 @@ export default {
         if (response) {
           commit('setTotalArea', response.total_area || 0);
           commit('setTotalFeatures', response.total_features || 0);
-          commit('setAvailableEstagios', response.stages || []);
+          await commit('setAvailableEstagios', response.stages || []);
+          commit('initializeLegendVisibility');
         }
 
       } catch (error) {
@@ -876,8 +883,6 @@ export default {
       try {
         await commit('setLegendVisibility', { estagio, visible });
 
-        await dispatch('updateMonitoringStats');
-
         // Atualiza apenas a URL do WMS sem refazer toda a pesquisa
         await dispatch('generateUrlWmsMonitoring');
 
@@ -889,6 +894,8 @@ export default {
       } catch (error) {
         console.error('Erro ao alternar visibilidade:', error);
         throw error;
+      } finally {
+        await dispatch('updateMonitoringStats');
       }
     },
 

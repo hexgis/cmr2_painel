@@ -558,16 +558,16 @@ export default {
         this.getFeatures().then(() => {
           // this.getDataTableMonitoring();
           this.isLoadingFeatures = false;
+          this.getMonitoringStats({
+            start_date: this.filters.startDate,
+            end_date: this.filters.endDate,
+            cr: this.filters.cr,
+            ti: this.filters.ti,
+            currentView: this.filters.currentView
+          })
         }).catch(() => {
           this.isLoadingFeatures = false;
         });
-        await this.getMonitoringStats({
-          start_date: this.filters.startDate,
-          end_date: this.filters.endDate,
-          cr: this.filters.cr,
-          ti: this.filters.ti,
-          currentView: this.filters.currentView
-        })
       } else {
         this.error = true;
       }
