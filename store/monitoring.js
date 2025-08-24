@@ -64,6 +64,7 @@ export default {
     legendVisibility: {},
     availableEstagios: [],
     loadingMonitoringStats: false,
+    loadingMonitoringFilter: false,
   }),
 
   // Getters para acessar e processar dados do estado
@@ -120,15 +121,12 @@ export default {
     setIntersectsWmsMonitoring(state, intersectsWmsMonitoring) {
       state.intersectsWmsMonitoring = intersectsWmsMonitoring;
     },
-    setshowFeaturesMonitoring(state, showFeaturesMonitoring) {
-      state.showFeaturesMonitoring = showFeaturesMonitoring;
+    setshowFeaturesMonitoring(state, value) {
+      state.showFeaturesMonitoring = value;
     },
     setLoadingStatistic(state, payload) {
       state.isLoadingStatistic = payload;
     },
-
-
-
     setAnalytics(state, analyticsMonitoring) {
       const formattedAnalytics = analyticsMonitoring.map(item => {
         const newItem = { ...item };
@@ -151,6 +149,9 @@ export default {
     },
     setLoadingMonitoringStats(state, payload) {
       state.loadingMonitoringStats = payload;
+    },
+    setLoadingMonitoringFilter(state, payload) {
+      state.loadingMonitoringFilter = payload;
     },
     setLoadingFeatures(state, payload) {
       state.isLoadingFeatures = payload;
@@ -203,6 +204,11 @@ export default {
     },
     setLegendVisibility(state, { estagio, visible }) {
       Vue.set(state.legendVisibility, estagio, visible);
+    },
+    resetLegendVisibility(state) {
+      Object.keys(state.legendVisibility).forEach(key => {
+        Vue.set(state.legendVisibility, key, true);
+      });
     },
     setAvailableEstagios(state, estagios) {
       state.availableEstagios = estagios;
@@ -574,28 +580,84 @@ export default {
         commit('setLoadingMonitoring', false);
       }
     },
-    async getMonitoringStats({ commit }, params) {
+    async getMonitoringStats({ commit, state, rootGetters }) {
       try {
+        commit('setLoadingMonitoringFilter', false);
         commit('setLoadingMonitoringStats', false);
-        // const response = await this.$api.$get('monitoring/consolidated/stats/', params);
-        // fakes this request after 5 sec
-        const response = await new Promise(resolve => {
-          setTimeout(() => {
-            resolve({
-              total_area: 600.0,
-              total_features: 100,
-              stages: ["CR", "DG", "FF", "DR"]
-            });
-            console.log('terminei agora');
-          }, 100);
-        });
+        commit('resetLegendVisibility');
+        const params = {
+          start_date: state.filters.startDate,
+          end_date: state.filters.endDate,
 
+        };
+
+        if (state.filters.ti?.length) {
+          params.co_funai = state.filters.ti.map(item => item.co_funai).join(',');
+        }
+        if (state.filters.cr?.length) {
+          params.co_cr = state.filters.cr.map(item => item.co_cr).join(',');
+        }
+        if (state.filters.currentView) {
+          params.in_bbox = rootGetters['map/bbox'];
+        }
+
+        const response = await this.$api.$get('monitoring/consolidated/map-stats/', { params });
         if (response) {
           commit('setTotalArea', response.total_area || 0);
           commit('setTotalFeatures', response.total_features || 0);
           commit('setAvailableEstagios', response.stages || []);
         }
 
+      } catch (error) {
+        console.error('Erro ao buscar estatísticas de monitoramento:', error);
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring statistics'),
+          }),
+          type: 'error',
+        }, { root: true });
+      } finally {
+        commit('setLoadingMonitoringFilter', true);
+        commit('setLoadingMonitoringStats', true);
+      }
+    },
+
+    async updateMonitoringStats({ commit, state, rootGetters }) {
+      try {
+        commit('setLoadingMonitoringStats', false);
+        const params = {
+          start_date: state.filters.startDate,
+          end_date: state.filters.endDate,
+        };
+
+        if (state.filters.ti?.length) {
+          params.co_funai = state.filters.ti.map(item => item.co_funai).join(',');
+        }
+
+        if (state.filters.cr?.length) {
+          params.co_cr = state.filters.cr.map(item => item.co_cr).join(',');
+        }
+
+        if (state.filters.currentView) {
+          params.in_bbox = rootGetters['map/bbox'];
+        }
+        if (Object.values(state.legendVisibility).some(v => !v)) {
+          const stages = Object.keys(state.legendVisibility)
+            .filter(key => state.legendVisibility[key]);
+
+          if (stages.length === 0) {
+            params.stage = 'NONE';
+          } else {
+            params.stage = stages.join(',');
+          }
+        }
+
+        const response = await this.$api.$get('monitoring/consolidated/map-stats/', { params });
+        if (response) {
+          commit('setTotalArea', response.total_area || 0);
+          commit('setTotalFeatures', response.total_features || 0);
+        }
       } catch (error) {
         console.error('Erro ao buscar estatísticas de monitoramento:', error);
         commit('alert/addAlert', {
@@ -812,7 +874,9 @@ export default {
     // Alterna visibilidade da legenda
     async toggleLegendVisibility({ commit, dispatch, state }, { estagio, visible }) {
       try {
-        commit('setLegendVisibility', { estagio, visible });
+        await commit('setLegendVisibility', { estagio, visible });
+
+        await dispatch('updateMonitoringStats');
 
         // Atualiza apenas a URL do WMS sem refazer toda a pesquisa
         await dispatch('generateUrlWmsMonitoring');

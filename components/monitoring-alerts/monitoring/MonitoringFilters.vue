@@ -130,7 +130,7 @@
 
 
     <v-row
-      v-else-if="showFeaturesMonitoring && totalFeatures > 0"
+      v-else-if="showFeaturesMonitoring"
       no-gutters
       align="center"
       class="mt-3"
@@ -235,7 +235,7 @@
           {{ $t('legend') }}
         </p>
       </v-col>
-      <v-row v-if="legendItems.length && loadingMonitoringStats" class="mt-2">
+      <v-row v-if="legendItems.length && loadingMonitoringFilter" class="mt-2">
         <v-col>
           <v-list dense flat>
             <v-list-item
@@ -414,6 +414,7 @@ export default {
       'totalArea',
       'totalFeatures',
       'loadingMonitoringStats',
+      'loadingMonitoringFilter',
     ]),
   },
   watch: {
