@@ -225,7 +225,7 @@
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>
-                              {{ monitoringCount }}
+                              {{ totalFeatures }}
                             </v-chip>
                           </p>
                           <hr style="border: 1px solid red; margin: 0; margin-top: 0px;">
@@ -823,6 +823,7 @@ export default {
       filterOptions: (state) => state.foco.filterOptions,
       isLoadingFeatures: (state) => state.foco.isLoadingFeatures,
       bounds: (state) => state.map.bounds,
+      totalFeatures: (state) => state.monitoring.totalFeatures,
     }),
   },
 
