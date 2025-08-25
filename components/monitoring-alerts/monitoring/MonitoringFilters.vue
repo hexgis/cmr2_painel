@@ -573,10 +573,8 @@ export default {
       }
     },
     showTableDialog(value) {
-      if (this.features) {
-        this.tableDialogMonitoring = value;
-        this.getDataTableMonitoring();
-      }
+      this.tableDialogMonitoring = value;
+      this.getDataTableMonitoring();
     },
     closeTable(value) {
       this.tableDialogMonitoring = value;
