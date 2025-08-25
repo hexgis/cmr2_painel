@@ -201,7 +201,7 @@
           @loads="loaded()"
         />
 
-        <MonitoringLayers :map="map" />
+        <MonitoringLayers v-if="mapReady" />
 
         <ProdesLayers :map="map" />
 

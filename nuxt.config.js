@@ -48,6 +48,7 @@ export default {
     { src: '~/plugins/theme-config.js', mode: 'client' },
     { src: '~/plugins/vue-chartjs.js', mode: 'client' },
     { src: '~/plugins/vue2-leaflet-markercluster.js', mode: 'client' },
+    { src: '~/plugins/confirm-download-dialog.js', mode: 'client' },
   ],
   /*
      ** Nuxt.js dev-modules

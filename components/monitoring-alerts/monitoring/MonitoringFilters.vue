@@ -28,11 +28,14 @@
             item-value="co_cr"
             item-text="ds_cr"
             hide-details
+            :loading="loadingRegionalCoordinators"
+            :disabled="loadingRegionalCoordinators"
             :rules="regionalCoordinationRules"
             clearable
             multiple
             class="pa-0"
             outlined
+            @clear="currentRegionalCoordinates = []"
           />
           <v-combobox
             v-show="currentRegionalCoordinates.length"
@@ -40,6 +43,7 @@
             :label="$t('indigenous-land')"
             :items="getIndigenousLands"
             item-text="no_ti"
+            item-value="co_funai"
             :loading="loadingIndigenousLands"
             :disabled="loadingIndigenousLands"
             hide-details
@@ -47,6 +51,7 @@
             multiple
             class="mt-4"
             outlined
+            @clear="currentIndigenousLand = []"
           />
           <v-col
             cols="6"
@@ -89,6 +94,52 @@
             </v-btn>
           </v-col>
         </v-row>
+
+        <div
+          v-if="loadingSearchMonitoring"
+          class="mt-1"
+        >
+          <v-row
+            no-gutters
+            justify="center"
+          >
+            <v-col cols="6">
+              <v-skeleton-loader type="table-cell@4" />
+            </v-col>
+            <v-col cols="6">
+              <div class="d-flex justify-end">
+                <v-skeleton-loader type="table-cell@4" />
+              </div>
+            </v-col>
+          </v-row>
+          <v-divider class="mt-1" />
+          <div>
+            <v-skeleton-loader type="table-cell" />
+            <v-row
+              v-for="n in 4"
+              :key="n"
+              no-gutters
+              align="center"
+              class="mb-4"
+            >
+              <v-col cols="1">
+                <v-skeleton-loader
+                  width="20"
+                  height="20"
+                  tile
+                  type="avatar"
+                />
+              </v-col>
+              <v-col cols="10">
+                <v-skeleton-loader type="text" />
+              </v-col>
+            </v-row>
+          </div>
+        </div>
+
+        <v-divider class="mt-4" />
+
+        <MonitoringResults />
       </v-card-text>
     </v-card>
   </v-form>
@@ -124,16 +175,16 @@
 </i18n>
 
 <script>
-import {
-  mapMutations, mapState, mapActions, mapGetters,
-} from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 import BaseDateField from '@/components/base/BaseDateField';
+import MonitoringResults from './MonitoringResults.vue';
 
 export default {
   name: 'MonitoringFilters',
 
   components: {
     BaseDateField,
+    MonitoringResults,
   },
 
   data() {
@@ -153,7 +204,7 @@ export default {
         return this.$store.state.monitoring.showFeaturesMonitoring;
       },
       set(value) {
-        this.setShowFeaturesMonitoring(value);
+        this.$store.commit('monitoring/setShowFeaturesMonitoring', value);
       },
     },
 
@@ -179,7 +230,7 @@ export default {
 
     currentIndigenousLand: {
       get() {
-        return this.filters.ti.toString();
+        return this.filters.ti;
       },
       set(value) {
         this.$store.commit('monitoring/setFilters', { ti: value });
@@ -212,6 +263,8 @@ export default {
     ...mapState('monitoring', [
       'filters',
       'loadingIndigenousLands',
+      'loadingRegionalCoordinators',
+      'loadingSearchMonitoring',
     ]),
   },
 
@@ -243,12 +296,10 @@ export default {
 
     searchMonitoring() {
       if (this.$refs.monitoringForm.validate()) {
-        console.log('Form is valid');
+        this.$store.commit('monitoring/setUrlWmsMonitoring', '');
+        this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
       }
     },
-
-    ...mapActions('monitoring', ['getTiOptions']),
-    ...mapMutations('monitoring', ['setShowFeaturesMonitoring']),
   },
 };
 </script>
