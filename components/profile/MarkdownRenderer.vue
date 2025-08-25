@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import { sanitizeText, sanitizeUrl, sanitizeHtml } from '@/utils/sanitize';
 
 const MarkdownInline = {
   props: ['text'],
@@ -19,7 +20,7 @@ const MarkdownInline = {
   },
   methods: {
     parseInline(text) {
-      if (!text) return [{ type: 'text', content: text }];
+      if (!text) return [{ type: 'text', content: sanitizeText(text) }];
 
       const tokens = [];
       let currentText = text;
@@ -30,6 +31,8 @@ const MarkdownInline = {
         { regex: /\*(.*?)\*/g, type: 'em' },
         { regex: /~~(.*?)~~/g, type: 'del' },
         { regex: /`(.*?)`/g, type: 'code' },
+        { regex: /<code>(.*?)<\/code>/g, type: 'code' },
+        { regex: /&amp;lt;code&amp;gt;(.*?)&amp;lt;\/code&amp;gt;/g, type: 'code' }, // Suporte a <code> escapado
         { regex: /\[([^\]]+)\]\(([^)]+)\)/g, type: 'link' },
       ];
 
@@ -42,8 +45,8 @@ const MarkdownInline = {
             index: match.index,
             endIndex: pattern.regex.lastIndex,
             type: pattern.type,
-            content: match[1] || match[2],
-            href: pattern.type === 'link' ? match[2] : null,
+            content: pattern.type === 'code' ? match[1] : sanitizeText(match[1] || match[2]),
+            href: pattern.type === 'link' ? sanitizeUrl(match[2]) : null,
           });
         }
 
@@ -54,24 +57,26 @@ const MarkdownInline = {
         let earliestMatch = null;
         let patternIndex = -1;
 
-        patterns.forEach((pattern, index) => {
-          pattern.regex.lastIndex = 0;
-          const match = pattern.regex.exec(currentText);
+        for (let index = 0; index < patterns.length; index++) {
+          const pattern = patterns[index];
+          // Clone the regex to avoid mutating the original
+          const regex = new RegExp(pattern.regex.source, pattern.regex.flags);
+          const match = regex.exec(currentText);
           if (match && (!earliestMatch || match.index < earliestMatch.index)) {
             earliestMatch = match;
             patternIndex = index;
           }
-        });
+        }
 
         if (!earliestMatch) {
-          tokens.push({ type: 'text', content: currentText });
+          tokens.push({ type: 'text', content: sanitizeText(currentText) });
           break;
         }
 
         if (earliestMatch.index > 0) {
           tokens.push({
             type: 'text',
-            content: currentText.substring(0, earliestMatch.index),
+            content: sanitizeText(currentText.substring(0, earliestMatch.index)),
           });
         }
 
@@ -81,7 +86,7 @@ const MarkdownInline = {
         tokens.push({
           type: pattern.type,
           content,
-          href: pattern.type === 'link' ? earliestMatch[2] : null,
+          href: pattern.type === 'link' ? sanitizeUrl(earliestMatch[2]) : null,
         });
 
         currentText = currentText.substring(earliestMatch.index + earliestMatch[0].length);
@@ -107,9 +112,17 @@ const MarkdownInline = {
           case 'link':
             return h('a', {
               attrs: {
-                href: token.href,
+                href: sanitizeUrl(token.href),
                 target: '_blank',
                 rel: 'noopener noreferrer',
+              },
+              on: {
+                click: (event) => {
+                  event.preventDefault();
+                  if (token.href !== '#') {
+                    window.open(token.href, '_blank', 'noopener,noreferrer');
+                  }
+                },
               },
             }, this.renderTokens(h, this.parseInline(token.content)));
           default:
@@ -123,21 +136,21 @@ const MarkdownInline = {
 const MarkdownParagraph = {
   props: ['node'],
   render(h) {
-    return h('p', [h(MarkdownInline, { props: { text: this.node.text } })]);
+    return h('p', [h(MarkdownInline, { props: { text: sanitizeText(this.node.text) } })]);
   },
 };
 
 const MarkdownHeading = {
   props: ['node'],
   render(h) {
-    return h(`h${this.node.depth}`, [h(MarkdownInline, { props: { text: this.node.text } })]);
+    return h(`h${this.node.depth}`, [h(MarkdownInline, { props: { text: sanitizeText(this.node.text) } })]);
   },
 };
 
 const MarkdownText = {
   props: ['node'],
   render(h) {
-    return h('span', [h(MarkdownInline, { props: { text: this.node.text } })]);
+    return h('span', [h(MarkdownInline, { props: { text: sanitizeText(this.node.text) } })]);
   },
 };
 
@@ -146,63 +159,70 @@ const MarkdownLink = {
   render(h) {
     return h('a', {
       attrs: {
-        href: this.node.href,
+        href: sanitizeUrl(this.node.href),
         target: '_blank',
         rel: 'noopener noreferrer',
-        title: this.node.title || '',
+        title: sanitizeText(this.node.title || ''),
       },
-    }, this.node.text);
+      on: {
+        click: (event) => {
+          event.preventDefault();
+          if (this.node.href !== '#') {
+            window.open(this.node.href, '_blank', 'noopener,noreferrer');
+          }
+        },
+      },
+    }, sanitizeText(this.node.text));
   },
 };
 
 const MarkdownImage = {
   props: ['node'],
   render(h) {
-    const youtubeMatch = this.extractYoutubeId(this.node.href);
+    const youtubeId = this.extractYoutubeId(this.node.href);
 
-    if (youtubeMatch) {
+    if (youtubeId) {
       return h('div', { class: 'video-embed' }, [
         h('div', { class: 'video-wrapper' }, [
           h('iframe', {
             attrs: {
               width: '100%',
               height: '315',
-              src: `https://www.youtube.com/embed/${youtubeMatch}`,
+              src: `https://www.youtube.com/embed/${youtubeId}`,
               frameborder: '0',
               allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
               allowfullscreen: true,
             },
           }),
         ]),
-        this.node.text ? h('p', { class: 'video-title' }, `🎥 ${this.node.text}`) : null,
+        this.node.text ? h('p', { class: 'video-title' }, `🎥 ${sanitizeText(this.node.text)}`) : null,
       ]);
     }
 
     if (this.isValidImageUrl(this.node.href)) {
+      const sanitizedUrl = sanitizeUrl(this.node.href, true);
+      if (sanitizedUrl === '#') {
+        console.warn('URL de imagem inválida:', this.node.href, 'Texto:', this.node.text);
+        return h('p', { class: 'image-error' }, `Imagem inválida: ${sanitizeText(this.node.text || 'Sem descrição')} (URL: ${sanitizeText(this.node.href)})`);
+      }
       return h('img', {
         attrs: {
-          src: this.node.href,
-          alt: this.node.text || '',
+          src: sanitizedUrl,
+          alt: sanitizeText(this.node.text || ''),
           class: 'markdown-image',
           loading: 'lazy',
+        },
+        on: {
+          error: (event) => {
+            console.warn('Erro ao carregar imagem:', sanitizedUrl);
+            event.target.replaceWith(h('p', { class: 'image-error' }, `Erro ao carregar imagem: ${sanitizeText(this.node.text || 'Sem descrição')}`));
+          },
         },
       });
     }
 
-    return h('div', { class: 'link-fallback' }, [
-      h('span', { class: 'fallback-icon' }, '🔗'),
-      h('div', { class: 'link-content' }, [
-        h('strong', this.node.text || 'Link'),
-        h('a', {
-          attrs: {
-            href: this.node.href,
-            target: '_blank',
-            rel: 'noopener noreferrer',
-          },
-          class: 'link-url',
-        }, this.truncateUrl(this.node.href)),
-      ]),
-    ]);
+    console.warn('URL de imagem não suportada:', this.node.href, 'Texto:', this.node.text);
+    return h('p', { class: 'image-error' }, `Imagem inválida: ${sanitizeText(this.node.text || 'Sem descrição')} (URL: ${sanitizeText(this.node.href)})`);
   },
   methods: {
     extractYoutubeId(url) {
@@ -211,29 +231,21 @@ const MarkdownImage = {
         /youtube\.com\/embed\/([^?]+)/,
         /youtube\.com\/v\/([^?]+)/,
       ];
-
-      const found = patterns.find((pattern) => {
-        const match = url.match(pattern);
-        if (match && match[1]) {
-          return true;
-        }
-        return false;
-      });
+      const found = patterns.find((pattern) => url.match(pattern));
       if (found) {
         const match = url.match(found);
-        return match[1];
+        const youtubeId = match[1];
+        if (!youtubeId.match(/^[a-zA-Z0-9_-]+$/)) {
+          console.warn('ID do YouTube inválido:', youtubeId);
+          return null;
+        }
+        return sanitizeText(youtubeId);
       }
       return null;
     },
-
     isValidImageUrl(url) {
       if (!url) return false;
-      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
-      return imageExtensions.some((ext) => url.toLowerCase().endsWith(ext));
-    },
-
-    truncateUrl(url, maxLength = 50) {
-      return url.length <= maxLength ? url : `${url.substring(0, maxLength)}...`;
+      return url.match(/^(https?:\/\/|\/|\.\/|\.\.\/)/i) && !url.match(/^(javascript:|data:)/i);
     },
   },
 };
@@ -249,7 +261,7 @@ const MarkdownTaskList = {
           disabled: true,
         },
       }),
-      h(MarkdownInline, { props: { text: item.text } }),
+      h(MarkdownInline, { props: { text: sanitizeText(item.text) } }),
     ])));
   },
 };
@@ -257,14 +269,14 @@ const MarkdownTaskList = {
 const MarkdownUnorderedList = {
   props: ['node'],
   render(h) {
-    return h('ul', { class: 'markdown-list' }, this.node.items.map((item) => h('li', [h(MarkdownInline, { props: { text: item.text } })])));
+    return h('ul', { class: 'markdown-list' }, this.node.items.map((item) => h('li', [h(MarkdownInline, { props: { text: sanitizeText(item.text) } })])));
   },
 };
 
 const MarkdownOrderedList = {
   props: ['node'],
   render(h) {
-    return h('ol', { class: 'markdown-list' }, this.node.items.map((item) => h('li', [h(MarkdownInline, { props: { text: item.text } })])));
+    return h('ol', { class: 'markdown-list' }, this.node.items.map((item) => h('li', [h(MarkdownInline, { props: { text: sanitizeText(item.text) } })])));
   },
 };
 
@@ -273,9 +285,13 @@ const MarkdownTable = {
   render(h) {
     return h('table', { class: 'markdown-table' }, [
       h('thead', [
-        h('tr', this.node.headers.map((header) => h('th', [h(MarkdownInline, { props: { text: header } })]))),
+        h('tr', this.node.headers.map((header, index) => h('th', {
+          style: { textAlign: this.node.alignments[index] || 'left' },
+        }, [h(MarkdownInline, { props: { text: sanitizeText(header) } })]))),
       ]),
-      h('tbody', this.node.rows.map((row) => h('tr', row.map((cell) => h('td', [h(MarkdownInline, { props: { text: cell } })]))))),
+      h('tbody', this.node.rows.map((row) => h('tr', row.map((cell, index) => h('td', {
+        style: { textAlign: this.node.alignments[index] || 'left' },
+      }, [h(MarkdownInline, { props: { text: sanitizeText(cell) } })]))))),
     ]);
   },
 };
@@ -334,15 +350,14 @@ export default {
         this.parsedContent = [];
         return;
       }
-
       try {
-        this.parsedContent = this.processContent(content);
+        const sanitizedContent = sanitizeHtml(content);
+        this.parsedContent = this.processContent(sanitizedContent);
       } catch (error) {
         console.error('Erro ao parsear Markdown:', error);
-        this.parsedContent = [{ type: 'text', text: content }];
+        this.parsedContent = [{ type: 'text', text: sanitizeText(content) }];
       }
     },
-
     processContent(content) {
       const lines = content.split('\n');
       const nodes = [];
@@ -360,7 +375,7 @@ export default {
         const headingMatch = line.match(/^(#+)\s+(.+)$/);
         if (headingMatch) {
           const depth = headingMatch[1].length;
-          const text = headingMatch[2];
+          const text = sanitizeText(headingMatch[2]);
           nodes.push({ type: 'heading', depth, text });
           i++;
           continue;
@@ -369,8 +384,8 @@ export default {
         // Imagem
         const imageMatch = line.match(/!\[([^\]]*)\]\(([^)]+)\)/);
         if (imageMatch) {
-          const text = imageMatch[1] || '';
-          const href = imageMatch[2];
+          const text = sanitizeText(imageMatch[1] || '');
+          const href = imageMatch[2].trim();
           nodes.push({ type: 'image', text, href });
           i++;
           continue;
@@ -379,8 +394,8 @@ export default {
         // Link
         const linkMatch = line.match(/\[([^\]]+)\]\(([^)]+)\)/);
         if (linkMatch) {
-          const text = linkMatch[1];
-          const href = linkMatch[2];
+          const text = sanitizeText(linkMatch[1]);
+          const href = sanitizeUrl(linkMatch[2]);
           nodes.push({ type: 'link', text, href });
           i++;
           continue;
@@ -394,7 +409,7 @@ export default {
             if (taskMatch) {
               items.push({
                 checked: taskMatch[1] === 'x',
-                text: taskMatch[2],
+                text: sanitizeText(taskMatch[2]),
               });
             }
             i++;
@@ -409,7 +424,7 @@ export default {
           while (i < lines.length && lines[i].trim().match(/^- /)) {
             const itemMatch = lines[i].trim().match(/^- (.+)$/);
             if (itemMatch) {
-              items.push({ text: itemMatch[1] });
+              items.push({ text: sanitizeText(itemMatch[1]) });
             }
             i++;
           }
@@ -423,7 +438,7 @@ export default {
           while (i < lines.length && lines[i].trim().match(/^\d+\. /)) {
             const itemMatch = lines[i].trim().match(/^\d+\. (.+)$/);
             if (itemMatch) {
-              items.push({ text: itemMatch[1] });
+              items.push({ text: sanitizeText(itemMatch[1]) });
             }
             i++;
           }
@@ -446,12 +461,11 @@ export default {
           continue;
         }
 
-        // Tabela - Nova implementação
+        // Tabela
         if (line.includes('|') && line.trim().startsWith('|')) {
           const tableLines = [];
           let currentLine = i;
 
-          // Coleta todas as linhas da tabela
           while (currentLine < lines.length
                  && lines[currentLine].includes('|')
                  && lines[currentLine].trim().startsWith('|')) {
@@ -460,15 +474,19 @@ export default {
           }
 
           if (tableLines.length >= 2) {
-            // Processa cabeçalho
+            const separator = tableLines[1];
+            if (!separator.match(/^\|[-:|\s]+$/)) {
+              console.warn('Tabela inválida, linha de separação ausente:', tableLines);
+              i = currentLine;
+              continue;
+            }
+
             const headers = tableLines[0]
               .split('|')
-              .map((cell) => cell.trim())
+              .map((cell) => sanitizeText(cell.trim()))
               .filter((cell) => cell !== '');
 
-            // Processa linha de alinhamento (segunda linha)
-            const alignmentLine = tableLines[1];
-            const alignments = alignmentLine
+            const alignments = tableLines[1]
               .split('|')
               .map((align) => {
                 const cell = align.trim();
@@ -479,12 +497,11 @@ export default {
               })
               .filter((_, index) => index > 0 && index < headers.length + 1);
 
-            // Processa linhas de dados
             const rows = [];
             for (let j = 2; j < tableLines.length; j++) {
               const rowCells = tableLines[j]
                 .split('|')
-                .map((cell) => cell.trim())
+                .map((cell) => sanitizeText(cell.trim()))
                 .filter((cell, index) => cell !== '' && index > 0 && index <= headers.length);
 
               if (rowCells.length === headers.length) {
@@ -507,13 +524,12 @@ export default {
         }
 
         // Texto normal (parágrafo)
-        nodes.push({ type: 'paragraph', text: line });
+        nodes.push({ type: 'paragraph', text: sanitizeText(line) });
         i++;
       }
 
       return nodes;
     },
-
     renderNode(node) {
       switch (node.type) {
         case 'paragraph': return 'MarkdownParagraph';
@@ -536,6 +552,8 @@ export default {
 <style scoped>
 .markdown-content {
   line-height: 1.6;
+  font-size: 16px;
+  color: #333;
 }
 
 .markdown-content h1,
@@ -546,6 +564,7 @@ export default {
 .markdown-content h6 {
   margin: 1em 0 0.5em 0;
   font-weight: bold;
+  color: #1976d2;
 }
 
 .markdown-content p {
@@ -553,20 +572,30 @@ export default {
   display: block;
 }
 
+.markdown-content .image-error {
+  color: #d32f2f;
+  font-style: italic;
+  margin: 0.5em 0;
+}
+
 .markdown-content img {
   max-width: 100%;
   height: auto;
   border-radius: 4px;
   margin: 0.5em 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .markdown-content a {
   color: #1976d2;
   text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
 }
 
 .markdown-content a:hover {
   text-decoration: underline;
+  color: #1565c0;
 }
 
 .markdown-content code {
@@ -574,6 +603,7 @@ export default {
   padding: 0.2em 0.4em;
   border-radius: 3px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  white-space: pre-wrap;
 }
 
 .markdown-content pre {
@@ -582,6 +612,7 @@ export default {
   border-radius: 4px;
   overflow-x: auto;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  white-space: pre;
 }
 
 .video-embed {
@@ -605,6 +636,7 @@ export default {
   width: 100%;
   height: 100%;
   border: none;
+  display: block !important;
 }
 
 .video-title {
@@ -685,13 +717,13 @@ export default {
   border-collapse: collapse;
   margin: 1em 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: table !important;
 }
 
 .markdown-table th,
 .markdown-table td {
   border: 1px solid #e9ecef;
   padding: 0.8em 1em;
-  text-align: left;
 }
 
 .markdown-table th {

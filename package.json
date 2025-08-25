@@ -28,6 +28,7 @@
         "circle-to-polygon": "^2.2.0",
         "cookie-universal-nuxt": "^2.1.4",
         "dom-to-image": "^2.6.0",
+        "dompurify": "^3.2.6",
         "html2pdf.js": "^0.10.2",
         "jspdf": "^2.5.1",
         "jspdf-autotable": "^5.0.2",
