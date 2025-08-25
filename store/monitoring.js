@@ -65,6 +65,7 @@ export default {
     availableEstagios: [],
     loadingMonitoringStats: false,
     loadingMonitoringFilter: false,
+    monitoringCurrentBbox: null,
   }),
 
   // Getters para acessar e processar dados do estado
@@ -256,6 +257,9 @@ export default {
         });
       }
       state.resultsHeatmap = pointsHeatMap;
+    },
+    setMonitoringCurrentBbox(state, bbox) {
+      state.monitoringCurrentBbox = bbox;
     },
   },
 
@@ -605,6 +609,7 @@ export default {
         }
         if (state.filters.currentView) {
           params.in_bbox = rootGetters['map/bbox'];
+          commit('setMonitoringCurrentBbox', rootGetters['map/bbox']);
         }
 
         const response = await this.$api.$get('monitoring/consolidated/map-stats/', { params });
@@ -647,7 +652,7 @@ export default {
         }
 
         if (state.filters.currentView) {
-          params.in_bbox = rootGetters['map/bbox'];
+          params.in_bbox = state.monitoringCurrentBbox;
         }
         if (Object.values(state.legendVisibility).some(v => !v)) {
           const stages = Object.keys(state.legendVisibility)
