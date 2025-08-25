@@ -225,7 +225,7 @@
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>
-                              {{ totalFeatures }}
+                              {{ monitoringCount }}
                             </v-chip>
                           </p>
                           <hr style="border: 1px solid red; margin: 0; margin-top: 0px;">
