@@ -3,7 +3,7 @@ export default {
   state: () => ({
     showFeaturesMonitoring: false,
     urlWmsMonitoring: '',
-    sublayers: [],
+    // sublayers: [],
     geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
     geoserverLayerMonitoringHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
     filters: {
@@ -15,8 +15,9 @@ export default {
       bbox: null,
     },
     stats: {
-      totalPolygons: 0,
-      areaTotalHa: 0,
+      totalFeatures: 0,
+      totalArea: 0,
+      stages: [],
     },
     opacity: 100,
     regionalCoordinators: [],
@@ -27,24 +28,33 @@ export default {
     loadingDownloadGeojson: false,
     loadingStatistic: false,
     loadingTable: false,
+    loadingStats: false,
   }),
 
   getters: {
-    getFilters(state) {
-      return state.filters;
-    },
+    getFilters(state) { return state.filters; },
 
-    getRegionalCoordinators(state) {
-      return state.regionalCoordinators;
-    },
+    getRegionalCoordinators(state) { return state.regionalCoordinators; },
+
+    getIndigenousLands(state) { return state.indigenousLands; },
+
+    getLayerMonitoring(state) { return state.geoserverLayerMonitoring; },
+
+    getLayerMonitoringHeatmap(state) { return state.geoserverLayerMonitoringHeatmap; },
+
+    getUrlWmsMonitoring(state) { return state.urlWmsMonitoring; },
+
+    getOpacity(state) { return state.opacity / 100; },
+
+    // getSublayers(state) {
+    //   return state.sublayers;
+    // },
+
+    getStats: (state) => state.stats,
 
     getFormattedRegionalCoordinates: (state) => (key = 'co_cr') => {
       if (!Array.isArray(state.filters.cr)) return [];
       return state.filters.cr.map((r) => r[key]).filter((v) => v != null);
-    },
-
-    getIndigenousLands(state) {
-      return state.indigenousLands;
     },
 
     getFormattedIndigenousLands: (state) => (key = 'co_funai') => {
@@ -52,31 +62,11 @@ export default {
       return state.filters.ti.map((r) => r[key]).filter((v) => v != null);
     },
 
-    getLayerMonitoring(state) {
-      return state.geoserverLayerMonitoring;
-    },
-
-    getLayerMonitoringHeatmap(state) {
-      return state.geoserverLayerMonitoringHeatmap;
-    },
-
-    getUrlWmsMonitoring(state) {
-      return state.urlWmsMonitoring;
-    },
-
-    getOpacity(state) {
-      return state.opacity / 100;
-    },
-
-    getSublayers(state) {
-      return state.sublayers;
-    },
-
     // eslint-disable-next-line no-unused-vars
     getGenerateCqlFilterMonitoring: (state, getters, _, rootGetters) => {
       const cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
       const ti = getters.getFormattedIndigenousLands('co_funai').join(',');
-      const { sublayers } = state;
+      const { stages } = state.stats;
       const { startDate, endDate } = state.filters;
       const wktIntersect = rootGetters['map/bboxWkt'];
       const intersects = state.filters.currentView ? `INTERSECTS(geom, ${wktIntersect})` : '';
@@ -98,9 +88,9 @@ export default {
         filters.push(intersects);
       }
 
-      if (sublayers && sublayers.length) {
+      if (stages && stages.length) {
         // no_estagio IN ('DR','CR')
-        filters.push(`no_estagio IN (${sublayers.map((s) => `'${s.key}'`).join(',')})`);
+        filters.push(`no_estagio IN (${stages.filter((stage) => stage.visible).map((stage) => `'${stage.name}'`).join(',')})`);
       }
 
       console.log(filters.join(' AND '));
@@ -111,8 +101,26 @@ export default {
   },
 
   mutations: {
-    setShowFeaturesMonitoring(state, value) {
-      state.showFeaturesMonitoring = value;
+    setShowFeaturesMonitoring(state, value) { state.showFeaturesMonitoring = value; },
+
+    setLoadingRegionalCoordinators(state, loading) { state.loadingRegionalCoordinators = loading; },
+
+    setIndigenousLands(state, indigenousLands) { state.indigenousLands = indigenousLands; },
+
+    setLoadingIndigenousLands(state, loading) { state.loadingIndigenousLands = loading; },
+
+    setUrlWmsMonitoring(state, url) { state.urlWmsMonitoring = url; },
+
+    setLoadingSearchMonitoring(state, loading) { state.loadingSearchMonitoring = loading; },
+
+    setLoadingStats(state, value) { state.loadingStats = value; },
+
+    setOpacity(state, opacity) { state.opacity = opacity; },
+
+    setCurrentBbox(state, bbox) { state.filters.bbox = bbox; },
+
+    setRegionalCoordinators(state, regionalCoordinators) {
+      state.regionalCoordinators = regionalCoordinators;
     },
 
     setFilters(state, filters) {
@@ -122,59 +130,56 @@ export default {
       };
     },
 
-    setRegionalCoordinators(state, regionalCoordinators) {
-      state.regionalCoordinators = regionalCoordinators;
-    },
-
-    setLoadingRegionalCoordinators(state, loading) {
-      state.loadingRegionalCoordinators = loading;
-    },
-
-    setIndigenousLands(state, indigenousLands) {
-      state.indigenousLands = indigenousLands;
-    },
-
-    setLoadingIndigenousLands(state, loading) {
-      state.loadingIndigenousLands = loading;
-    },
-
-    setUrlWmsMonitoring(state, url) {
-      state.urlWmsMonitoring = url;
-    },
-
-    setLoadingSearchMonitoring(state, loading) {
-      state.loadingSearchMonitoring = loading;
-    },
-
-    setOpacity(state, opacity) {
-      state.opacity = opacity;
-    },
-
     setMonitoringStats(state, stats) {
+      const colors = {
+        CR: '#d92b3f',
+        DG: '#ff8000',
+        DR: '#909',
+        FF: '#b35900',
+      };
+      const stages = stats.stages.map((stage) => ({
+        name: stage,
+        visible: true,
+        color: colors[stage],
+      }));
       state.stats = {
-        ...state.stats,
-        ...stats,
+        totalFeatures: stats.total_features,
+        totalArea: stats.total_area,
+        stages,
       };
     },
 
-    setMonitoringSublayers(state, sublayers) {
-      const formattedSublayers = sublayers.Legend
-        .flatMap((r) => r.rules)
-        .filter((rule) => rule.filter)
-        .map((rule) => ({
-          title: rule.title,
-          key: rule.name,
-          visible: true,
-          color: rule.symbolizers[0].Polygon.fill,
-        }))
-        .sort((a, b) => a.title.localeCompare(b.title));
-      console.log('🚀 ~ setMonitoringSublayers ~ formattedSublayers:', formattedSublayers);
-      state.sublayers = formattedSublayers;
+    setUpdateMonitoringStats(state, { totalFeatures, totalArea }) {
+      state.stats = {
+        ...state.stats,
+        totalFeatures,
+        totalArea,
+      };
     },
 
-    toggleSublayer(state, index, value) {
-      state.sublayers[index].visible = value;
+    // setMonitoringSublayers(state, sublayers) {
+    //   const formattedSublayers = sublayers.Legend
+    //     .flatMap((r) => r.rules)
+    //     .filter((rule) => rule.filter)
+    //     .map((rule) => ({
+    //       title: rule.title,
+    //       key: rule.name,
+    //       visible: true,
+    //       color: rule.symbolizers[0].Polygon.fill,
+    //     }))
+    //     .sort((a, b) => a.title.localeCompare(b.title));
+    //   console.log('🚀 ~ setMonitoringSublayers ~ formattedSublayers:', formattedSublayers);
+    //   state.sublayers = formattedSublayers;
+    // },
+
+    // toggleSublayer(state, index, value) {
+    //   state.sublayers[index].visible = value;
+    // },
+
+    toggleStatsStages(state, { key, value }) {
+      state.stats.stages[key].visible = value;
     },
+
   },
 
   actions: {
@@ -184,15 +189,18 @@ export default {
       commit('setUrlWmsMonitoring', urlGeoserver);
     },
 
-    async generateUrlWmsMonitoring({ commit, dispatch, rootGetters }) {
+    async generateUrlWmsMonitoring({
+      state, commit, dispatch, rootGetters,
+    }) {
       try {
         commit('setLoadingSearchMonitoring', true);
+        commit('setMonitoringStats', { ...state.stats, stages: [] });
         await dispatch('generateMonitoringStats');
         await dispatch('zoomMapBboxRegionalCoordinates');
-        await dispatch('getMonitoringSublayers');
-        commit('updateWmsMonitoring');
+        // await dispatch('getMonitoringSublayers');
+        dispatch('updateWmsMonitoring');
         commit('setShowFeaturesMonitoring', true);
-        commit('setCurrentBbox', rootGetters['map/bboxWkt']);
+        commit('setCurrentBbox', rootGetters['map/bbox']);
       } catch (error) {
         commit('alert/addAlert', {
           message: this.$i18n.t('default-error', {
@@ -203,49 +211,6 @@ export default {
         }, { root: true });
       } finally {
         commit('setLoadingSearchMonitoring', false);
-      }
-    },
-
-    async updateMonitoringStats({
-      state, commit, getters, rootGetters,
-    }) {
-      try {
-        commit('setLoadingMonitoringFilter', false);
-        commit('setLoadingMonitoringStats', false);
-        commit('resetLegendVisibility');
-
-        const params = {
-          start_date: state.filters.startDate,
-          end_date: state.filters.endDate,
-        };
-
-        if (state.filters.currentView) {
-          params.in_bbox = state.filters.bbox;
-        } else {
-          params.co_funai = getters.getFormattedIndigenousLands('co_funai').join(',');
-          params.co_cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
-        }
-
-        const response = await this.$api.$get('monitoring/consolidated/map-stats/', { params });
-
-        if (response) {
-          commit('setTotalArea', response.total_area || 0);
-          commit('setTotalFeatures', response.total_features || 0);
-          await commit('setAvailableEstagios', response.stages || []);
-          commit('initializeLegendVisibility');
-        }
-      } catch (error) {
-        console.error('Erro ao buscar estatísticas de monitoramento:', error);
-        commit('alert/addAlert', {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('retrieve'),
-            resource: this.$i18n.t('monitoring statistics'),
-          }),
-          type: 'error',
-        }, { root: true });
-      } finally {
-        commit('setLoadingMonitoringFilter', true);
-        commit('setLoadingMonitoringStats', true);
       }
     },
 
@@ -262,16 +227,35 @@ export default {
       commit('setMonitoringSublayers', response);
     },
 
-    async generateMonitoringStats({ commit, state, rootGetters }) {
-      const params = {
-        start_date: state.filters.startDate,
-        end_date: state.filters.endDate,
-        cr: state.filters.cr,
-        ti: state.filters.ti,
-        bbox: rootGetters['map/bbox'],
-      };
-      const stats = await this.$api.$get('monitoring/consolidated/stats/', { params });
-      commit('setMonitoringStats', stats);
+    async generateMonitoringStats({ commit, state, getters }, isUpdate = false) {
+      console.log('🚀 ~ generateMonitoringStats ~ isUpdate:', isUpdate);
+      try {
+        commit('setLoadingStats', true);
+        const params = {
+          start_date: state.filters.startDate,
+          end_date: state.filters.endDate,
+        };
+        if (isUpdate && state.stats.stages && state.stats.stages.length) {
+          params.stage = state.stats.stages.filter((stage) => stage.visible).map((stage) => stage.name).join(',') || 'NONE';
+        }
+        if (state.filters.currentView) {
+          params.in_bbox = state.filters.bbox;
+        } else {
+          params.co_cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
+          params.co_funai = getters.getFormattedIndigenousLands('co_funai').join(',');
+        }
+
+        const stats = await this.$api.$get('monitoring/consolidated/map-stats/', { params });
+        if (isUpdate) {
+          commit('setUpdateMonitoringStats', { totalFeatures: stats.total_features, totalArea: stats.total_area || 0 });
+        } else {
+          commit('setMonitoringStats', stats);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        commit('setLoadingStats', false);
+      }
     },
 
     async getFilterOptions({ commit }) {

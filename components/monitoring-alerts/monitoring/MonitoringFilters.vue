@@ -214,6 +214,7 @@ export default {
       },
       set(value) {
         this.$store.commit('monitoring/setFilters', { currentView: value });
+        if (value && this.currentRegionalCoordinates.length) this.currentRegionalCoordinates = [];
       },
     },
 

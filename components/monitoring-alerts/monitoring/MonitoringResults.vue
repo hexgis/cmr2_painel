@@ -65,33 +65,41 @@
         class="grey--text text--darken-2"
         cols="6"
       >
-        <span>
-          {{ $t('total-poligono-label') }}:
-        </span>
+        <span>{{ $t('total-poligono-label') }}:</span>
       </v-col>
       <v-col
         class="grey--text text--darken-2 text-right"
         cols="6"
       >
-        <span>
-          0
+        <v-progress-circular
+          v-if="isLoadingStats"
+          indeterminate
+          color="primary"
+          size="20"
+          width="2"
+        />
+        <span v-else>
+          {{ getStats.totalFeatures }}
         </span>
       </v-col>
       <v-col
         class="grey--text text--darken-2 mt-0 pt-0"
         cols="6"
       >
-        <span>
-          {{ $t('total-area-label') }}:
-        </span>
+        <span>{{ $t('total-area-label') }}:</span>
       </v-col>
       <v-col
         class="grey--text text--darken-2 mt-0 pt-0 text-right"
         cols="6"
       >
-        <span>
-          0
-        </span>
+        <v-progress-circular
+          v-if="isLoadingStats"
+          indeterminate
+          color="primary"
+          size="20"
+          width="2"
+        />
+        <span v-else>{{ formatFieldValue(getStats.totalArea) }} ha</span>
       </v-col>
     </v-row>
 
@@ -153,7 +161,7 @@
         </p>
       </v-col>
 
-      <template v-for="(value, key) in getSublayers">
+      <template v-for="(value, key) in getStats.stages">
         <v-col
           :key="`${key}-details`"
           cols="10"
@@ -164,7 +172,7 @@
               :style="{ backgroundColor: value.color }"
             />
             <span class="grey--text text--darken-2 compact-text ml-1">
-              {{ value.title }}
+              {{ value.name }}
             </span>
           </div>
         </v-col>
@@ -177,7 +185,7 @@
             :input-value="value.visible"
             hide-details
             class="ma-0 pa-0"
-            @change="toggleSublayer(key, $event)"
+            @change="toggleStages(key, $event)"
           />
         </v-col>
       </template>
@@ -242,7 +250,11 @@ export default {
       return this.$store.state.monitoring.loadingTable;
     },
 
-    ...mapGetters('monitoring', ['getSublayers']),
+    isLoadingStats() {
+      return this.$store.state.monitoring.loadingStats;
+    },
+
+    ...mapGetters('monitoring', ['getStats']),
   },
 
   methods: {
@@ -265,9 +277,38 @@ export default {
       this.$store.commit('monitoring/setOpacity', value);
     },
 
-    async toggleSublayer(key, value) {
-      console.log('🚀 ~ toggleSublayer ~ value:', key, value);
-      this.$store.commit('monitoring/toggleSublayer', key, value);
+    async toggleStages(key, value) {
+      this.$store.commit('monitoring/toggleStatsStages', { key, value });
+      this.$store.dispatch('monitoring/updateWmsMonitoring');
+      this.$store.dispatch('monitoring/generateMonitoringStats', true);
+    },
+
+    formatFieldValue(value, field = '') {
+      if (value == null) return 'N/A';
+
+      const fieldName = field.toLowerCase();
+
+      if (typeof value === 'string' && /^(dt_|data_|date)/.test(fieldName) && this.$moment(value).isValid()) {
+        return this.$moment(value).format('DD/MM/YYYY');
+      }
+
+      if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
+
+      if (typeof value === 'number' || fieldName.startsWith('nu_')) {
+        const num = +value;
+        if (Number.isNaN(num)) return 'N/A';
+
+        if (/(lat|lng|long|latitude|longitude)/.test(fieldName)) return num.toFixed(5);
+
+        const rounded = num.toFixed(2);
+        const [int, dec] = rounded.split('.');
+
+        return (dec !== '00' || fieldName.includes('area'))
+          ? `${int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${dec}`
+          : parseInt(num, 10).toLocaleString('pt-BR');
+      }
+
+      return value.toString() || 'N/A';
     },
   },
 };
