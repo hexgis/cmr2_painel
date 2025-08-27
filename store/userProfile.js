@@ -9,8 +9,8 @@ export const state = () => ({
     dialog: false,
     carouselIndex: 0,
     allReadChecked: false,
-    showAllNews: false
-  }
+    showAllNews: false,
+  },
 });
 
 export const mutations = {
@@ -23,10 +23,14 @@ export const mutations = {
   openDrawer(state) {
     state.showDrawer = true;
   },
-  
+
   // Novas mutations para news
   setNews(state, news) {
-    state.news.allNews = news;
+    // Adicionar um id fictício se não houver um no backend
+    state.news.allNews = news.map((item, index) => ({
+      ...item,
+      id: item.id || `news-${index}`, // Gera um id se não existir
+    }));
   },
   setReadNews(state, readNews) {
     state.news.readNews = readNews;
@@ -59,7 +63,7 @@ export const mutations = {
       .filter(news => !state.news.readNews.includes(news.id))
       .map(news => news.id);
     state.news.readNews = [...state.news.readNews, ...unreadIds];
-  }
+  },
 };
 
 export const actions = {
@@ -71,16 +75,15 @@ export const actions = {
       console.error('Erro ao receber dados do usuário:', error);
       dispatch('auth/logout', null, { root: true });
       throw error;
-      
     }
   },
 
-  // Novas actions para news
   async loadNews({ commit, state }) {
     commit('setNewsLoading', true);
     commit('setNewsError', null);
     try {
       const response = await this.$axios.get('/api/news/');
+      console.log('🔎 Resposta do backend /api/news/:', response.data);
       commit('setNews', response.data);
     } catch (error) {
       console.error('Erro ao carregar notícias:', error);
@@ -112,15 +115,14 @@ export const actions = {
   updateReadStatus({ commit, state, dispatch }, { newsId, isChecked }) {
     if (isChecked && !state.news.readNews.includes(newsId)) {
       commit('addReadNews', newsId);
-      
+
       const userId = state.user?.id || 'defaultUser';
       localStorage.setItem(`readNews_${userId}`, JSON.stringify(state.news.readNews));
-      
-      // Verificar se precisa fechar o dialog
-      const unreadNews = state.news.allNews.filter(news => 
+
+      const unreadNews = state.news.allNews.filter(news =>
         !state.news.readNews.includes(news.id)
       );
-      
+
       if (!state.news.showAllNews && unreadNews.length === 0) {
         commit('setNewsDialog', false);
       }
@@ -129,15 +131,14 @@ export const actions = {
 
   markAllAsRead({ commit, state }) {
     commit('markAllAsRead');
-    
+
     const userId = state.user?.id || 'defaultUser';
     localStorage.setItem(`readNews_${userId}`, JSON.stringify(state.news.readNews));
-    
+
     if (!state.news.showAllNews) {
       commit('setNewsDialog', false);
     }
-    
-    // Resetar o checkbox após um pequeno delay
+
     setTimeout(() => {
       commit('setAllReadChecked', false);
     }, 500);
@@ -146,11 +147,11 @@ export const actions = {
   openNewsDialog({ commit, state }, showAllNews = false) {
     commit('setShowAllNews', showAllNews);
     commit('setNewsDialog', true);
-    
-    const displayedNews = showAllNews 
-      ? [...state.news.allNews].sort((a, b) => new Date(b.date) - new Date(a.date))
+
+    const displayedNews = showAllNews
+      ? [...state.news.allNews].sort((a, b) => new Date(b.page.description) - new Date(a.page.description))
       : state.news.allNews.filter(news => !state.news.readNews.includes(news.id));
-    
+
     if (displayedNews.length > 0) {
       commit('setCarouselIndex', 0);
     }
@@ -158,42 +159,41 @@ export const actions = {
 
   closeNewsDialog({ commit }) {
     commit('setNewsDialog', false);
-  }
+  },
 };
 
 export const getters = {
   userData: (state) => state.user,
-  
-  // Novos getters para news
+
   sortedNews: (state) => {
-    return [...state.news.allNews].sort((a, b) => new Date(b.date) - new Date(a.date));
+    return [...state.news.allNews].sort((a, b) => new Date(b.page.description) - new Date(a.page.description));
   },
-  
+
   unreadNews: (state, getters) => {
     return getters.sortedNews.filter((news) => !state.news.readNews.includes(news.id));
   },
-  
+
   displayedNews: (state, getters) => {
     return state.news.showAllNews ? getters.sortedNews : getters.unreadNews;
   },
-  
+
   showArrows: (state, getters) => {
     return getters.displayedNews.length > 1;
   },
-  
+
   prevDisabled: (state, getters) => {
     return state.news.carouselIndex === 0;
   },
-  
+
   nextDisabled: (state, getters) => {
     return state.news.carouselIndex === getters.displayedNews.length - 1;
   },
-  
+
   hasUnreadNews: (state, getters) => {
     return getters.unreadNews.length > 0;
   },
-  
+
   isNewsRead: (state) => (newsId) => {
     return state.news.readNews.includes(newsId);
-  }
+  },
 };
