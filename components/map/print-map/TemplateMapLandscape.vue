@@ -147,6 +147,7 @@
               class="map-wrapper"
               @updateBounds="updateBounds"
               @getCenter="getCenter"
+              @getZoom="getZoom"
             />
           </v-col>
           <v-col
@@ -183,6 +184,7 @@
                   v-if="currentBouldMap"
                   :current-bould-map="currentBouldMap"
                   :map-center="mapCenter"
+                  :main-zoom="mainZoom"
                 />
               </div>
               <div class="legend-info-map">
@@ -605,6 +607,7 @@ export default {
     miniMap: null,
     currentBouldMap: null,
     mapCenter: null,
+    mainZoom: null,
     logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
     logo_cmr: process.env.DEFAULT_LOGO_IMAGE_CMR,
     print_title: process.env.PRINT_TITLE,
@@ -928,6 +931,10 @@ export default {
 
     getCenter(center) {
       this.mapCenter = center;
+    },
+
+    getZoom(zoom) {
+      this.mainZoom = zoom;
     },
 
     adjustMapSizeForPrint(tamanho) {

@@ -219,6 +219,7 @@ export default {
         this.map.invalidateSize()
         this.map.on('move', this.onMainMapMoving)
         this.map.on('moveend', this.onMainMapMoved)
+        this.map.on('zoomend', this.onMainMapZoomed)
 
         // Add centroid control
         await this.$L.control
@@ -271,6 +272,11 @@ export default {
         onMainMapMoving() {
             const bounds = this.map.getBounds()
             this.$emit('updateBounds', bounds)
+        },
+
+        onMainMapZoomed() {
+          const zoom = this.map.getZoom()
+          this.$emit('getZoom', zoom)
         },
 
         createBingLayer() {
