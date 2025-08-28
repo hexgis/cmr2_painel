@@ -8,7 +8,7 @@
       width="80vw"
       :fullscreen="$vuetify.breakpoint.smAndDown"
     >
-      <v-card>
+      <v-card max-height="80vh">
         <v-toolbar
           dark
           color="secondary"
@@ -22,31 +22,48 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
+
         <v-skeleton-loader
           v-if="loadingTable"
           type="table-row-divider@8"
         />
+
         <v-card-text v-if="!loadingTable">
-          <a class="d-flex justify-end">
-            <v-btn
-              small
-              fab
-              class="mx-2 my-2"
-              color="secondary"
-              :loading="loadingCSV"
-              @click="handleDownloadCSV"
-            >
-              <v-icon>mdi-download</v-icon>
-            </v-btn>
-          </a>
+          <div class="d-flex justify-end ma-4">
+            <v-tooltip bottom>
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  small
+                  fab
+                  color="secondary"
+                  v-bind="attrs"
+                  v-on="on"
+                  @click="handleDownloadCSV"
+                >
+                  <v-icon>mdi-download</v-icon>
+                </v-btn>
+              </template>
+              <span>{{ $t('download-csv') }}</span>
+            </v-tooltip>
+          </div>
+
           <v-data-table
             :headers="headers"
             :items-per-page="5"
             :items="value"
-            class="font-weight-regular"
+            class="font-weight-regular table-height"
             multi-sort
+            height="50vh"
             fixed-header
             mobile-breakpoint="0"
+            :footer-props="{
+              itemsPerPageText: $t('itemsPerPageText'),
+              itemsPerPageAllText: $t('itemsPerPageAllText'),
+              pageText: $t('pageText'),
+              showFirstLastPage: true,
+            }"
+            :no-data-text="$t('noDataText')"
+            :loading-text="$t('loadingText')"
           >
             <template
               v-if="[item.prioridade]"
@@ -80,6 +97,27 @@
   </v-row>
 </template>
 
+<i18n>
+{
+  "en": {
+    "itemsPerPageText": "Items per page:",
+    "itemsPerPageAllText": "All",
+    "pageText": "{0}-{1} of {2}",
+    "noDataText": "No data available",
+    "loadingText": "Loading items...",
+    "download-csv": "Download CSV"
+  },
+  "pt-br": {
+    "itemsPerPageText": "Itens por página:",
+    "itemsPerPageAllText": "Todos",
+    "pageText": "{0}-{1} de {2}",
+    "noDataText": "Nenhum dado disponível",
+    "loadingText": "Carregando itens...",
+    "download-csv": "Baixar CSV"
+  }
+}
+</i18n>
+
 <script>
 import { mapMutations } from 'vuex';
 import MapPrinterPriority from '../priority/MapPrinterPriority.vue';
@@ -107,10 +145,6 @@ export default {
     loadingTable: {
       type: Boolean,
       required: true,
-    },
-    loadingCSV: {
-      type: Boolean,
-      required: false,
     },
     fCloseTable: {
       type: Function,
@@ -204,3 +238,10 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.table-height {
+  max-height: 100%;
+  overflow-y: auto;
+}
+</style>

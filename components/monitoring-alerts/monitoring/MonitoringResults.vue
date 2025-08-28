@@ -207,14 +207,13 @@
 
     <!-- Diálogos -->
     <TableDialog
+      v-if="tableDialog && formattedTableMonitoring"
       :table="tableDialog"
       :headers="headers"
       :value="formattedTableMonitoring"
       :loading-table="isLoadingTable"
-      :loading-c-s-v="isLoadingCSV"
       :table-name="$t('table-name')"
-      :f-download-c-s-v="() => {}"
-      :f-close-table="() => tableDialog = false"
+      :f-close-table="closeTableDialog"
     />
     <!-- <div
       v-if="dialog"
@@ -256,8 +255,8 @@
 </i18n>
 
 <script>
-import TableDialog from '../../table-dialog/TableDialog.vue';
 import { mapGetters } from 'vuex';
+import TableDialog from '../../table-dialog/TableDialog.vue';
 
 export default {
   name: 'MonitoringResults',
@@ -342,6 +341,11 @@ export default {
     async showTableDialog() {
       await this.$store.dispatch('monitoring/getDataTableMonitoring');
       this.tableDialog = true;
+    },
+
+    closeTableDialog() {
+      this.tableDialog = false;
+      this.$store.commit('monitoring/clearTableMonitoring');
     },
 
     async updateOpacity(value) {

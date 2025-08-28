@@ -1,9 +1,7 @@
 export default {
-  // Estado inicial do módulo
   state: () => ({
     showFeaturesMonitoring: false,
     urlWmsMonitoring: '',
-    // sublayers: [],
     geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
     geoserverLayerMonitoringHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
     downloadGeoserverMaxFeatures: process.env.DOWNLOAD_GEOSERVER_MAX_FEATURES,
@@ -43,10 +41,6 @@ export default {
     getUrlWmsMonitoring(state) { return state.urlWmsMonitoring; },
     getOpacity(state) { return state.opacity / 100; },
     getStats: (state) => state.stats,
-
-    // getSublayers(state) {
-    //   return state.sublayers;
-    // },
 
     getFormattedRegionalCoordinates: (state) => (key = 'co_cr') => {
       if (!Array.isArray(state.filters.cr)) return [];
@@ -118,6 +112,7 @@ export default {
     setOpacity(state, opacity) { state.opacity = opacity; },
     setCurrentBbox(state, bbox) { state.filters.bbox = bbox; },
     setLoadingTable(state, loading) { state.loadingTable = loading; },
+    clearTableMonitoring(state) { state.stats.tableMonitoring = []; },
 
     setRegionalCoordinators(state, regionalCoordinators) {
       state.regionalCoordinators = regionalCoordinators;
@@ -157,25 +152,6 @@ export default {
       };
     },
 
-    // setMonitoringSublayers(state, sublayers) {
-    //   const formattedSublayers = sublayers.Legend
-    //     .flatMap((r) => r.rules)
-    //     .filter((rule) => rule.filter)
-    //     .map((rule) => ({
-    //       title: rule.title,
-    //       key: rule.name,
-    //       visible: true,
-    //       color: rule.symbolizers[0].Polygon.fill,
-    //     }))
-    //     .sort((a, b) => a.title.localeCompare(b.title));
-    //   console.log('🚀 ~ setMonitoringSublayers ~ formattedSublayers:', formattedSublayers);
-    //   state.sublayers = formattedSublayers;
-    // },
-
-    // toggleSublayer(state, index, value) {
-    //   state.sublayers[index].visible = value;
-    // },
-
     toggleStatsStages(state, { key, value }) {
       state.stats.stages[key].visible = value;
     },
@@ -196,7 +172,6 @@ export default {
         nu_latitude: parseFloat(properties.nu_latitude) || 0,
         nu_longitude: parseFloat(properties.nu_longitude) || 0,
       }));
-      console.log(tableData);
       state.stats.tableMonitoring = tableData;
     },
 
@@ -217,7 +192,6 @@ export default {
         commit('setMonitoringStats', { ...state.stats, stages: [] });
         await dispatch('generateMonitoringStats');
         await dispatch('zoomMapBboxRegionalCoordinates');
-        // await dispatch('getMonitoringSublayers');
         dispatch('updateWmsMonitoring');
         commit('setShowFeaturesMonitoring', true);
         commit('setCurrentBbox', rootGetters['map/bbox']);
