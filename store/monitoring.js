@@ -6,6 +6,7 @@ export default {
     // sublayers: [],
     geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
     geoserverLayerMonitoringHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
+    downloadGeoserverMaxFeatures: process.env.DOWNLOAD_GEOSERVER_MAX_FEATURES,
     filters: {
       currentView: false,
       cr: [],
@@ -18,6 +19,7 @@ export default {
       totalFeatures: 0,
       totalArea: 0,
       stages: [],
+      tableMonitoring: [],
     },
     opacity: 100,
     regionalCoordinators: [],
@@ -32,25 +34,19 @@ export default {
   }),
 
   getters: {
+    getShowFeaturesMonitoring(state) { return state.showFeaturesMonitoring; },
     getFilters(state) { return state.filters; },
-
     getRegionalCoordinators(state) { return state.regionalCoordinators; },
-
     getIndigenousLands(state) { return state.indigenousLands; },
-
     getLayerMonitoring(state) { return state.geoserverLayerMonitoring; },
-
     getLayerMonitoringHeatmap(state) { return state.geoserverLayerMonitoringHeatmap; },
-
     getUrlWmsMonitoring(state) { return state.urlWmsMonitoring; },
-
     getOpacity(state) { return state.opacity / 100; },
+    getStats: (state) => state.stats,
 
     // getSublayers(state) {
     //   return state.sublayers;
     // },
-
-    getStats: (state) => state.stats,
 
     getFormattedRegionalCoordinates: (state) => (key = 'co_cr') => {
       if (!Array.isArray(state.filters.cr)) return [];
@@ -61,6 +57,16 @@ export default {
       if (!Array.isArray(state.filters.ti)) return [];
       return state.filters.ti.map((r) => r[key]).filter((v) => v != null);
     },
+
+    getParamsMonitoringGeoserver: (state, getters) => ({
+      service: 'WFS',
+      version: '1.0.0',
+      request: 'GetFeature',
+      typeName: getters.getLayerMonitoring,
+      outputFormat: 'application/json',
+      CQL_FILTER: getters.getGenerateCqlFilterMonitoring,
+      maxFeatures: state.downloadGeoserverMaxFeatures,
+    }),
 
     // eslint-disable-next-line no-unused-vars
     getGenerateCqlFilterMonitoring: (state, getters, _, rootGetters) => {
@@ -102,22 +108,16 @@ export default {
 
   mutations: {
     setShowFeaturesMonitoring(state, value) { state.showFeaturesMonitoring = value; },
-
     setLoadingRegionalCoordinators(state, loading) { state.loadingRegionalCoordinators = loading; },
-
     setIndigenousLands(state, indigenousLands) { state.indigenousLands = indigenousLands; },
-
     setLoadingIndigenousLands(state, loading) { state.loadingIndigenousLands = loading; },
-
     setUrlWmsMonitoring(state, url) { state.urlWmsMonitoring = url; },
-
     setLoadingSearchMonitoring(state, loading) { state.loadingSearchMonitoring = loading; },
-
     setLoadingStats(state, value) { state.loadingStats = value; },
-
+    setLoadingDownloadGeojson(state, loading) { state.loadingDownloadGeojson = loading; },
     setOpacity(state, opacity) { state.opacity = opacity; },
-
     setCurrentBbox(state, bbox) { state.filters.bbox = bbox; },
+    setLoadingTable(state, loading) { state.loadingTable = loading; },
 
     setRegionalCoordinators(state, regionalCoordinators) {
       state.regionalCoordinators = regionalCoordinators;
@@ -180,6 +180,26 @@ export default {
       state.stats.stages[key].visible = value;
     },
 
+    setTableMonitoring(state, tableMonitoring) {
+      const tableData = tableMonitoring.map(({ properties }) => ({
+        origin_id: properties.origin_id || '',
+        co_funai: properties.co_funai || '',
+        ds_cr: properties.ds_cr || '',
+        no_ti: properties.no_ti || '',
+        no_estagio: properties.no_estagio || '',
+        dt_imagem: properties.dt_imagem || '',
+        nu_area_ha: parseFloat(properties.nu_area_ha) || 0,
+        nu_area_cr_ha: properties.no_estagio === 'CR' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+        nu_area_dg_ha: properties.no_estagio === 'DG' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+        nu_area_dr_ha: properties.no_estagio === 'DR' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+        nu_area_ff_ha: properties.no_estagio === 'FF' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+        nu_latitude: parseFloat(properties.nu_latitude) || 0,
+        nu_longitude: parseFloat(properties.nu_longitude) || 0,
+      }));
+      console.log(tableData);
+      state.stats.tableMonitoring = tableData;
+    },
+
   },
 
   actions: {
@@ -227,8 +247,60 @@ export default {
       commit('setMonitoringSublayers', response);
     },
 
+    async downloadMonitoringGeojson({
+      state, commit, getters, rootState,
+    }) {
+      try {
+        commit('setLoadingDownloadGeojson', true);
+        if (state.stats.totalFeatures > state.downloadGeoserverMaxFeatures) {
+          const confirmed = await this.$confirm();
+          if (!confirmed) return;
+        }
+        const response = await this.$api.$get(rootState.map.geoserverUrl, {
+          params: getters.getParamsMonitoringGeoserver,
+          responseType: 'blob',
+        });
+        const url = URL.createObjectURL(response);
+        Object.assign(document.createElement('a'), {
+          href: url, download: `monitoring_${new Date().toISOString().split('T')[0]}.geojson`,
+        }).click();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('download'),
+            resource: this.$i18n.t('monitoring data'),
+          }),
+          type: 'error',
+        }, { root: true });
+      } finally {
+        commit('setLoadingDownloadGeojson', false);
+      }
+    },
+
+    async getDataTableMonitoring({ commit, getters, rootState }) {
+      try {
+        commit('setLoadingTable', true);
+        const params = {
+          ...getters.getParamsMonitoringGeoserver,
+          CQL_FILTER: getters.getGenerateCqlFilterMonitoring,
+        };
+        const response = await this.$api.$get(rootState.map.geoserverUrl, { params });
+        commit('setTableMonitoring', response.features);
+      } catch (error) {
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring data'),
+          }),
+          type: 'error',
+        }, { root: true });
+      } finally {
+        commit('setLoadingTable', false);
+      }
+    },
+
     async generateMonitoringStats({ commit, state, getters }, isUpdate = false) {
-      console.log('🚀 ~ generateMonitoringStats ~ isUpdate:', isUpdate);
       try {
         commit('setLoadingStats', true);
         const params = {

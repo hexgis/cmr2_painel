@@ -153,6 +153,20 @@
 
     <v-row no-gutters>
       <v-col
+        v-if="isLoadingSearchMonitoring"
+        cols="12"
+      >
+        <v-skeleton-loader
+          v-for="n in 4"
+          :key="n"
+          class="ma-0 pa-0"
+          max-width="500"
+          type="list-item"
+        />
+      </v-col>
+
+      <v-col
+        v-else
         cols="12"
         class="mt-2 pb-0"
       >
@@ -172,7 +186,7 @@
               :style="{ backgroundColor: value.color }"
             />
             <span class="grey--text text--darken-2 compact-text ml-1">
-              {{ value.name }}
+              {{ nameLegends(value.name) }}
             </span>
           </div>
         </v-col>
@@ -190,6 +204,27 @@
         </v-col>
       </template>
     </v-row>
+
+    <!-- Diálogos -->
+    <TableDialog
+      :table="tableDialog"
+      :headers="headers"
+      :value="formattedTableMonitoring"
+      :loading-table="isLoadingTable"
+      :loading-c-s-v="isLoadingCSV"
+      :table-name="$t('table-name')"
+      :f-download-c-s-v="() => {}"
+      :f-close-table="() => tableDialog = false"
+    />
+    <!-- <div
+      v-if="dialog"
+      class="d-none"
+    >
+      <AnalyticalDialog
+        :value="analyticsAlertsDialog"
+        :close-dialog="closeAnalyticalDialog"
+      />
+    </div> -->
   </v-container>
 </template>
 
@@ -203,7 +238,8 @@
     "total-area-label": "Total area",
     "opacity-label": "Opacity",
     "heat-map-label": "Heat Map",
-    "legend": "Legend:"
+    "legend": "Legend:",
+    "table-name": "Table Daily Monitoring"
   },
   "pt-br": {
     "download-label": "Baixar",
@@ -213,29 +249,49 @@
     "total-area-label": "Área total",
     "opacity-label": "Opacidade",
     "heat-map-label": "Mapa de Calor",
-    "legend": "Legenda:"
+    "legend": "Legenda:",
+    "table-name": "Tabela de Monitoramento Diário"
   }
 }
 </i18n>
 
 <script>
+import TableDialog from '../../table-dialog/TableDialog.vue';
 import { mapGetters } from 'vuex';
 
 export default {
   name: 'MonitoringResults',
 
   components: {
+    TableDialog,
   },
 
   data() {
     return {
       dialogConfirmDownload: false,
+      tableDialog: false,
+      isLoadingCSV: false,
+      headers: [
+        { text: 'ID', value: 'origin_id' },
+        { text: 'Código Funai', value: 'co_funai' },
+        { text: 'Terra Indígena', value: 'no_ti' },
+        { text: 'Coordenação Regional', value: 'ds_cr' },
+        { text: 'Classe', value: 'no_estagio' },
+        { text: 'Data da Imagem', value: 'dt_imagem' },
+        { text: 'Área do Polígono (ha)', value: 'nu_area_ha' },
+        { text: 'Latitude', value: 'nu_latitude' },
+        { text: 'Longitude', value: 'nu_longitude' },
+      ],
     };
   },
 
   computed: {
     currentOpacity() {
       return this.$store.state.monitoring.opacity;
+    },
+
+    isLoadingSearchMonitoring() {
+      return this.$store.state.monitoring.loadingSearchMonitoring;
     },
 
     isLoadingDownloadGeojson() {
@@ -254,13 +310,28 @@ export default {
       return this.$store.state.monitoring.loadingStats;
     },
 
+    statsTableMonitoring() {
+      return this.$store.state.monitoring.stats.tableMonitoring;
+    },
+
+    formattedTableMonitoring() {
+      if (!this.statsTableMonitoring) return [];
+      return this.statsTableMonitoring.map((item) => {
+        const formattedItem = { ...item };
+        this.headers.forEach((header) => {
+          const field = header.value;
+          formattedItem[field] = this.formatFieldValue(item[field], field);
+        });
+        return formattedItem;
+      });
+    },
+
     ...mapGetters('monitoring', ['getStats']),
   },
 
   methods: {
     async downloadMonitoringGeojson() {
-      const ok = await this.$confirm();
-      console.log(ok);
+      this.$store.dispatch('monitoring/downloadMonitoringGeojson');
     },
 
     async showTableDialogAnalytics() {
@@ -269,8 +340,8 @@ export default {
     },
 
     async showTableDialog() {
-      const ok = await this.$confirm();
-      console.log(ok);
+      await this.$store.dispatch('monitoring/getDataTableMonitoring');
+      this.tableDialog = true;
     },
 
     async updateOpacity(value) {
@@ -281,6 +352,21 @@ export default {
       this.$store.commit('monitoring/toggleStatsStages', { key, value });
       this.$store.dispatch('monitoring/updateWmsMonitoring');
       this.$store.dispatch('monitoring/generateMonitoringStats', true);
+    },
+
+    nameLegends(name) {
+      switch (name) {
+        case 'CR':
+          return 'Corte Raso (CR)';
+        case 'DG':
+          return 'Degradação (DG)';
+        case 'DR':
+          return 'Desmatamento em Regeneração (DR)';
+        case 'FF':
+          return 'Fogo em Floresta (FF)';
+        default:
+          return name;
+      }
     },
 
     formatFieldValue(value, field = '') {

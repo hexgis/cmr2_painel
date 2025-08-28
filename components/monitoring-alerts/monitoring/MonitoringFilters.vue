@@ -95,51 +95,10 @@
           </v-col>
         </v-row>
 
-        <div
-          v-if="loadingSearchMonitoring"
-          class="mt-1"
-        >
-          <v-row
-            no-gutters
-            justify="center"
-          >
-            <v-col cols="6">
-              <v-skeleton-loader type="table-cell@4" />
-            </v-col>
-            <v-col cols="6">
-              <div class="d-flex justify-end">
-                <v-skeleton-loader type="table-cell@4" />
-              </div>
-            </v-col>
-          </v-row>
-          <v-divider class="mt-1" />
-          <div>
-            <v-skeleton-loader type="table-cell" />
-            <v-row
-              v-for="n in 4"
-              :key="n"
-              no-gutters
-              align="center"
-              class="mb-4"
-            >
-              <v-col cols="1">
-                <v-skeleton-loader
-                  width="20"
-                  height="20"
-                  tile
-                  type="avatar"
-                />
-              </v-col>
-              <v-col cols="10">
-                <v-skeleton-loader type="text" />
-              </v-col>
-            </v-row>
-          </div>
-        </div>
-
-        <v-divider class="mt-4" />
-
-        <MonitoringResults />
+        <template v-if="getShowFeaturesMonitoring">
+          <v-divider class="mt-4" />
+          <MonitoringResults />
+        </template>
       </v-card-text>
     </v-card>
   </v-form>
@@ -260,6 +219,7 @@ export default {
       'getRegionalCoordinators',
       'getFilters',
       'getIndigenousLands',
+      'getShowFeaturesMonitoring',
     ]),
     ...mapState('monitoring', [
       'filters',
