@@ -37,6 +37,11 @@
                 <em v-else-if="text.type === 'italic'">{{ text.text }}</em>
                 <del v-else-if="text.type === 'strikethrough'">{{ text.text }}</del>
                 <code v-else-if="text.type === 'code'">{{ text.text }}</code>
+                <a
+                  v-else-if="text.type === 'link'"
+                  :href="text.url"
+                  target="_blank"
+                >{{ text.text }}</a>
                 <span v-else>{{ text.text }}</span>
               </span>
             </template>
@@ -90,30 +95,15 @@
             </tbody>
           </table>
 
-          <!-- Renderizar imagens (não YouTube) -->
+          <!-- Renderizar imagens -->
           <v-img
-            v-if="component.type === 'image' && !isYoutubeUrl(component.content.src)"
+            v-if="component.type === 'image'"
             :src="component.content.src"
             :alt="component.content.alt"
             :title="component.content.title"
             contain
             class="my-4"
           />
-
-          <!-- Renderizar vídeos do YouTube -->
-          <div
-            v-if="component.type === 'image' && isYoutubeUrl(component.content.src)"
-            class="video-container my-4"
-          >
-            <iframe
-              width="100%"
-              height="400"
-              :src="getYoutubeEmbedUrl(component.content.src)"
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen
-            />
-          </div>
 
           <!-- Renderizar GIFs -->
           <v-img
@@ -125,24 +115,6 @@
             class="my-4"
           />
 
-          <!-- Renderizar vídeos locais -->
-          <video
-            v-if="component.type === 'video'"
-            :poster="component.content.poster"
-            :controls="component.content.controls"
-            :width="component.content.width"
-            :height="component.content.height"
-            class="my-4"
-          >
-            <source
-              v-for="(source, sourceIndex) in component.content.sources"
-              :key="sourceIndex"
-              :src="source.src"
-              :type="source.type"
-            >
-            Seu navegador não suporta a tag de vídeo.
-          </video>
-
           <!-- Renderizar botões (links) -->
           <v-btn
             v-if="component.type === 'button'"
@@ -153,6 +125,22 @@
           >
             {{ component.content.text }}
           </v-btn>
+
+          <!-- Renderizar blocos de código -->
+          <pre v-if="component.type === 'code_block'">
+            <code :class="'language-' + component.content.language">
+              {{ component.content.code }}
+            </code>
+          </pre>
+
+          <!-- Renderizar citações -->
+          <blockquote
+            v-if="component.type === 'quote'"
+            class="quote-block"
+          >
+            <p>{{ component.content.text }}</p>
+            <cite v-if="component.content.author">— {{ component.content.author }}</cite>
+          </blockquote>
         </div>
       </div>
     </v-main>
@@ -169,30 +157,6 @@ export default {
     },
   },
   methods: {
-    isYoutubeUrl(url) {
-      return url && (url.includes('youtube.com') || url.includes('youtu.be'));
-    },
-    getYoutubeEmbedUrl(url) {
-      if (!url) return '';
-
-      // Para URLs do formato: https://www.youtube.com/watch?v=abc123
-      if (url.includes('youtube.com/watch')) {
-        const videoId = url.split('v=')[1];
-        const ampersandPosition = videoId.indexOf('&');
-        if (ampersandPosition !== -1) {
-          return `https://www.youtube.com/embed/${videoId.substring(0, ampersandPosition)}`;
-        }
-        return `https://www.youtube.com/embed/${videoId}`;
-      }
-
-      // Para URLs do formato: https://youtu.be/abc123
-      if (url.includes('youtu.be/')) {
-        const videoId = url.split('/').pop();
-        return `https://www.youtube.com/embed/${videoId}`;
-      }
-
-      return url;
-    },
     getButtonColor(style) {
       return style === 'primary' ? 'primary' : 'secondary';
     },
@@ -260,26 +224,6 @@ tr:nth-child(even) {
   background-color: #f9f9f9;
 }
 
-.video-container {
-  position: relative;
-  width: 100%;
-  height: 0;
-  padding-bottom: 56.25%; /* Proporção 16:9 */
-  margin: 1em 0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.video-container iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
 strong {
   font-weight: bold;
   color: #000;
@@ -316,5 +260,21 @@ pre code {
   background: none;
   padding: 0;
   color: #333;
+}
+
+.quote-block {
+  border-left: 4px solid #1976d2;
+  padding-left: 1em;
+  margin: 1em 0;
+  font-style: italic;
+  color: #555;
+}
+
+.quote-block cite {
+  display: block;
+  margin-top: 0.5em;
+  font-size: 0.9em;
+  color: #777;
+  font-style: normal;
 }
 </style>

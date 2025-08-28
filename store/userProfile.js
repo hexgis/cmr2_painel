@@ -24,12 +24,11 @@ export const mutations = {
     state.showDrawer = true;
   },
 
-  // Novas mutations para news
   setNews(state, news) {
-    // Adicionar um id fictício se não houver um no backend
+    // Adiciona um id fictício se não houver
     state.news.allNews = news.map((item, index) => ({
       ...item,
-      id: item.id || `news-${index}`, // Gera um id se não existir
+      id: item.id || `news-${index}`,
     }));
   },
   setReadNews(state, readNews) {
@@ -78,12 +77,11 @@ export const actions = {
     }
   },
 
-  async loadNews({ commit, state }) {
+  async loadNews({ commit }) {
     commit('setNewsLoading', true);
     commit('setNewsError', null);
     try {
       const response = await this.$axios.get('/api/news/');
-      console.log('🔎 Resposta do backend /api/news/:', response.data);
       commit('setNews', response.data);
     } catch (error) {
       console.error('Erro ao carregar notícias:', error);
@@ -112,7 +110,7 @@ export const actions = {
     }
   },
 
-  updateReadStatus({ commit, state, dispatch }, { newsId, isChecked }) {
+  updateReadStatus({ commit, state }, { newsId, isChecked }) {
     if (isChecked && !state.news.readNews.includes(newsId)) {
       commit('addReadNews', newsId);
 
@@ -149,7 +147,7 @@ export const actions = {
     commit('setNewsDialog', true);
 
     const displayedNews = showAllNews
-      ? [...state.news.allNews].sort((a, b) => new Date(b.page.description) - new Date(a.page.description))
+      ? [...state.news.allNews].sort((a, b) => new Date(b.date) - new Date(a.date))
       : state.news.allNews.filter(news => !state.news.readNews.includes(news.id));
 
     if (displayedNews.length > 0) {
@@ -166,7 +164,7 @@ export const getters = {
   userData: (state) => state.user,
 
   sortedNews: (state) => {
-    return [...state.news.allNews].sort((a, b) => new Date(b.page.description) - new Date(a.page.description));
+    return [...state.news.allNews].sort((a, b) => new Date(b.date) - new Date(a.date));
   },
 
   unreadNews: (state, getters) => {
@@ -177,23 +175,14 @@ export const getters = {
     return state.news.showAllNews ? getters.sortedNews : getters.unreadNews;
   },
 
-  showArrows: (state, getters) => {
-    return getters.displayedNews.length > 1;
-  },
+  showArrows: (state, getters) => getters.displayedNews.length > 1,
 
-  prevDisabled: (state, getters) => {
-    return state.news.carouselIndex === 0;
-  },
+  prevDisabled: (state, getters) => state.news.carouselIndex === 0,
 
-  nextDisabled: (state, getters) => {
-    return state.news.carouselIndex === getters.displayedNews.length - 1;
-  },
+  nextDisabled: (state, getters) =>
+    state.news.carouselIndex === getters.displayedNews.length - 1,
 
-  hasUnreadNews: (state, getters) => {
-    return getters.unreadNews.length > 0;
-  },
+  hasUnreadNews: (state, getters) => getters.unreadNews.length > 0,
 
-  isNewsRead: (state) => (newsId) => {
-    return state.news.readNews.includes(newsId);
-  },
+  isNewsRead: (state) => (newsId) => state.news.readNews.includes(newsId),
 };

@@ -52,7 +52,7 @@
             <div class="news-content-wrapper">
               <div class="news-content">
                 <h2>
-                  {{ news.page.title }}
+                  {{ news.title }}
                   <v-chip
                     v-if="isNewsRead(news.id)"
                     small
@@ -80,12 +80,11 @@
                   />
                 </div>
                 <p>
-                  {{ formatDate(news.page.description) }}
+                  {{ formatDate(news.date) }}
                 </p>
 
                 <div class="scrollable-content">
-                  <!-- Passar a propriedade components para o MarkdownRenderer -->
-                  <MarkdownRenderer :components="news.page.components" />
+                  <MarkdownRenderer :components="news.components" />
                 </div>
               </div>
             </div>
@@ -231,7 +230,6 @@ export default {
 
   async mounted() {
     await this.loadNews();
-    console.log('📢 Notícias carregadas (store):', this.news.allNews);
     this.loadReadNews();
     this.checkFirstAccess();
 
@@ -283,6 +281,7 @@ export default {
     display: flex;
     flex-direction: column;
     height: 100%;
+    margin-top: 6px;
   }
 
   .news-content {
@@ -321,5 +320,4 @@ export default {
   &:hover { background: rgba(0, 0, 0, 0.5); }
   &[disabled] { opacity: 0.3; pointer-events: none; }
 }
-
 </style>
