@@ -43,7 +43,7 @@
     "manage_layers": "Gerenciar Camadas",
     "manage_documents": "Gerenciar Documentos",
     "feedback": "Críticas e Sugestões",
-    "analytics-tab": "Análises"
+    "analytics-tab": "Analíticos"
   },
   "en": {
     "dashboard": "View Accesses",

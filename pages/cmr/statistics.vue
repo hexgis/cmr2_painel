@@ -4,10 +4,12 @@
       fluid
       class="pa-0 overflow-hidden"
     >
-      <div class="mb-4 pa-4">
-        <h4 class="subtitle-2 text-uppercase font-weight-regular">
-          {{ $t('analytics-tab') }}
-        </h4>
+      <div class="tab-header justify-space-between">
+        <div class="d-flex align-center">
+          <h4 class="subtitle-2 text-uppercase font-weight-regular">
+            {{ $t('analytics-tab') }}
+          </h4>
+        </div>
       </div>
       <v-row class="pa-4">
         <v-col
@@ -18,30 +20,42 @@
           class="pa-3"
         >
           <v-hover v-slot="{ isHovering, props }">
-            <v-card
-              class="rounded-lg overflow-hidden"
-              width="158"
-              height="140"
-              :elevation="isHovering ? 8 : 2"
-              v-bind="props"
-              @click="openModal(analytic)"
+            <v-tooltip
+              bottom
+              max-width="400"
+              color="grey darken-4"
             >
-              <v-img
-                class="fill-height position-relative"
-                cover
-                height="100%"
-                :src="`data:image/png;base64,${analytic.image}`"
-              >
-                <div
-                  class="overlay-title"
-                  style="background: rgba(0, 0, 0, 0.5);"
+              <template #activator="{ on }">
+                <v-card
+                  class="rounded-lg overflow-hidden"
+                  width="158"
+                  height="140"
+                  :elevation="isHovering ? 8 : 2"
+                  v-bind="props"
+                  v-on="on"
+                  @click="openModal(analytic)"
                 >
-                  <p class="ma-0 text-body-2 font-weight-medium text-truncate white--text">
-                    {{ analytic.name }}
-                  </p>
-                </div>
-              </v-img>
-            </v-card>
+                  <v-img
+                    class="fill-height position-relative"
+                    cover
+                    height="100%"
+                    :src="`data:image/png;base64,${analytic.image}`"
+                  >
+                    <div
+                      class="overlay-title"
+                      style="background: rgba(0, 0, 0, 0.5);"
+                    >
+                      <p class="ma-0 text-body-2 font-weight-medium text-truncate white--text">
+                        {{ analytic.name }}
+                      </p>
+                    </div>
+                  </v-img>
+                </v-card>
+              </template>
+              <span> {{ analytic.name }} </span>
+              <v-divider :dark="true" />
+              <span> {{ analytic.tooltip }} </span>
+            </v-tooltip>
           </v-hover>
         </v-col>
       </v-row>
@@ -59,11 +73,13 @@
     <v-dialog
       v-model="isModalOpen"
       max-width="100%"
+      fullscreen
+      hide-overlay
       @click:outside="closeModal"
     >
       <v-card>
         <v-card-title
-          class="headline d-flex justify-space-between align-center"
+          class="d-flex justify-space-between align-center"
         >
           <span>{{ $t('analytics-tab') }}</span>
           <v-btn
@@ -73,11 +89,10 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
-        <v-card-text>
+        <v-card-text class="ma-0 pa-0">
           <iframe
             :src="selectedAnalytic ? selectedAnalytic.url : ''"
-            class="d-inline-block border-0"
-            style="width: 90vw; height: 90vh;"
+            style="width: 100%; height: calc(100vh - 58px);"
           />
         </v-card-text>
       </v-card>
