@@ -149,6 +149,8 @@ export default {
           return '#1A535C';
         case 'Deferido':
           return '#FFCE03';
+        case 'Aprovado':
+          return '#1976D2';
         case 'Em Desenvolvimento':
           return '#F58A1F';
         case 'Recusado':

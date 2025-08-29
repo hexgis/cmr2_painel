@@ -116,6 +116,11 @@ import AnalyticsPCDashboard from '@/components/analytical-cmr/AnalyticsPriorCons
 
 export default {
   name: 'App',
+
+  head: () => ({
+    title: 'CMR',
+  }),
+  
   components: {
     Map,
     BaseAlert,
@@ -133,6 +138,7 @@ export default {
     if (this.isLoggedIn && !this.$store.state.userProfile.user) {
       await this.$store.dispatch('userProfile/getUserData');
     }
+    await this.$store.dispatch('map/getGeoserverConfig');
   },
 
   created() {
@@ -158,6 +164,7 @@ export default {
     ...mapState('tableDialog', ['showTableDialog']),
     ...mapGetters('auth', ['isLoggedIn']),
   },
+
   watch: {
     user() {
       if (this.user && this.user.settings.drawer_open_on_init) {
@@ -172,6 +179,7 @@ export default {
       }
     },
   },
+
   mounted() {
     window.addEventListener('resize', this.updateWindowWidth);
     this.updateWindowWidth();
@@ -188,9 +196,11 @@ export default {
       }
     });
   },
+
   beforeDestroy() {
     window.removeEventListener('resize', this.updateWindowWidth);
   },
+
   methods: {
     ...mapMutations('userProfile', ['openDrawer', 'closeDrawer']),
     getLeafletControlRef() {
@@ -212,9 +222,6 @@ export default {
       this.windowWidth = window.innerWidth;
     },
   },
-  head: () => ({
-    title: 'CMR',
-  }),
 };
 </script>
 

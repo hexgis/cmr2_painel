@@ -11,12 +11,24 @@
       </v-btn>
     </span>
     <span class="card--wrapper mt-4">
-      <CardRole
-        v-for="role in rolesList"
-        :key="role.id"
-        :card="role"
-        from="roles"
-      />
+      <template v-if="loadingRoles">
+        <v-skeleton-loader
+          v-for="n in 6"
+          :key="n"
+          type="card"
+          class="ma-2"
+          height="200"
+          width="300"
+        />
+      </template>
+      <template v-else>
+        <CardRole
+          v-for="role in rolesList"
+          :key="role.id"
+          :card="role"
+          from="roles"
+        />
+      </template>
     </span>
     <div class="add--btn">
       <v-btn
@@ -82,6 +94,7 @@ export default {
   data() {
     return {
       dialog: false,
+      loadingRoles: false,
       roleName: '',
       permissions: [],
       grantedPermissions: [],
@@ -92,9 +105,20 @@ export default {
     };
   },
   async mounted() {
-    await this.loadUsers();
-    this.$store.dispatch('admin/fetchRolesList');
-    this.permissions = await this.$api.get('user/group/');
+    this.loadingRoles = true;
+    try {
+      await this.loadUsers();
+      await this.$store.dispatch('admin/fetchRolesList');
+      this.permissions = await this.$api.get('user/group/');
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      this.$store.commit('alert/addAlert', {
+        timeout: 5000,
+        message: 'Erro ao carregar dados dos papéis',
+      });
+    } finally {
+      this.loadingRoles = false;
+    }
   },
   computed: {
     ...mapGetters('admin', ['rolesList']),
@@ -137,6 +161,9 @@ export default {
 
     async addCardPermission() {
       try {
+        const { roleName } = this; // Salva o nome antes de resetar
+        const usersCount = this.grantedRoleUsers.length;
+
         const response = await this.$api.post('user/role/', {
           name: this.roleName,
           description: this.cardDescription,
@@ -144,17 +171,37 @@ export default {
           associated_users: this.grantedRoleUsers.map((user) => user.id),
         });
 
-        await this.$store.dispatch('admin/fetchRolesList');
-        this.dialog = false;
+        if (response.status === 201) {
+          await this.$store.dispatch('admin/fetchRolesList');
+          this.dialog = false;
 
-        // Reset form
-        this.roleName = '';
-        this.cardDescription = '';
-        this.grantedPermissions = [];
-        this.grantedRoleUsers = [];
-        await this.loadUsers(); // Reload users list
+          this.roleName = '';
+          this.cardDescription = '';
+          this.grantedPermissions = [];
+          this.grantedRoleUsers = [];
+          await this.loadUsers();
+
+          this.$store.commit('alert/addAlert', {
+            timeout: 5000,
+            message: `Papel "${roleName}" foi criado com sucesso! ${usersCount > 0 ? `Usuários associados: ${usersCount}.` : 'Nenhum usuário associado.'}`,
+          });
+        }
       } catch (error) {
         console.error('Error creating role:', error);
+
+        let errorMessage = 'Erro ao criar papel.';
+        if (error.response && error.response.data) {
+          if (error.response.data.name && error.response.data.name.includes('already exists')) {
+            errorMessage = 'Já existe um papel com este nome.';
+          } else if (error.response.data.detail) {
+            errorMessage = error.response.data.detail;
+          }
+        }
+
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: errorMessage,
+        });
       }
     },
   },

@@ -136,20 +136,19 @@ export default {
          || state[this.module].isLoadingDownloadTableAlerts || false;
       },
     }),
+    ...mapState('monitoring', [
+      'totalFeatures',
+    ]),
   },
-
   methods: {
     async startDownload() {
       try {
         this.$store.commit(`${this.module}/setLoadingGeoJson`, true);
 
-        const numberOfFeatures = await this.$store.dispatch(
-          `${this.module}/checkHitsDownloadGeojson${this.module === 'monitoring' ? 'Monitoring' : 'Alerts'}`,
-        );
-
-        if (numberOfFeatures && numberOfFeatures > 10000) {
+        if (this.totalFeatures && this.totalFeatures > 10000) {
           this.dialog = true;
         } else {
+          this.dialog = false;
           this.download();
         }
       } catch (error) {
