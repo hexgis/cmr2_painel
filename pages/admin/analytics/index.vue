@@ -6,6 +6,24 @@
   >
     <v-row class="fill-height">
       <v-col cols="12">
+        <span class="d-flex align-center justify-space-between mt-2">
+          <h1>{{ $t('analytics-title') }}</h1>
+          <v-tooltip bottom>
+            <template #activator="{ on, attrs }">
+              <v-btn
+                color="primary"
+                text
+                v-bind="attrs"
+                v-on="on"
+                @click="$router.push('/cmr')"
+              >
+                <v-icon color="primary">mdi-home</v-icon>
+              </v-btn>
+            </template>
+            <span>{{ $t('go-to-cmr') }}</span>
+          </v-tooltip>
+        </span>
+
         <div class="d-flex align-center justify-end mb-4">
           <v-btn
             color="primary"
@@ -99,6 +117,7 @@
 <i18n>
 {
   "en": {
+    "analytics-title": "Analytics",
     "add-button-label": "Add",
     "error-message-getAnalytics": "Failed to get analytics list",
     "date-format": "YYYY-MM-DD",
@@ -106,9 +125,11 @@
     "modal-cancel": "Cancel",
     "error-message-delete-analytic": "Failed to delete analytic",
     "success-message-delete-analytic": "Analytic deleted successfully",
-    "title-alert": "Alert"
+    "title-alert": "Alert",
+    "go-to-cmr": "Go to CMR"
   },
   "pt-br": {
+    "analytics-title": "Analítico",
     "add-button-label": "Adicionar",
     "error-message-getAnalytics": "Falha ao obter lista das análises",
     "date-format": "DD/MM/YYYY",
@@ -116,11 +137,11 @@
     "modal-cancel": "Cancelar",
     "error-message-delete-analytic": "Falha ao excluir análise",
     "success-message-delete-analytic": "Análise excluída com sucesso",
-    "title-alert": "Alerta"
+    "title-alert": "Alerta",
+    "go-to-cmr": "Ir para o CMR"
   }
 }
 </i18n>
-
 <script>
 export default {
   name: 'AdminAnalytics',

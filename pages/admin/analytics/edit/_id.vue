@@ -6,6 +6,24 @@
     <v-col
       cols="6"
     >
+      <span class="d-flex align-center justify-space-between mb-4">
+        <h1>{{ $t('analytics-edit-title') }}</h1>
+        <v-tooltip bottom>
+          <template #activator="{ on, attrs }">
+            <v-btn
+              color="primary"
+              text
+              v-bind="attrs"
+              v-on="on"
+              @click="$router.push('/cmr')"
+            >
+              <v-icon color="primary">mdi-home</v-icon>
+            </v-btn>
+          </template>
+          <span>{{ $t('go-to-cmr') }}</span>
+        </v-tooltip>
+      </span>
+
       <div class="d-flex justify-start mb-4">
         <v-btn
           color="grey"
@@ -73,6 +91,8 @@
 <i18n>
 {
   "en": {
+    "analytics-edit-title": "Edit Analytics Dashboard",
+    "go-to-cmr": "Go to CMR",
     "message-success-update-analytic": "Analytic updated successfully",
     "message-error-update-analytic": "Error updating analytic",
     "name": "Name",
@@ -86,6 +106,8 @@
     "back-button": "Back"
   },
   "pt-br": {
+    "analytics-edit-title": "Editar Dashboard Analítico",
+    "go-to-cmr": "Ir para o CMR",
     "message-success-update-analytic": "Análise atualizada com sucesso",
     "message-error-update-analytic": "Erro ao atualizar análise",
     "name": "Nome",
