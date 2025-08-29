@@ -7,24 +7,12 @@
           :key="index"
         >
           <!-- Renderizar headers -->
-          <h1 v-if="component.type === 'header' && component.content.level === 1">
+          <component
+            :is="'h' + component.content.level"
+            v-if="component.type === 'header'"
+          >
             {{ component.content.title }}
-          </h1>
-          <h2 v-if="component.type === 'header' && component.content.level === 2">
-            {{ component.content.title }}
-          </h2>
-          <h3 v-if="component.type === 'header' && component.content.level === 3">
-            {{ component.content.title }}
-          </h3>
-          <h4 v-if="component.type === 'header' && component.content.level === 4">
-            {{ component.content.title }}
-          </h4>
-          <h5 v-if="component.type === 'header' && component.content.level === 5">
-            {{ component.content.title }}
-          </h5>
-          <h6 v-if="component.type === 'header' && component.content.level === 6">
-            {{ component.content.title }}
-          </h6>
+          </component>
 
           <!-- Renderizar parágrafos -->
           <p v-if="component.type === 'paragraph'">
