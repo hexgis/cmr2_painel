@@ -43,6 +43,7 @@
           :items="analytics"
           :loading="loadingAnalytics"
           height="calc(100vh - 200px)"
+          :no-data-text="$t('no-data-text')"
         >
           <template #loading>
             <v-skeleton-loader type="table-row@10" />
@@ -126,10 +127,11 @@
     "error-message-delete-analytic": "Failed to delete analytic",
     "success-message-delete-analytic": "Analytic deleted successfully",
     "title-alert": "Alert",
-    "go-to-cmr": "Go to CMR"
+    "go-to-cmr": "Go to CMR",
+    "no-data-text": "No data available"
   },
   "pt-br": {
-    "analytics-title": "Analítico",
+    "analytics-title": "Analíticos",
     "add-button-label": "Adicionar",
     "error-message-getAnalytics": "Falha ao obter lista das análises",
     "date-format": "DD/MM/YYYY",
@@ -138,7 +140,8 @@
     "error-message-delete-analytic": "Falha ao excluir análise",
     "success-message-delete-analytic": "Análise excluída com sucesso",
     "title-alert": "Alerta",
-    "go-to-cmr": "Ir para o CMR"
+    "go-to-cmr": "Ir para o CMR",
+    "no-data-text": "Nenhum dado disponível"
   }
 }
 </i18n>
