@@ -179,8 +179,8 @@ h1, h2, h3, h4, h5, h6 {
   color: #1976d2;
 }
 
-h1 { font-size: 1.8em; border-bottom: 2px solid #eee; padding-bottom: 0.3em; }
-h2 { font-size: 1.5em; border-bottom: 1px solid #eee; padding-bottom: 0.2em; }
+h1 { font-size: 1.8em; }
+h2 { font-size: 1.5em; }
 h3 { font-size: 1.3em; }
 h4 { font-size: 1.2em; }
 h5 { font-size: 1.1em; }

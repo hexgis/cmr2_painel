@@ -16,7 +16,7 @@
         </v-toolbar-title>
         <v-spacer />
         <v-checkbox
-          v-if="hasUnreadNews"
+          v-if="hasUnreadNews && hasNews"
           v-model="allReadChecked"
           :label="$t('news.markAllAsRead')"
           color="green"
@@ -37,7 +37,9 @@
       </v-toolbar>
 
       <v-card-text class="pa-0">
+        <!-- Exibe carousel apenas se houver notícias -->
         <v-carousel
+          v-if="hasNews"
           v-model="carouselIndex"
           reverse
           height="60vh"
@@ -90,12 +92,29 @@
             </div>
           </v-carousel-item>
         </v-carousel>
+
+        <!-- Mensagem quando não há notícias -->
+        <div
+          v-else
+          class="no-news-message"
+        >
+          <v-icon
+            size="64"
+            color="grey lighten-1"
+          >
+            mdi-newspaper-variant-multiple
+          </v-icon>
+          <h3>{{ $t('news.noNews') }}</h3>
+          <p>{{ $t('news.noNewsDescription') }}</p>
+        </div>
       </v-card-text>
+
+      <!-- Ações de navegação (desabilitadas quando não há notícias) -->
       <v-card-actions class="navigation-actions">
         <v-btn
           color="#d92b3f"
           text
-          :disabled="nextDisabled"
+          :disabled="nextDisabled || !hasNews"
           @click="carouselIndex++"
         >
           <v-icon left>
@@ -109,7 +128,7 @@
         <v-btn
           color="#d92b3f"
           text
-          :disabled="prevDisabled"
+          :disabled="prevDisabled || !hasNews"
           @click="carouselIndex--"
         >
           {{ $t('news.previous') }}
@@ -132,7 +151,9 @@
       "read": "Read",
       "close": "Close",
       "previous": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "noNews": "No news at the moment",
+      "noNewsDescription": "Check back later for updates!"
     }
   },
   "pt-br": {
@@ -143,7 +164,9 @@
       "read": "Notícia lida",
       "close": "Fechar",
       "previous": "Próxima novidade",
-      "next": "Novidade anterior"
+      "next": "Novidade anterior",
+      "noNews": "Nenhuma novidade no momento",
+      "noNewsDescription": "Volte mais tarde para ver as atualizações!"
     }
   }
 }
@@ -182,6 +205,11 @@ export default {
       'nextDisabled',
       'isNewsRead',
     ]),
+
+    // Nova computed property para verificar se há notícias
+    hasNews() {
+      return this.displayedNews && this.displayedNews.length > 0;
+    },
 
     newsDialog: {
       get() {
@@ -302,6 +330,30 @@ export default {
           &:hover { background: #555; }
         }
       }
+    }
+  }
+
+  // Estilo para a mensagem de nenhuma notícia
+  .no-news-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    text-align: center;
+    padding: 20px;
+    color: #757575;
+
+    h3 {
+      margin: 16px 0 8px;
+      font-size: 1.5rem;
+      font-weight: 500;
+    }
+
+    p {
+      margin: 0;
+      font-size: 1rem;
+      color: #9e9e9e;
     }
   }
 }
