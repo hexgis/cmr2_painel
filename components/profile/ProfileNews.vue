@@ -78,7 +78,7 @@
                     color="green"
                     hide-details
                     class="mt-n10"
-                    @change="updateReadStatus(news.id, $event)"
+                    @change="updateReadStatus({ newsId: news.id, isChecked: $event })"
                   />
                 </div>
                 <p>

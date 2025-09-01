@@ -57,6 +57,11 @@ export const mutations = {
       state.news.readNews = [...state.news.readNews, newsId];
     }
   },
+  markAsRead(state, newsId) {
+    if (!state.news.readNews.includes(newsId)) {
+      state.news.readNews = [...state.news.readNews, newsId];
+    }
+  },
   markAllAsRead(state) {
     const unreadIds = state.news.allNews
       .filter(news => !state.news.readNews.includes(news.id))
@@ -111,8 +116,8 @@ export const actions = {
   },
 
   updateReadStatus({ commit, state }, { newsId, isChecked }) {
-    if (isChecked && !state.news.readNews.includes(newsId)) {
-      commit('addReadNews', newsId);
+    if (isChecked) {
+      commit('markAsRead', newsId);
 
       const userId = state.user?.id || 'defaultUser';
       localStorage.setItem(`readNews_${userId}`, JSON.stringify(state.news.readNews));
