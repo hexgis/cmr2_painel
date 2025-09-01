@@ -205,7 +205,7 @@
       </template>
     </v-row>
 
-    <!-- Diálogos -->
+    <!-- Modais -->
     <TableDialog
       v-if="tableDialog && formattedTableMonitoring"
       :table="tableDialog"
@@ -215,15 +215,16 @@
       :table-name="$t('table-name')"
       :f-close-table="closeTableDialog"
     />
-    <!-- <div
-      v-if="dialog"
-      class="d-none"
-    >
-      <AnalyticalDialog
-        :value="analyticsAlertsDialog"
-        :close-dialog="closeAnalyticalDialog"
-      />
-    </div> -->
+
+    <AnalyticalDialog
+      v-if="analyticDialog && formattedAnalyticData"
+      :value="analyticDialog"
+      :close-dialog="closeAnalyticalDialog"
+      :table="formattedAnalyticData"
+      :loading="isLoadingAnalytics"
+      @update:group="updateAnalyticDialog"
+      @download="downloadAnalytics"
+    />
   </v-container>
 </template>
 
@@ -256,19 +257,22 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import TableDialog from '../../table-dialog/TableDialog.vue';
+import TableDialog from '../../base/TableDialog.vue';
+import AnalyticalDialog from '../../base/AnalyticalDialog.vue';
 
 export default {
   name: 'MonitoringResults',
 
   components: {
     TableDialog,
+    AnalyticalDialog,
   },
 
   data() {
     return {
       dialogConfirmDownload: false,
       tableDialog: false,
+      analyticDialog: false,
       isLoadingCSV: false,
       headers: [
         { text: 'ID', value: 'origin_id' },
@@ -309,6 +313,10 @@ export default {
       return this.$store.state.monitoring.loadingStats;
     },
 
+    isLoadingAnalytics() {
+      return this.$store.state.monitoring.loadingAnalytics;
+    },
+
     statsTableMonitoring() {
       return this.$store.state.monitoring.stats.tableMonitoring;
     },
@@ -325,6 +333,10 @@ export default {
       });
     },
 
+    formattedAnalyticData() {
+      return this.$store.state.monitoring.analyticsData;
+    },
+
     ...mapGetters('monitoring', ['getStats']),
   },
 
@@ -334,8 +346,8 @@ export default {
     },
 
     async showTableDialogAnalytics() {
-      const ok = await this.$confirm();
-      console.log(ok);
+      this.analyticDialog = true;
+      this.$store.dispatch('monitoring/getDataAnalyticsMonitoring');
     },
 
     async showTableDialog() {
@@ -343,9 +355,46 @@ export default {
       this.tableDialog = true;
     },
 
+    async updateAnalyticDialog(type) {
+      await this.$store.dispatch('monitoring/getDataAnalyticsMonitoring', `monitoring_by_${type}`);
+    },
+
+    async downloadAnalytics(type) {
+      let defaultFileName;
+      switch (type) {
+        case 'day':
+          defaultFileName = 'poligono_monitoramento_estatisticas_por_dia.csv';
+          break;
+        case 'monthYear':
+          defaultFileName = 'poligono_monitoramento_estatisticas_por_mes_e_ano.csv';
+          break;
+        case 'year':
+          defaultFileName = 'poligono_monitoramento_estatisticas_por_ano.csv';
+          break;
+        case 'funai':
+          defaultFileName = 'poligono_monitoramento_estatisticas_por_co_funai_e_dia.csv';
+          break;
+        case 'funaiMonthYear':
+          defaultFileName = 'poligono_monitoramento_estatisticas_por_co_funai_mes_e_ano.csv';
+          break;
+        case 'funaiYear':
+          defaultFileName = 'poligono_monitoramento_estatisticas_por_co_funai_e_ano.csv';
+          break;
+        default:
+          defaultFileName = 'monitoramento_diario_estatisticas.csv';
+          break;
+      }
+      this.$store.dispatch('monitoring/downloadAnalyticCSV', defaultFileName);
+    },
+
     closeTableDialog() {
       this.tableDialog = false;
       this.$store.commit('monitoring/clearTableMonitoring');
+    },
+
+    closeAnalyticalDialog() {
+      this.analyticDialog = false;
+      this.$store.commit('monitoring/clearAnalyticsData');
     },
 
     async updateOpacity(value) {

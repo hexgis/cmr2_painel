@@ -1,7 +1,10 @@
+import { convertToCSV, saveData } from '@/utils/csv';
+
 export default {
   state: () => ({
     showFeaturesMonitoring: false,
     urlWmsMonitoring: '',
+    analyticsData: [],
     geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
     geoserverLayerMonitoringHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
     downloadGeoserverMaxFeatures: process.env.DOWNLOAD_GEOSERVER_MAX_FEATURES,
@@ -29,6 +32,7 @@ export default {
     loadingStatistic: false,
     loadingTable: false,
     loadingStats: false,
+    loadingDownloadCSV: false,
   }),
 
   getters: {
@@ -109,10 +113,13 @@ export default {
     setLoadingSearchMonitoring(state, loading) { state.loadingSearchMonitoring = loading; },
     setLoadingStats(state, value) { state.loadingStats = value; },
     setLoadingDownloadGeojson(state, loading) { state.loadingDownloadGeojson = loading; },
+    setLoadingDownloadCSV(state, loading) { state.loadingDownloadCSV = loading; },
     setOpacity(state, opacity) { state.opacity = opacity; },
     setCurrentBbox(state, bbox) { state.filters.bbox = bbox; },
     setLoadingTable(state, loading) { state.loadingTable = loading; },
+    setLoadingStatistic(state, loading) { state.loadingStatistic = loading; },
     clearTableMonitoring(state) { state.stats.tableMonitoring = []; },
+    clearAnalyticsData(state) { state.analyticsData = []; },
 
     setRegionalCoordinators(state, regionalCoordinators) {
       state.regionalCoordinators = regionalCoordinators;
@@ -175,6 +182,24 @@ export default {
       state.stats.tableMonitoring = tableData;
     },
 
+    setAnalyticsData(state, analyticsData) {
+      const formattedAnalytics = analyticsData.map((item) => {
+        const newItem = { ...item };
+        Object.keys(newItem).forEach((key) => {
+          if (typeof newItem[key] === 'string' && newItem[key].endsWith('%')) {
+            const percentValue = newItem[key].replace('%', '').replace(',', '.');
+            const numberValue = parseFloat(percentValue);
+            if (!Number.isNaN(numberValue)) {
+              const roundedValue = Math.ceil(numberValue * 1000) / 1000;
+              newItem[key] = `${roundedValue.toFixed(3).replace('.', ',')}%`;
+            }
+          }
+        });
+        return newItem;
+      });
+      state.analyticsData = formattedAnalytics;
+    },
+
   },
 
   actions: {
@@ -190,11 +215,11 @@ export default {
       try {
         commit('setLoadingSearchMonitoring', true);
         commit('setMonitoringStats', { ...state.stats, stages: [] });
+        commit('setCurrentBbox', rootGetters['map/bbox']);
         await dispatch('generateMonitoringStats');
         await dispatch('zoomMapBboxRegionalCoordinates');
         dispatch('updateWmsMonitoring');
         commit('setShowFeaturesMonitoring', true);
-        commit('setCurrentBbox', rootGetters['map/bbox']);
       } catch (error) {
         commit('alert/addAlert', {
           message: this.$i18n.t('default-error', {
@@ -205,6 +230,36 @@ export default {
         }, { root: true });
       } finally {
         commit('setLoadingSearchMonitoring', false);
+      }
+    },
+
+    async generateMonitoringStats({ commit, state, getters }, isUpdate = false) {
+      try {
+        commit('setLoadingStats', true);
+        const params = {
+          start_date: state.filters.startDate,
+          end_date: state.filters.endDate,
+        };
+        if (isUpdate && state.stats.stages && state.stats.stages.length) {
+          params.stage = state.stats.stages.filter((stage) => stage.visible).map((stage) => stage.name).join(',') || 'NONE';
+        }
+        if (state.filters.currentView) {
+          params.in_bbox = state.filters.bbox;
+        } else {
+          params.co_cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
+          params.co_funai = getters.getFormattedIndigenousLands('co_funai').join(',');
+        }
+
+        const stats = await this.$api.$get('monitoring/consolidated/map-stats/', { params });
+        if (isUpdate) {
+          commit('setUpdateMonitoringStats', { totalFeatures: stats.total_features, totalArea: stats.total_area || 0 });
+        } else {
+          commit('setMonitoringStats', stats);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        commit('setLoadingStats', false);
       }
     },
 
@@ -274,33 +329,56 @@ export default {
       }
     },
 
-    async generateMonitoringStats({ commit, state, getters }, isUpdate = false) {
+    async getDataAnalyticsMonitoring({
+      commit, state, getters, rootGetters,
+    }, groupingKey) {
       try {
-        commit('setLoadingStats', true);
-        const params = {
-          start_date: state.filters.startDate,
-          end_date: state.filters.endDate,
-        };
-        if (isUpdate && state.stats.stages && state.stats.stages.length) {
-          params.stage = state.stats.stages.filter((stage) => stage.visible).map((stage) => stage.name).join(',') || 'NONE';
+        commit('setLoadingStatistic', true);
+        const params = {};
+        if (state.filters.startDate && state.filters.endDate) {
+          params.start_date = state.filters.startDate;
+          params.end_date = state.filters.endDate;
+          params.grouping = groupingKey;
         }
-        if (state.filters.currentView) {
-          params.in_bbox = state.filters.bbox;
-        } else {
-          params.co_cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
+        if (state.filters.ti.length) {
           params.co_funai = getters.getFormattedIndigenousLands('co_funai').join(',');
         }
-
-        const stats = await this.$api.$get('monitoring/consolidated/map-stats/', { params });
-        if (isUpdate) {
-          commit('setUpdateMonitoringStats', { totalFeatures: stats.total_features, totalArea: stats.total_area || 0 });
-        } else {
-          commit('setMonitoringStats', stats);
+        if (state.filters.cr.length) {
+          params.co_cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
         }
+        if (state.filters.currentView) {
+          params.in_bbox = rootGetters['map/bbox'];
+        }
+        const analyticsMonitoring = await this.$api.$get('monitoring/consolidated/table-stats/', { params });
+        commit('setAnalyticsData', analyticsMonitoring);
       } catch (error) {
-        console.error(error);
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring data'),
+          }),
+          type: 'error',
+        }, { root: true });
       } finally {
-        commit('setLoadingStats', false);
+        commit('setLoadingStatistic', false);
+      }
+    },
+
+    async downloadAnalyticCSV({ commit, state }, defaultFileName) {
+      try {
+        commit('setLoadingDownloadCSV', true);
+        const csvData = convertToCSV(state.analyticsData);
+        saveData(csvData, defaultFileName);
+      } catch (error) {
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring data'),
+          }),
+          type: 'error',
+        }, { root: true });
+      } finally {
+        commit('setLoadingDownloadCSV', false);
       }
     },
 

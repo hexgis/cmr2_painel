@@ -152,7 +152,7 @@ export default {
         (v) => (!!v || !!(this.filters.cr && this.filters.cr.length)) || false,
       ],
       regionalCoordinationRules: [
-        (v) => ((!!v && v.length) || !!this.filters.currentView) || false,
+        (v) => ((!!v && !!v.length) || !!this.filters.currentView) || false,
       ],
     };
   },
@@ -184,7 +184,9 @@ export default {
       set(value) {
         this.$store.commit('monitoring/setFilters', { cr: value });
         this.$store.dispatch('monitoring/getTiOptions');
-        this.$store.commit('monitoring/setFilters', { currentView: false });
+        if (value.length && this.currentViewArea) {
+          this.$store.commit('monitoring/setFilters', { currentView: false });
+        }
       },
     },
 
