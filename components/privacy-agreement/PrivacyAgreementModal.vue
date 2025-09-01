@@ -5,25 +5,21 @@
     overlay-opacity="0.8"
     persistent
   >
-    <v-card class="termo-modal">
+    <v-card class="termo-modal d-flex flex-column">
       <!-- Header -->
-      <v-card-title class="primary white--text text-center pa-4 justify-center">
-        <div class="w-100 d-flex flex-column align-center justify-center">
-          <v-icon
-            size="28"
-            color="white"
-            class="mb-2"
-          >
-            mdi-shield-lock
-          </v-icon>
-          <div class="text-h5 font-weight-bold text-center w-100">
-            {{ agreementTitle || 'Termo de Sigilo e Confidencialidade' }}
-          </div>
-        </div>
+      <v-card-title class="primary white--text text-center justify-center">
+        <v-icon
+          size="28"
+          color="white"
+          class="mr-6"
+        >
+          mdi-shield-lock
+        </v-icon>
+        {{ agreementTitle || 'Termo de Sigilo e Confidencialidade' }}
       </v-card-title>
 
       <!-- Content -->
-      <v-card-text class="pa-6">
+      <v-card-text class="pa-6 flex-grow-1 d-flex flex-column termo-body">
         <!-- Alert -->
         <v-alert
           type="error"
@@ -41,7 +37,7 @@
         </v-alert>
 
         <!-- Termo Text -->
-        <div class="termo-content">
+        <div class="termo-content d-flex flex-column">
           <div
             v-if="loading"
             class="text-center py-8"
@@ -58,9 +54,9 @@
 
           <div
             v-else
-            class="termo-text-container"
+            class="termo-text-container flex-grow-1"
           >
-            <div class="termo-text">
+            <div class="termo-text px-6">
               {{ agreementText }}
             </div>
           </div>
@@ -143,15 +139,10 @@ import ConfirmModal from '@/components/base/ConfirmModal.vue';
 export default {
   name: 'PrivacyAgreementModal',
 
-  components: {
-    ConfirmModal,
-  },
+  components: { ConfirmModal },
 
   props: {
-    value: {
-      type: Boolean,
-      default: false,
-    },
+    value: { type: Boolean, default: false },
   },
 
   data() {
@@ -176,7 +167,6 @@ export default {
         this.$emit('input', value);
       },
     },
-
     isProcessing() {
       return this.accepting || this.rejecting;
     },
@@ -217,9 +207,7 @@ export default {
         this.accepting = true;
         this.error = null;
 
-        await this.$store.dispatch('privacyAgreement/acceptTermo', {
-          version: this.version,
-        });
+        await this.$store.dispatch('privacyAgreement/acceptTermo', { version: this.version });
 
         this.showDialog = false;
         this.$emit('accepted');
@@ -351,7 +339,6 @@ export default {
 
       this.$router.push('/').catch((routerError) => {
         console.warn('Router error:', routerError);
-
         window.location.replace('/');
       });
 
@@ -364,41 +351,37 @@ export default {
 </script>
 
 <style scoped>
-.termo-modal {
-  border-radius: 12px !important;
-}
-
-.termo-modal .v-card__title {
-  justify-content: center !important;
-  text-align: center !important;
-}
-
-.termo-modal .v-card__title > div {
-  width: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
 .important-alert {
   border-left: 4px solid #d92b3f !important;
   background-color: #fafafa !important;
 }
 
+.termo-modal {
+  max-height: 90vh;
+}
+
+.termo-body {
+  min-height: 0;
+}
+
 .termo-content {
-  max-height: 400px;
-  overflow-y: auto;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   background-color: #fafafa;
+  overflow: hidden;
 }
 
 .termo-text-container {
-  padding: 20px;
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .termo-text {
+  flex-grow: 1;
+  min-height: 0;
+  overflow-y: auto;
   white-space: pre-wrap;
   line-height: 1.8;
   font-family: 'Roboto', sans-serif;
@@ -407,22 +390,24 @@ export default {
   text-align: justify;
 }
 
-/* Custom scrollbar */
-.termo-content::-webkit-scrollbar {
+.termo-text::-webkit-scrollbar {
   width: 8px;
 }
-
-.termo-content::-webkit-scrollbar-track {
+.termo-text::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 4px;
 }
-
-.termo-content::-webkit-scrollbar-thumb {
+.termo-text::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 4px;
 }
-
-.termo-content::-webkit-scrollbar-thumb:hover {
+.termo-text::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+@media (max-width: 600px) {
+  .termo-modal {
+    max-height: 85vh;
+  }
 }
 </style>
