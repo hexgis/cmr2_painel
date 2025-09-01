@@ -120,7 +120,6 @@
                     v-model="formData.institution"
                     :label="$t('institution')"
                     :items="institutionOptions"
-                    :rules="[v => !!v || $t('institution-required')]"
                     clearable
                     outlined
                     @input="validateStep1"
@@ -134,8 +133,6 @@
                     v-model="formData.user_siape_registration"
                     :label="$t('registration')"
                     type="number"
-                    :rules="[v => !!v || $t('registration-required')]"
-
                     outlined
                     @input="validateStep1"
                   />
