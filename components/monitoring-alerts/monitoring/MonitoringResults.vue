@@ -139,13 +139,14 @@
         class="grey--text text--darken-2 pt-0"
         cols="2"
       >
-        <!-- <v-switch
-          v-model="heatMap"
+        <v-switch
+          :input-value="getHeatMapMonitoring"
           class="ma-0 pa-0"
-          :loading="loadingHeatmap"
-          :disabled="loadingHeatmap || !hasFeatures"
+          :loading="isLoadingHeatmap"
+          :disabled="isLoadingHeatmap"
           hide-details
-        /> -->
+          @change="toggleHeatMapLayer($event)"
+        />
       </v-col>
     </v-row>
 
@@ -317,6 +318,10 @@ export default {
       return this.$store.state.monitoring.loadingAnalytics;
     },
 
+    isLoadingHeatmap() {
+      return this.$store.state.monitoring.loadingHeatmap;
+    },
+
     statsTableMonitoring() {
       return this.$store.state.monitoring.stats.tableMonitoring;
     },
@@ -335,6 +340,10 @@ export default {
 
     formattedAnalyticData() {
       return this.$store.state.monitoring.analyticsData;
+    },
+
+    getHeatMapMonitoring() {
+      return this.$store.state.monitoring.heatMapMonitoring;
     },
 
     ...mapGetters('monitoring', ['getStats']),
@@ -405,6 +414,13 @@ export default {
       this.$store.commit('monitoring/toggleStatsStages', { key, value });
       this.$store.dispatch('monitoring/updateWmsMonitoring');
       this.$store.dispatch('monitoring/generateMonitoringStats', true);
+    },
+
+    async toggleHeatMapLayer(value) {
+      if (value) {
+        await this.$store.dispatch('monitoring/generateHeatmapMonitoring');
+      }
+      this.$store.commit('monitoring/setHeatMapMonitoring', value);
     },
 
     nameLegends(name) {

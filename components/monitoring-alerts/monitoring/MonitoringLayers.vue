@@ -30,7 +30,16 @@ import { mapState, mapGetters } from 'vuex';
 export default {
   name: 'MonitoringLayers',
 
-  data: () => ({}),
+  data: () => ({
+    resultsHeatmapOptions: {
+      minOpacity: 0.5,
+      maxZoom: 18,
+      radius: 20,
+      blur: 15,
+      zIndex: 4,
+    },
+    heatmapLayer: null,
+  }),
 
   computed: {
     ...mapGetters('monitoring', [
@@ -39,8 +48,9 @@ export default {
       'getUrlWmsMonitoring',
     ]),
     ...mapState('monitoring', [
-      'urlWmsMonitoring',
       'showFeaturesMonitoring',
+      'heatMapMonitoring',
+      'stats',
     ]),
   },
 
@@ -48,8 +58,27 @@ export default {
     getUrlWmsMonitoring(newVal) {
       this.$refs.wmsLayer.mapObject.setUrl(newVal);
     },
+
+    heatMapMonitoring(newVal) {
+      if (newVal) this.createMonitoramentoHeatLayer();
+      else this.removeMonitoramentoHeatLayer();
+    },
   },
 
-  methods: {},
+  methods: {
+    createMonitoramentoHeatLayer() {
+      this.heatmapLayer = this.$L.heatLayer(
+        this.stats.heatmapMonitoring,
+        this.resultsHeatmapOptions,
+      );
+      window.mapMain.addLayer(this.heatmapLayer);
+    },
+
+    removeMonitoramentoHeatLayer() {
+      if (this.heatmapLayer) {
+        window.mapMain.removeLayer(this.heatmapLayer);
+      }
+    },
+  },
 };
 </script>

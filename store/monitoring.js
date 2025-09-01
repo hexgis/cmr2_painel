@@ -1,8 +1,10 @@
+import centroid from '@turf/centroid';
 import { convertToCSV, saveData } from '@/utils/csv';
 
 export default {
   state: () => ({
     showFeaturesMonitoring: false,
+    heatMapMonitoring: false,
     urlWmsMonitoring: '',
     analyticsData: [],
     geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
@@ -21,6 +23,7 @@ export default {
       totalArea: 0,
       stages: [],
       tableMonitoring: [],
+      heatmapMonitoring: [],
     },
     opacity: 100,
     regionalCoordinators: [],
@@ -33,6 +36,7 @@ export default {
     loadingTable: false,
     loadingStats: false,
     loadingDownloadCSV: false,
+    loadingHeatmap: false,
   }),
 
   getters: {
@@ -56,11 +60,11 @@ export default {
       return state.filters.ti.map((r) => r[key]).filter((v) => v != null);
     },
 
-    getParamsMonitoringGeoserver: (state, getters) => ({
+    getParamsMonitoringGeoserver: (state, getters) => (heatmap = false) => ({
       service: 'WFS',
       version: '1.0.0',
       request: 'GetFeature',
-      typeName: getters.getLayerMonitoring,
+      typeName: heatmap ? getters.getLayerMonitoringHeatmap : getters.getLayerMonitoring,
       outputFormat: 'application/json',
       CQL_FILTER: getters.getGenerateCqlFilterMonitoring,
       maxFeatures: state.downloadGeoserverMaxFeatures,
@@ -120,6 +124,13 @@ export default {
     setLoadingStatistic(state, loading) { state.loadingStatistic = loading; },
     clearTableMonitoring(state) { state.stats.tableMonitoring = []; },
     clearAnalyticsData(state) { state.analyticsData = []; },
+    setHeatMapMonitoring(state, value) { state.heatMapMonitoring = value; },
+    setLoadingHeatmap(state, loading) { state.loadingHeatmap = loading; },
+
+    clearHeatmap(state) {
+      state.heatMapMonitoring = false;
+      state.stats.heatmapMonitoring = [];
+    },
 
     setRegionalCoordinators(state, regionalCoordinators) {
       state.regionalCoordinators = regionalCoordinators;
@@ -200,6 +211,45 @@ export default {
       state.analyticsData = formattedAnalytics;
     },
 
+    setResultsHeatmap(state, resultsHeatMap) {
+      const pointsHeatMap = [];
+      if (resultsHeatMap) {
+        resultsHeatMap.features.forEach((feature) => {
+          if (
+            feature.geometry
+            && (feature.geometry.type === 'Point' || feature.geometry.type === 'MultiPoint')
+            && feature.geometry.coordinates.length
+          ) {
+            if (feature.geometry.type === 'Point') {
+              pointsHeatMap.push([
+                feature.geometry.coordinates[1],
+                feature.geometry.coordinates[0],
+                1,
+              ]);
+            }
+            if (feature.geometry.type === 'MultiPoint') {
+              feature.geometry.coordinates.forEach((coord) => {
+                pointsHeatMap.push([coord[1], coord[0], 1]);
+              });
+            }
+          }
+          if (
+            feature.geometry
+            && (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon')
+            && feature.geometry.coordinates.length
+          ) {
+            const polygonPoints = centroid(feature);
+            pointsHeatMap.push([
+              polygonPoints.geometry.coordinates[1],
+              polygonPoints.geometry.coordinates[0],
+              1,
+            ]);
+          }
+        });
+      }
+      state.stats.heatmapMonitoring = pointsHeatMap;
+    },
+
   },
 
   actions: {
@@ -215,6 +265,7 @@ export default {
       try {
         commit('setLoadingSearchMonitoring', true);
         commit('setMonitoringStats', { ...state.stats, stages: [] });
+        commit('clearHeatmap');
         commit('setCurrentBbox', rootGetters['map/bbox']);
         await dispatch('generateMonitoringStats');
         await dispatch('zoomMapBboxRegionalCoordinates');
@@ -286,7 +337,7 @@ export default {
           if (!confirmed) return;
         }
         const response = await this.$api.$get(rootState.map.geoserverUrl, {
-          params: getters.getParamsMonitoringGeoserver,
+          params: getters.getParamsMonitoringGeoserver(),
           responseType: 'blob',
         });
         const url = URL.createObjectURL(response);
@@ -311,7 +362,7 @@ export default {
       try {
         commit('setLoadingTable', true);
         const params = {
-          ...getters.getParamsMonitoringGeoserver,
+          ...getters.getParamsMonitoringGeoserver(),
           CQL_FILTER: getters.getGenerateCqlFilterMonitoring,
         };
         const response = await this.$api.$get(rootState.map.geoserverUrl, { params });
@@ -379,6 +430,28 @@ export default {
         }, { root: true });
       } finally {
         commit('setLoadingDownloadCSV', false);
+      }
+    },
+
+    async generateHeatmapMonitoring({ commit, getters, rootState }) {
+      try {
+        commit('setLoadingHeatmap', true);
+        const params = {
+          ...getters.getParamsMonitoringGeoserver(true),
+          CQL_FILTER: getters.getGenerateCqlFilterMonitoring,
+        };
+        const response = await this.$api.$get(rootState.map.geoserverUrl, { params });
+        commit('setResultsHeatmap', response);
+      } catch (error) {
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('heatmap data'),
+          }),
+          type: 'error',
+        }, { root: true });
+      } finally {
+        commit('setLoadingHeatmap', false);
       }
     },
 
