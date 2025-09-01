@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Tela inicial de boas-vindas (fora do stepper) -->
     <v-container v-if="step === 0">
       <v-row>
         <v-col cols="12">
@@ -45,7 +44,6 @@
       </v-row>
     </v-container>
 
-    <!-- Stepper para as demais etapas -->
     <v-card
       v-else
       class="no-border"
@@ -77,7 +75,6 @@
         </v-stepper-header>
 
         <v-stepper-items>
-          <!-- STEP 1 -->
           <v-stepper-content step="1">
             <v-container class="step-content">
               <v-row>
@@ -159,8 +156,6 @@
             </v-row>
           </v-stepper-content>
 
-          <!-- STEP 2 -->
-
           <v-stepper-content step="2">
             <v-container class="step-content">
               <v-row>
@@ -201,7 +196,6 @@
             </v-row>
           </v-stepper-content>
 
-          <!-- STEP 3 -->
           <v-stepper-content step="3">
             <v-container class="step-content">
               <v-row class="mb-2">
@@ -260,7 +254,7 @@
   </div>
 </template>
 
-<i18n>
+<i18n lang="json">
 {
   "en": {
     "welcome": "Welcome",
@@ -376,7 +370,6 @@ export default {
     },
 
     validateStep1() {
-      // Apenas nome e email obrigatórios no Step 1
       this.isStep1Valid = Boolean(
         this.formData.name
         && this.formData.email
@@ -385,7 +378,6 @@ export default {
     },
 
     validateStep2() {
-      // Apenas arquivo obrigatório no Step 2
       this.isStep2Valid = Boolean(this.formData.letter);
     },
 
@@ -425,13 +417,13 @@ export default {
 }
 
 :deep(.v-stepper__content) {
-  width: 80vh; /* mesma largura do Step 1 */
+  width: 80vh;
   max-width: 800px;
 }
 
 .step-content {
-  min-height: 200px; /* Altura mínima para todos os passos */
-  width: 75vh; /* Largura total para consistência */
+  min-height: 200px;
+  width: 75vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -442,6 +434,6 @@ export default {
 }
 
 .step-content .v-col {
-  padding: 4px; /* Espaçamento interno consistente */
+  padding: 4px;
 }
 </style>

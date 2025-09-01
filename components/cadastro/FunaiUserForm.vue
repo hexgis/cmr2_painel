@@ -30,7 +30,6 @@
         </v-stepper-header>
 
         <v-stepper-items>
-          <!-- STEP 1 -->
           <v-stepper-content step="1">
             <v-container class="step-content">
               <v-row>
@@ -115,7 +114,6 @@
             </v-row>
           </v-stepper-content>
 
-          <!-- STEP 2 -->
           <v-stepper-content step="2">
             <v-container class="step-content">
               <v-row class="align-center">
@@ -208,7 +206,6 @@
             </v-row>
           </v-stepper-content>
 
-          <!-- STEP 3 -->
           <v-stepper-content step="3">
             <v-container class="step-content">
               <v-row class="mb-2">
@@ -339,14 +336,16 @@ export default {
   },
   methods: {
     validateStep1() {
+      const emailValid = this.formData.email && /.+@.+\..+/.test(this.formData.email);
       this.isStep1Valid = this.formData.name
-        && this.formData.email
+        && emailValid
         && this.formData.institution
         && this.formData.user_siape_registration;
     },
     validateStep2() {
+      const coordinatorEmailValid = this.formData.coordinator_email && /.+@.+\..+/.test(this.formData.coordinator_email);
       this.isStep2Valid = this.formData.coordinator_name
-        && this.formData.coordinator_email
+        && coordinatorEmailValid
         && this.formData.coordinator_institution
         && this.formData.coordinator_siape_registration;
     },
@@ -383,8 +382,7 @@ export default {
 }
 
 .step-content {
-  min-height: 200px; /* Altura mínima para todos os passos */
-  width: 100%; /* Largura total para consistência */
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -395,11 +393,11 @@ export default {
 }
 
 .step-content .v-col {
-  padding: 4px; /* Espaçamento interno consistente */
+  padding: 4px;
 }
 </style>
 
-<i18n>
+<i18n lang="json">
   {
     "en": {
       "server": "Server",
