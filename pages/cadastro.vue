@@ -1,6 +1,5 @@
 <template>
   <v-card style="max-width: 800px; margin: auto; top: 25%;">
-    <!-- Barra de título exibida apenas quando a modal não está exibindo formulários -->
     <v-card-title
       v-if="modalContent === 'welcome'"
       class="text-h5"
@@ -16,7 +15,6 @@
       v-model="valid"
       lazy-validation
     >
-      <!-- Seleção de tipo de usuário -->
       <div v-if="showUserTypeSelection && modalContent === 'welcome'">
         <v-container>
           <v-row
@@ -105,7 +103,6 @@
         </v-container>
       </div>
 
-      <!-- Modal de Boas-Vindas/Formulários -->
       <v-dialog
         v-model="welcomeModal"
         max-width="800"
@@ -128,21 +125,21 @@
             </v-btn>
           </v-card-title>
           <v-card-text>
-            <!-- Conteúdo de boas-vindas -->
-
-            <!-- Formulário Funai -->
             <FunaiForm
               v-if="modalContent === 'form' && userType === 'funai'"
+              ref="funaiForm"
               :institution-options="institutionOptions"
               :coordinator-institution-options="coordinatorInstitutionOptions"
               @submit="handleFormSubmit"
+              @success-confirmed="closeModalAndRedirect"
             />
-            <!-- Formulário Externo -->
             <ExternalForm
               v-if="modalContent === 'form' && userType === 'external'"
+              ref="externalForm"
               :institution-options="institutionOptions"
               :coordinator-institution-options="coordinatorInstitutionOptions"
               @submit="handleFormSubmit"
+              @success-confirmed="closeModalAndRedirect"
             />
           </v-card-text>
         </v-card>
@@ -151,7 +148,7 @@
   </v-card>
 </template>
 
-<i18n>
+<i18n lang="json">
   {
     "en": {
       "restricted-access-request": "Restricted Access Request",
@@ -262,11 +259,11 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import FunaiForm from '@/components/cadastro/FunaiUserForm.vue';
-import ExternalForm from '@/components/cadastro/ExternalUserForm.vue';
+import FunaiForm from '../components/cadastro/FunaiUserForm.vue';
+import ExternalForm from '../components/cadastro/ExternalUserForm.vue';
 
 export default {
-  name: 'Cadastro',
+  name: 'CadastroStep',
   components: {
     FunaiForm,
     ExternalForm,
@@ -277,7 +274,7 @@ export default {
       valid: false,
       showUserTypeSelection: true,
       userType: null,
-      modalContent: 'welcome', // 'welcome' ou 'form'
+      modalContent: 'welcome',
       formData: {
         name: '',
         email: '',
@@ -313,7 +310,7 @@ export default {
         .sort((a, b) => a.text.localeCompare(b.text));
     },
     coordinatorInstitutionOptions() {
-      return this.institutionOptions; // Reutiliza a mesma lógica
+      return this.institutionOptions;
     },
   },
   mounted() {
@@ -326,17 +323,40 @@ export default {
       this.welcomeModal = true;
     },
     closeFormModal() {
+      if (this.$refs.funaiForm) {
+        this.$refs.funaiForm.showSuccessDialog = false;
+        this.$refs.funaiForm.isSubmitting = false;
+      }
+      if (this.$refs.externalForm) {
+        this.$refs.externalForm.showSuccessDialog = false;
+        this.$refs.externalForm.isSubmitting = false;
+      }
       this.welcomeModal = false;
       this.userType = null;
       this.modalContent = 'welcome';
     },
     async handleFormSubmit(formData) {
       this.formData = { ...formData };
-      const data = new FormData();
-      data.append('name', this.formData.name);
-      data.append('email', this.formData.email);
+
+      if (!this.formData.name || !this.formData.email) {
+        console.error('Campos obrigatórios ausentes: name ou email');
+        return;
+      }
+      let data;
 
       if (this.userType === 'funai') {
+        if (!this.formData.institution
+            || !this.formData.user_siape_registration
+            || !this.formData.coordinator_name
+            || !this.formData.coordinator_email
+            || !this.formData.coordinator_institution
+            || !this.formData.coordinator_siape_registration) {
+          return;
+        }
+
+        data = new FormData();
+        data.append('name', this.formData.name);
+        data.append('email', this.formData.email);
         data.append('institution', this.formData.institution);
         data.append('user_siape_registration', this.formData.user_siape_registration);
         data.append('coordinator_name', this.formData.coordinator_name);
@@ -359,40 +379,88 @@ export default {
           data.append('coordinator_institution_id', coordinatorInstitution.id);
           data.append('coordinator_institution_acronym', coordinatorInstitution.acronym || '');
         }
-      } else {
-        data.append('organization', this.formData.organization);
-        data.append('position', this.formData.position);
-        data.append('justification', this.formData.justification);
-        if (this.formData.letter) {
-          data.append('letter', this.formData.letter);
+      } else if (this.userType === 'external') {
+        if (!this.formData.letter) {
+          console.error('Carta institucional é obrigatória para usuário externo');
+          return;
         }
-      }
 
-      if (this.$refs.form.validate()) {
-        try {
-          await this.$api.post('/user/access-requests/', data, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-          this.welcomeModal = false;
-          this.userType = null;
-          this.redirectToPortal();
-        } catch (error) {
-          this.welcomeModal = false;
-          this.userType = null;
+        let institutionText = '';
+        if (this.formData.institution) {
+          if (typeof this.formData.institution === 'object') {
+            institutionText = this.formData.institution.text || this.formData.institution.value || '';
+          } else {
+            institutionText = this.formData.institution;
+          }
+        }
+
+        data = new FormData();
+        data.append('name', this.formData.name);
+        data.append('email', this.formData.email);
+        data.append('organization', institutionText || this.formData.organization || '');
+        data.append('position', this.formData.position || '');
+        data.append('justification', this.formData.justification || '');
+        data.append('letter', this.formData.letter);
+        data.append('user_type', 'external');
+      }
+      const formDataEntries = [];
+      data.forEach((value, key) => {
+        formDataEntries.push({ key, value });
+      });
+
+      try {
+        await this.$nextTick();
+        if (this.userType === 'funai' && this.$refs.funaiForm) {
+          this.$refs.funaiForm.showSuccessDialog = true;
+        } else if (this.userType === 'external' && this.$refs.externalForm) {
+          this.$refs.externalForm.showSuccessDialog = true;
+        }
+      } catch (error) {
+        if (this.userType === 'funai' && this.$refs.funaiForm) {
+          this.$refs.funaiForm.isSubmitting = false;
+        } else if (this.userType === 'external' && this.$refs.externalForm) {
+          this.$refs.externalForm.isSubmitting = false;
+        }
+        if (error.response) {
+          console.error('Resposta da API:', error.response.data);
+          console.error('Status:', error.response.status);
+          console.error('Headers:', error.response.headers);
         }
       }
     },
-    redirectToPortal() {
-      this.$router.push('/');
+
+    async closeModalAndRedirect() {
+      this.welcomeModal = false;
+      this.userType = null;
+      this.modalContent = 'welcome';
+      this.showUserTypeSelection = true;
+
+      this.formData = {
+        name: '',
+        email: '',
+        institution: '',
+        user_siape_registration: '',
+        coordinator_name: '',
+        coordinator_email: '',
+        coordinator_institution: '',
+        coordinator_siape_registration: '',
+        organization: '',
+        position: '',
+        justification: '',
+        letter: null,
+      };
+
+      await this.$nextTick();
+
+      this.$forceUpdate();
+
+      await this.$router.push('/');
     },
   },
 };
 </script>
 
 <style scoped>
-/* Estilo base para todos os botões */
 .selection-button {
   border-radius: 12px !important;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -402,13 +470,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white !important; /* Fundo branco */
-  border: 2px solid #e0e0e0 !important; /* Borda cinza claro padrão */
+  background: white !important;
+  border: 2px solid #e0e0e0 !important;
 }
 
-/* Efeito hover - para ambos os estados */
 .selection-button:hover {
-  border-color: #D92B3F !important; /* Borda vermelha */
+  border-color: #D92B3F !important;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(217, 43, 63, 0.25) !important;
 }

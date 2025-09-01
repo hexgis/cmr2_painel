@@ -218,7 +218,11 @@
                 >
                   <p>
                     <strong>{{ $t('institution') }}:</strong>
-                    {{ formData.institution?.text || formData.institution }}
+                    {{
+                      formData.institution && formData.institution.text
+                        ? formData.institution.text
+                        : formData.institution
+                    }}
                   </p><p>
                     <strong>{{ $t('registration') }}:</strong>
                     {{ formData.user_siape_registration }}
@@ -238,7 +242,7 @@
                 </v-btn>
                 <v-btn
                   color="primary"
-                  @click="$emit('submit', formData)"
+                  @click="handleSubmit"
                 >
                   {{ $t('submit-request') }}
                 </v-btn>
@@ -248,6 +252,44 @@
         </v-stepper-items>
       </v-stepper>
     </v-card>
+
+    <v-dialog
+      v-model="showSuccessDialog"
+      max-width="400"
+      persistent
+    >
+      <v-card class="success-card">
+        <div class="success-header">
+          <h2 class="success-title">
+            {{ $t('success') }}
+          </h2>
+          <p class="success-subtitle">
+            {{ $t('success-message') }}
+          </p>
+        </div>
+
+        <v-card-text class="success-content">
+          <p class="user-greeting">
+            <strong>{{ formData.name }},</strong>
+          </p>
+          <p class="confirmation-text">
+            {{ $t('email-confirmation-text') }}
+            <strong>{{ formData.email }}</strong> {{ $t('confirmation-details') }}
+          </p>
+        </v-card-text>
+
+        <v-card-actions class="success-actions">
+          <v-spacer />
+          <v-btn
+            color="error"
+            class="ok-button"
+            @click="redirectToPortal"
+          >
+            OK
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -283,7 +325,11 @@
     "review-info": "Review Information",
     "confirm-download": "I confirm that I have downloaded or already have the required form",
     "confirm-download-required": "You must confirm that you have the form",
-    "text":"External users must complete a specific form. You can download it from the link below, fill it out, and scan it. If you already have the completed and scanned document, you can continue with the registration process."
+    "success": "Success!",
+    "success-message": "Your request has been submitted successfully!",
+    "email-confirmation-text": "will be sent to your email",
+    "confirmation-details": "confirmation of access to CMR, once approved by the manager.",
+    "text": "External users must complete a specific form."
   },
   "pt-br": {
     "welcome": "Bem-vindo",
@@ -315,7 +361,11 @@
     "review-info": "Revisar Informações",
     "confirm-download": "Confirmo que baixei ou já possuo o formulário necessário",
     "confirm-download-required": "Você deve confirmar que possui o formulário",
-    "text": "Usuários externos devem preencher um formulário específico. Você pode baixá-lo no link abaixo, preenchê-lo e digitalizá-lo. Caso já possua o documento preenchido e digitalizado, poderá continuar o cadastro."
+    "success": "Sucesso",
+    "success-message": "Sua solicitação foi enviada com sucesso!",
+    "email-confirmation-text": "será enviada ao seu email",
+    "confirmation-details": "a confirmação de acesso ao CMR, uma vez aprovada pelo gestor.",
+    "text": "Usuários externos devem preencher um formulário específico."
   }
 }
 </i18n>
@@ -336,17 +386,14 @@ export default {
     return {
       step: 0,
       hasDownloadedForm: false,
+      showSuccessDialog: false,
+      isSubmitting: false,
       formLink: 'https://example.com/external-user-form.pdf',
       formData: {
         name: '',
         email: '',
         institution: '',
-        user_siape_registration: '',
         letter: null,
-        coordinator_name: '',
-        coordinator_email: '',
-        coordinator_institution: '',
-        coordinator_siape_registration: '',
       },
       isStep1Valid: false,
       isStep2Valid: false,
@@ -399,6 +446,31 @@ export default {
         status: 'pending_cmr_validation',
       });
     },
+    redirectToPortal() {
+      this.showSuccessDialog = false;
+      this.isSubmitting = false;
+      this.$emit('success-confirmed');
+    },
+
+    async handleSubmit() {
+      if (this.isSubmitting) return;
+
+      try {
+        this.isSubmitting = true;
+
+        const externalFormData = {
+          name: this.formData.name,
+          email: this.formData.email,
+          institution: this.formData.institution,
+          letter: this.formData.letter,
+        };
+
+        this.$emit('submit', externalFormData);
+      } catch (error) {
+        console.error('Erro ao enviar formulário:', error);
+        this.isSubmitting = false;
+      }
+    },
   },
 };
 </script>
@@ -432,5 +504,59 @@ export default {
 
 .step-content .v-col {
   padding: 4px;
+}
+
+.success-card {
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.success-header {
+  background-color: #F9C23C !important;
+  padding: 20px 24px 16px 24px;
+  text-align: left;
+}
+
+.success-title {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+  margin: 0 0 4px 0 !important;
+  line-height: 1.2 !important;
+}
+
+.success-subtitle {
+  font-size: 14px !important;
+  color: #333 !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+}
+
+.success-content {
+  padding: 20px 24px !important;
+  background-color: white !important;
+}
+
+.user-greeting {
+  font-size: 14px !important;
+  margin: 0 0 12px 0 !important;
+  color: #333 !important;
+}
+
+.confirmation-text {
+  font-size: 14px !important;
+  margin: 0 !important;
+  color: #333 !important;
+  line-height: 1.4 !important;
+}
+
+.success-actions {
+  padding: 8px 24px 20px 24px !important;
+  background-color: white !important;
+}
+
+.ok-button {
+  min-width: 60px !important;
+  font-weight: 600 !important;
 }
 </style>
