@@ -86,7 +86,8 @@
               small
               color="primary"
               outlined
-              :disabled="!currentStartDate || !currentEndDate"
+              :loading="loadingSearchMonitoring"
+              :disabled="!currentStartDate || !currentEndDate || loadingSearchMonitoring"
               class="pa-0 mt-n6"
               @click="searchMonitoring"
             >
