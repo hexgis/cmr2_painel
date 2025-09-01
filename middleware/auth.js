@@ -1,11 +1,14 @@
-export default async function ({
-  store, redirect, route, getRouteBaseName, localePath, $axios,
+// eslint-disable-next-line func-names, consistent-return
+export default function ({
+  store, redirect, route, getRouteBaseName, localePath,
 }) {
   if (route.path.startsWith('/pt-br/')) {
     const newPath = route.path.replace('/pt-br', '');
     return redirect(newPath);
   }
+
   store.dispatch('auth/tryAutoLogin');
+
   const baseName = getRouteBaseName();
   const isPublicRoute = [
     'cadastro',
@@ -16,21 +19,25 @@ export default async function ({
     'terras-indigenas',
     'como-funciona',
     'video',
-    'contato'].includes(baseName);
+    'contato',
+  ].includes(baseName);
 
   if (!store.state.auth.token) {
-    if (getRouteBaseName() === 'auth-confirmar') {
+    if (baseName === 'auth-confirmar') {
       const { code } = route.query;
-      if (code) {
-        store.commit('auth/setConfirmationCode', code);
-      }
+      if (code) store.commit('auth/setConfirmationCode', code);
       return;
     }
+
     if (isPublicRoute) return;
+
     if (baseName !== 'login') {
-      return redirect(localePath('/login'));
+      // ✅ usando template string (evita "Unexpected string concatenation")
+      const redirectPath = `${localePath('/login')}?redirect=${encodeURIComponent(route.fullPath)}`;
+      return redirect(redirectPath);
     }
   } else if (baseName === 'login') {
-    return redirect(localePath('/cmr'));
+    const redirectTo = route.query.redirect || localePath('/cmr');
+    return redirect(redirectTo);
   }
 }

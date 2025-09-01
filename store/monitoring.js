@@ -6,6 +6,8 @@ export default {
   // Estado inicial do módulo
   state: () => ({
     features: null,
+    totalArea: 0,
+    totalFeatures: 0,
     urlWmsMonitoring: '',
     geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
     geoserverLayerMonitoringHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
@@ -61,6 +63,9 @@ export default {
     analyticsMonitoringcsv: [],
     legendVisibility: {},
     availableEstagios: [],
+    loadingMonitoringStats: false,
+    loadingMonitoringFilter: false,
+    monitoringCurrentBbox: null,
   }),
 
   // Getters para acessar e processar dados do estado
@@ -83,18 +88,6 @@ export default {
           });
         });
       }
-
-      const tiCountMap = new Map();
-      if (state.features?.features) {
-        state.features.features.forEach(({ properties }) => {
-          const estagio = properties.no_estagio;
-          if (!estagio) return;
-          if (!tiCountMap.has(estagio)) {
-            tiCountMap.set(estagio, new Set());
-          }
-          tiCountMap.get(estagio).add(properties.co_funai);
-        });
-      }
       return state.availableEstagios
         .map((estagio) => {
           const mapped = legendMapping[estagio] || { name: estagio, acronym: '' };
@@ -102,7 +95,8 @@ export default {
           return {
             label,
             color: state.monitoringStyles[estagio] || '#000000',
-            count: tiCountMap.get(estagio)?.size || 0,
+            // count: tiCountMap.get(estagio)?.size || 0,
+            count: 0,
             estagio,
             visible: state.legendVisibility[estagio] !== false,
             active: activeEstagios.has(estagio),
@@ -127,15 +121,12 @@ export default {
     setIntersectsWmsMonitoring(state, intersectsWmsMonitoring) {
       state.intersectsWmsMonitoring = intersectsWmsMonitoring;
     },
-    setshowFeaturesMonitoring(state, showFeaturesMonitoring) {
-      state.showFeaturesMonitoring = showFeaturesMonitoring;
+    setshowFeaturesMonitoring(state, value) {
+      state.showFeaturesMonitoring = value;
     },
     setLoadingStatistic(state, payload) {
       state.isLoadingStatistic = payload;
     },
-
-
-
     setAnalytics(state, analyticsMonitoring) {
       const formattedAnalytics = analyticsMonitoring.map(item => {
         const newItem = { ...item };
@@ -156,6 +147,12 @@ export default {
     setanalyticsMonitoringDialog(state, analyticsMonitoringDialog) {
       state.analyticsMonitoringDialog = analyticsMonitoringDialog;
     },
+    setLoadingMonitoringStats(state, payload) {
+      state.loadingMonitoringStats = payload;
+    },
+    setLoadingMonitoringFilter(state, payload) {
+      state.loadingMonitoringFilter = payload;
+    },
     setLoadingFeatures(state, payload) {
       state.isLoadingFeatures = payload;
     },
@@ -174,6 +171,12 @@ export default {
     setFeatures(state, features) {
       state.features = features;
       state.isLoadingFeatures = false;
+    },
+    setTotalArea(state, totalArea) {
+      state.totalArea = totalArea;
+    },
+    setTotalFeatures(state, totalFeatures) {
+      state.totalFeatures = totalFeatures;
     },
     clearFeatures(state) {
       state.features = null;
@@ -201,6 +204,18 @@ export default {
     },
     setLegendVisibility(state, { estagio, visible }) {
       Vue.set(state.legendVisibility, estagio, visible);
+    },
+    initializeLegendVisibility(state) {
+      state.availableEstagios.forEach((estagio) => {
+        if (!(estagio in state.legendVisibility)) {
+          Vue.set(state.legendVisibility, estagio, true);
+        }
+      });
+    },
+    resetLegendVisibility(state) {
+      Object.keys(state.legendVisibility).forEach(key => {
+        Vue.set(state.legendVisibility, key, true);
+      });
     },
     setAvailableEstagios(state, estagios) {
       state.availableEstagios = estagios;
@@ -243,6 +258,9 @@ export default {
       }
       state.resultsHeatmap = pointsHeatMap;
     },
+    setMonitoringCurrentBbox(state, bbox) {
+      state.monitoringCurrentBbox = bbox;
+    },
   },
 
   // Ações para operações assíncronas e lógicas complexas
@@ -283,7 +301,7 @@ export default {
         if (filters.length) params.CQL_FILTER = filters.join(' AND ');
 
         const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
-        
+
         const response = await this.$api.$get(url);
 
         if (!response?.features) {
@@ -366,14 +384,13 @@ export default {
       );
 
       // Se todos os estágios estão desabilitados, configurar uma URL que não retorna dados
-      if (visibleEstagios.length === 0) {
-        commit('setUrlCurrentWmsMonitoring', '');
-        return;
-      }
+      // if (visibleEstagios.length === 0) {
+      //   commit('setUrlCurrentWmsMonitoring', '');
+      //   return;
+      // }
 
       const params = {
         layers: state.geoserverLayerMonitoring,
-
         env: `fill-opacity:${state.opacity / 100}`,
         CQL_FILTER: '',
         format: 'image/png',
@@ -420,7 +437,7 @@ export default {
           typeName: state.geoserverLayerMonitoring,
           outputFormat: 'application/json',
           CQL_FILTER: '',
-          maxFeatures: 10000,
+          propertyName: 'co_cr,co_funai,no_estagio,nu_area_ha'
         };
 
         let cqlFilters = [];
@@ -463,13 +480,15 @@ export default {
         const response = await this.$api.$get(url);
 
         if (response?.features) {
-          const geojson = {
-            type: response.type,
-            features: response.features,
-          };
-          commit('setFeatures', geojson);
+          const totalArea = response.features.reduce(
+            (sum, { properties }) => sum + (properties?.nu_area_ha || 0),
+            0
+          );
+          const totalFeatures = response.features.length;
+          commit('setTotalArea', totalArea);
+          commit('setTotalFeatures', totalFeatures);
         } else {
-          throw new Error('Resposta do GeoServer sem features');
+          throw new Error('Nenhum polígono encontrado');
         }
       } catch (error) {
         console.error('Erro ao buscar features do MONITORING:', error);
@@ -551,11 +570,11 @@ export default {
             type: 'error',
           }, { root: true });
         }
-
-        await dispatch('fetchInitialEstagios');
+        // commit('setAvailableEstagios', ['FF', 'CR', 'DR', 'DG']);
+        // await dispatch('fetchInitialEstagios');
         await dispatch('getMonitoringStyleFromGeoserver');
         await dispatch('generateUrlWmsMonitoring');
-        await dispatch('fetchMonitoringFeatures');
+        // await dispatch('fetchMonitoringFeatures');
       } catch (exception) {
         console.error('Erro em getFeatures:', exception);
         commit('alert/addAlert', {
@@ -571,7 +590,99 @@ export default {
         commit('setLoadingMonitoring', false);
       }
     },
+    async getMonitoringStats({ commit, state, rootGetters }) {
+      try {
+        commit('setLoadingMonitoringFilter', false);
+        commit('setLoadingMonitoringStats', false);
+        commit('resetLegendVisibility');
+        const params = {
+          start_date: state.filters.startDate,
+          end_date: state.filters.endDate,
 
+        };
+
+        if (state.filters.ti?.length) {
+          params.co_funai = state.filters.ti.map(item => item.co_funai).join(',');
+        }
+        if (state.filters.cr?.length) {
+          params.co_cr = state.filters.cr.map(item => item.co_cr).join(',');
+        }
+        if (state.filters.currentView) {
+          params.in_bbox = rootGetters['map/bbox'];
+          commit('setMonitoringCurrentBbox', rootGetters['map/bbox']);
+        }
+
+        const response = await this.$api.$get('monitoring/consolidated/map-stats/', { params });
+        if (response) {
+          commit('setTotalArea', response.total_area || 0);
+          commit('setTotalFeatures', response.total_features || 0);
+          await commit('setAvailableEstagios', response.stages || []);
+          commit('initializeLegendVisibility');
+        }
+
+      } catch (error) {
+        console.error('Erro ao buscar estatísticas de monitoramento:', error);
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring statistics'),
+          }),
+          type: 'error',
+        }, { root: true });
+      } finally {
+        commit('setLoadingMonitoringFilter', true);
+        commit('setLoadingMonitoringStats', true);
+      }
+    },
+
+    async updateMonitoringStats({ commit, state, rootGetters }) {
+      try {
+        commit('setLoadingMonitoringStats', false);
+        const params = {
+          start_date: state.filters.startDate,
+          end_date: state.filters.endDate,
+        };
+
+        if (state.filters.ti?.length) {
+          params.co_funai = state.filters.ti.map(item => item.co_funai).join(',');
+        }
+
+        if (state.filters.cr?.length) {
+          params.co_cr = state.filters.cr.map(item => item.co_cr).join(',');
+        }
+
+        if (state.filters.currentView) {
+          params.in_bbox = state.monitoringCurrentBbox;
+        }
+        if (Object.values(state.legendVisibility).some(v => !v)) {
+          const stages = Object.keys(state.legendVisibility)
+            .filter(key => state.legendVisibility[key]);
+
+          if (stages.length === 0) {
+            params.stage = 'NONE';
+          } else {
+            params.stage = stages.join(',');
+          }
+        }
+
+        const response = await this.$api.$get('monitoring/consolidated/map-stats/', { params });
+        if (response) {
+          commit('setTotalArea', response.total_area || 0);
+          commit('setTotalFeatures', response.total_features || 0);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar estatísticas de monitoramento:', error);
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('monitoring statistics'),
+          }),
+          type: 'error',
+        }, { root: true });
+      } finally {
+        commit('setLoadingMonitoringStats', true);
+      }
+    },
     // Busca estágios iniciais disponíveis
     async fetchInitialEstagios({ state, commit, rootState }) {
       try {
@@ -714,9 +825,9 @@ export default {
           message: error.message === 'Nenhum estágio ativo selecionado'
             ? this.$i18n.t('no-active-stages-selected')
             : this.$i18n.t('default-error', {
-                action: this.$i18n.t('download'),
-                resource: this.$i18n.t('monitoring'),
-              }),
+              action: this.$i18n.t('download'),
+              resource: this.$i18n.t('monitoring'),
+            }),
           type: 'error',
         }, { root: true });
       } finally {
@@ -731,7 +842,7 @@ export default {
         if (!state.tableMonitoring.length) throw new Error('Nenhum dado disponível na tabela');
 
         const headers = [
-          'ID','Código Funai', 'Terra Indígena', 'Coordenação Regional', 'Classe',
+          'ID', 'Código Funai', 'Terra Indígena', 'Coordenação Regional', 'Classe',
           'Data da Imagem', 'Área do Polígono (ha)', 'Latitude', 'Longitude',
         ];
 
@@ -775,7 +886,7 @@ export default {
     // Alterna visibilidade da legenda
     async toggleLegendVisibility({ commit, dispatch, state }, { estagio, visible }) {
       try {
-        commit('setLegendVisibility', { estagio, visible });
+        await commit('setLegendVisibility', { estagio, visible });
 
         // Atualiza apenas a URL do WMS sem refazer toda a pesquisa
         await dispatch('generateUrlWmsMonitoring');
@@ -788,6 +899,8 @@ export default {
       } catch (error) {
         console.error('Erro ao alternar visibilidade:', error);
         throw error;
+      } finally {
+        await dispatch('updateMonitoringStats');
       }
     },
 
