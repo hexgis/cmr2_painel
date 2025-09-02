@@ -337,26 +337,11 @@ export default {
     },
     async handleFormSubmit(formData) {
       this.formData = { ...formData };
-
-      if (!this.formData.name || !this.formData.email) {
-        console.error('Campos obrigatórios ausentes: name ou email');
-        return;
-      }
-      let data;
+      const data = new FormData();
+      data.append('name', this.formData.name);
+      data.append('email', this.formData.email);
 
       if (this.userType === 'funai') {
-        if (!this.formData.institution
-            || !this.formData.user_siape_registration
-            || !this.formData.coordinator_name
-            || !this.formData.coordinator_email
-            || !this.formData.coordinator_institution
-            || !this.formData.coordinator_siape_registration) {
-          return;
-        }
-
-        data = new FormData();
-        data.append('name', this.formData.name);
-        data.append('email', this.formData.email);
         data.append('institution', this.formData.institution);
         data.append('user_siape_registration', this.formData.user_siape_registration);
         data.append('coordinator_name', this.formData.coordinator_name);
@@ -379,56 +364,31 @@ export default {
           data.append('coordinator_institution_id', coordinatorInstitution.id);
           data.append('coordinator_institution_acronym', coordinatorInstitution.acronym || '');
         }
-      } else if (this.userType === 'external') {
-        if (!this.formData.letter) {
-          console.error('Carta institucional é obrigatória para usuário externo');
-          return;
+      } else {
+        data.append('organization', this.formData.organization);
+        data.append('position', this.formData.position);
+        data.append('justification', this.formData.justification);
+        if (this.formData.letter) {
+          data.append('letter', this.formData.letter);
         }
-
-        let institutionText = '';
-        if (this.formData.institution) {
-          if (typeof this.formData.institution === 'object') {
-            institutionText = this.formData.institution.text || this.formData.institution.value || '';
-          } else {
-            institutionText = this.formData.institution;
-          }
-        }
-
-        data = new FormData();
-        data.append('name', this.formData.name);
-        data.append('email', this.formData.email);
-        data.append('organization', institutionText || this.formData.organization || '');
-        data.append('position', this.formData.position || '');
-        data.append('justification', this.formData.justification || '');
-        data.append('letter', this.formData.letter);
-        data.append('user_type', 'external');
       }
-      const formDataEntries = [];
-      data.forEach((value, key) => {
-        formDataEntries.push({ key, value });
-      });
 
-      try {
-        await this.$nextTick();
-        if (this.userType === 'funai' && this.$refs.funaiForm) {
-          this.$refs.funaiForm.showSuccessDialog = true;
-        } else if (this.userType === 'external' && this.$refs.externalForm) {
-          this.$refs.externalForm.showSuccessDialog = true;
-        }
-      } catch (error) {
-        if (this.userType === 'funai' && this.$refs.funaiForm) {
-          this.$refs.funaiForm.isSubmitting = false;
-        } else if (this.userType === 'external' && this.$refs.externalForm) {
-          this.$refs.externalForm.isSubmitting = false;
-        }
-        if (error.response) {
-          console.error('Resposta da API:', error.response.data);
-          console.error('Status:', error.response.status);
-          console.error('Headers:', error.response.headers);
+      if (this.$refs.form.validate()) {
+        try {
+          await this.$api.post('/user/access-requests/', data, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          this.welcomeModal = false;
+          this.userType = null;
+          this.closeModalAndRedirect();
+        } catch (error) {
+          this.welcomeModal = false;
+          this.userType = null;
         }
       }
     },
-
     async closeModalAndRedirect() {
       this.welcomeModal = false;
       this.userType = null;
@@ -449,15 +409,11 @@ export default {
         justification: '',
         letter: null,
       };
-
-      await this.$nextTick();
-
-      this.$forceUpdate();
-
       await this.$router.push('/');
     },
   },
 };
+
 </script>
 
 <style scoped>
