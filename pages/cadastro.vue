@@ -144,6 +144,44 @@
           </v-card-text>
         </v-card>
       </v-dialog>
+
+      <v-dialog
+        v-model="showSuccessDialog"
+        max-width="400"
+        persistent
+      >
+        <v-card class="success-card">
+          <div class="success-header">
+            <h2 class="success-title">
+              {{ $t('success') }}
+            </h2>
+            <p class="success-subtitle">
+              {{ $t('success-message') }}
+            </p>
+          </div>
+
+          <v-card-text class="success-content">
+            <p class="user-greeting">
+              <strong>{{ formData.name }},</strong>
+            </p>
+            <p class="confirmation-text">
+              {{ $t('email-confirmation-text') }}
+              <strong>{{ formData.email }}</strong> {{ $t('confirmation-details') }}
+            </p>
+          </v-card-text>
+
+          <v-card-actions class="success-actions">
+            <v-spacer />
+            <v-btn
+              color="error"
+              class="ok-button"
+              @click="handleSuccessConfirmation"
+            >
+              OK
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-form>
   </v-card>
 </template>
@@ -179,13 +217,12 @@
       "review-data": "Review the data entered before submitting the request:",
       "review-info": "Review Information",
       "success": "Success",
+      "success-message": "Your request has been submitted successfully!",
       "error": "Error",
       "request-submitted-successfully": "Your request has been submitted successfully!",
       "request-failed": "There was an error submitting your request. Please try again.",
       "ok": "OK",
       "close": "Close",
-      "sucess-message": "will be sent to your e-mail",
-      "sucess-message2": "confirmation to access CMR, once it will be approved by the coordinator.",
       "important": "Important!",
       "user-type-question": "What is your user type?",
       "funai-user": "Funai User",
@@ -200,7 +237,9 @@
       "justification": "Justification",
       "justification-required": "Justification is required",
       "institutional-letter": "Institutional Letter",
-      "letter-required": "Institutional Letter is required"
+      "letter-required": "Institutional Letter is required",
+      "email-confirmation-text": "will be sent to your email",
+      "confirmation-details": "confirmation of access to CMR, once approved by the coordinator."
     },
     "pt-br": {
       "restricted-access-request": "Solicitação de Acesso Restrito",
@@ -231,13 +270,12 @@
       "review-data": "Revise os dados inseridos antes de enviar a solicitação:",
       "review-info": "Revisar Informações",
       "success": "Sucesso",
+      "success-message": "Sua solicitação foi enviada com sucesso!",
       "error": "Erro",
       "request-submitted-successfully": "Sua solicitação foi enviada com sucesso!",
       "request-failed": "Ocorreu um erro ao enviar sua solicitação. Por favor, tente novamente.",
       "ok": "OK",
       "close": "Fechar",
-      "sucess-message": "será enviada ao seu email",
-      "sucess-message2": "a confirmação de acesso ao CMR, uma vez que seja aprovada pelo gestor.",
       "important": "Importante!",
       "user-type-question": "Qual o seu tipo de usuário?",
       "funai-user": "Usuário Funai",
@@ -252,7 +290,9 @@
       "justification": "Justificativa",
       "justification-required": "Justificativa é obrigatória",
       "institutional-letter": "Carta Institucional",
-      "letter-required": "Carta Institucional é obrigatória"
+      "letter-required": "Carta Institucional é obrigatória",
+      "email-confirmation-text": "será enviada ao seu email",
+      "confirmation-details": "a confirmação de acesso ao CMR, uma vez aprovada pelo gestor."
     }
   }
 </i18n>
@@ -275,6 +315,7 @@ export default {
       showUserTypeSelection: true,
       userType: null,
       modalContent: 'welcome',
+      showSuccessDialog: false,
       formData: {
         name: '',
         email: '',
@@ -323,14 +364,6 @@ export default {
       this.welcomeModal = true;
     },
     closeFormModal() {
-      if (this.$refs.funaiForm) {
-        this.$refs.funaiForm.showSuccessDialog = false;
-        this.$refs.funaiForm.isSubmitting = false;
-      }
-      if (this.$refs.externalForm) {
-        this.$refs.externalForm.showSuccessDialog = false;
-        this.$refs.externalForm.isSubmitting = false;
-      }
       this.welcomeModal = false;
       this.userType = null;
       this.modalContent = 'welcome';
@@ -381,20 +414,22 @@ export default {
             },
           });
           this.welcomeModal = false;
-          this.userType = null;
-          this.closeModalAndRedirect();
+          this.showSuccessDialog = true;
         } catch (error) {
           this.welcomeModal = false;
           this.userType = null;
         }
       }
     },
+    handleSuccessConfirmation() {
+      this.showSuccessDialog = false;
+      this.closeModalAndRedirect();
+    },
     async closeModalAndRedirect() {
       this.welcomeModal = false;
       this.userType = null;
       this.modalContent = 'welcome';
       this.showUserTypeSelection = true;
-
       this.formData = {
         name: '',
         email: '',
@@ -434,5 +469,59 @@ export default {
   border-color: #D92B3F !important;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(217, 43, 63, 0.25) !important;
+}
+
+.success-card {
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.success-header {
+  background-color: #F9C23C !important;
+  padding: 20px 24px 16px 24px;
+  text-align: left;
+}
+
+.success-title {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+  margin: 0 0 4px 0 !important;
+  line-height: 1.2 !important;
+}
+
+.success-subtitle {
+  font-size: 14px !important;
+  color: #333 !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+}
+
+.success-content {
+  padding: 20px 24px !important;
+  background-color: white !important;
+}
+
+.user-greeting {
+  font-size: 14px !important;
+  margin: 0 0 12px 0 !important;
+  color: #333 !important;
+}
+
+.confirmation-text {
+  font-size: 14px !important;
+  margin: 0 !important;
+  color: #333 !important;
+  line-height: 1.4 !important;
+}
+
+.success-actions {
+  padding: 8px 24px 20px 24px !important;
+  background-color: white !important;
+}
+
+.ok-button {
+  min-width: 60px !important;
+  font-weight: 600 !important;
 }
 </style>

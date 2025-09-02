@@ -293,44 +293,6 @@
         </v-stepper-items>
       </v-stepper>
     </v-card>
-
-    <v-dialog
-      v-model="showSuccessDialog"
-      max-width="400"
-      persistent
-    >
-      <v-card class="success-card">
-        <div class="success-header">
-          <h2 class="success-title">
-            {{ $t('success') }}
-          </h2>
-          <p class="success-subtitle">
-            {{ $t('success-message') }}
-          </p>
-        </div>
-
-        <v-card-text class="success-content">
-          <p class="user-greeting">
-            <strong>{{ formData.name }},</strong>
-          </p>
-          <p class="confirmation-text">
-            {{ $t('email-confirmation-text') }}
-            <strong>{{ formData.email }}</strong> {{ $t('confirmation-details') }}
-          </p>
-        </v-card-text>
-
-        <v-card-actions class="success-actions">
-          <v-spacer />
-          <v-btn
-            color="error"
-            class="ok-button"
-            @click="redirectToPortal"
-          >
-            OK
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </div>
 </template>
 
@@ -349,7 +311,6 @@ export default {
   data() {
     return {
       step: 1,
-      showSuccessDialog: false,
       isSubmitting: false,
       formData: {
         name: '',
@@ -407,11 +368,6 @@ export default {
         this.step -= 1;
       }
     },
-    redirectToPortal() {
-      this.showSuccessDialog = false;
-      this.isSubmitting = false;
-      this.$emit('success-confirmed');
-    },
 
     async handleSubmit() {
       if (this.isSubmitting) return;
@@ -451,60 +407,6 @@ export default {
 .step-content .v-col {
   padding: 4px;
 }
-
-.success-card {
-  border-radius: 8px !important;
-  overflow: hidden;
-}
-
-.success-header {
-  background-color: #F9C23C !important;
-  padding: 20px 24px 16px 24px;
-  text-align: left;
-}
-
-.success-title {
-  font-size: 18px !important;
-  font-weight: 600 !important;
-  color: #333 !important;
-  margin: 0 0 4px 0 !important;
-  line-height: 1.2 !important;
-}
-
-.success-subtitle {
-  font-size: 14px !important;
-  color: #333 !important;
-  margin: 0 !important;
-  line-height: 1.3 !important;
-}
-
-.success-content {
-  padding: 20px 24px !important;
-  background-color: white !important;
-}
-
-.user-greeting {
-  font-size: 14px !important;
-  margin: 0 0 12px 0 !important;
-  color: #333 !important;
-}
-
-.confirmation-text {
-  font-size: 14px !important;
-  margin: 0 !important;
-  color: #333 !important;
-  line-height: 1.4 !important;
-}
-
-.success-actions {
-  padding: 8px 24px 20px 24px !important;
-  background-color: white !important;
-}
-
-.ok-button {
-  min-width: 60px !important;
-  font-weight: 600 !important;
-}
 </style>
 
 <i18n lang="json">
@@ -534,12 +436,7 @@ export default {
       "submit-request": "Submit Request",
       "review": "Review",
       "review-data": "Review the data entered before submitting the request:",
-      "review-info": "Review Information",
-      "success": "Success!",
-      "success-message": "Your request has been submitted successfully!",
-      "go-to-login": "Go to Login",
-      "email-confirmation-text": "will be sent to your email",
-      "confirmation-details": "confirmation of access to CMR, once approved by the manager."
+      "review-info": "Review Information"
     },
     "pt-br": {
       "server": "Servidor",
@@ -566,12 +463,7 @@ export default {
       "submit-request": "Enviar Solicitação",
       "review": "Revisar informações",
       "review-data": "Revise os dados inseridos antes de enviar a solicitação:",
-      "review-info": "Revisar Informações",
-      "success": "Sucesso",
-      "success-message": "Sua solicitação foi enviada com sucesso!",
-      "go-to-login": "Ir para o Login",
-      "email-confirmation-text": "será enviada ao seu email",
-      "confirmation-details": "a confirmação de acesso ao CMR, uma vez aprovada pelo gestor."
+      "review-info": "Revisar Informações"
     }
   }
 </i18n>
