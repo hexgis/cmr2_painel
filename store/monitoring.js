@@ -976,6 +976,17 @@ export default {
           end_date: state.filters.endDate,
           grouping
         };
+        if (state.filters.ti?.length) {
+          params.co_funai = state.filters.ti.map(item => item.co_funai).join(',');
+        }
+
+        if (state.filters.cr?.length) {
+          params.co_cr = state.filters.cr.map(item => item.co_cr).join(',');
+        }
+
+        if (state.filters.currentView) {
+          params.in_bbox = rootGetters['map/bbox'];
+        }
         const analyticsMonitoringcsv = await this.$api.$get(
           'monitoring/consolidated/table-stats/',
           { params },
