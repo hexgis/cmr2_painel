@@ -17,6 +17,7 @@ export default {
       startDate: '',
       endDate: '',
       bbox: null,
+      bboxWkt: null,
     },
     stats: {
       totalFeatures: 0,
@@ -75,9 +76,8 @@ export default {
       const cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
       const ti = getters.getFormattedIndigenousLands('co_funai').join(',');
       const { stages } = state.stats;
-      const { startDate, endDate } = state.filters;
-      const wktIntersect = rootGetters['map/bboxWkt'];
-      const intersects = state.filters.currentView ? `INTERSECTS(geom, ${wktIntersect})` : '';
+      const { startDate, endDate, bboxWkt } = state.filters;
+      const intersects = state.filters.currentView ? `INTERSECTS(geom, ${bboxWkt})` : '';
 
       const filters = [];
       if (cr && cr.length) {
@@ -123,13 +123,17 @@ export default {
     setLoadingDownloadGeojson(state, loading) { state.loadingDownloadGeojson = loading; },
     setLoadingDownloadCSV(state, loading) { state.loadingDownloadCSV = loading; },
     setOpacity(state, opacity) { state.opacity = opacity; },
-    setCurrentBbox(state, bbox) { state.filters.bbox = bbox; },
     setLoadingTable(state, loading) { state.loadingTable = loading; },
     setLoadingStatistic(state, loading) { state.loadingStatistic = loading; },
     clearTableMonitoring(state) { state.stats.tableMonitoring = []; },
     clearAnalyticsData(state) { state.analyticsData = []; },
     setHeatMapMonitoring(state, value) { state.heatMapMonitoring = value; },
     setLoadingHeatmap(state, loading) { state.loadingHeatmap = loading; },
+
+    setCurrentBbox(state, { bbox, bboxWkt }) {
+      state.filters.bbox = bbox;
+      state.filters.bboxWkt = bboxWkt;
+    },
 
     clearHeatmap(state) {
       state.heatMapMonitoring = false;
@@ -270,7 +274,7 @@ export default {
         commit('setLoadingSearchMonitoring', true);
         commit('setMonitoringStats', { ...state.stats, stages: [] });
         commit('clearHeatmap');
-        commit('setCurrentBbox', rootGetters['map/bbox']);
+        commit('setCurrentBbox', { bbox: rootGetters['map/bbox'], bboxWkt: rootGetters['map/bboxWkt'] });
         await dispatch('generateMonitoringStats');
         await dispatch('zoomMapBboxRegionalCoordinates');
         dispatch('updateWmsMonitoring');
