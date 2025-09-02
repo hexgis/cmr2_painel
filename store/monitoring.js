@@ -106,6 +106,10 @@ export default {
       return filters.join(' AND ');
     },
 
+    getActiveLegendItems: (state) => state.stats.stages
+      .filter((stage) => stage.visible)
+      .map((stage) => ({ ...stage, label: stage.name })),
+
   },
 
   mutations: {

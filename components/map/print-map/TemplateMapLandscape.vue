@@ -632,7 +632,9 @@ export default {
 
   computed: {
     hasActiveMonitoringStages() {
-      return Object.values(this.legendVisibility).some((visible) => visible);
+      return Object.values(
+        this.legendVisibility.map((l) => ({ ...l, label: l.name })),
+      ).some((visible) => visible);
     },
     hasActiveAlertsStages() {
       return Object.values(this.legendVisibilityalerts).some((visible) => visible);
@@ -803,9 +805,9 @@ export default {
       showFeaturesMonitoring: (state) => state.monitoring.showFeaturesMonitoring,
       monitoringFeatures: (state) => state.monitoring.features,
       showFeaturesAlerts: (state) => state['urgent-alerts'].showFeaturesAlerts,
-      tableMonitoring: (state) => state.monitoring.tableMonitoring,
+      tableMonitoring: (state) => state.monitoring.stats.tableMonitoring,
       tableAlerts: (state) => state['urgent-alerts'].tableAlerts,
-      legendVisibility: (state) => state.monitoring.legendVisibility,
+      legendVisibility: (state) => state.monitoring.stats.stages,
       legendVisibilityalerts: (state) => state['urgent-alerts'].legendVisibility,
       showFeaturesProdes: (state) => state.prodes.showFeaturesProdes,
       prodesFeatures: (state) => state.prodes.features,
