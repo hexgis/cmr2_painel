@@ -7,7 +7,7 @@
     <v-row class="align-center">
       <v-col
         cols="12"
-        md="10"
+        md="9"
         class="d-flex flex-wrap"
       >
         <v-btn
@@ -29,7 +29,7 @@
 
       <v-col
         cols="12"
-        md="2"
+        md="3"
         class="text-md-right"
       >
         <v-btn
