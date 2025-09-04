@@ -120,6 +120,7 @@
                     v-model="formData.institution"
                     :label="$t('institution')"
                     :items="institutionOptions"
+                    max-width="400"
                     clearable
                     outlined
                     @input="validateStep1"
@@ -163,7 +164,7 @@
               <v-row>
                 <v-col cols="12">
                   <v-file-input
-                    v-model="formData.letter"
+                    v-model="formData.attachment"
                     :label="$t('institutional-letter')"
                     :rules="[v => !!v || $t('letter-required')]"
                     accept=".pdf,.doc,.docx"
@@ -287,7 +288,7 @@
     "review-info": "Review Information",
     "confirm-download": "I confirm that I have downloaded or already have the required form",
     "confirm-download-required": "You must confirm that you have the form",
-    "text": "External users must complete a specific form."
+    "text": "External users must complete a specific form. You can download it from the link below, fill it out, and scan it. If you already have the completed and scanned document, you can continue with the registration process."
   },
   "pt-br": {
     "welcome": "Bem-vindo",
@@ -319,7 +320,7 @@
     "review-info": "Revisar Informações",
     "confirm-download": "Confirmo que baixei ou já possuo o formulário necessário",
     "confirm-download-required": "Você deve confirmar que possui o formulário",
-    "text": "Usuários externos devem preencher um formulário específico."
+    "text": "Usuários externos devem preencher um formulário específico. Você pode baixá-lo no link abaixo, preenchê-lo e digitalizá-lo. Caso já possua o documento preenchido e digitalizado, poderá continuar o cadastro."
   }
 }
 </i18n>
@@ -328,10 +329,6 @@
 export default {
   props: {
     institutionOptions: {
-      type: Array,
-      required: true,
-    },
-    coordinatorInstitutionOptions: {
       type: Array,
       required: true,
     },
@@ -346,7 +343,7 @@ export default {
         name: '',
         email: '',
         institution: '',
-        letter: null,
+        attachment: null,
       },
       isStep1Valid: false,
       isStep2Valid: false,
@@ -375,7 +372,7 @@ export default {
     },
 
     validateStep2() {
-      this.isStep2Valid = Boolean(this.formData.letter);
+      this.isStep2Valid = Boolean(this.formData.attachment);
     },
 
     nextStep() {
@@ -410,7 +407,7 @@ export default {
           name: this.formData.name,
           email: this.formData.email,
           institution: this.formData.institution,
-          letter: this.formData.letter,
+          attachment: this.formData.attachment,
         };
 
         this.$emit('submit', externalFormData);

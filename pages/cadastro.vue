@@ -17,9 +17,7 @@
     >
       <div v-if="showUserTypeSelection && modalContent === 'welcome'">
         <v-container>
-          <v-row
-            justify="center"
-          >
+          <v-row justify="center">
             <p class="text-h6 pt-4">
               {{ $t('user-type-question') }}
             </p>
@@ -137,7 +135,6 @@
               v-if="modalContent === 'form' && userType === 'external'"
               ref="externalForm"
               :institution-options="institutionOptions"
-              :coordinator-institution-options="coordinatorInstitutionOptions"
               @submit="handleFormSubmit"
               @success-confirmed="closeModalAndRedirect"
             />
@@ -304,11 +301,14 @@ import ExternalForm from '../components/cadastro/ExternalUserForm.vue';
 
 export default {
   name: 'CadastroStep',
+
   components: {
     FunaiForm,
     ExternalForm,
   },
+
   layout: 'login',
+
   data() {
     return {
       valid: false,
@@ -328,15 +328,17 @@ export default {
         organization: '',
         position: '',
         justification: '',
-        letter: null,
+        attachment: null,
       },
       welcomeModal: false,
       logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
       logo_external: process.env.DEFAULT_LOGO_IMAGE_EXTERNAL,
     };
   },
+
   computed: {
     ...mapGetters('admin', ['institutionList']),
+
     institutionOptions() {
       return this.institutionList
         .filter((institution) => (
@@ -350,13 +352,12 @@ export default {
         }))
         .sort((a, b) => a.text.localeCompare(b.text));
     },
-    coordinatorInstitutionOptions() {
-      return this.institutionOptions;
-    },
   },
+
   mounted() {
     this.$store.dispatch('admin/fetchInstitutionList');
   },
+
   methods: {
     openForm(type) {
       this.userType = type;
@@ -398,11 +399,9 @@ export default {
           data.append('coordinator_institution_acronym', coordinatorInstitution.acronym || '');
         }
       } else {
-        data.append('organization', this.formData.organization);
-        data.append('position', this.formData.position);
-        data.append('justification', this.formData.justification);
-        if (this.formData.letter) {
-          data.append('letter', this.formData.letter);
+        data.append('institution', this.formData.institution.text);
+        if (this.formData.attachment) {
+          data.append('attachment', this.formData.attachment);
         }
       }
 
@@ -442,7 +441,7 @@ export default {
         organization: '',
         position: '',
         justification: '',
-        letter: null,
+        attachment: null,
       };
       await this.$router.push('/');
     },
