@@ -126,6 +126,12 @@
             {{ $t('home-button') }}
           </span>
         </v-list-item>
+        <v-list-item @click="openNews()">
+          <v-icon> mdi-newspaper-variant-multiple-outline </v-icon>
+          <span class="pl-2">
+            {{ $t('news-button') }}
+          </span>
+        </v-list-item>
         <v-list-item @click="openSettings()">
           <v-icon> mdi-cog </v-icon>
           <span class="pl-2">
@@ -172,15 +178,22 @@
       v-if="settingsOpened"
       @onDialogClose="settingsOpened = false"
     />
+    <ProfileNews
+      v-if="newsOpened"
+      v-model="newsOpened"
+      :userId="user?.id || 'defaultUser'"
+      :showAllNews="showAllNews"
+      @onDialogClose="newsOpened = false"
+    />
   </div>
 </template>
 
 <i18n>
-
 {
   "en": {
     "criticisms-suggestions-tooltip": "Criticisms and suggestions",
     "profile-tooltip": "Profile",
+    "news-button": "News",
     "preferences-button": "Preferences",
     "logout-button": "Log out",
     "home-button": "Home",
@@ -190,8 +203,9 @@
     "manual-button": "Manual"
   },
   "pt-br": {
-    "criticisms-suggestions-tooltip":"Criticas e sugestões",
+    "criticisms-suggestions-tooltip": "Críticas e sugestões",
     "profile-tooltip": "Perfil",
+    "news-button": "Notícias",
     "preferences-button": "Preferências",
     "logout-button": "Sair",
     "home-button": "Início",
@@ -205,14 +219,15 @@
 
 <script>
 import { mapActions, mapState, mapGetters } from 'vuex';
-
 import ProfilePanelSettings from '@/components/profile/ProfilePanelSettings';
+import ProfileNews from '@/components/profile/ProfileNews';
 
 export default {
   name: 'ProfileButtons',
 
   components: {
     ProfilePanelSettings,
+    ProfileNews
   },
 
   model: {
@@ -229,6 +244,8 @@ export default {
 
   data: () => ({
     settingsOpened: false,
+    newsOpened: false,
+    showAllNews: false,
     hasAnalytics: process.env.ANALYTICS === 'true',
     pendingRequestsCount: 0,
   }),
@@ -241,11 +258,18 @@ export default {
     settingsOpened(value) {
       this.$emit('update', value);
     },
+
+    isLoggedIn(newVal) {
+      if (newVal) {
+        this.checkUnreadNews();
+      }
+    },
   },
 
   async mounted() {
     if (this.isLoggedIn && this.user) {
       await this.fetchPendingRequestsCount();
+      this.checkUnreadNews();
     }
   },
 
@@ -268,22 +292,42 @@ export default {
       this.$router.push(this.localePath('/admin/area-restrita'));
     },
 
+    openNews() {
+      this.showAllNews = true;
+      this.newsOpened = true;
+    },
+
     openSettings() {
       this.settingsOpened = true;
     },
 
+    async checkUnreadNews() {
+  const userId = this.user?.id || 'defaultUser';
+  const savedReadNews = localStorage.getItem(`readNews_${userId}`);
+  const readNews = savedReadNews ? JSON.parse(savedReadNews) : [];
+
+  try {
+    const response = await this.$axios.get('/api/news/');
+    const allNews = response.data || [];
+    const unreadNews = allNews.filter((news) => !readNews.includes(news.id));
+
+    if (unreadNews.length > 0) {
+      this.showAllNews = false;
+      this.newsOpened = true;
+    }
+  } catch (error) {
+    console.error('Erro ao verificar notícias não lidas:', error);
+  }
+},
+
     async fetchPendingRequestsCount() {
       try {
-
         if (!this.user) {
           this.pendingRequestsCount = 0;
           return;
         }
-
         const url = `/user/restricted-access/pending-count/`;
-
         const response = await this.$axios.get(url);
-
         this.pendingRequestsCount = response.data.count || 0;
       } catch (error) {
         console.error('Erro ao buscar contador de solicitações pendentes:', error);
