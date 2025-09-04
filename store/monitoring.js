@@ -6,7 +6,7 @@ export default {
   // Estado inicial do módulo
   state: () => ({
     features: null,
-   urlWmsMonitoring: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
+    urlWmsMonitoring: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
     geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
     urlWmsMonitoringHeatmap: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
     geoserverLayerMonitoringHeatmap: process.env.GEOSERVER_MONITORING_HEATMAP,
@@ -714,9 +714,9 @@ export default {
           message: error.message === 'Nenhum estágio ativo selecionado'
             ? this.$i18n.t('no-active-stages-selected')
             : this.$i18n.t('default-error', {
-                action: this.$i18n.t('download'),
-                resource: this.$i18n.t('monitoring'),
-              }),
+              action: this.$i18n.t('download'),
+              resource: this.$i18n.t('monitoring'),
+            }),
           type: 'error',
         }, { root: true });
       } finally {
@@ -731,7 +731,7 @@ export default {
         if (!state.tableMonitoring.length) throw new Error('Nenhum dado disponível na tabela');
 
         const headers = [
-          'ID','Código Funai', 'Terra Indígena', 'Coordenação Regional', 'Classe',
+          'ID', 'Código Funai', 'Terra Indígena', 'Coordenação Regional', 'Classe',
           'Data da Imagem', 'Área do Polígono (ha)', 'Latitude', 'Longitude',
         ];
 
@@ -863,6 +863,19 @@ export default {
           end_date: state.filters.endDate,
           grouping
         };
+
+        if (state.filters.ti?.length) {
+          params.co_funai = state.filters.ti.map(item => item.co_funai).join(',');
+        }
+
+        if (state.filters.cr?.length) {
+          params.co_cr = state.filters.cr.map(item => item.co_cr).join(',');
+        }
+
+        if (state.filters.currentView) {
+          params.in_bbox = rootGetters['map/bbox'];
+        }
+
         const analyticsMonitoringcsv = await this.$api.$get(
           'monitoring/consolidated/table-stats/',
           { params },
