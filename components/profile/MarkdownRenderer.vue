@@ -44,7 +44,51 @@
               v-for="(item, itemIndex) in component.content.items"
               :key="itemIndex"
             >
-              {{ item }}
+              <span v-if="typeof item === 'string'">{{ item }}</span>
+              <span v-else>
+                <template v-if="item.formatted_text">
+                  <span v-for="(text, textIndex) in item.formatted_text" :key="textIndex">
+                    <strong v-if="text.type === 'bold'">{{ text.text }}</strong>
+                    <em v-else-if="text.type === 'italic'">{{ text.text }}</em>
+                    <del v-else-if="text.type === 'strikethrough'">{{ text.text }}</del>
+                    <code v-else-if="text.type === 'code'">{{ text.text }}</code>
+                    <a v-else-if="text.type === 'link'" :href="text.url" target="_blank">{{ text.text }}</a>
+                    <span v-else>{{ text.text }}</span>
+                  </span>
+                </template>
+                <span v-else>{{ item.text }}</span>
+              </span>
+              <!-- Renderizar sublista (apenas um nível de profundidade) -->
+              <ul v-if="item.sublist && !item.sublist.content.ordered">
+                <li v-for="(subItem, subIndex) in item.sublist.content.items" :key="subIndex">
+                  <span v-if="subItem.formatted_text">
+                    <span v-for="(text, textIndex) in subItem.formatted_text" :key="textIndex">
+                      <strong v-if="text.type === 'bold'">{{ text.text }}</strong>
+                      <em v-else-if="text.type === 'italic'">{{ text.text }}</em>
+                      <del v-else-if="text.type === 'strikethrough'">{{ text.text }}</del>
+                      <code v-else-if="text.type === 'code'">{{ text.text }}</code>
+                      <a v-else-if="text.type === 'link'" :href="text.url" target="_blank">{{ text.text }}</a>
+                      <span v-else>{{ text.text }}</span>
+                    </span>
+                  </span>
+                  <span v-else>{{ subItem.text }}</span>
+                </li>
+              </ul>
+              <ol v-if="item.sublist && item.sublist.content.ordered">
+                <li v-for="(subItem, subIndex) in item.sublist.content.items" :key="subIndex">
+                  <span v-if="subItem.formatted_text">
+                    <span v-for="(text, textIndex) in subItem.formatted_text" :key="textIndex">
+                      <strong v-if="text.type === 'bold'">{{ text.text }}</strong>
+                      <em v-else-if="text.type === 'italic'">{{ text.text }}</em>
+                      <del v-else-if="text.type === 'strikethrough'">{{ text.text }}</del>
+                      <code v-else-if="text.type === 'code'">{{ text.text }}</code>
+                      <a v-else-if="text.type === 'link'" :href="text.url" target="_blank">{{ text.text }}</a>
+                      <span v-else>{{ text.text }}</span>
+                    </span>
+                  </span>
+                  <span v-else>{{ subItem.text }}</span>
+                </li>
+              </ol>
             </li>
           </ul>
           <ol v-if="component.type === 'list' && component.content.ordered">
@@ -52,7 +96,51 @@
               v-for="(item, itemIndex) in component.content.items"
               :key="itemIndex"
             >
-              {{ item }}
+              <span v-if="typeof item === 'string'">{{ item }}</span>
+              <span v-else>
+                <template v-if="item.formatted_text">
+                  <span v-for="(text, textIndex) in item.formatted_text" :key="textIndex">
+                    <strong v-if="text.type === 'bold'">{{ text.text }}</strong>
+                    <em v-else-if="text.type === 'italic'">{{ text.text }}</em>
+                    <del v-else-if="text.type === 'strikethrough'">{{ text.text }}</del>
+                    <code v-else-if="text.type === 'code'">{{ text.text }}</code>
+                    <a v-else-if="text.type === 'link'" :href="text.url" target="_blank">{{ text.text }}</a>
+                    <span v-else>{{ text.text }}</span>
+                  </span>
+                </template>
+                <span v-else>{{ item.text }}</span>
+              </span>
+              <!-- Renderizar sublista (apenas um nível de profundidade) -->
+              <ul v-if="item.sublist && !item.sublist.content.ordered">
+                <li v-for="(subItem, subIndex) in item.sublist.content.items" :key="subIndex">
+                  <span v-if="subItem.formatted_text">
+                    <span v-for="(text, textIndex) in subItem.formatted_text" :key="textIndex">
+                      <strong v-if="text.type === 'bold'">{{ text.text }}</strong>
+                      <em v-else-if="text.type === 'italic'">{{ text.text }}</em>
+                      <del v-else-if="text.type === 'strikethrough'">{{ text.text }}</del>
+                      <code v-else-if="text.type === 'code'">{{ text.text }}</code>
+                      <a v-else-if="text.type === 'link'" :href="text.url" target="_blank">{{ text.text }}</a>
+                      <span v-else>{{ text.text }}</span>
+                    </span>
+                  </span>
+                  <span v-else>{{ subItem.text }}</span>
+                </li>
+              </ul>
+              <ol v-if="item.sublist && item.sublist.content.ordered">
+                <li v-for="(subItem, subIndex) in item.sublist.content.items" :key="subIndex">
+                  <span v-if="subItem.formatted_text">
+                    <span v-for="(text, textIndex) in subItem.formatted_text" :key="textIndex">
+                      <strong v-if="text.type === 'bold'">{{ text.text }}</strong>
+                      <em v-else-if="text.type === 'italic'">{{ text.text }}</em>
+                      <del v-else-if="text.type === 'strikethrough'">{{ text.text }}</del>
+                      <code v-else-if="text.type === 'code'">{{ text.text }}</code>
+                      <a v-else-if="text.type === 'link'" :href="text.url" target="_blank">{{ text.text }}</a>
+                      <span v-else>{{ text.text }}</span>
+                    </span>
+                  </span>
+                  <span v-else>{{ subItem.text }}</span>
+                </li>
+              </ol>
             </li>
           </ol>
 
@@ -64,7 +152,19 @@
                   v-for="(header, headerIndex) in component.content.headers"
                   :key="headerIndex"
                 >
-                  {{ header }}
+                  <template v-if="Array.isArray(header)">
+                    <span v-for="(text, textIndex) in header" :key="textIndex">
+                      <strong v-if="text.type === 'bold'">{{ text.text }}</strong>
+                      <em v-else-if="text.type === 'italic'">{{ text.text }}</em>
+                      <del v-else-if="text.type === 'strikethrough'">{{ text.text }}</del>
+                      <code v-else-if="text.type === 'code'">{{ text.text }}</code>
+                      <a v-else-if="text.type === 'link'" :href="text.url" target="_blank">{{ text.text }}</a>
+                      <span v-else>{{ text.text }}</span>
+                    </span>
+                  </template>
+                  <template v-else>
+                    {{ header }}
+                  </template>
                 </th>
               </tr>
             </thead>
@@ -77,7 +177,19 @@
                   v-for="(cell, cellIndex) in row"
                   :key="cellIndex"
                 >
-                  {{ cell }}
+                  <template v-if="Array.isArray(cell)">
+                    <span v-for="(text, textIndex) in cell" :key="textIndex">
+                      <strong v-if="text.type === 'bold'">{{ text.text }}</strong>
+                      <em v-else-if="text.type === 'italic'">{{ text.text }}</em>
+                      <del v-else-if="text.type === 'strikethrough'">{{ text.text }}</del>
+                      <code v-else-if="text.type === 'code'">{{ text.text }}</code>
+                      <a v-else-if="text.type === 'link'" :href="text.url" target="_blank">{{ text.text }}</a>
+                      <span v-else>{{ text.text }}</span>
+                    </span>
+                  </template>
+                  <template v-else>
+                    {{ cell }}
+                  </template>
                 </td>
               </tr>
             </tbody>
@@ -102,17 +214,6 @@
             contain
             class="my-4"
           />
-
-          <!-- Renderizar botões (links) -->
-          <v-btn
-            v-if="component.type === 'button'"
-            :href="component.content.url"
-            :color="getButtonColor(component.content.style)"
-            target="_blank"
-            class="my-2"
-          >
-            {{ component.content.text }}
-          </v-btn>
 
           <!-- Renderizar blocos de código -->
           <pre v-if="component.type === 'code_block'">
@@ -143,6 +244,9 @@ export default {
       type: Array,
       default: () => [],
     },
+  },
+  created() {
+    console.log('Components recebidos:', this.components);
   },
   methods: {
     getButtonColor(style) {
