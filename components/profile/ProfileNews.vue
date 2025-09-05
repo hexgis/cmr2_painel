@@ -86,7 +86,7 @@
                 </p>
 
                 <div class="scrollable-content">
-                  <MarkdownRenderer :components="news.components" />
+                  <MarkdownRenderer :content="news.content" />
                 </div>
               </div>
             </div>
