@@ -48,6 +48,7 @@
       v-else
       class="no-border"
       style="border: none !important; box-shadow: none !important; outline: none !important;"
+      width="800"
     >
       <v-stepper v-model="step">
         <v-stepper-header style="justify-content: center;">
@@ -120,9 +121,12 @@
                     v-model="formData.institution"
                     :label="$t('institution')"
                     :items="institutionOptions"
-                    max-width="400"
                     clearable
                     outlined
+                    :title="(
+                      formData.institution && formData.institution.text
+                    ) ? formData.institution.text : null"
+                    :menu-props="{ maxHeight: '250px', maxWidth: '320px' }"
                     @input="validateStep1"
                   />
                 </v-col>
@@ -430,14 +434,8 @@ export default {
   outline: none !important;
 }
 
-:deep(.v-stepper__content) {
-  width: 80vh;
-  max-width: 800px;
-}
-
 .step-content {
   min-height: 200px;
-  width: 75vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

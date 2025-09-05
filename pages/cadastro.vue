@@ -127,7 +127,6 @@
               v-if="modalContent === 'form' && userType === 'funai'"
               ref="funaiForm"
               :institution-options="institutionOptions"
-              :coordinator-institution-options="coordinatorInstitutionOptions"
               @submit="handleFormSubmit"
               @success-confirmed="closeModalAndRedirect"
             />
@@ -399,7 +398,9 @@ export default {
           data.append('coordinator_institution_acronym', coordinatorInstitution.acronym || '');
         }
       } else {
-        data.append('institution', this.formData.institution.text);
+        if (this.formData.institution && this.formData.institution.text) {
+          data.append('institution', this.formData.institution.text);
+        }
         if (this.formData.attachment) {
           data.append('attachment', this.formData.attachment);
         }

@@ -159,7 +159,7 @@
                   <v-autocomplete
                     v-model="formData.coordinator_institution"
                     :label="$t('coordinator-institution')"
-                    :items="coordinatorInstitutionOptions"
+                    :items="institutionOptions"
                     item-text="text"
                     item-value="value"
                     :rules="[v => !!v || $t('coordinator-institution-required')]"
@@ -300,10 +300,6 @@
 export default {
   props: {
     institutionOptions: {
-      type: Array,
-      required: true,
-    },
-    coordinatorInstitutionOptions: {
       type: Array,
       required: true,
     },
