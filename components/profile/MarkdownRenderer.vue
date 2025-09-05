@@ -38,7 +38,7 @@
         </template>
       </p>
 
-      <!-- Renderizar listas -->
+      <!-- Listas não ordenadas -->
       <ul v-if="component.type === 'list' && !component.content.ordered">
         <li
           v-for="(item, itemIndex) in component.content.items"
@@ -119,6 +119,7 @@
         </li>
       </ul>
 
+      <!-- Lista ordenada -->
       <ol v-if="component.type === 'list' && component.content.ordered">
         <li
           v-for="(item, itemIndex) in component.content.items"
