@@ -561,7 +561,7 @@ export default {
           return null;
         }
 
-        const baseUrl = wms.geoserver.base_url || process.env.GEOSERVER_URL;
+        const baseUrl = wms.geoserver.geoserver_url;
 
         if (!baseUrl) {
           // No base URL available for WMS layer
@@ -613,12 +613,33 @@ export default {
           return null;
         }
 
-        const tmsLayer = this.$L.tileLayer(layer.tms.url, {
-          tms: true,
+        const { url } = layer.tms;
+
+        // Planet Labs specific handling
+        const isPlanetLabs = url.includes('planet/') || url.includes('tileserver-pf.sccon.com.br');
+
+        // Create TMS layer with proper options
+        const options = {
           attribution: '',
           opacity: 1, // Force full opacity for comparison
           errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', // Transparent 1x1 pixel
-        });
+          maxNativeZoom: 18,
+          maxZoom: 22,
+          minZoom: 0,
+          crossOrigin: true,
+        };
+
+        // Planet Labs tiles are XYZ format, not TMS
+        // TMS has Y coordinate inverted compared to XYZ
+        if (isPlanetLabs) {
+          // Planet Labs uses XYZ scheme, not TMS
+          options.tms = false;
+        } else {
+          // Other providers might use actual TMS
+          options.tms = true;
+        }
+
+        const tmsLayer = this.$L.tileLayer(url, options);
 
         // Handle tile loading errors
         tmsLayer.on('tileerror', () => {

@@ -1,14 +1,14 @@
 <template>
-  <v-card style="max-width: 1100px; margin: auto; top: 5%;">
+  <v-card style="max-width: 1100px; margin: auto; top: 5%">
     <v-card-title
       class="text-h5"
-      style="background: #D92B3F; color: white;"
+      style="background: #d92b3f; color: white"
     >
       {{ $t('access-request-analysis') }}
     </v-card-title>
 
     <v-container>
-      <p style="font-size: 18px;">
+      <p style="font-size: 18px">
         {{ $t('review-data') }}
       </p>
       <v-divider />
@@ -19,15 +19,27 @@
           cols="12"
           md="6"
         >
-          <p><strong>{{ $t('name') }}:</strong> {{ accessRequest.name }}</p>
-          <p><strong>{{ $t('email') }}:</strong> {{ accessRequest.email }}</p>
+          <p>
+            <strong>{{ $t('name') }}:</strong>
+            {{ accessRequest.name }}
+          </p>
+          <p>
+            <strong>{{ $t('email') }}:</strong>
+            {{ accessRequest.email }}
+          </p>
         </v-col>
         <v-col
           cols="12"
           md="6"
         >
-          <p><strong>{{ $t('institution') }}:</strong> {{ accessRequest.institution }}</p>
-          <p><strong>{{ $t('registration') }}:</strong> {{ accessRequest.user_siape_registration }}</p>
+          <p>
+            <strong>{{ $t('institution') }}:</strong>
+            {{ accessRequest.institution }}
+          </p>
+          <p>
+            <strong>{{ $t('registration') }}:</strong>
+            {{ accessRequest.user_siape_registration }}
+          </p>
         </v-col>
       </v-row>
 
@@ -39,15 +51,27 @@
           cols="12"
           md="6"
         >
-          <p><strong>{{ $t('coordinator-name') }}:</strong> {{ accessRequest.coordinator_name }}</p>
-          <p><strong>{{ $t('coordinator-email') }}:</strong> {{ accessRequest.coordinator_email }}</p>
+          <p>
+            <strong>{{ $t('coordinator-name') }}:</strong>
+            {{ accessRequest.coordinator_name }}
+          </p>
+          <p>
+            <strong>{{ $t('coordinator-email') }}:</strong>
+            {{ accessRequest.coordinator_email }}
+          </p>
         </v-col>
         <v-col
           cols="12"
           md="6"
         >
-          <p><strong>{{ $t('coordinator-institution') }}:</strong> {{ accessRequest.coordinator_institution }}</p>
-          <p><strong>{{ $t('siape-registration') }}:</strong> {{ accessRequest.coordinator_siape_registration }}</p>
+          <p>
+            <strong>{{ $t('coordinator-institution') }}:</strong>
+            {{ accessRequest.coordinator_institution }}
+          </p>
+          <p>
+            <strong>{{ $t('siape-registration') }}:</strong>
+            {{ accessRequest.coordinator_siape_registration }}
+          </p>
         </v-col>
       </v-row>
 
@@ -174,7 +198,24 @@
 <script>
 export default {
   name: 'AnalisarSolicitacaoAcesso',
+
   layout: 'login',
+
+  async asyncData({ redirect, store }) {
+    await store.dispatch('userProfile/getUserData');
+
+    const isGestor = store.state.userProfile.user.roles.some((role) => role.name === 'Gestor');
+    const isAdministrador = store.state.userProfile.user.roles.some(
+      (role) => role.name === 'Administrador',
+    );
+
+    if (!isGestor && !isAdministrador) {
+      return redirect('/');
+    }
+
+    return null;
+  },
+
   data() {
     return {
       valid: false,
@@ -196,6 +237,7 @@ export default {
       isSuccess: false,
     };
   },
+
   async fetch() {
     try {
       const response = await this.$api.get(`/user/access-requests/${this.$route.params.id}`);
@@ -204,11 +246,35 @@ export default {
       this.$router.replace(this.localePath('/'));
     }
   },
+
+  mounted() {
+    const isGestor = this.$store.state.userProfile.user.roles.some(
+      (role) => role.name === 'Gestor',
+    );
+    const isAdministrador = this.$store.state.userProfile.user.roles.some(
+      (role) => role.name === 'Administrador',
+    );
+    if (!isGestor && !isAdministrador) {
+      this.$router.replace(this.localePath('/'));
+    }
+  },
+
   methods: {
     async submitForm() {
       this.loadingSubmit = true;
       try {
-        await this.$api.post(`/user/access-requests/${this.accessRequest.id}/pending/`);
+        const isGestor = this.$store.state.userProfile.user.roles.some(
+          (role) => role.name === 'Gestor',
+        );
+        const isAdministrador = this.$store.state.userProfile.user.roles.some(
+          (role) => role.name === 'Administrador',
+        );
+        if (!isGestor && !isAdministrador) throw new Error('Unauthorized');
+
+        await this.$api.post(
+          `/user/access-requests/${this.accessRequest.id}/gestor-approve/`,
+        );
+
         this.isSuccess = true;
         this.modalTitle = this.$t('success');
         this.modalMessage = this.$t('request-submitted-successfully');
@@ -221,6 +287,7 @@ export default {
         this.loadingSubmit = false;
       }
     },
+
     async rejectRequest() {
       this.loadingReject = true;
       try {
@@ -237,9 +304,11 @@ export default {
         this.loadingReject = false;
       }
     },
+
     redirectToPortal() {
       this.$router.push('/');
     },
+
     closeModal() {
       this.showModal = false;
     },

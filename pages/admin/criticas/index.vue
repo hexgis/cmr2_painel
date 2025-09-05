@@ -122,7 +122,7 @@
                     :label="$t('description')"
                     :rules="[
                       v => !!v || $t('field-required'),
-                      v => (v && v.length <= 500) || $t('max-characters', { max: 500 })
+                      v => (v && v.length <= 10000) || $t('max-characters', { max: 10000 })
                     ]"
                     outlined
                     required

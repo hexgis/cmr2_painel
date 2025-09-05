@@ -2,7 +2,7 @@ const { stringify } = require('wkt');
 
 export const state = () => ({
   features: null,
-  urlWmsDeter: `${process.env.GEOSERVER_URL}authkey=${process.env.AUTHKEY}&`,
+  urlWmsDeter: '',
   geoserverLayerDeter: process.env.GEOSERVER_DETER,
   currentUrlWmsDeter: '',
   showFeaturesDeter: false,
@@ -89,7 +89,7 @@ export const mutations = {
 };
 
 export const actions = {
-  async generateUrlWmsDeter({ state, commit }, newBbox = false) {
+  async generateUrlWmsDeter({ state, commit, rootState }, newBbox = false) {
     const params = {
       layers: state.geoserverLayerDeter,
       env: `fill-opacity:${state.opacity / 100}`,
@@ -97,7 +97,9 @@ export const actions = {
       opacity: state.opacity,
     };
 
-    const url = state.urlWmsDeter;
+    let url = `${rootState.map.geoserverUrl}&`;
+
+    url = url.replace('wms', 'ows');
 
     // Apply intersects filter
     if (state.intersectsWmsDeter) {
@@ -141,9 +143,9 @@ export const actions = {
     commit('setUrlCurrentWmsDeter', fullUrl);
   },
 
-  async fetchDeterFeatures({ state, commit }) {
+  async fetchDeterFeatures({ state, commit, rootState }) {
     commit('setLoadingFeatures', true);
-    let url = state.urlWmsDeter;
+    let url = rootState.map.geoserverUrl;
 
     const params = {
       service: 'WFS',
@@ -362,9 +364,9 @@ export const actions = {
     }
   },
 
-  async downloadGeoJsonDeter({ commit, state }) {
+  async downloadGeoJsonDeter({ commit, state, rootState }) {
     commit('setLoadingDeter', true);
-    let url = state.urlWmsDeter;
+    let url = rootState.map.geoserverUrl;
 
     const params = {
       service: 'WFS',
