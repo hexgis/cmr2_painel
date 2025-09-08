@@ -2,7 +2,10 @@
   <v-col>
     <v-row>
       <!-- Pesquisar nesta área -->
-      <v-col cols="9" class="pt-0 mt-0">
+      <v-col
+        cols="9"
+        class="pt-0 mt-0"
+      >
         <v-checkbox
           v-model="filters.currentView"
           :label="$t('current-view-label')"
@@ -11,10 +14,16 @@
         />
       </v-col>
       <!-- Switch de camada -->
-      <v-col cols="3" class="pt-0 mt-0">
+      <v-col
+        cols="3"
+        class="pt-0 mt-0"
+      >
         <v-tooltip top>
           <template #activator="{ props }">
-            <div class="d-flex justify-end align-center mt-1" v-bind="props">
+            <div
+              class="d-flex justify-end align-center mt-1"
+              v-bind="props"
+            >
               <v-switch
                 v-if="currentUrlWmsProdes"
                 v-model="featuresProdes"
@@ -67,26 +76,35 @@
         </v-slide-y-transition>
       </v-col>
       <!-- Anos -->
-      <v-col cols="6" class="py-0">
+      <v-col
+        cols="6"
+        class="py-0"
+      >
         <v-select
           v-model="filters.startYear"
           :label="$t('start-year-label')"
-          :items="yearOptions"
+          :items="getYearsRange"
           :required="true"
           outlined
         />
       </v-col>
-      <v-col cols="6" class="py-0">
+      <v-col
+        cols="6"
+        class="py-0"
+      >
         <v-select
           v-model="filters.endYear"
           :label="$t('end-year-label')"
-          :items="yearOptions"
+          :items="getYearsRange"
           :required="true"
           outlined
         />
       </v-col>
       <!-- Botão Buscar -->
-      <v-col cols="12" class="mt-n6">
+      <v-col
+        cols="12"
+        class="mt-n6"
+      >
         <v-btn
           block
           small
@@ -100,8 +118,14 @@
       </v-col>
     </v-row>
     <!-- Loading Skeleton -->
-    <div v-if="isLoadingFeatures" class="mt-1">
-      <v-row no-gutters justify="center">
+    <div
+      v-if="isLoadingFeatures"
+      class="mt-1"
+    >
+      <v-row
+        no-gutters
+        justify="center"
+      >
         <v-col cols="6">
           <v-skeleton-loader type="table-cell@4" />
         </v-col>
@@ -114,9 +138,20 @@
       <v-divider class="mt-1" />
       <div>
         <v-skeleton-loader type="table-cell" />
-        <v-row v-for="n in 4" :key="n" no-gutters align="center" class="mb-4">
+        <v-row
+          v-for="n in 4"
+          :key="n"
+          no-gutters
+          align="center"
+          class="mb-4"
+        >
           <v-col cols="1">
-            <v-skeleton-loader width="20" height="20" tile type="avatar" />
+            <v-skeleton-loader
+              width="20"
+              height="20"
+              tile
+              type="avatar"
+            />
           </v-col>
           <v-col cols="10">
             <v-skeleton-loader type="text" />
@@ -132,7 +167,10 @@
       class="mt-3"
     >
       <!-- Botão Tabela -->
-      <v-col cols="12" class="mt-n1 mb-1">
+      <v-col
+        cols="12"
+        class="mt-n1 mb-1"
+      >
         <v-btn
           icon
           small
@@ -142,7 +180,9 @@
         >
           <v-tooltip bottom>
             <template #activator="{ on }">
-              <v-icon v-on="on">mdi-table</v-icon>
+              <v-icon v-on="on">
+                mdi-table
+              </v-icon>
             </template>
             <span>{{ $t('table-label') }}</span>
           </v-tooltip>
@@ -152,24 +192,40 @@
         <v-divider />
       </v-col>
       <!-- Totais -->
-      <v-col cols="12" class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4">
+      <v-col
+        cols="12"
+        class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4"
+      >
         <span>{{ $t('total-poligono-label') }}:</span>
         {{ features.features.length }}
       </v-col>
-      <v-col cols="12" class="grey--text text--darken-2 d-flex justify-space-between">
+      <v-col
+        cols="12"
+        class="grey--text text--darken-2 d-flex justify-space-between"
+      >
         <span>{{ $t('total-area-label') }}:</span>
         {{ totalArea }} ha
       </v-col>
-      <v-col cols="12" class="mt-2">
+      <v-col
+        cols="12"
+        class="mt-2"
+      >
         <v-divider />
       </v-col>
       <!-- Opacidade -->
       <v-row class="mt-0">
-        <v-col cols="4" class="grey--text text--darken-2">
+        <v-col
+          cols="4"
+          class="grey--text text--darken-2"
+        >
           {{ $t('opacity-label') }}
         </v-col>
         <v-col cols="8">
-          <v-slider v-model="opacity" hide-details thumb-label />
+          <v-slider
+            v-model="opacity"
+            hide-details
+            thumb-label
+          />
         </v-col>
       </v-row>
       <v-col cols="12">
@@ -181,7 +237,10 @@
           {{ $t('legend') }}
         </p>
       </v-col>
-      <v-row v-if="legendItems.length" class="mt-2 mb-2">
+      <v-row
+        v-if="legendItems.length"
+        class="mt-2 mb-2"
+      >
         <v-col>
           <v-list dense>
             <v-list-item
@@ -218,7 +277,9 @@
 </template>
 
 <script>
-import { mapMutations, mapState, mapActions } from 'vuex';
+import {
+  mapMutations, mapState, mapActions, mapGetters,
+} from 'vuex';
 import TableDialog from '../../table-dialog/TableDialog.vue';
 
 export default {
@@ -226,16 +287,10 @@ export default {
   components: { TableDialog },
 
   data() {
-    const currentYear = new Date().getFullYear();
-    const yearOptions = [];
-    for (let year = 2015; year <= currentYear; year++) {
-      yearOptions.push(year);
-    }
     return {
-      yearOptions,
       filters: {
-        startYear: currentYear,
-        endYear: currentYear,
+        startYear: null,
+        endYear: null,
         currentView: false,
         cr: [],
         ti: null,
@@ -267,10 +322,10 @@ export default {
 
   computed: {
     totalArea() {
-      if (!this.features?.features?.length) return 0;
+      if (!this.features.features.length) return 0;
       const total = this.features.features.reduce(
-        (sum, feature) => sum + (feature.properties?.nu_area_ha || 0),
-        0
+        (sum, feature) => sum + (feature.properties.nu_area_ha || 0),
+        0,
       );
       return this.formatFieldValue(total, 'nu_area_ha');
     },
@@ -294,14 +349,15 @@ export default {
     },
 
     legendItems() {
-      const prodesStyles = this.$store.state.prodes.prodesStyles;
+      const { prodesStyles } = this.$store.state.prodes;
       if (!prodesStyles) return [];
       const availableYears = Object.keys(prodesStyles)
         .filter((year) => {
-          const y = parseInt(year);
+          const y = parseInt(year, 10);
           return y >= this.filters.startYear && y <= this.filters.endYear;
         })
         .sort((a, b) => b - a);
+
       return availableYears.map((year) => ({
         label: String(year),
         color: prodesStyles[year] || '#000',
@@ -309,18 +365,20 @@ export default {
     },
 
     formattedTableProdes() {
-      if (!this.tableProdes?.length) return [];
+      if (!this.tableProdes.length) return [];
       return this.tableProdes.map((item) => {
         const formattedItem = { ...item };
         this.headers.forEach((header) => {
           formattedItem[header.value] = this.formatFieldValue(
             item[header.value],
-            header.value
+            header.value,
           );
         });
         return formattedItem;
       });
     },
+
+    ...mapGetters('prodes', ['getYearsRange']),
     ...mapState('prodes', [
       'currentUrlWmsProdes',
       'loadingProdes',
@@ -332,47 +390,47 @@ export default {
   },
 
   watch: {
-    'filters.cr'(val) {
-      if (val?.length) this.filters.currentView = false;
+    'filters.cr': function (val) {
+      if (val.length) this.filters.currentView = false;
       const arrayCr = val.map((item) => item.co_cr);
       this.populateTiOptions(arrayCr);
     },
 
-    'filters.currentView'(val) {
+    'filters.currentView': function (val) {
       if (val) this.filters.cr = [];
     },
 
-    'filterOptions.regionalFilters'() {
+    'filterOptions.regionalFilters': function () {
       this.populateCrOptions();
     },
 
-    'filters.startYear'(newVal) {
+    'filters.startYear': function (newVal) {
       if (newVal > this.filters.endYear) {
         this.filters.endYear = newVal;
       }
     },
   },
 
-  mounted() {
-    this.getFilterOptions();
-    this.getProdesStyleFromGeoserver();
+  async mounted() {
+    await this.getFilterOptions();
+    await this.getProdesStyleFromGeoserver();
+    this.initializeFilters();
   },
 
   methods: {
     formatFieldValue(value, field = '') {
       if (value === null || value === undefined) return 'N/A';
       const fieldName = field.toLowerCase();
-      const isDate =
-        typeof value === 'string' &&
-        (fieldName.startsWith('dt_') ||
-          fieldName.startsWith('data_') ||
-          fieldName.startsWith('date')) &&
-        this.$moment(value).isValid();
+      const isDate = typeof value === 'string'
+        && (fieldName.startsWith('dt_')
+          || fieldName.startsWith('data_')
+          || fieldName.startsWith('date'))
+        && this.$moment(value).isValid();
       if (isDate) return this.$moment(value).format('DD/MM/YYYY');
       if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
       if (typeof value === 'number' || fieldName.startsWith('nu_')) {
         const parsed = parseFloat(value);
-        if (isNaN(parsed)) return 'N/A';
+        if (Number.isNaN(parsed)) return 'N/A';
         const rounded = parsed.toFixed(2);
         const [intPart, decPart] = rounded.split('.');
         return decPart !== '00'
@@ -398,7 +456,7 @@ export default {
     },
 
     populateTiOptions(cr) {
-      if (cr?.length) this.$store.dispatch('prodes/getTiOptions', cr);
+      if (cr.length) this.$store.dispatch('prodes/getTiOptions', cr);
       else this.filters.ti = null;
     },
 
@@ -411,7 +469,9 @@ export default {
     },
 
     searchProdes() {
-      const { currentView, cr, startYear, endYear } = this.filters;
+      const {
+        currentView, cr, startYear, endYear,
+      } = this.filters;
       if ((currentView || cr.length) && startYear && endYear) {
         this.error = false;
         this.isLoadingFeatures = true;
@@ -426,15 +486,19 @@ export default {
             this.getDataTableProdes();
             this.isLoadingFeatures = false;
           })
-          .catch(() => (this.isLoadingFeatures = false));
+          .catch(() => {
+            this.isLoadingFeatures = false;
+          });
       } else {
         this.error = true;
       }
     },
 
-    showTableDialog() {
+    async showTableDialog() {
+      this.isLoadingTable = true;
       this.tableDialogProdes = true;
-      this.getDataTableProdes();
+      await this.getDataTableProdes();
+      this.isLoadingTable = false;
     },
 
     closeTable(value) {
@@ -444,8 +508,7 @@ export default {
     async downloadTableProdes() {
       this.$store.commit('prodes/setLoadingCSV', true);
       try {
-        if (!this.tableProdes?.length)
-          throw new Error('Nenhum dado disponível');
+        if (!this.tableProdes.length) throw new Error('Nenhum dado disponível');
         const headers = [
           'Código Funai',
           'ID',
@@ -463,23 +526,21 @@ export default {
         ];
         const csvContent = [
           headers.join(','),
-          ...this.tableProdes.map((r) =>
-            [
-              r.co_funai,
-              r.origin_id,
-              `"${r.no_ti}"`,
-              r.co_cr,
-              `"${r.ds_cr}"`,
-              r.no_classe,
-              r.sg_uf,
-              r.nu_ano,
-              r.nu_orbita,
-              r.nu_ponto,
-              r.dt_imagem,
-              r.nu_area_km2,
-              r.nu_area_ha,
-            ].join(',')
-          ),
+          ...this.tableProdes.map((r) => [
+            r.co_funai,
+            r.origin_id,
+            `"${r.no_ti}"`,
+            r.co_cr,
+            `"${r.ds_cr}"`,
+            r.no_classe,
+            r.sg_uf,
+            r.nu_ano,
+            r.nu_orbita,
+            r.nu_ponto,
+            r.dt_imagem,
+            r.nu_area_km2,
+            r.nu_area_ha,
+          ].join(',')),
         ].join('\n');
         const blob = new Blob([csvContent], {
           type: 'text/csv;charset=utf-8;',
@@ -495,6 +556,13 @@ export default {
         this.$store.commit('prodes/setLoadingCSV', false);
       }
     },
+
+    initializeFilters() {
+      const [initialDate] = this.getYearsRange.reverse();
+      this.filters.startYear = initialDate;
+      this.filters.endYear = initialDate;
+    },
+
     ...mapMutations('prodes', ['setFilters']),
     ...mapActions('prodes', [
       'getFilterOptions',

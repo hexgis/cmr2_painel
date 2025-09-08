@@ -40,9 +40,11 @@ export const getters = {
       state.features.features.length > 0
     );
   },
+
   getShowFeaturesProdes: (state) => {
     return state.showFeaturesProdes;
   },
+
   getLegendItems: (state) => {
     if (!state.prodesStyles || typeof state.prodesStyles !== 'object') return [];
     // Obter anos únicos dos features que existem no prodesStyles
@@ -59,6 +61,11 @@ export const getters = {
       color: state.prodesStyles[year],
     }));
   },
+
+  getYearsRange: (state) => {
+    const legends = Object.keys(state.prodesStyles).map(year => parseInt(year, 10));
+    return legends;
+  }
 };
 
 export const mutations = {
