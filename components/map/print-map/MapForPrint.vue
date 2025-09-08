@@ -28,7 +28,7 @@
                     alt="northarrow"
                     class="north-arrow"
                 />
-            </l-control>          
+            </l-control>
         </l-map>
     </client-only>
 </template>
@@ -59,7 +59,7 @@ const cloneLayer = require('leaflet-clonelayer')
 const intervalZooms = require('../../../utils/zoomIntervalsGraticule')
 
 export default {
-   
+
     props: {
         leafSize: {
             type: Object,
@@ -122,7 +122,7 @@ export default {
             alertsResultsHeatmap: 'resultsHeatmap',
             alertsResultsHeatmapOptions: 'resultsHeatmapOptions',
         }),
-        
+
         ...mapState('map', ['bounds', 'tmsToPrint']),
         ...mapState('supportLayers', ['supportLayers']),
         ...mapState('land-use', ['showFeaturesLandUse', 'features']),
@@ -194,7 +194,7 @@ export default {
                 }
             });
         },
-        
+
         async createMap() {
     try {
         require('@/plugins/L.SimpleGraticule')

@@ -69,38 +69,23 @@ export default {
     async currentBouldMap() {
       if (!this.aimingRect || !this.currentBouldMap) return;
       await this.aimingRect.setBounds(this.currentBouldMap);
+      this.miniMap.fitBounds(this.currentBouldMap, {
+        padding: [10, 10],
+        animate: false,
+      });
+
+      const targetZoom = this.computeMiniZoom();
+      if (this.miniMap.getZoom() !== targetZoom) {
+        this.miniMap.setZoom(targetZoom);
+      }
     },
 
     mapCenter() {
-      if (!this.miniMap || !this.mapCenter) return;
-      const curCenter = (this.miniMap && typeof this.miniMap.getCenter === 'function')
-        ? this.miniMap.getCenter()
-        : null;
-      const curZoom = (this.miniMap && typeof this.miniMap.getZoom === 'function')
-        ? this.miniMap.getZoom()
-        : undefined;
-      const sameCenter = curCenter
-        && Math.abs(curCenter.lat - this.mapCenter.lat) < 1e-6
-        && Math.abs(curCenter.lng - this.mapCenter.lng) < 1e-6;
-
-      if (sameCenter) return;
-      if (typeof this.miniMap.panTo === 'function') {
-        this.miniMap.panTo(this.mapCenter);
-      } else if (typeof this.miniMap.setView === 'function') {
-        if (typeof curZoom === 'number') this.miniMap.setView(this.mapCenter, curZoom);
-      }
+      this.updateMiniMapView();
     },
 
-    // When only the zoom changes on the main map, keep the mini map in sync
     mainZoom() {
-      if (!this.miniMap) return;
-      const targetZoom = this.computeMiniZoom();
-      const curZoom = (this.miniMap && typeof this.miniMap.getZoom === 'function')
-        ? this.miniMap.getZoom()
-        : undefined;
-      if (curZoom !== targetZoom && typeof this.miniMap.setZoom === 'function') {
-        this.miniMap.setZoom(targetZoom);
-      }
+      this.updateMiniMapView();
     },
   },
 
@@ -131,17 +116,27 @@ export default {
       }
     },
 
+    updateMiniMapView() {
+      if (!this.miniMap) return;
+
+      const targetZoom = this.computeMiniZoom();
+
+      if (this.currentBouldMap) {
+        this.miniMap.fitBounds(this.currentBouldMap);
+        this.miniMap.setZoom(targetZoom);
+      } else if (this.mapCenter) {
+        this.miniMap.setView(this.mapCenter, targetZoom);
+      }
+    },
+
     computeMiniZoom() {
-      const currentMiniZoom = (this.miniMap && typeof this.miniMap.getZoom === 'function') ? this.miniMap.getZoom() : this.zoomMiniMap;
-      const baseZoom = typeof this.mainZoom === 'number' ? this.mainZoom : currentMiniZoom;
+      const baseZoom = typeof this.mainZoom === 'number' ? this.mainZoom : this.zoomMiniMap;
 
-      const mapMax = (this.miniMap && typeof this.miniMap.getMaxZoom === 'function') ? this.miniMap.getMaxZoom() : 21;
-      const mapMin = (this.miniMap && typeof this.miniMap.getMinZoom === 'function') ? this.miniMap.getMinZoom() : 0;
+      const z = baseZoom - this.zoomOffset;
+      const max = this.miniMap.getMaxZoom() || 21;
+      const min = this.miniMap.getMinZoom() || 0;
 
-      let z = baseZoom - this.zoomOffset;
-      if (z > mapMax) z = mapMax;
-      if (z < mapMin) z = mapMin;
-      return z;
+      return Math.max(min, Math.min(max, z));
     },
   },
 };
