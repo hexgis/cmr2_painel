@@ -50,3 +50,17 @@ export default {
 
 };
 </script>
+<style scoped>
+/* Adds style to all elements inside .markdown-content */
+.markdown-content :deep(*) {
+  margin-bottom: 12px;
+}
+.markdown-content :deep(a) {
+  color: blue;
+  text-decoration: underline;
+}
+
+.markdown-content :deep(a:hover) {
+  color: darkblue;
+}
+</style>
