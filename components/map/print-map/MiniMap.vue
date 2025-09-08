@@ -14,7 +14,10 @@
         position="topleft"
         class="ma-0 pa-0"
       >
-        <p class="ma-1 pl-1 pr-1 print-mini-map-text">
+        <p
+          class="ma-1 px-1 print-mini-map-text text-center"
+          style="background-color: white; opacity: 0.7; width: 150px;"
+        >
           LOCALIZAÇÃO DA ÁREA
         </p>
       </l-control>

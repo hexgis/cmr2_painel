@@ -258,7 +258,7 @@
                             && (Object.values(supportLayers).filter(l => l.visible).length <= 7)
                             && (Object.values(supportLayerUser).filter(l => l.visible).length <= 7)"
                         >
-                          <p>
+                          <p style="width: 120px;">
                             <strong>Sobreposição de camadas</strong>
                           </p>
                           <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
