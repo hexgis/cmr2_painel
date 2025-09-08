@@ -163,7 +163,16 @@ export const actions = {
       }));
       commit('setTableData', { layer, tableData });
     } catch (error) {
-      console.error(`[getTableData] Erro ao buscar dados da tabela para ${layer}:`, error);
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('download'),
+            resource: this.$i18n.t('foco'),
+          }),
+        },
+        { root: true },
+      );
       commit('setTableData', { layer, tableData: [] });
       this.hasData = true;
     } finally {
@@ -172,10 +181,7 @@ export const actions = {
   },
 
   async generateUrlWms({ state, commit, rootState }, layer) {
-    if (!state.layers[layer].geoserverLayer) {
-      console.error(`[generateUrlWms] Geoserver layer não definido para ${layer}`);
-      return;
-    }
+    if (!state.layers[layer].geoserverLayer) { return; }
     const params = {
       layers: state.layers[layer].geoserverLayer,
       env: `fill-opacity:${state.layers[layer].opacity / 100}`,
@@ -183,10 +189,7 @@ export const actions = {
       opacity: state.layers[layer].opacity,
     };
     let url = rootState.map.geoserverUrl;
-    if (!url) {
-      console.error('[generateUrlWms] URL do geoserver não definida');
-      return;
-    }
+    if (!url) { return; }
     url = url.replace('wms', 'wfs');
     if (state.layers[layer].intersectsWms) {
       params.CQL_FILTER += state.layers[layer].intersectsWms;
@@ -276,7 +279,6 @@ export const actions = {
           }
         }
       } catch (error) {
-        console.error('[getFeatures] Erro ao obter bbox:', error);
         commit('alert/addAlert', {
           message: this.$i18n.t('default-error', {
             action: this.$i18n.t('retrieve'),
@@ -297,10 +299,7 @@ export const actions = {
       };
 
       let url = rootState.map.geoserverUrl;
-      if (!url) {
-        console.error('[generateUrlWms] URL do geoserver não definida');
-        return;
-      }
+      if (!url) { return; }
       url = url.replace('ows', 'wfs');
       const wfsUrl = `${url}?${new URLSearchParams(wfsParams)}`;
       const response = await this.$api.$get(wfsUrl);
@@ -308,7 +307,6 @@ export const actions = {
 
       await dispatch('generateUrlWms', layer);
     } catch (exception) {
-      console.error(`[getFeatures] Erro na busca de features para ${layer}:`, exception);
       commit('alert/addAlert', {
         message: this.$i18n.t('default-error', {
           action: this.$i18n.t('retrieve'),
@@ -333,7 +331,6 @@ export const actions = {
       }
       commit('setFilterOptions', data);
     } catch (error) {
-      console.error('[getFilterOptions] Erro ao buscar filter options:', error);
       commit('alert/addAlert', {
         message: this.$i18n.t('default-error', {
           action: this.$i18n.t('retrieve'),
@@ -358,7 +355,6 @@ export const actions = {
         });
       }
     } catch (error) {
-      console.error('[getTiOptions] Erro ao buscar TIs:', error);
       commit('alert/addAlert', {
         message: this.$i18n.t('default-error', {
           action: this.$i18n.t('retrieve'),

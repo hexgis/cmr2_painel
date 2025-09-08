@@ -180,7 +180,6 @@ export const actions = {
     }));
     commit('setTableProdes', tableData);
   } catch (error) {
-    console.error('Erro ao buscar dados da tabela:', error);
     commit('setTableProdes', []);
     commit('alert/addAlert', {
       message: this.$i18n.t('default-error', {
@@ -234,7 +233,16 @@ export const actions = {
         const csvString = convertToCSV(analyticsMonitoringcsv);
         saveData(csvString, defaultFileName);
       } catch (error) {
-        console.error('Erro ao gerar CSV:', error);
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('download'),
+            resource: this.$i18n.t('prodes'),
+          }),
+        },
+        { root: true },
+      );
       } finally {
         commit('setLoadingCSV', false);
       }
@@ -286,12 +294,16 @@ export const actions = {
         }, 100);
 
       } catch (error) {
-        console.error('Erro na exportação:', error);
-        this.$store.dispatch('snackbar/showSnackbar', {
-          message: 'Falha ao gerar o arquivo CSV',
-          color: 'error'
-        }, { root: true });
-
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('download'),
+            resource: this.$i18n.t('prodes'),
+          }),
+        },
+        { root: true },
+      );
       } finally {
         this.$store.commit('prodes/setLoadingCSV', false);
       }
@@ -499,7 +511,6 @@ export const actions = {
       }
 
     } catch (error) {
-      console.error('Erro ao buscar features do PRODES:', error);
       commit(
         'alert/addAlert',
         {
