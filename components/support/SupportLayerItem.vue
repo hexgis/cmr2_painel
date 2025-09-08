@@ -209,16 +209,11 @@ export default {
           id: this.layer.id,
           filters: this.defaultFilters,
         });
-      } else {
-        if (this.layer.layer_type === 'wms') {
-          this.setLayerFilters({
-            id: this.layer.id,
-            filters: this.defaultFilters,
-          });
-        }
-        this.toggleLayerVisibility({
+      }
+      if (this.layer.layer_type === 'wms') {
+        this.setLayerFilters({
           id: this.layer.id,
-          visible: true,
+          filters: this.defaultFilters,
         });
       }
     }

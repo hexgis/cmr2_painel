@@ -823,6 +823,7 @@ export default {
       filterOptions: (state) => state.foco.filterOptions,
       isLoadingFeatures: (state) => state.foco.isLoadingFeatures,
       bounds: (state) => state.map.bounds,
+      totalFeatures: (state) => state.monitoring.totalFeatures,
     }),
   },
 
