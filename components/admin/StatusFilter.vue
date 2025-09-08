@@ -51,6 +51,7 @@
 <script>
 export default {
   name: 'StatusFilter',
+
   props: {
     requestStatus: {
       type: Array,
@@ -65,10 +66,12 @@ export default {
       default: false,
     },
   },
+
   methods: {
     toggleStatus(status) {
       this.$emit('status-changed', status);
     },
+
     isSelected(status) {
       return Array.isArray(this.selectedStatus)
         ? this.selectedStatus.includes(status)
