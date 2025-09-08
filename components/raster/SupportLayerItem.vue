@@ -37,7 +37,6 @@
 </template>
 
 <script>
-import { filter } from 'jszip';
 import { mapMutations, mapActions } from 'vuex';
 
 if (typeof window !== 'undefined') {

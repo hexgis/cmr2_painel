@@ -51,7 +51,7 @@
             >
               <!-- Export buttons section for this specific layer -->
               <div
-                v-if="layerDownloadMap[layerName] && layerData.layers.length > 0"
+                v-if="layerDownloadMap[layerName] && layerData.layers.length"
                 class="d-flex justify-end pa-2 bg-grey-lighten-4 border-bottom"
               >
                 <span class="text-caption mr-2 align-self-center">{{ $t('export') }}:</span>
@@ -245,8 +245,7 @@
           "close": "Close",
           "loading-data": "Loading data...",
           "download-success": "Download completed successfully",
-          "download-error": "Download failed",
-          "no-export-data": "No data available for export"
+          "download-error": "Download failed"
       },
       "pt-br": {
           "no-data": "Não há dados nesse ponto para a camada selecionada.",
@@ -257,8 +256,7 @@
           "close": "Fechar",
           "loading-data": "Carregando dados...",
           "download-success": "Download concluído com sucesso",
-          "download-error": "Falha no download",
-          "no-export-data": "Nenhum dado disponível para exportação"
+          "download-error": "Falha no download"
       }
   }
 </i18n>
@@ -290,7 +288,7 @@ export default {
     currentLatLng: '',
     isDownloading: false,
     currentDownloadFormat: null,
-    currentDownloadLayer: null, // Track which layer is being downloaded
+    currentDownloadLayer: null,
     layerDownloadMap: {},
     customTextParts: [
       {
@@ -502,38 +500,6 @@ export default {
       };
     },
 
-    layersWithData() {
-      if (!this.data) return [];
-
-      const result = Object.entries(this.data).filter(([, layerData]) => layerData.layers
-        && layerData.layers.length > 0);
-      return result;
-    },
-
-    layersWithDownload() {
-      if (!this.data) return [];
-
-      return Object.entries(this.data).filter(
-        ([layerName]) => this.layerDownloadMap[layerName] === true,
-      );
-    },
-
-    layersWithDataAndDownload() {
-      return this.layersWithData.filter(
-        ([layerName]) => this.layerDownloadMap[layerName] === true,
-      );
-    },
-
-    hasExportableData() {
-      if (!this.data || !this.layerDownloadMap) {
-        return false;
-      }
-
-      const hasDownload = this.hasDownloadEnabled();
-
-      return hasDownload;
-    },
-
     ...mapState('map', ['isDrawing']),
   },
 
@@ -561,18 +527,6 @@ export default {
       return this.isDownloading
         && this.currentDownloadFormat === format
         && this.currentDownloadLayer === layerName;
-    },
-
-    hasDownloadEnabled() {
-      if (!this.data || !this.layerDownloadMap) {
-        return false;
-      }
-
-      const result = Object.keys(this.data).some(
-        (layerName) => this.layerDownloadMap[layerName] === true,
-      );
-
-      return result;
     },
 
     shouldDisplayField(field) {
@@ -704,7 +658,7 @@ export default {
           } else if (layer.wmsParams && layer.wmsParams.hasDownload) {
             // Try from wmsParams
             hasDownload = layer.wmsParams.hasDownload;
-          } else if (layer.hasDownload !== undefined) {
+          } else if (layer.hasDownload) {
             // Try from custom properties
             hasDownload = layer.hasDownload;
           }
@@ -737,8 +691,7 @@ export default {
                 }
               }
             })
-            .catch((error) => {
-              console.log('❌ Erro no GetFeatureInfo:', error);
+            .catch(() => {
               this.$store.commit('alert/addAlert', {
                 message: this.$t('layer-api-error'),
               });
@@ -834,14 +787,6 @@ export default {
       try {
         const features = layerData && layerData.layers;
 
-        if (!features || features.length === 0) {
-          this.$store.commit('alert/addAlert', {
-            message: this.$t('no-export-data'),
-            type: 'warning',
-          });
-          return;
-        }
-
         const sanitizedLayerName = layerName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
         const timestamp = new Date().toISOString().split('T')[0];
 
@@ -878,7 +823,7 @@ export default {
       } finally {
         this.isDownloading = false;
         this.currentDownloadFormat = null;
-        this.currentDownloadLayer = null; // Clear the layer being downloaded
+        this.currentDownloadLayer = null;
       }
     },
 
