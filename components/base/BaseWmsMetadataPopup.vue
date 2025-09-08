@@ -19,19 +19,14 @@
             <v-tooltip bottom>
               <template #activator="{ on, attrs }">
                 <v-btn
-                  fab
-                  x-small
-                  color="rgba(255,255,255,0.1)"
-                  elevation="0"
-                  class="close-btn"
                   v-bind="attrs"
+                  icon
+                  x-small
+                  color="white"
                   v-on="on"
                   @click="$refs.popup.mapObject.closePopup()"
                 >
-                  <v-icon
-                    small
-                    color="white"
-                  >
+                  <v-icon small>
                     mdi-close
                   </v-icon>
                 </v-btn>
