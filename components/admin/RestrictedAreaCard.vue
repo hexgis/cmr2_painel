@@ -21,14 +21,12 @@
     <!-- ===== MAIN MODAL ===== -->
     <v-dialog
       v-model="dialog"
-      max-width="1400px"
-      width="1400px"
-      min-height="800px"
+      max-width="80vw"
+      width="60vw"
+      min-height="80vh"
       persistent
-      scrollable
     >
       <v-card class="modal-card">
-        <!-- ===== MODAL HEADER ===== -->
         <v-card-title class="modal-header">
           <div class="d-flex align-center">
             <v-icon
@@ -58,7 +56,6 @@
           </v-btn>
         </v-card-title>
 
-        <!-- ===== MAIN CONTENTL ===== -->
         <v-card-text class="modal-content">
           <!-- ===== SECTION: USER INFO ===== -->
           <div class="info-section">
@@ -499,7 +496,6 @@
           </template>
         </v-card-text>
 
-        <!-- ===== ACTIONS (BUTTONS) ===== -->
         <v-card-actions class="modal-actions">
           <v-spacer />
 
