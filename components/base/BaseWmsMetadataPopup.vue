@@ -557,8 +557,11 @@ export default {
       this.data = {};
       this.currentLatLng = evt.latlng;
 
+      console.log('Iniciando busca por informações no ponto:', this.currentLatLng);
+
       await this.map.eachLayer(async (layer) => {
         if (Object.prototype.hasOwnProperty.call(layer, 'wmsParams')) {
+          console.log('Processando camada WMS:', layer.wmsParams.name, layer.wmsParams.layers);
           this.hasPopup = true;
           const layerName = layer.wmsParams.name;
           this.data[layerName] = {
