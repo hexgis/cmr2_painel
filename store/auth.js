@@ -40,7 +40,7 @@ export const mutations = {
 };
 
 export const actions = {
-  async authenticate({ commit }, { username, password }) {
+  async authenticate({ commit, dispatch }, { username, password }) {
     return await this.$api
       .$post('auth/obtain_token/', { username, password })
       .then((data) => {
@@ -58,6 +58,7 @@ export const actions = {
           path: '/',
           maxAge: 60 * 60 * 24 * 7,
         });
+        dispatch('privacyAgreement/reset', null, { root: true });
       });
   },
 
@@ -91,7 +92,7 @@ export const actions = {
     }
   },
 
-  logout({ commit }) {
+  logout({ commit, dispatch }) {
     commit('clearTokens');
     this.$api.setHeader('Authorization', null);
 
@@ -106,6 +107,8 @@ export const actions = {
       { root: true },
     );
 
+    dispatch('privacyAgreement/reset', null, { root: true });
+
     this.$router.replace(this.localePath('login'));
   },
 
@@ -119,10 +122,12 @@ export const actions = {
         if (decoded.exp > Date.now() / 1000) {
           commit('setTokens', { token, refresh });
           this.$api.setHeader('Authorization', `Bearer ${token}`);
+          dispatch('privacyAgreement/reset', null, { root: true });
         } else {
           decoded = jwtDecode(refresh);
           if (decoded.exp > Date.now() / 1000) {
             commit('setTokens', { token, refresh });
+            dispatch('privacyAgreement/reset', null, { root: true });
             return dispatch('refreshToken');
           }
         }
