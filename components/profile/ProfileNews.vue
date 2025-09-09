@@ -3,7 +3,6 @@
     v-model="newsDialog"
     width="800"
     persistent
-    content-class="fixed-size-dialog"
   >
     <v-card class="dialog-card">
       <v-toolbar
@@ -109,8 +108,7 @@
         </div>
       </v-card-text>
 
-      <!-- Ações de navegação (desabilitadas quando não há notícias) -->
-      <v-card-actions class="navigation-actions">
+      <v-card-actions v-if="displayedNews.length > 1" class="navigation-actions">
         <v-btn
           color="#d92b3f"
           text
@@ -293,15 +291,9 @@ export default {
 </script>
 
 <style lang="scss">
-.fixed-size-dialog {
-  max-width: 800px;
-  width: 800px;
-}
-
 .dialog-card {
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
 
   .news-content-wrapper, .news-content {
     display: flex;
@@ -316,8 +308,7 @@ export default {
 
     .scrollable-content {
       overflow-y: auto;
-      max-height: 60vh;
-      padding: 5px 0 100px;
+      height: 85%;
 
       &::-webkit-scrollbar {
         width: 6px;
@@ -331,7 +322,6 @@ export default {
     }
   }
 
-  // Estilo para a mensagem de nenhuma notícia
   .no-news-message {
     display: flex;
     flex-direction: column;
@@ -354,20 +344,5 @@ export default {
       color: #9e9e9e;
     }
   }
-}
-
-.v-toolbar {
-  .v-btn {
-    margin-right: 4px;
-    &:last-child { margin-right: 0; }
-    &--active::before { opacity: 0; }
-  }
-}
-
-.v-carousel__controls .v-btn--icon {
-  background: rgba(0, 0, 0, 0.3);
-  color: white !important;
-  &:hover { background: rgba(0, 0, 0, 0.5); }
-  &[disabled] { opacity: 0.3; pointer-events: none; }
 }
 </style>

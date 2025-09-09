@@ -2,11 +2,10 @@ export const state = () => ({
   user: null,
   showDrawer: true,
   news: {
+    dialog: false,
     allNews: [],
     readNews: [],
     loading: false,
-    error: null,
-    dialog: false,
     carouselIndex: 0,
     allReadChecked: false,
     showAllNews: false,
@@ -38,10 +37,6 @@ export const mutations = {
 
   setNewsLoading(state, loading) {
     state.news.loading = loading;
-  },
-
-  setNewsError(state, error) {
-    state.news.error = error;
   },
 
   setNewsDialog(state, dialog) {
@@ -122,14 +117,11 @@ export const actions = {
 
   async loadNews({ commit }) {
     commit('setNewsLoading', true);
-    commit('setNewsError', null);
     try {
       const response = await this.$axios.get('/api/news/');
       commit('setNews', response.data);
     } catch (error) {
       console.error('Erro ao carregar notícias:', error);
-      commit('setNewsError', 'Falha ao carregar notícias');
-      commit('setNews', []);
     } finally {
       commit('setNewsLoading', false);
     }
