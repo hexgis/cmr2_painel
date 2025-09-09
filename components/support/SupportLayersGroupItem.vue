@@ -167,7 +167,6 @@
 import { mapState, mapMutations, mapActions } from 'vuex';
 import moment from 'moment';
 import tmsLegend from '@/assets/tmsLegend.png';
-import ti from '@/assets/ti.png';
 
 import SupportLayerFilters from '@/components/support/SupportLayerFilters';
 import SupportLayerMetadata from '@/components/support/SupportLayerMetadata';
@@ -372,14 +371,7 @@ export default {
     layerPreview() {
       if (this.layer.layer_type === 'tms') return tmsLegend;
 
-      if (this.layer.wms.geoserver_layer_name === 'lim_terra_indigena_a') {
-        return ti;
-      }
-
-      return (
-        this.layer.wms.geoserver.preview_url
-        + this.layer.wms.geoserver_layer_name
-      );
+      return `${process.env.API_URL}layer/${this.layer.wms.id}/image/`;
     },
 
     transformTableData() {
