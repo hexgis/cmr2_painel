@@ -21,12 +21,14 @@
         "@nuxtjs/dotenv": "^1.4.0",
         "@nuxtjs/eslint-config": "^3.1.0",
         "@turf/boolean-point-in-polygon": "^6.5.0",
+        "@turf/centroid": "^6.5.0",
         "@types/chart.js": "^2.9.24",
         "@types/leaflet": "^1.5.17",
         "chart.js": "^2.9.4",
         "circle-to-polygon": "^2.2.0",
         "cookie-universal-nuxt": "^2.1.4",
         "dom-to-image": "^2.6.0",
+        "dompurify": "^3.2.6",
         "html2pdf.js": "^0.10.2",
         "jspdf": "^2.5.1",
         "jspdf-autotable": "^5.0.2",
@@ -53,8 +55,7 @@
         "vue2-leaflet": "2.5.2",
         "vue2-leaflet-markercluster": "^3.1.0",
         "vuedraggable": "^2.24.3",
-        "wkt": "^0.1.1",
-        "@turf/centroid": "^6.5.0"
+        "wkt": "^0.1.1"
     },
     "devDependencies": {
         "@mdi/font": "^5.9.55",
