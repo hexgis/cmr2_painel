@@ -210,6 +210,21 @@ export const actions = {
     const url = `/user/access-requests/${id}/approve/`;
     return this.$api.post(url, { permissions });
   },
+
+  async downloadAccesRequestFile(_, { fileUrl }) {
+    try {
+      const response = await this.$api.get(fileUrl, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'anexo.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Erro ao baixar o arquivo:', error);
+    }
+  },
 };
 
 export const getters = {

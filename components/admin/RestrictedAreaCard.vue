@@ -21,14 +21,12 @@
     <!-- ===== MAIN MODAL ===== -->
     <v-dialog
       v-model="dialog"
-      max-width="1400px"
-      width="1400px"
-      min-height="800px"
+      max-width="80vw"
+      width="60vw"
+      min-height="80vh"
       persistent
-      scrollable
     >
       <v-card class="modal-card">
-        <!-- ===== MODAL HEADER ===== -->
         <v-card-title class="modal-header">
           <div class="d-flex align-center">
             <v-icon
@@ -58,7 +56,6 @@
           </v-btn>
         </v-card-title>
 
-        <!-- ===== MAIN CONTENTL ===== -->
         <v-card-text class="modal-content">
           <!-- ===== SECTION: USER INFO ===== -->
           <div class="info-section">
@@ -118,11 +115,32 @@
                                   v-on="on"
                                 >
                                   {{ userRequestData.institution_acronym ||
-                                    userRequestData.institution }}
+                                    userRequestData.institution || 'N/A' }}
                                 </span>
                               </template>
-                              <span>{{ userRequestData.institution }}</span>
+                              <span>{{ userRequestData.institution || 'N/A' }}</span>
                             </v-tooltip>
+                          </div>
+                          <div
+                            v-if="userRequestData.file"
+                            class="info-item"
+                          >
+                            <strong>{{ $t('attachment') }}:</strong>
+                            <v-btn
+                              text
+                              small
+                              color="primary"
+                              class="ml-1"
+                              @click="downloadFile(userRequestData.file.file_url)"
+                            >
+                              <v-icon
+                                left
+                                small
+                              >
+                                mdi-download
+                              </v-icon>
+                              {{ $t('download') }}
+                            </v-btn>
                           </div>
                         </div>
                       </v-col>
@@ -478,7 +496,6 @@
           </template>
         </v-card-text>
 
-        <!-- ===== ACTIONS (BUTTONS) ===== -->
         <v-card-actions class="modal-actions">
           <v-spacer />
 
@@ -663,7 +680,9 @@
     "email": "Email",
     "siape-registration": "SIAPE Registration",
     "coordinator_siape_registration": "Coordinator SIAPE Registration",
-    "coordinator": "Coordinator"
+    "coordinator": "Coordinator",
+    "attachment": "Attachment",
+    "attachment-download": "Download Attachment"
   },
   "pt-br": {
     "choose-user-bond": "Escolha um vínculo para o usuário:",
@@ -705,7 +724,9 @@
     "email": "Email",
     "siape-registration": "Matrícula SIAPE",
     "coordinator_siape_registration": "Matrícula SIAPE Coordenador",
-    "coordinator": "Coordenador"
+    "coordinator": "Coordenador",
+    "attachment": "Anexo",
+    "attachment-download": "Baixar anexo"
   }
 }
 </i18n>
@@ -971,6 +992,11 @@ export default {
         console.error('Error in updateDeniedDetails method:', error);
       }
     },
+
+    async downloadFile(fileUrl) {
+      await this.$store.dispatch('admin/downloadAccesRequestFile', { fileUrl });
+    },
+
   },
 };
 </script>
