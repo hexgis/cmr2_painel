@@ -120,7 +120,7 @@ export const actions = {
 
   async acceptTermo({ commit }, { version }) {
     try {
-      const response = await this.$axios.post('/user/privacy-agreement/accept/', {
+      const response = await this.$api.post('/user/privacy-agreement/accept/', {
         accepted: true,
         version: version || '2.0',
       });
@@ -136,10 +136,11 @@ export const actions = {
     }
   },
 
-  async rejectTermo({ commit }) {
+  async rejectTermo({ commit, dispatch }) {
     try {
-      const response = await this.$axios.post('/user/privacy-agreement/reject/');
+      const response = await this.$api.post('/user/privacy-agreement/reject/');
       commit('SET_HAS_ACCEPTED', false);
+      dispatch('auth/logout', null, { root: true });
       return response.data;
     } catch (error) {
       commit('SET_HAS_ACCEPTED', false);
