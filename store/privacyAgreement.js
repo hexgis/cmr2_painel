@@ -71,7 +71,7 @@ export const actions = {
     try {
       commit('SET_IS_CHECKING', true);
 
-      const response = await this.$axios.get('/user/privacy-agreement/status/');
+      const response = await this.$api.get('/user/privacy-agreement/status/');
       const hasAccepted = response.data.has_accepted;
 
       commit('SET_HAS_ACCEPTED', hasAccepted);
