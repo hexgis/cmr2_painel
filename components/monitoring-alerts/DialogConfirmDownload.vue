@@ -5,7 +5,10 @@
     max-width="500"
   >
     <template #activator="{ on, attrs }">
-      <v-tooltip bottom>
+      <v-tooltip
+        v-if="!informationOnly"
+        bottom
+      >
         <template #activator="{ on: onTooltip, attrs: attrsTooltip }">
           <v-btn
             v-if="table"
@@ -62,6 +65,7 @@
       <v-card-actions>
         <v-spacer />
         <v-btn
+          v-if="!informationOnly"
           color="red darken-1"
           text
           @click="dialog = false"
@@ -70,6 +74,7 @@
           {{ $t('cancel-label') }}
         </v-btn>
         <v-btn
+          v-if="!informationOnly"
           color="green darken-1"
           :loading="isLoadingGeoJson"
           text
@@ -77,6 +82,15 @@
         >
           <v-icon>mdi-download</v-icon>
           {{ $t('download-label') }}
+        </v-btn>
+        <v-btn
+          v-if="informationOnly"
+          color="primary"
+          text
+          @click="dialog = false"
+        >
+          <v-icon>mdi-check</v-icon>
+          {{ $t('acknowledge-label') }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -89,6 +103,7 @@
     "attention-label": "Attention",
     "download-label": "Download",
     "cancel-label": "Cancel",
+    "acknowledge-label": "Acknowledge",
     "description-label-1": "Due to technical limitations, the generated file has a maximum limit of 10,000 features. The query made generated a number of polygons greater than that, so it is possible that not all polygons will be available in the generated file.",
     "description-label-2": "If you need to download the complete data, please contact the CMR team via Contact Us on the platform or by email "
   },
@@ -96,6 +111,7 @@
     "attention-label": "Atenção",
     "download-label": "Baixar",
     "cancel-label": "Cancelar",
+    "acknowledge-label": "Ciente",
     "description-label-1": "Devido a limitações técnicas, os arquivo gerado possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
     "description-label-2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail "
   }
@@ -117,6 +133,10 @@ export default {
       type: String,
       required: true,
       validator: (value) => ['monitoring', 'urgent-alerts'].includes(value),
+    },
+    informationOnly: {
+      type: Boolean,
+      default: false,
     },
   },
 
@@ -140,6 +160,15 @@ export default {
       'totalFeatures',
     ]),
   },
+
+  watch: {
+    totalFeatures(newValue) {
+      if (this.informationOnly && newValue && newValue > 10000) {
+        this.dialog = true;
+      }
+    },
+  },
+
   methods: {
     async startDownload() {
       try {
@@ -165,6 +194,10 @@ export default {
         this.$store.dispatch(`${this.module}/downloadGeoJson${this.module === 'monitoring' ? 'Monitoring' : 'Alerts'}`);
       }
       this.dialog = false;
+    },
+
+    openDialog() {
+      this.dialog = true;
     },
   },
 };

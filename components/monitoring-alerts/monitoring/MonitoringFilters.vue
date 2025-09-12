@@ -1,7 +1,10 @@
 <template>
   <v-col>
-      <v-row>
-           <v-col cols="9" class="pt-0 mt-0">
+    <v-row>
+      <v-col
+        cols="9"
+        class="pt-0 mt-0"
+      >
         <v-checkbox
           v-model="filters.currentView"
           :label="$t('current-view-label')"
@@ -9,7 +12,10 @@
           hide-details
         />
       </v-col>
-        <v-col cols="3" class="pt-0 mt-0" >
+      <v-col
+        cols="3"
+        class="pt-0 mt-0"
+      >
         <v-tooltip bottom>
           <template #activator="{ on }">
             <div
@@ -32,7 +38,7 @@
           </span>
         </v-tooltip>
       </v-col>
-         <v-col cols="12">
+      <v-col cols="12">
         <v-combobox
           v-model="filters.cr"
           :label="$t('regional-coordination-label')"
@@ -68,7 +74,10 @@
         </v-slide-y-transition>
       </v-col>
 
-      <v-col cols="6" class="py-0">
+      <v-col
+        cols="6"
+        class="py-0"
+      >
         <BaseDateField
           v-model="filters.startDate"
           :label="$t('start-date-label')"
@@ -77,7 +86,10 @@
           :min-date="'2015-01-01'"
         />
       </v-col>
-      <v-col cols="6" class="py-0">
+      <v-col
+        cols="6"
+        class="py-0"
+      >
         <BaseDateField
           v-model="filters.endDate"
           :label="$t('end-date-label')"
@@ -102,9 +114,14 @@
       </v-col>
     </v-row>
 
-
-    <div v-if="isLoadingFeatures" class="mt-1">
-      <v-row no-gutters justify="center">
+    <div
+      v-if="isLoadingFeatures"
+      class="mt-1"
+    >
+      <v-row
+        no-gutters
+        justify="center"
+      >
         <v-col cols="6">
           <v-skeleton-loader type="table-cell@4" />
         </v-col>
@@ -117,9 +134,20 @@
       <v-divider class="mt-1" />
       <div>
         <v-skeleton-loader type="table-cell" />
-        <v-row v-for="n in 4" :key="n" no-gutters align="center" class="mb-4">
+        <v-row
+          v-for="n in 4"
+          :key="n"
+          no-gutters
+          align="center"
+          class="mb-4"
+        >
           <v-col cols="1">
-            <v-skeleton-loader width="20" height="20" tile type="avatar" />
+            <v-skeleton-loader
+              width="20"
+              height="20"
+              tile
+              type="avatar"
+            />
           </v-col>
           <v-col cols="10">
             <v-skeleton-loader type="text" />
@@ -128,49 +156,64 @@
       </div>
     </div>
 
-
     <v-row
       v-else-if="showFeaturesMonitoring"
       no-gutters
       align="center"
       class="mt-3"
     >
-        <v-col cols="12" class="mt-n3 mb-1">
-          <DialogConfirmDownload module="monitoring" />
-          <v-btn
-            :loading="isLoadingStatistic"
-            small
-            color="accent"
-            icon
-            @click="showTableDialogAnalytics(true), (dialog = true)"
-          >
-            <v-tooltip bottom>
-              <template #activator="{ on }">
-                <v-icon v-on="on">mdi-chart-box</v-icon>
-              </template>
-              <span>{{ $t('statistics-label') }}</span>
-            </v-tooltip>
-          </v-btn>
-          <v-btn
-            :loading="isLoadingTable"
-            icon
-            fab
-            small
-            color="accent"
-            @click="showTableDialog(true)"
-          >
-            <v-tooltip bottom>
-              <template #activator="{ on }">
-                <v-icon v-on="on">mdi-table</v-icon>
-              </template>
-              <span>{{ $t('table-label') }}</span>
-            </v-tooltip>
-          </v-btn>
-        </v-col>
+      <v-col
+        cols="12"
+        class="mt-n3 mb-1"
+      >
+        <DialogConfirmDownload module="monitoring" />
+        <DialogConfirmDownload
+          ref="infoDialog"
+          module="monitoring"
+          :information-only="true"
+        />
+
+        <v-btn
+          :loading="isLoadingStatistic"
+          small
+          color="accent"
+          icon
+          @click="showTableDialogAnalytics(true), (dialog = true)"
+        >
+          <v-tooltip bottom>
+            <template #activator="{ on }">
+              <v-icon v-on="on">
+                mdi-chart-box
+              </v-icon>
+            </template>
+            <span>{{ $t('statistics-label') }}</span>
+          </v-tooltip>
+        </v-btn>
+        <v-btn
+          :loading="isLoadingTable"
+          icon
+          fab
+          small
+          color="accent"
+          @click="showTableDialog(true)"
+        >
+          <v-tooltip bottom>
+            <template #activator="{ on }">
+              <v-icon v-on="on">
+                mdi-table
+              </v-icon>
+            </template>
+            <span>{{ $t('table-label') }}</span>
+          </v-tooltip>
+        </v-btn>
+      </v-col>
       <v-col cols="12">
         <v-divider />
       </v-col>
-      <v-col cols="12" class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4">
+      <v-col
+        cols="12"
+        class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4"
+      >
         <span>{{ $t('total-poligono-label') }}:</span>
         <span v-if="loadingMonitoringStats">
           {{ totalFeatures }}
@@ -184,7 +227,10 @@
           />
         </span>
       </v-col>
-      <v-col cols="12" class="grey--text text--darken-2 d-flex justify-space-between">
+      <v-col
+        cols="12"
+        class="grey--text text--darken-2 d-flex justify-space-between"
+      >
         <span>{{ $t('total-area-label') }}:</span>
         <span v-if="loadingMonitoringStats">
           {{ formatFieldValue(totalArea, 'nu_area_ha') }} ha
@@ -198,11 +244,17 @@
           />
         </span>
       </v-col>
-      <v-col cols="12" class="mt-2">
+      <v-col
+        cols="12"
+        class="mt-2"
+      >
         <v-divider />
       </v-col>
       <v-row class="mt-0">
-        <v-col cols="4" class="grey--text text--darken-2">
+        <v-col
+          cols="4"
+          class="grey--text text--darken-2"
+        >
           {{ $t('opacity-label') }}
         </v-col>
         <v-col cols="8">
@@ -217,7 +269,10 @@
         <v-col class="mt-n6">
           <span class="grey--text text--darken-2">{{ $t('heat-map-label') }}</span>
         </v-col>
-        <v-col cols="3" class="d-flex justify-end mt-n7 pr-1">
+        <v-col
+          cols="3"
+          class="d-flex justify-end mt-n7 pr-1"
+        >
           <v-switch
             v-model="heatMap"
             class="mt-0 pt-0"
@@ -235,9 +290,15 @@
           {{ $t('legend') }}
         </p>
       </v-col>
-      <v-row v-if="legendItems.length && loadingMonitoringFilter" class="mt-2">
+      <v-row
+        v-if="legendItems.length && loadingMonitoringFilter"
+        class="mt-2"
+      >
         <v-col>
-          <v-list dense flat>
+          <v-list
+            dense
+            flat
+          >
             <v-list-item
               v-for="item in legendItems"
               :key="item.estagio"
@@ -245,7 +306,10 @@
               :class="{ 'active-legend-item': item.active }"
             >
               <v-list-item-icon class="my-0">
-                <span class="legend-color" :style="{ backgroundColor: item.color }" />
+                <span
+                  class="legend-color"
+                  :style="{ backgroundColor: item.color }"
+                />
               </v-list-item-icon>
               <v-list-item-content class="py-0">
                 <span class="grey--text text--darken-2 compact-text">{{ item.label }}</span>
@@ -268,7 +332,10 @@
           class="mt-6"
           cols="12"
         >
-          <v-skeleton-loader  height="12" type="text" />
+          <v-skeleton-loader
+            height="12"
+            type="text"
+          />
         </v-col>
       </template>
     </v-row>
@@ -283,7 +350,10 @@
       :f-download-c-s-v="downloadTableMonitoring"
       :f-close-table="closeTable"
     />
-    <div v-if="dialog" class="d-none">
+    <div
+      v-if="dialog"
+      class="d-none"
+    >
       <AnalyticalDialog
         :value="analyticsMonitoringDialog"
         :close-dialog="closeAnalyticalDialog"
@@ -302,12 +372,11 @@ import BaseDateField from '@/components/base/BaseDateField';
 export default {
   name: 'MonitoringFilters',
 
-
   components: {
     TableDialog,
     DialogConfirmDownload,
     AnalyticalDialog,
-    BaseDateField
+    BaseDateField,
   },
   data() {
     return {
@@ -418,6 +487,13 @@ export default {
     ]),
   },
   watch: {
+    totalFeatures(newValue) {
+      if (newValue && newValue > 10000 && this.$refs.infoDialog) {
+        this.$nextTick(() => {
+          this.$refs.infoDialog.openDialog();
+        });
+      }
+    },
     'filters.currentView': function (value) {
       if (value && this.filters.cr.length > 0) {
         this.filters.cr = [];
@@ -516,7 +592,9 @@ export default {
     },
     async searchMonitoring() {
       const { filters } = this;
-      const { currentView, cr, startDate, endDate } = filters;
+      const {
+        currentView, cr, startDate, endDate,
+      } = filters;
 
       if (
         (currentView || cr.length)
@@ -563,8 +641,8 @@ export default {
             end_date: this.filters.endDate,
             cr: this.filters.cr,
             ti: this.filters.ti,
-            currentView: this.filters.currentView
-          })
+            currentView: this.filters.currentView,
+          });
         }).catch(() => {
           this.isLoadingFeatures = false;
         });
@@ -575,6 +653,12 @@ export default {
     showTableDialog(value) {
       this.tableDialogMonitoring = value;
       this.getDataTableMonitoring();
+
+      if (this.totalFeatures && this.totalFeatures > 10000 && this.$refs.infoDialog) {
+        this.$nextTick(() => {
+          this.$refs.infoDialog.openDialog();
+        });
+      }
     },
     closeTable(value) {
       this.tableDialogMonitoring = value;
