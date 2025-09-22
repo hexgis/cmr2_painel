@@ -3,10 +3,16 @@
     v-model="dialogValue"
     fullscreen
     transition="dialog-bottom-transition"
+    :aria-labelledby="dialogTitle"
+    role="dialog"
+    aria-modal="true"
   >
     <v-card>
       <v-toolbar color="secondary">
-        <v-toolbar-title class="white--text">
+        <v-toolbar-title
+          id="dialog-title"
+          class="white--text"
+        >
           {{ $t('compare') }}
         </v-toolbar-title>
 
@@ -14,7 +20,10 @@
 
         <v-btn
           icon
+          :aria-label="$t('close')"
           @click="closeDialog"
+          @keydown.enter="closeDialog"
+          @keydown.space="closeDialog"
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>
@@ -32,27 +41,14 @@
                 id="mapContainer"
                 ref="mapContainer"
                 style="height: 100%; position: relative; width: 100%;"
+                role="application"
+                :aria-label="$t('comparison-map')"
+                tabindex="0"
               >
-                <div
+                <LoadingState
                   v-if="!mapsInitialized"
-                  style="
-                    padding: 20px;
-                    text-align: center;
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    z-index: 1000;
-                  "
-                >
-                  <v-progress-circular
-                    indeterminate
-                    color="primary"
-                  />
-                  <p style="margin-top: 10px;">
-                    Carregando mapas de comparação...
-                  </p>
-                </div>
+                  message="Carregando mapas de comparação..."
+                />
               </div>
             </v-col>
 
@@ -65,6 +61,8 @@
                 flat
                 height="100%"
                 class="d-flex flex-column"
+                role="complementary"
+                :aria-label="$t('layer-information-panel')"
               >
                 <v-card-title class="pa-3 subtitle-1">
                   <v-icon left>
@@ -87,117 +85,13 @@
                       cols="6"
                       class="pr-1"
                     >
-                      <v-card
-                        v-if="layersToCompare.left"
-                        flat
-                        outlined
-                        class="pa-2"
-                        style="height: 100%;"
-                      >
-                        <v-chip
-                          x-small
-                          color="blue"
-                          text-color="white"
-                          class="mb-2"
-                        >
-                          <v-icon
-                            left
-                            x-small
-                          >
-                            mdi-arrow-left
-                          </v-icon>
-                          Esquerda
-                        </v-chip>
-
-                        <div class="layer-name-compact mb-2">
-                          {{ layersToCompare.left.name }}
-                        </div>
-
-                        <!-- Preview Image -->
-                        <v-img
-                          v-if="getLayerPreview(layersToCompare.left)"
-                          :src="getLayerPreview(layersToCompare.left)"
-                          height="80"
-                          class="mb-2 rounded"
-                          contain
-                        >
-                          <template #placeholder>
-                            <v-row
-                              class="fill-height ma-0"
-                              align="center"
-                              justify="center"
-                            >
-                              <v-progress-circular
-                                indeterminate
-                                size="20"
-                                color="grey lighten-5"
-                              />
-                            </v-row>
-                          </template>
-                          <template #error>
-                            <v-row
-                              class="fill-height ma-0"
-                              align="center"
-                              justify="center"
-                            >
-                              <v-icon
-                                size="32"
-                                color="grey lighten-2"
-                              >
-                                mdi-image-off-outline
-                              </v-icon>
-                            </v-row>
-                          </template>
-                        </v-img>
-
-                        <!-- Fallback when no preview available -->
-                        <div
-                          v-else
-                          class="preview-fallback mb-2"
-                        >
-                          <v-icon
-                            size="32"
-                            color="grey lighten-2"
-                          >
-                            mdi-layers-outline
-                          </v-icon>
-                          <div class="caption grey--text mt-1">
-                            Preview não disponível
-                          </div>
-                        </div>
-                        <!-- Layer Details -->
-                        <div class="layer-details-compact">
-                          <div class="text-caption grey--text">
-                            <strong>Tipo:</strong> {{ getLayerType(layersToCompare.left) }}
-                          </div>
-                          <div class="text-caption grey--text">
-                            <strong>Grupo:</strong>
-                            {{ leftLayerGroup ? leftLayerGroup.name : 'N/A' }}
-                          </div>
-                        </div>
-                      </v-card>
-
-                      <!-- Empty Left Slot -->
-                      <v-card
-                        v-else
-                        flat
-                        outlined
-                        class="pa-2 text-center"
-                        style="height: 100%; min-height: 200px;"
-                      >
-                        <div class="d-flex flex-column align-center justify-center fill-height">
-                          <v-icon
-                            size="32"
-                            color="grey lighten-2"
-                            class="mb-1"
-                          >
-                            mdi-image-off-outline
-                          </v-icon>
-                          <div class="caption grey--text">
-                            Camada esquerda
-                          </div>
-                        </div>
-                      </v-card>
+                      <LayerCard
+                        :layer="layersToCompare.left"
+                        side="left"
+                        :layer-preview="getLayerPreview(layersToCompare.left)"
+                        :layer-type="getLayerType(layersToCompare.left)"
+                        :layer-group="leftLayerGroup"
+                      />
                     </v-col>
 
                     <!-- Right Layer Info -->
@@ -205,140 +99,21 @@
                       cols="6"
                       class="pl-1"
                     >
-                      <v-card
-                        v-if="layersToCompare.right"
-                        flat
-                        outlined
-                        class="pa-2"
-                        style="height: 100%;"
-                      >
-                        <v-chip
-                          x-small
-                          color="red"
-                          text-color="white"
-                          class="mb-2"
-                        >
-                          Direita
-                          <v-icon
-                            right
-                            x-small
-                          >
-                            mdi-arrow-right
-                          </v-icon>
-                        </v-chip>
-
-                        <div class="layer-name-compact mb-2">
-                          {{ layersToCompare.right.name }}
-                        </div>
-
-                        <!-- Preview Image -->
-                        <v-img
-                          v-if="getLayerPreview(layersToCompare.right)"
-                          :src="getLayerPreview(layersToCompare.right)"
-                          :lazy-src="getLayerPreview(layersToCompare.right)"
-                          height="80"
-                          class="mb-2 rounded"
-                          contain
-                        >
-                          <template #placeholder>
-                            <v-row
-                              class="fill-height ma-0"
-                              align="center"
-                              justify="center"
-                            >
-                              <v-progress-circular
-                                indeterminate
-                                size="20"
-                                color="grey lighten-5"
-                              />
-                            </v-row>
-                          </template>
-                          <template #error>
-                            <v-row
-                              class="fill-height ma-0"
-                              align="center"
-                              justify="center"
-                            >
-                              <v-icon
-                                size="32"
-                                color="grey lighten-2"
-                              >
-                                mdi-image-off-outline
-                              </v-icon>
-                            </v-row>
-                          </template>
-                        </v-img>
-
-                        <!-- Fallback when no preview available -->
-                        <div
-                          v-else
-                          class="preview-fallback mb-2"
-                        >
-                          <v-icon
-                            size="32"
-                            color="grey lighten-2"
-                          >
-                            mdi-layers-outline
-                          </v-icon>
-                          <div class="caption grey--text mt-1">
-                            Preview não disponível
-                          </div>
-                        </div>
-                        <!-- Layer Details -->
-                        <div class="layer-details-compact">
-                          <div class="text-caption grey--text">
-                            <strong>Tipo:</strong> {{ getLayerType(layersToCompare.right) }}
-                          </div>
-                          <div class="text-caption grey--text">
-                            <strong>Grupo:</strong>
-                            {{ rightLayerGroup ? rightLayerGroup.name : 'N/A' }}
-                          </div>
-                        </div>
-                      </v-card>
-
-                      <!-- Empty Right Slot -->
-                      <v-card
-                        v-else
-                        flat
-                        outlined
-                        class="pa-2 text-center"
-                        style="height: 100%; min-height: 200px;"
-                      >
-                        <div class="d-flex flex-column align-center justify-center fill-height">
-                          <v-icon
-                            size="32"
-                            color="grey lighten-2"
-                            class="mb-1"
-                          >
-                            mdi-image-off-outline
-                          </v-icon>
-                          <div class="caption grey--text">
-                            Camada direita
-                          </div>
-                        </div>
-                      </v-card>
+                      <LayerCard
+                        :layer="layersToCompare.right"
+                        side="right"
+                        :layer-preview="getLayerPreview(layersToCompare.right)"
+                        :layer-type="getLayerType(layersToCompare.right)"
+                        :layer-group="rightLayerGroup"
+                      />
                     </v-col>
                   </v-row>
 
                   <!-- Empty State -->
-                  <v-card
+                  <EmptyState
                     v-if="!layersToCompare.left && !layersToCompare.right"
-                    flat
-                    class="ma-2 text-center"
-                  >
-                    <v-card-text class="pa-4">
-                      <v-icon
-                        size="48"
-                        color="grey lighten-1"
-                        class="mb-2"
-                      >
-                        mdi-image-off
-                      </v-icon>
-                      <div class="grey--text">
-                        Nenhuma camada selecionada para comparação
-                      </div>
-                    </v-card-text>
-                  </v-card>
+                    message="Nenhuma camada selecionada para comparação"
+                  />
                 </div>
 
                 <!-- Instructions -->
@@ -366,10 +141,18 @@
 <i18n>
 {
   "en": {
-    "compare": "Compare layers"
+    "compare": "Compare layers",
+    "close": "Close dialog",
+    "comparison-map": "Interactive map for layer comparison",
+    "layer-information-panel": "Layer information and comparison controls",
+    "drag-instruction": "Drag the red bar to compare layers"
   },
   "pt-br": {
-    "compare": "Comparar camadas"
+    "compare": "Comparar camadas",
+    "close": "Fechar diálogo",
+    "comparison-map": "Mapa interativo para comparação de camadas",
+    "layer-information-panel": "Informações das camadas e controles de comparação",
+    "drag-instruction": "Arraste a barra vermelha para comparar camadas"
   }
 }
 </i18n>
@@ -377,9 +160,26 @@
 <script>
 import { mapState } from 'vuex';
 import tmsLegend from '../../assets/tmsLegend.png';
+import LayerCard from './LayerCard.vue';
+import LoadingState from './LoadingState.vue';
+import EmptyState from './EmptyState.vue';
+import { ERROR_TYPES, logError } from './errors';
+import {
+  getLayerTypeName,
+  validateWmsLayer,
+  validateTmsLayer,
+  createWmsOptions,
+  createTmsOptions,
+} from './layerUtils';
 
 export default {
   name: 'RasterCompare',
+
+  components: {
+    LayerCard,
+    LoadingState,
+    EmptyState,
+  },
 
   data: () => ({
     mapsInitialized: false,
@@ -389,6 +189,7 @@ export default {
     leftLayer: null,
     rightLayer: null,
     sideBySideControl: null,
+    initializationTimeout: null,
   }),
 
   computed: {
@@ -416,20 +217,32 @@ export default {
       if (!this.layersToCompare.right) return null;
       return this.findGroupForLayer(this.layersToCompare.right.id);
     },
+
+    dialogTitle() {
+      return 'dialog-title';
+    },
   },
 
   watch: {
     openCompare(newVal) {
       if (newVal) {
-        // Modal opened, initialize maps
-        this.$nextTick(() => {
-          this.initializeMaps();
-        });
+        // Modal opened, initialize maps with debounce
+        this.debouncedInitializeMaps();
       } else {
         // Modal closed, cleanup maps and clear selected layers
         this.cleanupMaps();
         this.$store.commit('raster/clearLayersToCompare');
       }
+    },
+
+    // Watch for layer changes and reinitialize if needed
+    layersToCompare: {
+      handler() {
+        if (this.openCompare && this.mapsInitialized) {
+          this.debouncedReinitializeLayers();
+        }
+      },
+      deep: true,
     },
   },
 
@@ -443,6 +256,50 @@ export default {
   },
 
   methods: {
+    // Debounced methods for performance optimization
+    debouncedInitializeMaps() {
+      if (this.initializationTimeout) {
+        clearTimeout(this.initializationTimeout);
+      }
+      this.initializationTimeout = setTimeout(() => {
+        this.$nextTick(() => {
+          this.initializeMaps();
+        });
+      }, 100);
+    },
+
+    debouncedReinitializeLayers() {
+      if (this.initializationTimeout) {
+        clearTimeout(this.initializationTimeout);
+      }
+      this.initializationTimeout = setTimeout(() => {
+        this.reinitializeLayers();
+      }, 200);
+    },
+
+    reinitializeLayers() {
+      try {
+        // Remove existing comparison layers
+        if (this.leftLayer && this.map) {
+          this.map.removeLayer(this.leftLayer);
+          this.leftLayer = null;
+        }
+        if (this.rightLayer && this.map) {
+          this.map.removeLayer(this.rightLayer);
+          this.rightLayer = null;
+        }
+        if (this.sideBySideControl) {
+          this.sideBySideControl.remove();
+          this.sideBySideControl = null;
+        }
+
+        // Re-add comparison layers
+        this.addComparisonLayers();
+        this.initializeSideBySideControl();
+      } catch (error) {
+        logError(ERROR_TYPES.MAP_INIT, error, { context: 'reinitializeLayers' });
+      }
+    },
     closeDialog() {
       this.cleanupMaps();
       // Clear the selected layers for comparison
@@ -453,44 +310,35 @@ export default {
 
     async initializeMaps() {
       try {
-        // Wait a bit for the DOM to be ready
         await this.$nextTick();
 
         // Check if Leaflet is available
         if (typeof this.$L === 'undefined') {
+          logError(ERROR_TYPES.LEAFLET_MISSING, new Error('Leaflet library not found'));
           return;
         }
 
         // Check if Leaflet WMS plugin is available
         if (typeof this.$L.tileLayer.wms === 'undefined') {
+          logError(ERROR_TYPES.LEAFLET_MISSING, new Error('Leaflet WMS plugin not found'));
           return;
         }
 
         const mapElement = document.getElementById('mapContainer');
-
         if (!mapElement) {
+          logError(ERROR_TYPES.MAP_INIT, new Error('Map container element not found'));
           return;
         }
 
         // Get current map center and zoom from main map if available
-        let center = [-15.7801, -47.9292]; // Default to Brazil center
-        let zoom = 5;
-
-        if (window.map && window.map.getCenter) {
-          try {
-            center = [window.map.getCenter().lat, window.map.getCenter().lng];
-            zoom = window.map.getZoom();
-          } catch (e) {
-            // Use defaults if main map is not accessible
-          }
-        }
+        const { center, zoom } = this.getMainMapViewport();
 
         // Create single map as component instance
         this.map = this.$L.map('mapContainer', {
           center,
           zoom,
           zoomControl: true,
-          attributionControl: false, // Remove attribution control completely
+          attributionControl: false,
         });
 
         // Add base tile layer
@@ -499,41 +347,63 @@ export default {
         this.baseLayer.addTo(this.map);
 
         this.addVisibleLayersFromMainMap();
-
-        this.leftLayer = null;
-        this.rightLayer = null;
-
-        // Add left layer
-        if (this.layersToCompare.left) {
-          this.ensureLayerVisibility(this.layersToCompare.left);
-          this.leftLayer = this.createLayer(this.layersToCompare.left, 4);
-          if (this.leftLayer) {
-            this.leftLayer.addTo(this.map);
-          }
-        }
-
-        // Add right layer
-        if (this.layersToCompare.right) {
-          this.ensureLayerVisibility(this.layersToCompare.right);
-          this.rightLayer = this.createLayer(this.layersToCompare.right, 4);
-          if (this.rightLayer) {
-            this.rightLayer.addTo(this.map);
-          }
-        }
-
-        // Create side-by-side control if both layers exist
-        if (this.leftLayer && this.rightLayer && this.$L.control && this.$L.control.sideBySide) {
-          try {
-            this.sideBySideControl = this.$L.control.sideBySide(this.leftLayer, this.rightLayer);
-            this.sideBySideControl.addTo(this.map);
-          } catch (error) {
-            // Side-by-side control failed to initialize
-          }
-        }
+        this.addComparisonLayers();
+        this.initializeSideBySideControl();
 
         this.mapsInitialized = true;
       } catch (error) {
-        // Error initializing comparison maps
+        logError(ERROR_TYPES.MAP_INIT, error);
+      }
+    },
+
+    getMainMapViewport() {
+      let center = [-15.7801, -47.9292]; // Default to Brazil center
+      let zoom = 5;
+
+      if (window.map && window.map.getCenter) {
+        try {
+          center = [window.map.getCenter().lat, window.map.getCenter().lng];
+          zoom = window.map.getZoom();
+        } catch (e) {
+          // Use defaults if main map is not accessible
+        }
+      }
+
+      return { center, zoom };
+    },
+
+    addComparisonLayers() {
+      this.leftLayer = null;
+      this.rightLayer = null;
+
+      // Add left layer
+      if (this.layersToCompare.left) {
+        this.ensureLayerVisibility(this.layersToCompare.left);
+        this.leftLayer = this.createLayer(this.layersToCompare.left, 4);
+        if (this.leftLayer) {
+          this.leftLayer.addTo(this.map);
+        }
+      }
+
+      // Add right layer
+      if (this.layersToCompare.right) {
+        this.ensureLayerVisibility(this.layersToCompare.right);
+        this.rightLayer = this.createLayer(this.layersToCompare.right, 4);
+        if (this.rightLayer) {
+          this.rightLayer.addTo(this.map);
+        }
+      }
+    },
+
+    initializeSideBySideControl() {
+      // Create side-by-side control if both layers exist
+      if (this.leftLayer && this.rightLayer && this.$L.control && this.$L.control.sideBySide) {
+        try {
+          this.sideBySideControl = this.$L.control.sideBySide(this.leftLayer, this.rightLayer);
+          this.sideBySideControl.addTo(this.map);
+        } catch (error) {
+          logError(ERROR_TYPES.SIDE_BY_SIDE_CONTROL, error);
+        }
       }
     },
 
@@ -612,137 +482,51 @@ export default {
 
     createWmsLayer(layer, customZIndex = null) {
       try {
-        const { wms } = layer;
-
-        // Validate required WMS data
-        if (!wms || !wms.geoserver || !wms.geoserver_layer_name) {
-          // Invalid WMS layer data
+        if (!validateWmsLayer(layer)) {
+          logError(ERROR_TYPES.LAYER_CREATION, new Error('Invalid WMS layer data'));
           return null;
         }
 
-        const baseUrl = wms.geoserver.geoserver_url;
-
-        if (!baseUrl) {
-          // No base URL available for WMS layer
-          return null;
-        }
-
-        const url = `${baseUrl}/wms`;
-        // Planet
-        const isPlanetLayer = url.includes('planet/') || url.includes('tileserver-pf.sccon.com.br');
-
-        const isHighResOrMosaic = layer.name
-          && (layer.name.toLowerCase().includes('alta resolução')
-            || layer.name.toLowerCase().includes('mosaicos')
-            || layer.name.toLowerCase().includes('alta resolu')
-            || layer.name.toLowerCase().includes('mosaic'));
-
-        let defaultZIndex = 8;
-        if (isPlanetLayer || isHighResOrMosaic) {
-          defaultZIndex = 1;
-        }
-
-        const options = {
-          layers: wms.geoserver_layer_name,
-          format: 'image/png',
-          transparent: true,
-          version: '1.1.0',
-          attribution: '',
-          opacity: layer.opacity || 1,
-          zIndex: customZIndex || defaultZIndex,
-        };
-
-        if (layer.cql && layer.cql !== '1=2' && layer.cql.trim() !== '') {
-          options.cql_filter = layer.cql;
-        }
-
+        const url = `${layer.wms.geoserver.geoserver_url}/wms`;
+        const options = createWmsOptions(layer, customZIndex);
         const wmsLayer = this.$L.tileLayer.wms(url, options);
 
-        // Handle tile loading errors
-        wmsLayer.on('tileerror', () => {
-          // Mark error state to avoid repeated logging
-          if (!wmsLayer.errorLogged) {
-            wmsLayer.errorLogged = true;
-          }
-        });
-
-        wmsLayer.on('tileload', () => {
-          // Reset error flag when tiles load successfully
-          wmsLayer.errorLogged = false;
-        });
-
+        this.setupLayerEventHandlers(wmsLayer);
         return wmsLayer;
       } catch (error) {
-        // Error creating WMS layer
+        logError(ERROR_TYPES.LAYER_CREATION, error, { layerType: 'WMS', layerId: layer.id });
         return null;
       }
     },
 
     createTmsLayer(layer, customZIndex = null) {
       try {
-        if (!layer.tms || !layer.tms.url) {
-          // Invalid TMS layer data
+        if (!validateTmsLayer(layer)) {
+          logError(ERROR_TYPES.LAYER_CREATION, new Error('Invalid TMS layer data'));
           return null;
         }
 
-        const { url } = layer.tms;
+        const options = createTmsOptions(layer, customZIndex);
+        const tmsLayer = this.$L.tileLayer(layer.tms.url, options);
 
-        // Planet Labs specific handling
-        const isPlanetLabs = url.includes('planet/') || url.includes('tileserver-pf.sccon.com.br');
-
-        // Check if this is a high resolution or mosaic layer (should be at bottom)
-        const isHighResOrMosaic = layer.name
-          && (layer.name.toLowerCase().includes('alta resolução')
-            || layer.name.toLowerCase().includes('mosaicos')
-            || layer.name.toLowerCase().includes('alta resolu')
-            || layer.name.toLowerCase().includes('mosaic'));
-
-        // Determine z-index priority
-        let defaultZIndex = 8; // Default for regular layers (above comparison)
-        if (isPlanetLabs || isHighResOrMosaic) {
-          defaultZIndex = 1; // Bottom layer for planet, high-res, and mosaics
-        }
-
-        // Create TMS layer with proper options
-        const options = {
-          attribution: '',
-          opacity: layer.opacity || 1,
-          errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', // Transparent 1x1 pixel
-          maxNativeZoom: 18,
-          maxZoom: 22,
-          minZoom: 0,
-          crossOrigin: true,
-          zIndex: customZIndex || defaultZIndex,
-        };
-
-        // Planet Labs tiles are XYZ format, not TMS
-        // TMS has Y coordinate inverted compared to XYZ
-        if (isPlanetLabs) {
-          // Planet Labs uses XYZ scheme, not TMS
-          options.tms = false;
-        } else {
-          // Other providers might use actual TMS
-          options.tms = true;
-        }
-
-        const tmsLayer = this.$L.tileLayer(url, options);
-
-        // Handle tile loading errors
-        tmsLayer.on('tileerror', () => {
-          if (!tmsLayer.errorLogged) {
-            tmsLayer.errorLogged = true;
-          }
-        });
-
-        tmsLayer.on('tileload', () => {
-          tmsLayer.errorLogged = false;
-        });
-
+        this.setupLayerEventHandlers(tmsLayer);
         return tmsLayer;
       } catch (error) {
-        // Error creating TMS layer
+        logError(ERROR_TYPES.LAYER_CREATION, error, { layerType: 'TMS', layerId: layer.id });
         return null;
       }
+    },
+
+    setupLayerEventHandlers(layer) {
+      layer.on('tileerror', () => {
+        if (!layer.errorLogged) {
+          layer.errorLogged = true;
+        }
+      });
+
+      layer.on('tileload', () => {
+        layer.errorLogged = false;
+      });
     },
     ensureLayerVisibility(layer) {
       try {
@@ -840,18 +624,7 @@ export default {
     },
 
     getLayerType(layer) {
-      if (!layer) return 'Desconhecido';
-
-      switch (layer.layer_type) {
-        case 'wms':
-          return 'WMS (Web Map Service)';
-        case 'tms':
-          return 'TMS (Tile Map Service)';
-        case 'heatmap':
-          return 'Mapa de Calor';
-        default:
-          return layer.layer_type ? layer.layer_type.toUpperCase() : 'Desconhecido';
-      }
+      return getLayerTypeName(layer);
     },
 
     findGroupForLayer(layerId) {
@@ -884,7 +657,8 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+/* Main container styles */
 .container-compare {
   position: relative;
   width: 100%;
@@ -903,27 +677,30 @@ export default {
   border-left: 1px solid #e0e0e0;
 }
 
-.layer-name {
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 1.2;
-  color: #333;
-}
-
+/* Layer name styles with consistent sizing */
+.layer-name,
 .layer-name-compact {
   font-weight: 500;
-  font-size: 12px;
-  line-height: 1.2;
   color: #333;
-  height: 32px;
+  line-height: 1.2;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.layer-name {
+  font-size: 14px;
+}
+
+.layer-name-compact {
+  font-size: 12px;
+  height: 32px;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* Layer details with consistent sizing */
 .layer-details {
   font-size: 12px;
 }
@@ -932,6 +709,7 @@ export default {
   font-size: 10px;
 }
 
+/* Detail item styles */
 .detail-item {
   margin-bottom: 4px;
   line-height: 1.3;
@@ -947,7 +725,7 @@ export default {
   color: #555;
 }
 
-/* Leaflet side-by-side styles */
+/* Leaflet side-by-side control customization */
 .leaflet-sbs-divider {
   background-color: #D42A3E !important;
   width: 4px !important;
@@ -958,27 +736,101 @@ export default {
   background-color: #B8233A !important;
 }
 
-/* Ensure the side-by-side control is properly positioned */
 .leaflet-sbs-divider,
 .leaflet-sbs-range {
   position: absolute !important;
 }
 
-/* Scrollbar styling for the layer panel */
+/* Custom scrollbar for better UX */
 .overflow-y-auto::-webkit-scrollbar {
   width: 6px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-track {
   background: #f1f1f1;
+  border-radius: 3px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 3px;
+  transition: background-color 0.2s ease;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+  .layer-info-panel {
+    border-left: none;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .layer-name-compact {
+    font-size: 11px;
+    height: 28px;
+  }
+
+  .layer-details-compact {
+    font-size: 9px;
+  }
+}
+
+/* Accessibility improvements */
+.layer-info-panel:focus-within {
+  outline: 2px solid #2196F3;
+  outline-offset: -2px;
+}
+
+#mapContainer:focus {
+  outline: 2px solid #2196F3;
+  outline-offset: -2px;
+}
+
+/* Loading and empty state improvements */
+.loading-container,
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Transition animations for better UX */
+.layer-card-transition {
+  transition: all 0.3s ease;
+}
+
+.layer-card-transition:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .layer-info-panel {
+    background-color: #ffffff;
+    border-color: #000000;
+  }
+
+  .layer-name,
+  .layer-name-compact {
+    color: #000000;
+  }
+
+  .leaflet-sbs-divider {
+    background-color: #ff0000 !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .layer-card-transition,
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    transition: none;
+  }
 }
 </style>
