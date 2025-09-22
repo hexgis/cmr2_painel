@@ -498,14 +498,15 @@ export default {
         this.baseLayer = this.$L.tileLayer(baseLayerUrl, { attribution: '' });
         this.baseLayer.addTo(this.map);
 
-        // Create layers for comparison
+        this.addVisibleLayersFromMainMap();
+
         this.leftLayer = null;
         this.rightLayer = null;
 
         // Add left layer
         if (this.layersToCompare.left) {
           this.ensureLayerVisibility(this.layersToCompare.left);
-          this.leftLayer = this.createLayer(this.layersToCompare.left);
+          this.leftLayer = this.createLayer(this.layersToCompare.left, 4);
           if (this.leftLayer) {
             this.leftLayer.addTo(this.map);
           }
@@ -514,7 +515,7 @@ export default {
         // Add right layer
         if (this.layersToCompare.right) {
           this.ensureLayerVisibility(this.layersToCompare.right);
-          this.rightLayer = this.createLayer(this.layersToCompare.right);
+          this.rightLayer = this.createLayer(this.layersToCompare.right, 4);
           if (this.rightLayer) {
             this.rightLayer.addTo(this.map);
           }
@@ -536,12 +537,70 @@ export default {
       }
     },
 
-    createLayer(layer) {
+    addVisibleLayersFromMainMap() {
+      try {
+        const allVisibleLayers = [];
+
+        const supportLayers = this.$store.state.supportLayers.supportLayers || {};
+        Object.values(supportLayers).forEach((layer) => {
+          if (layer.visible) {
+            const isHighResOrMosaic = layer.name
+              && (layer.name.toLowerCase().includes('alta resolução')
+                || layer.name.toLowerCase().includes('mosaicos')
+                || layer.name.toLowerCase().includes('alta resolu')
+                || layer.name.toLowerCase().includes('mosaic'));
+
+            allVisibleLayers.push({
+              ...layer,
+              source: 'supportLayers',
+              zIndex: isHighResOrMosaic ? 1 : 6,
+            });
+          }
+        });
+
+        const rasterLayers = this.$store.state.raster.supportLayersCategoryRaster || {};
+        Object.values(rasterLayers).forEach((layer) => {
+          if (layer.visible) {
+            const isHighResOrMosaic = layer.name
+              && (layer.name.toLowerCase().includes('alta resolução')
+                || layer.name.toLowerCase().includes('mosaicos')
+                || layer.name.toLowerCase().includes('alta resolu')
+                || layer.name.toLowerCase().includes('mosaic'));
+
+            allVisibleLayers.push({
+              ...layer,
+              source: 'raster',
+              zIndex: isHighResOrMosaic ? 2 : 8,
+            });
+          }
+        });
+
+        allVisibleLayers.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+
+        allVisibleLayers.forEach((layer) => {
+          const isLeftCompareLayer = this.layersToCompare.left
+            && layer.id === this.layersToCompare.left.id;
+          const isRightCompareLayer = this.layersToCompare.right
+            && layer.id === this.layersToCompare.right.id;
+
+          if (isLeftCompareLayer || isRightCompareLayer) return;
+
+          const mapLayer = this.createLayer(layer, layer.zIndex);
+          if (mapLayer) {
+            mapLayer.addTo(this.map);
+          }
+        });
+      } catch (error) {
+        console.warn('Error adding visible layers from main map:', error);
+      }
+    },
+
+    createLayer(layer, customZIndex = null) {
       try {
         if (layer.layer_type === 'wms' && layer.wms) {
-          return this.createWmsLayer(layer);
+          return this.createWmsLayer(layer, customZIndex);
         } if (layer.layer_type === 'tms' && layer.tms) {
-          return this.createTmsLayer(layer);
+          return this.createTmsLayer(layer, customZIndex);
         }
         // Unsupported layer type or missing layer data
         return null;
@@ -551,7 +610,7 @@ export default {
       }
     },
 
-    createWmsLayer(layer) {
+    createWmsLayer(layer, customZIndex = null) {
       try {
         const { wms } = layer;
 
@@ -569,6 +628,19 @@ export default {
         }
 
         const url = `${baseUrl}/wms`;
+        // Planet
+        const isPlanetLayer = url.includes('planet/') || url.includes('tileserver-pf.sccon.com.br');
+
+        const isHighResOrMosaic = layer.name
+          && (layer.name.toLowerCase().includes('alta resolução')
+            || layer.name.toLowerCase().includes('mosaicos')
+            || layer.name.toLowerCase().includes('alta resolu')
+            || layer.name.toLowerCase().includes('mosaic'));
+
+        let defaultZIndex = 8;
+        if (isPlanetLayer || isHighResOrMosaic) {
+          defaultZIndex = 1;
+        }
 
         const options = {
           layers: wms.geoserver_layer_name,
@@ -576,10 +648,10 @@ export default {
           transparent: true,
           version: '1.1.0',
           attribution: '',
-          opacity: 1, // Force full opacity for comparison
+          opacity: layer.opacity || 1,
+          zIndex: customZIndex || defaultZIndex,
         };
 
-        // Only add CQL filter if it exists and is not a blocking filter
         if (layer.cql && layer.cql !== '1=2' && layer.cql.trim() !== '') {
           options.cql_filter = layer.cql;
         }
@@ -606,7 +678,7 @@ export default {
       }
     },
 
-    createTmsLayer(layer) {
+    createTmsLayer(layer, customZIndex = null) {
       try {
         if (!layer.tms || !layer.tms.url) {
           // Invalid TMS layer data
@@ -618,15 +690,29 @@ export default {
         // Planet Labs specific handling
         const isPlanetLabs = url.includes('planet/') || url.includes('tileserver-pf.sccon.com.br');
 
+        // Check if this is a high resolution or mosaic layer (should be at bottom)
+        const isHighResOrMosaic = layer.name
+          && (layer.name.toLowerCase().includes('alta resolução')
+            || layer.name.toLowerCase().includes('mosaicos')
+            || layer.name.toLowerCase().includes('alta resolu')
+            || layer.name.toLowerCase().includes('mosaic'));
+
+        // Determine z-index priority
+        let defaultZIndex = 8; // Default for regular layers (above comparison)
+        if (isPlanetLabs || isHighResOrMosaic) {
+          defaultZIndex = 1; // Bottom layer for planet, high-res, and mosaics
+        }
+
         // Create TMS layer with proper options
         const options = {
           attribution: '',
-          opacity: 1, // Force full opacity for comparison
+          opacity: layer.opacity || 1,
           errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', // Transparent 1x1 pixel
           maxNativeZoom: 18,
           maxZoom: 22,
           minZoom: 0,
           crossOrigin: true,
+          zIndex: customZIndex || defaultZIndex,
         };
 
         // Planet Labs tiles are XYZ format, not TMS
