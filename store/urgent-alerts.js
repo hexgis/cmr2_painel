@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import { stringify } from 'wkt';
+import { convertArrayToCSV, downloadCSV } from '~/utils/csv';
 
 // Módulo Vuex para gerenciamento de monitoramento
 export default {
@@ -724,7 +725,7 @@ export default {
       }
     },
 
-    // Baixa tabela de monitoramento em CSV
+    // Download monitoring table as CSV
     async downloadTableAlerts({ state, commit }) {
       commit('setLoadingCSV', true);
       try {
@@ -735,29 +736,20 @@ export default {
           'Data da Imagem', 'Área do Polígono (ha)', 'Latitude', 'Longitude',
         ];
 
-        const csvContent = [
-          headers.join(','),
-          ...state.tableAlerts.map(row => [
-            row.origin_id,
-            row.co_funai,
-            `"${row.no_ti}"`,
-            `"${row.ds_cr}"`,
-            row.no_estagio,
-            row.dt_imagem,
-            row.nu_area_ha,
-            row.nu_latitude,
-            row.nu_longitude
-          ].join(','))
-        ].join('\n');
+        const rows = state.tableAlerts.map(row => [
+          row.origin_id,
+          row.co_funai,
+          row.no_ti,
+          row.ds_cr,
+          row.no_estagio,
+          row.dt_imagem,
+          row.nu_area_ha,
+          row.nu_latitude,
+          row.nu_longitude
+        ]);
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'alarts_table.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
+        const csvContent = convertArrayToCSV(rows, headers);
+        downloadCSV(csvContent, 'alerts_table.csv');
       } catch (error) {
         console.error('Erro ao baixar tabela CSV:', error);
         commit('alert/addAlert', {
