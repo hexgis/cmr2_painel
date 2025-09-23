@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import { stringify } from 'wkt';
-import { convertToCSV, convertArrayToCSV, downloadCSV } from '~/utils/csv';
 
 // Módulo Vuex para gerenciamento de monitoramento
 export default {
@@ -859,8 +858,8 @@ export default {
           row.nu_longitude
         ]);
 
-        const csvContent = convertArrayToCSV(data, headers, ',');
-        downloadCSV(csvContent, 'monitoring_table.csv');
+        const csvContent = this.$csv.convertArrayToCSV(data, headers, ',');
+        this.$csv.downloadCSV(csvContent, 'monitoring_table.csv');
       } catch (error) {
         console.error('Erro ao baixar tabela CSV:', error);
         commit('alert/addAlert', {
@@ -960,7 +959,7 @@ export default {
         if (state.filters.currentView) {
           params.in_bbox = rootGetters['map/bbox'];
         }
-        
+
         const analyticsMonitoringcsv = await this.$api.$get(
           'monitoring/consolidated/table-stats/',
           { params },
@@ -970,8 +969,8 @@ export default {
           throw new Error('Nenhum dado disponível para exportação');
         }
 
-        const csvContent = convertToCSV(analyticsMonitoringcsv, null, ';');
-        downloadCSV(csvContent, defaultFileName);
+        const csvContent = this.$csv.convertToCSV(analyticsMonitoringcsv, null, ';');
+        this.$csv.downloadCSV(csvContent, defaultFileName);
       } catch (error) {
         console.error('Erro ao gerar CSV:', error);
         commit('alert/addAlert', {
