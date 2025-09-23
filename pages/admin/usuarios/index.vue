@@ -1006,6 +1006,7 @@
 import { mapState, mapActions } from 'vuex';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { convertArrayToCSV, downloadCSV } from '~/utils/csv';
 import GraphicBar from '/components/admin/GraphicBar.vue';
 import SearchFiltersUser from '/components/admin/SearchFiltersUser.vue';
 import CustomDialog from '/components/admin/CustomDialog.vue';
@@ -1520,7 +1521,7 @@ export default {
     },
 
     generateCSV() {
-      // Cabeçalho do CSV
+      // CSV headers
       const headers = ['Usuário', 'Primeiro Nome', 'Último Nome', 'Email', 'Administrador', 'Acesso Permitido', 'Vínculo Institucional'];
       const rows = this.filteredByColumns.map((user) => [
         user.username,
@@ -1531,13 +1532,9 @@ export default {
         user.is_active ? 'Ativo' : 'Inativo',
         user.institution && user.institution.acronym ? user.institution.acronym : user.institution || '',
       ]);
-      const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'usuarios.csv';
-      link.click();
-      URL.revokeObjectURL(link.href);
+
+      const csvContent = convertArrayToCSV(rows, headers);
+      downloadCSV(csvContent, 'usuarios.csv');
     },
 
     expandButton() {
@@ -1594,13 +1591,9 @@ export default {
         log.institution,
         log.is_active ? 'Ativo' : 'Inativo',
       ]);
-      const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'dados_cadastrais_usuario.csv';
-      link.click();
-      URL.revokeObjectURL(link.href);
+
+      const csvContent = convertArrayToCSV(rows, headers);
+      downloadCSV(csvContent, 'dados_cadastrais_usuario.csv');
     },
 
     generateAccessPDF() {
@@ -1672,22 +1665,12 @@ export default {
         change.role,
       ]);
 
-      const csvContent = [
-        'HISTÓRICO DE LOGIN',
-        loginHeaders.join(','),
-        ...loginRows.map((row) => row.join(',')),
-        '',
-        'HISTÓRICO DE ALTERAÇÕES DE PAPÉIS',
-        roleHeaders.join(','),
-        ...roleRows.map((row) => row.join(',')),
-      ].join('\n');
+      const loginCsvContent = convertArrayToCSV(loginRows, loginHeaders);
+      const roleCsvContent = convertArrayToCSV(roleRows, roleHeaders);
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'registro_acessos_usuario.csv';
-      link.click();
-      URL.revokeObjectURL(link.href);
+      const csvContent = `HISTÓRICO DE LOGIN\n${loginCsvContent}\n\nHISTÓRICO DE ALTERAÇÕES DE PAPÉIS\n${roleCsvContent}`;
+
+      downloadCSV(csvContent, 'registro_acessos_usuario.csv');
     },
 
     ...mapActions('admin', ['fetchInstitutionList']),
