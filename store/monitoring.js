@@ -858,8 +858,8 @@ export default {
           row.nu_longitude
         ]);
 
-        const csvContent = this.$csv.convertArrayToCSV(data, headers, ',');
-        this.$csv.downloadCSV(csvContent, 'monitoring_table.csv');
+        const csvContent = this.$download.convertArrayToCSV(data, headers, ',');
+        this.$download.downloadCSV(csvContent, 'monitoring_table.csv');
       } catch (error) {
         console.error('Erro ao baixar tabela CSV:', error);
         commit('alert/addAlert', {
@@ -969,8 +969,8 @@ export default {
           throw new Error('Nenhum dado disponível para exportação');
         }
 
-        const csvContent = this.$csv.convertToCSV(analyticsMonitoringcsv, null, ';');
-        this.$csv.downloadCSV(csvContent, defaultFileName);
+        const csvContent = this.$download.convertToCSV(analyticsMonitoringcsv, null, ';');
+        this.$download.downloadCSV(csvContent, defaultFileName);
       } catch (error) {
         console.error('Erro ao gerar CSV:', error);
         commit('alert/addAlert', {

@@ -45,7 +45,7 @@ export default {
     '~/plugins/filters.js',
     '~/plugins/v-mask.js',
     '~/plugins/i18n.js',
-    '~/plugins/csv.js',
+    '~/plugins/download.js',
     { src: '~/plugins/theme-config.js', mode: 'client' },
     { src: '~/plugins/vue-chartjs.js', mode: 'client' },
     { src: '~/plugins/vue2-leaflet-markercluster.js', mode: 'client' },

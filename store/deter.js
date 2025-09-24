@@ -461,8 +461,8 @@ export const actions = {
         throw new Error('Nenhum dado disponível para exportação');
       }
 
-      const csvContent = this.$csv.convertToCSV(analyticsMonitoringcsv, null, ';');
-      this.$csv.downloadCSV(csvContent, defaultFileName);
+      const csvContent = this.$download.convertToCSV(analyticsMonitoringcsv, null, ';');
+      this.$download.downloadCSV(csvContent, defaultFileName);
     } catch (error) {
       console.error('Erro ao gerar CSV:', error);
       commit(
@@ -505,9 +505,9 @@ export const actions = {
         item.nu_longitude || '',
       ]);
 
-      const csvContent = this.$csv.convertArrayToCSV(data, headers, ';');
+      const csvContent = this.$download.convertArrayToCSV(data, headers, ';');
       const fileName = `dados_deter_${new Date().toISOString().slice(0, 10)}.csv`;
-      this.$csv.downloadCSV(csvContent, fileName);
+      this.$download.downloadCSV(csvContent, fileName);
     } catch (error) {
       commit(
         'alert/addAlert',
