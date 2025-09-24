@@ -1006,7 +1006,6 @@
 import { mapState, mapActions } from 'vuex';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { convertArrayToCSV, downloadCSV } from '~/utils/csv';
 import GraphicBar from '/components/admin/GraphicBar.vue';
 import SearchFiltersUser from '/components/admin/SearchFiltersUser.vue';
 import CustomDialog from '/components/admin/CustomDialog.vue';
@@ -1533,8 +1532,8 @@ export default {
         user.institution && user.institution.acronym ? user.institution.acronym : user.institution || '',
       ]);
 
-      const csvContent = convertArrayToCSV(rows, headers);
-      downloadCSV(csvContent, 'usuarios.csv');
+      const csvContent = this.$download.convertArrayToCSV(rows, headers);
+      this.$download.downloadCSV(csvContent, 'usuarios.csv');
     },
 
     expandButton() {
@@ -1592,8 +1591,8 @@ export default {
         log.is_active ? 'Ativo' : 'Inativo',
       ]);
 
-      const csvContent = convertArrayToCSV(rows, headers);
-      downloadCSV(csvContent, 'dados_cadastrais_usuario.csv');
+      const csvContent = this.$download.convertArrayToCSV(rows, headers);
+      this.$download.downloadCSV(csvContent, 'dados_cadastrais_usuario.csv');
     },
 
     generateAccessPDF() {
@@ -1665,12 +1664,12 @@ export default {
         change.role,
       ]);
 
-      const loginCsvContent = convertArrayToCSV(loginRows, loginHeaders);
-      const roleCsvContent = convertArrayToCSV(roleRows, roleHeaders);
+      const loginCsvContent = this.$download.convertArrayToCSV(loginRows, loginHeaders);
+      const roleCsvContent = this.$download.convertArrayToCSV(roleRows, roleHeaders);
 
       const csvContent = `HISTÓRICO DE LOGIN\n${loginCsvContent}\n\nHISTÓRICO DE ALTERAÇÕES DE PAPÉIS\n${roleCsvContent}`;
 
-      downloadCSV(csvContent, 'registro_acessos_usuario.csv');
+      this.$download.downloadCSV(csvContent, 'registro_acessos_usuario.csv');
     },
 
     ...mapActions('admin', ['fetchInstitutionList']),

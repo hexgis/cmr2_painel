@@ -1,6 +1,5 @@
   const { stringify } = require('wkt');
   import Vue from 'vue';
-  import { convertArrayToCSV, downloadCSV } from '~/utils/csv';
 
   export const state = () => ({
     features: null,
@@ -655,8 +654,8 @@
           parseFloat(row.nu_area_ha) || 0,
         ]);
 
-        const csvContent = convertArrayToCSV(data, headers, ',');
-        downloadCSV(csvContent, 'landUse_table.csv');
+        const csvContent = this.$download.convertArrayToCSV(data, headers, ',');
+        this.$download.downloadCSV(csvContent, 'landUse_table.csv');
       } catch (error) {
         console.error('Erro ao baixar tabela CSV:', error);
         commit('alert/addAlert', {

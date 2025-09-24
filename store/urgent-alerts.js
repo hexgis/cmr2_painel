@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import { stringify } from 'wkt';
-import { convertArrayToCSV, downloadCSV } from '~/utils/csv';
 
 // Módulo Vuex para gerenciamento de monitoramento
 export default {
@@ -748,8 +747,8 @@ export default {
           row.nu_longitude
         ]);
 
-        const csvContent = convertArrayToCSV(rows, headers);
-        downloadCSV(csvContent, 'alerts_table.csv');
+        const csvContent = this.$download.convertArrayToCSV(rows, headers);
+        this.$download.downloadCSV(csvContent, 'alerts_table.csv');
       } catch (error) {
         console.error('Erro ao baixar tabela CSV:', error);
         commit('alert/addAlert', {
@@ -846,8 +845,8 @@ export default {
           throw new Error('Nenhum dado disponível para exportação');
         }
 
-        const csvContent = convertToCSV(analyticsAlertscsv, null, ';');
-        downloadCSV(csvContent, defaultFileName);
+        const csvContent = this.$download.convertToCSV(analyticsAlertscsv, null, ';');
+        this.$download.downloadCSV(csvContent, defaultFileName);
       } catch (error) {
         console.error('Erro ao gerar CSV:', error);
         commit('alert/addAlert', {
