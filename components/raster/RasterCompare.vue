@@ -163,7 +163,6 @@ import tmsLegend from '../../assets/tmsLegend.png';
 import LayerCard from './LayerCard.vue';
 import LoadingState from './LoadingState.vue';
 import EmptyState from './EmptyState.vue';
-import { ERROR_TYPES, logError } from './errors';
 import {
   getLayerTypeName,
   validateWmsLayer,
@@ -297,7 +296,7 @@ export default {
         this.addComparisonLayers();
         this.initializeSideBySideControl();
       } catch (error) {
-        logError(ERROR_TYPES.MAP_INIT, error, { context: 'reinitializeLayers' });
+        console.error('[RasterCompare] Erro de inicialização:', error);
       }
     },
     closeDialog() {
@@ -314,19 +313,19 @@ export default {
 
         // Check if Leaflet is available
         if (typeof this.$L === 'undefined') {
-          logError(ERROR_TYPES.LEAFLET_MISSING, new Error('Leaflet library not found'));
+          console.error('[RasterCompare] Leaflet não encontrado');
           return;
         }
 
         // Check if Leaflet WMS plugin is available
         if (typeof this.$L.tileLayer.wms === 'undefined') {
-          logError(ERROR_TYPES.LEAFLET_MISSING, new Error('Leaflet WMS plugin not found'));
+          console.error('[RasterCompare] Plugin WMS do Leaflet não encontrado');
           return;
         }
 
         const mapElement = document.getElementById('mapContainer');
         if (!mapElement) {
-          logError(ERROR_TYPES.MAP_INIT, new Error('Map container element not found'));
+          console.error('[RasterCompare] Container do mapa não encontrado');
           return;
         }
 
@@ -352,7 +351,7 @@ export default {
 
         this.mapsInitialized = true;
       } catch (error) {
-        logError(ERROR_TYPES.MAP_INIT, error);
+        console.error('[RasterCompare] Erro na inicialização do mapa:', error);
       }
     },
 
@@ -402,7 +401,7 @@ export default {
           this.sideBySideControl = this.$L.control.sideBySide(this.leftLayer, this.rightLayer);
           this.sideBySideControl.addTo(this.map);
         } catch (error) {
-          logError(ERROR_TYPES.SIDE_BY_SIDE_CONTROL, error);
+          console.error('[RasterCompare] Erro no controle side-by-side:', error);
         }
       }
     },
@@ -483,7 +482,7 @@ export default {
     createWmsLayer(layer, customZIndex = null) {
       try {
         if (!validateWmsLayer(layer)) {
-          logError(ERROR_TYPES.LAYER_CREATION, new Error('Invalid WMS layer data'));
+          console.error('[RasterCompare] Dados inválidos da camada WMS:', layer);
           return null;
         }
 
@@ -494,7 +493,7 @@ export default {
         this.setupLayerEventHandlers(wmsLayer);
         return wmsLayer;
       } catch (error) {
-        logError(ERROR_TYPES.LAYER_CREATION, error, { layerType: 'WMS', layerId: layer.id });
+        console.error('[RasterCompare] Erro na criação da camada WMS:', error, layer);
         return null;
       }
     },
@@ -502,7 +501,7 @@ export default {
     createTmsLayer(layer, customZIndex = null) {
       try {
         if (!validateTmsLayer(layer)) {
-          logError(ERROR_TYPES.LAYER_CREATION, new Error('Invalid TMS layer data'));
+          console.error('[RasterCompare] Dados inválidos da camada TMS:', layer);
           return null;
         }
 
@@ -512,7 +511,7 @@ export default {
         this.setupLayerEventHandlers(tmsLayer);
         return tmsLayer;
       } catch (error) {
-        logError(ERROR_TYPES.LAYER_CREATION, error, { layerType: 'TMS', layerId: layer.id });
+        console.error('[RasterCompare] Erro na criação da camada TMS:', error, layer);
         return null;
       }
     },
