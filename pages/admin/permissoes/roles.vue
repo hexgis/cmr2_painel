@@ -127,7 +127,7 @@ export default {
       console.error('Erro ao carregar dados:', error);
       this.$store.commit('alert/addAlert', {
         timeout: 5000,
-        message: 'Erro ao carregar dados dos papéis',
+        message: 'Erro ao carregar dados dos perfis',
       });
     } finally {
       this.loadingRoles = false;

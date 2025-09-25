@@ -123,7 +123,7 @@
               Dados Cadastrais
             </v-tab>
             <v-tab class="text-capitalize">
-              Registro de Acessos do Usuário e seus Papéis de Acesso
+              Registro de Acessos do Usuário e seus perfis de Acesso
             </v-tab>
           </v-tabs>
 
@@ -307,7 +307,7 @@
 
                 <!-- Role Changes Table -->
                 <h3 class="mb-3">
-                  Histórico de Alterações de Papéis de Acesso
+                  Histórico de Alterações de Perfis de Acesso
                 </h3>
                 <v-data-table
                   :headers="roleChangesHeaders"
@@ -1352,7 +1352,7 @@ export default {
         console.error('Erro ao carregar roles:', error);
         this.$store.commit('alert/addAlert', {
           timeout: 5000,
-          message: 'Erro ao carregar papéis',
+          message: 'Erro ao carregar perfis',
         });
       } finally {
         this.loadingRoles = false;
@@ -1460,7 +1460,7 @@ export default {
           // Notificação de sucesso detalhada
           this.$store.commit('alert/addAlert', {
             timeout: 5000,
-            message: `Usuário "${this.newUser.username}" foi criado com sucesso! ${this.newUser.roles.length > 0 ? `Papéis atribuídos: ${this.newUser.roles.map((r) => r.name).join(', ')}.` : ''}`,
+            message: `Usuário "${this.newUser.username}" foi criado com sucesso! ${this.newUser.roles.length > 0 ? `Perfis atribuídos: ${this.newUser.roles.map((r) => r.name).join(', ')}.` : ''}`,
           });
         }
       } catch (error) {
@@ -1718,7 +1718,7 @@ export default {
 
       // Role Changes
       const finalY = doc.lastAutoTable.finalY + 20;
-      doc.text('Histórico de Alterações de Papéis', 15, finalY);
+      doc.text('Histórico de Alterações de Perfis', 15, finalY);
 
       autoTable(doc, {
         startY: finalY + 10,
@@ -1763,7 +1763,7 @@ export default {
         loginHeaders.join(','),
         ...loginRows.map((row) => row.join(',')),
         '',
-        'HISTÓRICO DE ALTERAÇÕES DE PAPÉIS',
+        'HISTÓRICO DE ALTERAÇÕES DE PERFIS',
         roleHeaders.join(','),
         ...roleRows.map((row) => row.join(',')),
       ].join('\n');
