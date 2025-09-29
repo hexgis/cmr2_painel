@@ -96,8 +96,49 @@ export const getters = {
 };
 
 export const mutations = {
+  // === LOADING STATES ===
   setLoadingLandUse(state, payload) {
     state.loadingLandUse = payload;
+  },
+
+  setLoadingFeatures(state, payload) {
+    state.isLoadingFeatures = payload;
+  },
+
+  setLoadingTable(state, payload) {
+    state.isLoadingTable = payload;
+  },
+
+  setLoadingCSV(state, payload) {
+    state.isLoadingCSV = payload;
+  },
+
+  // === DATA MUTATIONS ===
+  setFeatures(state, features) {
+    state.features = features;
+    state.isLoadingFeatures = false;
+  },
+
+  setTableLandUse(state, data) {
+    state.tableLandUse = data;
+  },
+
+  // === FILTER MUTATIONS ===
+  setFilters(state, filters) {
+    state.filters = { ...state.filters, ...filters };
+  },
+
+  setFilterOptions(state, data) {
+    state.filterOptions = data;
+  },
+
+  // === URL MUTATIONS ===
+  setUrlWmsLandUse(state, url) {
+    state.urlWmsLandUse = url;
+  },
+
+  setUrlCurrentWmsLandUse(state, url) {
+    state.currentUrlWmsLandUse = url;
   },
 
   resetLegendVisibility(state) {
@@ -113,25 +154,11 @@ export const mutations = {
   setshowFeaturesLandUse(state, showFeaturesLandUse) {
     state.showFeaturesLandUse = showFeaturesLandUse;
   },
-  setLoadingFeatures(state, payload) {
-    state.isLoadingFeatures = payload;
-  },
-  setFilterOptions(state, data) {
-    state.filterOptions = data;
-  },
+
   setOpacity(state, opacity) {
     state.opacity = opacity;
   },
-  setFilters(state, filters) {
-    state.filters = { ...state.filters, ...filters };
-  },
-  setUrlCurrentWmsLandUse(state, url) {
-    state.currentUrlWmsLandUse = url;
-  },
-  setFeatures(state, features) {
-    state.features = features;
-    state.isLoadingFeatures = false;
-  },
+
   clearFeatures(state) {
     state.features = null;
   },
@@ -143,24 +170,14 @@ export const mutations = {
       }
     });
   },
-  setTableLandUse(state, data) {
-    state.tableLandUse = data;
-  },
-  setLoadingTable(state, payload) {
-    state.isLoadingTable = payload;
-  },
-  setLoadingCSV(state, payload) {
-    state.isLoadingCSV = payload;
-  },
+
   setLegendVisibility(state, { estagio, visible }) {
     Vue.set(state.legendVisibility, estagio, visible);
   },
   setAvailableEstagios(state, estagios) {
     state.availableEstagios = estagios;
   },
-  setUrlWmsLandUse(state, url) {
-    state.urlWmsLandUse = url;
-  },
+
 };
 
 export const actions = {
