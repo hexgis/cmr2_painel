@@ -280,7 +280,8 @@ export const actions = {
         response.Legend[0].rules.forEach((rule) => {
           if (rule.filter && rule.name) {
             const estagioMatch = rule.filter.match(/no_estagio\s*=\s*['"]?([^'"]+)['"]?/);
-            const fillColor = (rule.symbolizers[0] && rule.symbolizers[0].Polygon && rule.symbolizers[0].Polygon.fill) || null;
+            const symbolizer = rule.symbolizers[0];
+            const fillColor = (symbolizer && symbolizer.Polygon && symbolizer.Polygon.fill) || null;
             if (estagioMatch && estagioMatch[1] && fillColor) {
               styles[estagioMatch[1]] = fillColor;
             }
