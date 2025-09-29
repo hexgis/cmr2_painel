@@ -5,7 +5,7 @@ const { stringify } = require('wkt');
 export const state = () => ({
   features: null,
   urlWmsLandUse: '',
-  geoserverLayerLandUse: process.env.GEOSERVER_LAND_USE || 'CMR-PUBLICO:img_analise_consolidado_oneatlas_dissolvido_por_estagio_a',
+  geoserverLayerLandUse: process.env.GEOSERVER_LAND_USE,
   currentUrlWmsLandUse: '',
   showFeaturesLandUse: false,
   LandUseWmsOptions: {
@@ -301,7 +301,10 @@ export const actions = {
     }
   },
 
-  async generateUrlWmsLandUse({ state, commit }) {
+  async generateUrlWmsLandUse({ state, commit, dispatch }) {
+    if (!state.urlWmsLandUse) {
+      await dispatch('initializeGeoserverUrl');
+    }
     const params = {
       layers: state.geoserverLayerLandUse,
       env: `fill-opacity:${state.opacity / 100}`,
@@ -420,6 +423,9 @@ export const actions = {
   },
 
   async getFeatures({ state, commit, dispatch }) {
+    if (!state.urlWmsLandUse) {
+      await dispatch('initializeGeoserverUrl');
+    }
     commit('setUrlCurrentWmsLandUse', '');
     commit('setLoadingLandUse', true);
     commit('clearFeatures');
@@ -589,7 +595,10 @@ export const actions = {
     }
   },
 
-  async downloadGeoJsonLandUse({ commit, state }) {
+  async downloadGeoJsonLandUse({ commit, state, dispatch }) {
+    if (!state.urlWmsLandUse) {
+      await dispatch('initializeGeoserverUrl');
+    }
     commit('setLoadingLandUse', true);
     try {
       const params = {
