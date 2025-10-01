@@ -225,6 +225,7 @@ export default {
         this.openDrawer();
       }
     });
+    this.initializeMethods();
   },
 
   beforeDestroy() {
