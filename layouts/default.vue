@@ -198,6 +198,10 @@ export default {
         this.windowWidth = window.innerWidth;
       }
     },
+
+    user() {
+      this.initializeMethods();
+    },
   },
 
   async created() {
@@ -208,8 +212,6 @@ export default {
       if (needsCheck) {
         await this.checkPrivacyAgreement();
       }
-      await this.$store.dispatch('admin/fetchPendingRequestsCount');
-      await this.$store.dispatch('userProfile/checkUnreadNews');
     }
   },
 
@@ -223,6 +225,7 @@ export default {
         this.openDrawer();
       }
     });
+    this.initializeMethods();
   },
 
   beforeDestroy() {
@@ -289,6 +292,11 @@ export default {
 
     updateWindowWidth() {
       this.windowWidth = window.innerWidth;
+    },
+
+    async initializeMethods() {
+      await this.$store.dispatch('admin/fetchPendingRequestsCount');
+      await this.$store.dispatch('userProfile/checkUnreadNews');
     },
 
     ...mapMutations('userProfile', ['openDrawer', 'closeDrawer']),

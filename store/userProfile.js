@@ -98,6 +98,7 @@ export const actions = {
   },
 
   async checkUnreadNews({ commit, state }) {
+    if (!state.user) return;
     const userId = state.user.id || 'defaultUser';
     const savedReadNews = localStorage.getItem(`readNews_${userId}`);
     const readNews = savedReadNews ? JSON.parse(savedReadNews) : [];
