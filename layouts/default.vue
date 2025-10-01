@@ -208,7 +208,7 @@ export default {
       if (needsCheck) {
         await this.checkPrivacyAgreement();
       }
-      await this.$store.dispatch('userProfile/fetchPendingRequestsCount');
+      await this.$store.dispatch('admin/fetchPendingRequestsCount');
       await this.$store.dispatch('userProfile/checkUnreadNews');
     }
   },
