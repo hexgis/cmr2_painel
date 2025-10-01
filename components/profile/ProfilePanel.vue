@@ -261,7 +261,8 @@ export default {
       },
     },
 
-    ...mapState('userProfile', ['user', 'pendingRequestsCount', 'showAllNews']),
+    ...mapState('userProfile', ['user', 'showAllNews']),
+    ...mapState('admin', ['pendingRequestsCount']),
     ...mapGetters('auth', ['isLoggedIn']),
   },
 
@@ -272,12 +273,6 @@ export default {
 
     settingsOpened(value) {
       this.$emit('update', value);
-    },
-
-    isLoggedIn(newVal) {
-      if (newVal) {
-        this.checkUnreadNews();
-      }
     },
   },
 
@@ -318,7 +313,6 @@ export default {
     },
 
     ...mapActions('auth', ['logout']),
-    ...mapActions('userProfile', ['checkUnreadNews']),
   },
 
 };
