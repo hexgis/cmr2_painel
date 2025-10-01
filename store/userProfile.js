@@ -10,6 +10,9 @@ export const state = () => ({
     allReadChecked: false,
     showAllNews: false,
   },
+  pendingRequestsCount: 0,
+  newsOpened: false,
+  showAllNews: false,
 });
 
 export const mutations = {
@@ -29,6 +32,18 @@ export const mutations = {
       ...item,
       id: item.id || `news-${index}`,
     }));
+  },
+
+  setPendingRequestsCount(state, count) {
+    state.pendingRequestsCount = count;
+  },
+
+  setNewsOpened(state, opened) {
+    state.newsOpened = opened;
+  },
+
+  setShowAllNews(state, showAll) {
+    state.showAllNews = showAll;
   },
 
   setReadNews(state, readNews) {
@@ -86,34 +101,38 @@ export const actions = {
       throw error; // Rejeita a promise com o erro para quem chamou
     }
   },
-  // };
 
-  // getUserData({ commit }) {
-  // return await this.$api.$get('user-profile/logged').then((data) => {
-  //     commit('setUser', {
-  //         user: data,
-  //     })
-  // })
-  //     commit('setUser', {
-  //       user: {
-  //         email: 'root@hex360.com.br',
-  //         first_name: 'Usuario',
-  //         id: 1,
-  //         last_name: 'Teste',
-  //         username: 'root',
-  //         user_staff: true,
-  //         settings: {
-  //           map_zoom_buttons_visible: true,
-  //           drawer_open_on_init: true,
-  //           map_search_button_visible: true,
-  //           map_scale_visible: true,
-  //           minimap_visible: true,
-  //           map_pointer_coordinates_visible: true,
-  //         },
-  //       },
-  //     });
-  //   },
+  async fetchPendingRequestsCount({ commit, state }) {
+    try {
+      if (!state.user) {
+        commit('setPendingRequestsCount', 0);
+        return
+      }
+      const { data } = await this.$api.get(`/user/restricted-access/pending-count/`);
+      commit('setPendingRequestsCount', data.count || 0);
+    } catch (error) {
+      commit('setPendingRequestsCount', 0);
+    }
+  },
 
+  async checkUnreadNews({ commit, state }) {
+    const userId = state.user.id || 'defaultUser';
+    const savedReadNews = localStorage.getItem(`readNews_${userId}`);
+    const readNews = savedReadNews ? JSON.parse(savedReadNews) : [];
+
+    try {
+      const response = await this.$api.get('/api/news/');
+      const allNews = response.data || [];
+      const unreadNews = allNews.filter((news) => !readNews.includes(news.id));
+
+      if (unreadNews.length > 0) {
+        commit('setShowAllNews', false);
+        commit('setNewsOpened', true);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar notícias não lidas:', error);
+    }
+  },
 
   async loadNews({ commit }) {
     commit('setNewsLoading', true);
