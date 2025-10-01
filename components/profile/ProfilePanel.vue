@@ -181,9 +181,9 @@
     <ProfileNews
       v-if="newsOpened"
       v-model="newsOpened"
-      :userId="user?.id || 'defaultUser'"
-      :showAllNews="showAllNews"
-      @onDialogClose="newsOpened = false"
+      :user-id="user.id || 'defaultUser'"
+      :show-all-news="showAllNews"
+      @onDialogClose="$store.commit('userProfile/setNewsOpened', false)"
     />
   </div>
 </template>
@@ -227,7 +227,7 @@ export default {
 
   components: {
     ProfilePanelSettings,
-    ProfileNews
+    ProfileNews,
   },
 
   model: {
@@ -244,11 +244,27 @@ export default {
 
   data: () => ({
     settingsOpened: false,
-    newsOpened: false,
-    showAllNews: false,
     hasAnalytics: process.env.ANALYTICS === 'true',
-    pendingRequestsCount: 0,
   }),
+
+  computed: {
+    hasFirstOrLastName() {
+      return this.user && (this.user.first_name || this.user.last_name);
+    },
+
+    newsOpened: {
+      get() {
+        return this.$store.state.userProfile.newsOpened;
+      },
+      set(value) {
+        this.$store.commit('userProfile/setNewsOpened', value);
+      },
+    },
+
+    ...mapState('userProfile', ['user', 'showAllNews']),
+    ...mapState('admin', ['pendingRequestsCount']),
+    ...mapGetters('auth', ['isLoggedIn']),
+  },
 
   watch: {
     settings(value) {
@@ -258,30 +274,13 @@ export default {
     settingsOpened(value) {
       this.$emit('update', value);
     },
-
-    isLoggedIn(newVal) {
-      if (newVal) {
-        this.checkUnreadNews();
-      }
-    },
-  },
-
-  async mounted() {
-    if (this.isLoggedIn && this.user) {
-      await this.fetchPendingRequestsCount();
-      this.checkUnreadNews();
-    }
   },
 
   methods: {
     userCanAccess(componentKey) {
-      if (this.user?.is_superuser || this.user?.is_staff) {
-        return true;
-      }
-      if (!componentKey) {
-        return true;
-      }
-      return this.user?.components?.[componentKey] === true;
+      if (this.user.is_superuser || this.user.is_staff) return true;
+      if (!componentKey) return true;
+      return this.user.components[componentKey] === true;
     },
 
     goToAdmin() {
@@ -293,50 +292,15 @@ export default {
     },
 
     openNews() {
-      this.showAllNews = true;
-      this.newsOpened = true;
+      this.$store.commit('userProfile/setShowAllNews', true);
+      this.$store.commit('userProfile/setNewsOpened', true);
     },
 
     openSettings() {
       this.settingsOpened = true;
     },
 
-    async checkUnreadNews() {
-      const userId = this.user?.id || 'defaultUser';
-      const savedReadNews = localStorage.getItem(`readNews_${userId}`);
-      const readNews = savedReadNews ? JSON.parse(savedReadNews) : [];
-
-      try {
-        const response = await this.$axios.get('/api/news/');
-        const allNews = response.data || [];
-        const unreadNews = allNews.filter((news) => !readNews.includes(news.id));
-
-        if (unreadNews.length > 0) {
-          this.showAllNews = false;
-          this.newsOpened = true;
-        }
-      } catch (error) {
-        console.error('Erro ao verificar notícias não lidas:', error);
-      }
-    },
-
-    async fetchPendingRequestsCount() {
-      try {
-        if (!this.user) {
-          this.pendingRequestsCount = 0;
-          return;
-        }
-        const url = `/user/restricted-access/pending-count/`;
-        const response = await this.$axios.get(url);
-        this.pendingRequestsCount = response.data.count || 0;
-      } catch (error) {
-        console.error('Erro ao buscar contador de solicitações pendentes:', error);
-        this.pendingRequestsCount = 0;
-      }
-    },
-
     async goToMain() {
-      await this.fetchPendingRequestsCount();
       this.$router.replace(this.localePath('/'));
     },
 
@@ -351,13 +315,6 @@ export default {
     ...mapActions('auth', ['logout']),
   },
 
-  computed: {
-    hasFirstOrLastName() {
-      return this.user && (this.user.first_name || this.user.last_name);
-    },
-    ...mapState('userProfile', ['user']),
-    ...mapGetters('auth', ['isLoggedIn']),
-  },
 };
 </script>
 

@@ -208,6 +208,8 @@ export default {
       if (needsCheck) {
         await this.checkPrivacyAgreement();
       }
+      await this.$store.dispatch('admin/fetchPendingRequestsCount');
+      await this.$store.dispatch('userProfile/checkUnreadNews');
     }
   },
 
@@ -217,12 +219,7 @@ export default {
 
     this.$nextTick(() => {
       this.getLeafletControlRef();
-
-      if (
-        window.innerWidth > 768
-                && this.user
-                && this.user.settings.drawer_open_on_init
-      ) {
+      if (window.innerWidth > 768 && this.user && this.user.settings.drawer_open_on_init) {
         this.openDrawer();
       }
     });
@@ -233,8 +230,6 @@ export default {
   },
 
   methods: {
-    ...mapMutations('userProfile', ['openDrawer', 'closeDrawer']),
-
     async checkPrivacyAgreement() {
       if (!this.isLoggedIn) {
         return;
@@ -291,9 +286,12 @@ export default {
         });
       }
     },
+
     updateWindowWidth() {
       this.windowWidth = window.innerWidth;
     },
+
+    ...mapMutations('userProfile', ['openDrawer', 'closeDrawer']),
   },
 };
 </script>
