@@ -117,16 +117,14 @@
                   cols="12"
                   md="6"
                 >
-                  <v-combobox
+                  <v-text-field
                     v-model="formData.institution"
                     :label="$t('institution')"
-                    :items="institutionOptions"
-                    clearable
+                    :rules="[v => !!v || $t('institution-required')]"
+                    required
                     outlined
-                    :title="(
-                      formData.institution && formData.institution.text
-                    ) ? formData.institution.text : null"
-                    :menu-props="{ maxHeight: '250px', maxWidth: '320px' }"
+                    hint="Digite o nome completo da sua instituição"
+                    persistent-hint
                     @input="validateStep1"
                   />
                 </v-col>
