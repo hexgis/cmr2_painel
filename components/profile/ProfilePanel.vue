@@ -278,6 +278,7 @@ export default {
 
   methods: {
     userCanAccess(componentKey) {
+      if (!this.user) return false;
       if (this.user.is_superuser || this.user.is_staff) return true;
       if (!componentKey) return true;
       return this.user.components[componentKey] === true;
