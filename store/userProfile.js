@@ -11,7 +11,6 @@ export const state = () => ({
     showAllNews: false,
   },
   newsOpened: false,
-  showAllNews: false,
 });
 
 export const mutations = {
@@ -35,10 +34,14 @@ export const mutations = {
 
   setNewsOpened(state, opened) {
     state.newsOpened = opened;
+    const unreadNews = state.news.allNews.filter((news) => !state.news.readNews.includes(news.id));
+    if (!unreadNews.length) {
+      state.news.carouselIndex = 0;
+    }
   },
 
   setShowAllNews(state, showAll) {
-    state.showAllNews = showAll;
+    state.news.showAllNews = showAll;
   },
 
   setReadNews(state, readNews) {
@@ -59,10 +62,6 @@ export const mutations = {
 
   setAllReadChecked(state, checked) {
     state.news.allReadChecked = checked;
-  },
-
-  setShowAllNews(state, showAll) {
-    state.news.showAllNews = showAll;
   },
 
   addReadNews(state, newsId) {
@@ -168,16 +167,22 @@ export const actions = {
     }, 500);
   },
 
-  openNewsDialog({ commit, state }, showAllNews = false) {
-    commit('setShowAllNews', showAllNews);
+  openNewsDialog({ commit, state }) {
+    commit('setShowAllNews', true);
     commit('setNewsDialog', true);
 
-    const displayedNews = showAllNews
-      ? [...state.news.allNews].sort((a, b) => new Date(b.date) - new Date(a.date))
-      : state.news.allNews.filter((news) => !state.news.readNews.includes(news.id));
+    const displayedNews = [...state.news.allNews]
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     if (displayedNews.length > 0) {
-      commit('setCarouselIndex', 0);
+      commit(
+        'setCarouselIndex',
+        state.news.allNews.findIndex(
+          (news) => news.id === (displayedNews.find(
+            (n) => !state.news.readNews.includes(n.id),
+          ) || displayedNews[0]).id,
+        ) || 0,
+      );
     }
   },
 

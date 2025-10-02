@@ -182,7 +182,7 @@
       v-if="newsOpened"
       v-model="newsOpened"
       :user-id="user.id || 'defaultUser'"
-      :show-all-news="showAllNews"
+      :show-all-news="news.showAllNews"
       @onDialogClose="$store.commit('userProfile/setNewsOpened', false)"
     />
   </div>
@@ -261,7 +261,7 @@ export default {
       },
     },
 
-    ...mapState('userProfile', ['user', 'showAllNews']),
+    ...mapState('userProfile', ['user', 'news']),
     ...mapState('admin', ['pendingRequestsCount']),
     ...mapGetters('auth', ['isLoggedIn']),
   },
