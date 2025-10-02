@@ -126,6 +126,12 @@
             {{ $t('home-button') }}
           </span>
         </v-list-item>
+        <v-list-item @click="openNews()">
+          <v-icon> mdi-newspaper-variant-multiple-outline </v-icon>
+          <span class="pl-2">
+            {{ $t('news-button') }}
+          </span>
+        </v-list-item>
         <v-list-item @click="openSettings()">
           <v-icon> mdi-cog </v-icon>
           <span class="pl-2">
@@ -172,15 +178,22 @@
       v-if="settingsOpened"
       @onDialogClose="settingsOpened = false"
     />
+    <ProfileNews
+      v-if="newsOpened"
+      v-model="newsOpened"
+      :user-id="user.id || 'defaultUser'"
+      :show-all-news="news.showAllNews"
+      @onDialogClose="$store.commit('userProfile/setNewsOpened', false)"
+    />
   </div>
 </template>
 
 <i18n>
-
 {
   "en": {
     "criticisms-suggestions-tooltip": "Criticisms and suggestions",
     "profile-tooltip": "Profile",
+    "news-button": "News",
     "preferences-button": "Preferences",
     "logout-button": "Log out",
     "home-button": "Home",
@@ -190,8 +203,9 @@
     "manual-button": "Manual"
   },
   "pt-br": {
-    "criticisms-suggestions-tooltip":"Criticas e sugestões",
+    "criticisms-suggestions-tooltip": "Críticas e sugestões",
     "profile-tooltip": "Perfil",
+    "news-button": "Notícias",
     "preferences-button": "Preferências",
     "logout-button": "Sair",
     "home-button": "Início",
@@ -205,14 +219,15 @@
 
 <script>
 import { mapActions, mapState, mapGetters } from 'vuex';
-
 import ProfilePanelSettings from '@/components/profile/ProfilePanelSettings';
+import ProfileNews from '@/components/profile/ProfileNews';
 
 export default {
   name: 'ProfileButtons',
 
   components: {
     ProfilePanelSettings,
+    ProfileNews,
   },
 
   model: {
@@ -230,8 +245,26 @@ export default {
   data: () => ({
     settingsOpened: false,
     hasAnalytics: process.env.ANALYTICS === 'true',
-    pendingRequestsCount: 0,
   }),
+
+  computed: {
+    hasFirstOrLastName() {
+      return this.user && (this.user.first_name || this.user.last_name);
+    },
+
+    newsOpened: {
+      get() {
+        return this.$store.state.userProfile.newsOpened;
+      },
+      set(value) {
+        this.$store.commit('userProfile/setNewsOpened', value);
+      },
+    },
+
+    ...mapState('userProfile', ['user', 'news']),
+    ...mapState('admin', ['pendingRequestsCount']),
+    ...mapGetters('auth', ['isLoggedIn']),
+  },
 
   watch: {
     settings(value) {
@@ -243,21 +276,12 @@ export default {
     },
   },
 
-  async mounted() {
-    if (this.isLoggedIn && this.user) {
-      await this.fetchPendingRequestsCount();
-    }
-  },
-
   methods: {
     userCanAccess(componentKey) {
-      if (this.user?.is_superuser || this.user?.is_staff) {
-        return true;
-      }
-      if (!componentKey) {
-        return true;
-      }
-      return this.user?.components?.[componentKey] === true;
+      if (!this.user) return false;
+      if (this.user.is_superuser || this.user.is_staff) return true;
+      if (!componentKey) return true;
+      return this.user.components[componentKey] === true;
     },
 
     goToAdmin() {
@@ -268,31 +292,16 @@ export default {
       this.$router.push(this.localePath('/admin/area-restrita'));
     },
 
+    openNews() {
+      this.$store.commit('userProfile/setShowAllNews', true);
+      this.$store.commit('userProfile/setNewsOpened', true);
+    },
+
     openSettings() {
       this.settingsOpened = true;
     },
 
-    async fetchPendingRequestsCount() {
-      try {
-
-        if (!this.user) {
-          this.pendingRequestsCount = 0;
-          return;
-        }
-
-        const url = `/user/restricted-access/pending-count/`;
-
-        const response = await this.$axios.get(url);
-
-        this.pendingRequestsCount = response.data.count || 0;
-      } catch (error) {
-        console.error('Erro ao buscar contador de solicitações pendentes:', error);
-        this.pendingRequestsCount = 0;
-      }
-    },
-
     async goToMain() {
-      await this.fetchPendingRequestsCount();
       this.$router.replace(this.localePath('/'));
     },
 
@@ -307,13 +316,6 @@ export default {
     ...mapActions('auth', ['logout']),
   },
 
-  computed: {
-    hasFirstOrLastName() {
-      return this.user && (this.user.first_name || this.user.last_name);
-    },
-    ...mapState('userProfile', ['user']),
-    ...mapGetters('auth', ['isLoggedIn']),
-  },
 };
 </script>
 

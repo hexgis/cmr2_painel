@@ -38,6 +38,14 @@
         </v-btn>
       </template>
     </v-snackbar>
+
+    <!-- Privacy Agreement Modal -->
+    <PrivacyAgreementModal
+      v-model="showPrivacyAgreementModal"
+      @accepted="onPrivacyAgreementAccepted"
+      @rejected="onPrivacyAgreementRejected"
+    />
+
     <div>
       <v-btn
         ripple
@@ -113,18 +121,16 @@ import { mapState, mapGetters, mapMutations } from 'vuex';
 import Map from '@/components/map/Map';
 import BaseAlert from '@/components/base/BaseAlert';
 import AnalyticsPCDashboard from '@/components/analytical-cmr/AnalyticsPriorConsolidDashboard';
+import PrivacyAgreementModal from '@/components/privacy-agreement/PrivacyAgreementModal';
 
 export default {
   name: 'App',
 
-  head: () => ({
-    title: 'CMR',
-  }),
-  
   components: {
     Map,
     BaseAlert,
     AnalyticsPCDashboard,
+    PrivacyAgreementModal,
   },
 
   data: () => ({
@@ -132,6 +138,8 @@ export default {
     snackbar: true,
     timeout: 3000,
     windowWidth: 0,
+    showPrivacyAgreementModal: false,
+    privacyAgreementChecked: false,
   }),
 
   async fetch() {
@@ -141,9 +149,9 @@ export default {
     await this.$store.dispatch('map/getGeoserverConfig');
   },
 
-  created() {
-    this.$store.dispatch('supportLayers/getCategoryGroupsBase');
-  },
+  head: () => ({
+    title: 'CMR',
+  }),
 
   computed: {
     layerDrawer: {
@@ -158,6 +166,11 @@ export default {
     hasFirstOrLastName() {
       return this.user && (this.user.first_name || this.user.last_name);
     },
+
+    isCheckingPrivacyAgreement() {
+      return this.$store.state.privacyAgreement && this.$store.state.privacyAgreement.isChecking;
+    },
+
     ...mapState('userProfile', ['user', 'showDrawer']),
     ...mapState('priority', ['visualizationStage']),
     ...mapState('monitoring', ['visualizationStageMonitoring']),
@@ -166,11 +179,18 @@ export default {
   },
 
   watch: {
-    user() {
-      if (this.user && this.user.settings.drawer_open_on_init) {
-        this.openDrawer();
+    // verify term only when the user logs in (not on every change)
+    isLoggedIn(newVal, oldVal) {
+      if (newVal && !oldVal) {
+        this.privacyAgreementChecked = false;
+        this.checkPrivacyAgreement();
+      } else if (!newVal && oldVal) {
+        this.$store.dispatch('privacyAgreement/reset');
+        this.showPrivacyAgreementModal = false;
+        this.privacyAgreementChecked = false;
       }
     },
+
     windowWidth() {
       if (window.innerWidth > 768) {
         this.windowWidth = window.innerWidth;
@@ -178,6 +198,21 @@ export default {
         this.windowWidth = window.innerWidth;
       }
     },
+
+    user() {
+      this.initializeMethods();
+    },
+  },
+
+  async created() {
+    this.$store.dispatch('supportLayers/getCategoryGroupsBase');
+
+    if (this.isLoggedIn) {
+      const needsCheck = this.$store.getters['privacyAgreement/needsCheck'];
+      if (needsCheck) {
+        await this.checkPrivacyAgreement();
+      }
+    }
   },
 
   mounted() {
@@ -186,15 +221,11 @@ export default {
 
     this.$nextTick(() => {
       this.getLeafletControlRef();
-
-      if (
-        window.innerWidth > 768
-                && this.user
-                && this.user.settings.drawer_open_on_init
-      ) {
+      if (window.innerWidth > 768 && this.user && this.user.settings.drawer_open_on_init) {
         this.openDrawer();
       }
     });
+    this.initializeMethods();
   },
 
   beforeDestroy() {
@@ -202,7 +233,47 @@ export default {
   },
 
   methods: {
-    ...mapMutations('userProfile', ['openDrawer', 'closeDrawer']),
+    async checkPrivacyAgreement() {
+      if (!this.isLoggedIn) {
+        return;
+      }
+
+      if (this.privacyAgreementChecked) {
+        return;
+      }
+
+      const needsCheck = this.$store.getters['privacyAgreement/needsCheck'];
+
+      if (!needsCheck) {
+        this.privacyAgreementChecked = true;
+        return;
+      }
+
+      try {
+        this.privacyAgreementChecked = true;
+
+        const hasAccepted = await this.$store.dispatch('privacyAgreement/checkStatus');
+
+        if (!hasAccepted) {
+          this.showPrivacyAgreementModal = true;
+        }
+      } catch (error) {
+        if (this.$store.state.privacyAgreement.hasAccepted === null) {
+          this.showPrivacyAgreementModal = true;
+        }
+      }
+    },
+
+    onPrivacyAgreementAccepted() {
+      this.showPrivacyAgreementModal = false;
+      this.$store.dispatch('privacyAgreement/markAsAccepted');
+    },
+
+    onPrivacyAgreementRejected() {
+      this.showPrivacyAgreementModal = false;
+      this.$store.dispatch('privacyAgreement/markAsRejected');
+    },
+
     getLeafletControlRef() {
       this.leafletRightControl = document.getElementsByClassName('leaflet-right');
     },
@@ -218,9 +289,17 @@ export default {
         });
       }
     },
+
     updateWindowWidth() {
       this.windowWidth = window.innerWidth;
     },
+
+    async initializeMethods() {
+      await this.$store.dispatch('admin/fetchPendingRequestsCount');
+      await this.$store.dispatch('userProfile/checkUnreadNews');
+    },
+
+    ...mapMutations('userProfile', ['openDrawer', 'closeDrawer']),
   },
 };
 </script>

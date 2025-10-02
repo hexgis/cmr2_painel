@@ -12,19 +12,27 @@
         <v-card-title class="pa-0">
           <v-row
             no-gutters
-            class="fundo-primary pa-1"
+            class="fundo-primary pa-2 d-flex align-center"
           >
             <v-spacer />
-            <v-btn
-              icon
-              x-small
-              color="white"
-              @click="$refs.popup.mapObject.closePopup()"
-            >
-              <v-icon small>
-                mdi-close
-              </v-icon>
-            </v-btn>
+            <!-- Enhanced close button -->
+            <v-tooltip bottom>
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  v-bind="attrs"
+                  icon
+                  x-small
+                  color="white"
+                  v-on="on"
+                  @click="$refs.popup.mapObject.closePopup()"
+                >
+                  <v-icon small>
+                    mdi-close
+                  </v-icon>
+                </v-btn>
+              </template>
+              <span>{{ $t('close') }}</span>
+            </v-tooltip>
           </v-row>
         </v-card-title>
         <v-tabs
@@ -41,6 +49,61 @@
               :key="layerName"
               class="fill-height"
             >
+              <!-- Export buttons section for this specific layer -->
+              <div
+                v-if="layerDownloadMap[layerName] && layerData.layers.length"
+                class="d-flex justify-end pa-2 bg-grey-lighten-4 border-bottom"
+              >
+                <span class="text-caption mr-2 align-self-center">{{ $t('export') }}:</span>
+                <v-tooltip bottom>
+                  <template #activator="{ on, attrs }">
+                    <v-btn
+                      fab
+                      x-small
+                      color="success"
+                      elevation="1"
+                      class="mr-1"
+                      :loading="isDownloadingLayer(layerName, 'csv')"
+                      :disabled="isDownloading"
+                      v-bind="attrs"
+                      v-on="on"
+                      @click="downloadFeatureData(layerName, layerData, 'csv')"
+                    >
+                      <v-icon
+                        small
+                        color="white"
+                      >
+                        mdi-file-table-outline
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t('export-csv') }}</span>
+                </v-tooltip>
+                <v-tooltip bottom>
+                  <template #activator="{ on, attrs }">
+                    <v-btn
+                      fab
+                      x-small
+                      color="primary"
+                      elevation="1"
+                      :loading="isDownloadingLayer(layerName, 'json')"
+                      :disabled="isDownloading"
+                      v-bind="attrs"
+                      v-on="on"
+                      @click="downloadFeatureData(layerName, layerData, 'json')"
+                    >
+                      <v-icon
+                        small
+                        color="white"
+                      >
+                        mdi-code-json
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t('export-json') }}</span>
+                </v-tooltip>
+              </div>
+
               <v-card-text style="max-height: 312px; overflow-y: auto">
                 <template v-for="(feature, i) in layerData.layers">
                   <v-row
@@ -148,27 +211,16 @@
                   </v-card>
                 </template>
                 <template v-if="layerData.loading">
-                  <v-row
-                    v-for="i in 3"
-                    :key="i"
-                    dense
-                  >
-                    <v-col
-                      cols="5"
-                      class="text-right"
-                    >
-                      <v-skeleton-loader
-                        class="pt-1"
-                        type="text"
-                      />
-                    </v-col>
-                    <v-col cols="7">
-                      <v-skeleton-loader
-                        class="pt-1"
-                        type="text"
-                      />
-                    </v-col>
-                  </v-row>
+                  <div class="text-center py-4">
+                    <v-progress-circular
+                      indeterminate
+                      color="primary"
+                      size="32"
+                    />
+                    <p class="text-caption mt-2 mb-0">
+                      {{ $t('loading-data') }}
+                    </p>
+                  </div>
                 </template>
                 <div v-else-if="!layerData.layers.length">
                   {{ $t('no-data') }}
@@ -186,11 +238,25 @@
   {
       "en": {
           "no-data": "There's no data at this point for the selected layer.",
-          "layer-api-error": "Unable to acquire support layer information."
+          "layer-api-error": "Unable to acquire support layer information.",
+          "export": "Export",
+          "export-csv": "Export CSV",
+          "export-json": "Export JSON",
+          "close": "Close",
+          "loading-data": "Loading data...",
+          "download-success": "Download completed successfully",
+          "download-error": "Download failed"
       },
       "pt-br": {
           "no-data": "Não há dados nesse ponto para a camada selecionada.",
-          "layer-api-error": "Não foi possível resgatar as informações das camadas de apoio."
+          "layer-api-error": "Não foi possível resgatar as informações das camadas de apoio.",
+          "export": "Exportar",
+          "export-csv": "Exportar CSV",
+          "export-json": "Exportar JSON",
+          "close": "Fechar",
+          "loading-data": "Carregando dados...",
+          "download-success": "Download concluído com sucesso",
+          "download-error": "Falha no download"
       }
   }
 </i18n>
@@ -198,6 +264,7 @@
 <script>
 import { mapState } from 'vuex';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import { stringify } from 'wkt';
 import LoadingIconVue from '../map/file-loader/LoadingIcon.vue';
 
 export default {
@@ -216,9 +283,13 @@ export default {
   data: () => ({
     hasPopup: false,
     popup: null,
-    data: null,
+    data: {},
     loadingData: false,
     currentLatLng: '',
+    isDownloading: false,
+    currentDownloadFormat: null,
+    currentDownloadLayer: null,
+    layerDownloadMap: {},
     customTextParts: [
       {
         bold: 'Data T0*: ',
@@ -230,7 +301,6 @@ export default {
       },
     ],
     fieldConfig: {
-      // Campos que devem ser ignorados
       excludedFields: [
         'bbox',
         'path',
@@ -241,8 +311,8 @@ export default {
         'ranking',
         'id_cr',
         'id_ti',
+        'geometry_wkt',
       ],
-      // Substituições completas de nomes de campos
       fieldNames: {
         nu_buffer_distancia: 'Buffer Distância',
         co_funai: 'Código Funai',
@@ -439,9 +509,26 @@ export default {
         this.map.on('click', this.getFeatureInfo, this);
       }
     },
+
+    data: {
+      handler(newData) {
+        if (newData) {
+          this.$nextTick(() => {
+            this.$forceUpdate();
+          });
+        }
+      },
+      deep: true,
+    },
   },
 
   methods: {
+    isDownloadingLayer(layerName, format) {
+      return this.isDownloading
+        && this.currentDownloadFormat === format
+        && this.currentDownloadLayer === layerName;
+    },
+
     shouldDisplayField(field) {
       return !this.fieldConfig.excludedFields.some(
         (excluded) => field.toLowerCase().includes(excluded),
@@ -523,11 +610,11 @@ export default {
         if (isLatLongField) {
           return value.toFixed(5);
         }
+        let numericValue = value;
         if (typeof value === 'string') {
-          // eslint-disable-next-line no-param-reassign
-          value = parseFloat(value);
+          numericValue = parseFloat(value);
         }
-        const rounded = value.toFixed(2);
+        const rounded = numericValue.toFixed(2);
         const [intPart, decimalPart] = rounded.split('.');
 
         return decimalPart !== '00'
@@ -555,17 +642,38 @@ export default {
     async getFeatureInfo(evt) {
       this.hasPopup = false;
       this.data = {};
+      this.layerDownloadMap = {}; // Limpar mapa de download
       this.currentLatLng = evt.latlng;
+
+      console.log('Iniciando busca por informações no ponto:', this.currentLatLng);
 
       await this.map.eachLayer(async (layer) => {
         if (Object.prototype.hasOwnProperty.call(layer, 'wmsParams')) {
+          console.log('Processando camada WMS:', layer.wmsParams.name, layer.wmsParams.layers);
           this.hasPopup = true;
           const layerName = layer.wmsParams.name;
+
+          let hasDownload = false;
+
+          // Try from main layer
+          if (layer.options && layer.options.hasDownload) {
+            hasDownload = layer.options.hasDownload;
+          } else if (layer.wmsParams && layer.wmsParams.hasDownload) {
+            // Try from wmsParams
+            hasDownload = layer.wmsParams.hasDownload;
+          } else if (layer.hasDownload) {
+            // Try from custom properties
+            hasDownload = layer.hasDownload;
+          }
+
+          this.layerDownloadMap[layerName] = hasDownload;
+
           this.data[layerName] = {
             layers: [],
             loading: true,
           };
           const url = this.getFeatureInfoUrl(evt.latlng, layer);
+
           this.loadingData = true;
           this.$axios
             .get(url)
@@ -573,9 +681,16 @@ export default {
               if (data && data.features && data.features.length) {
                 // eslint-disable-next-line no-restricted-syntax
                 for (const feature of data.features) {
-                  this.data[layerName].layers.push(
-                    feature.properties,
-                  );
+                  const enrichedProperties = { ...feature.properties };
+
+                  if (feature.geometry) {
+                    try {
+                      enrichedProperties.geometry_wkt = stringify(feature.geometry);
+                    } catch (error) {
+                      enrichedProperties.geometry_wkt = null;
+                    }
+                  }
+                  this.data[layerName].layers.push(enrichedProperties);
                 }
               }
             })
@@ -648,6 +763,7 @@ export default {
       return (
         // eslint-disable-next-line no-underscore-dangle
         layer._url
+                // eslint-disable-next-line no-underscore-dangle
                 + this.$L.Util.getParamString(params, layer._url, true)
       );
     },
@@ -663,6 +779,159 @@ export default {
       } finally {
         this.loadingData = false;
       }
+    },
+
+    async downloadFeatureData(layerName, layerData, format = 'csv') {
+      if (this.isDownloading) return;
+
+      this.isDownloading = true;
+      this.currentDownloadFormat = format;
+      this.currentDownloadLayer = layerName;
+      try {
+        const features = layerData && layerData.layers;
+
+        const sanitizedLayerName = layerName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const timestamp = new Date().toISOString().split('T')[0];
+
+        let downloadData;
+        let filename;
+        let mimeType;
+
+        if (format === 'csv') {
+          downloadData = this.generateCSV(features);
+          filename = `${sanitizedLayerName}_${timestamp}.csv`;
+          mimeType = 'text/csv;charset=utf-8;';
+        } else {
+          downloadData = this.generateJSON(features, layerName);
+          filename = `${sanitizedLayerName}_${timestamp}.json`;
+          mimeType = 'application/json;charset=utf-8;';
+        }
+
+        if (!downloadData) {
+          throw new Error('Failed to generate download data');
+        }
+
+        await this.downloadFile(downloadData, filename, mimeType);
+
+        this.$store.commit('alert/addAlert', {
+          message: this.$t('download-success'),
+          type: 'success',
+        });
+      } catch (error) {
+        console.error('Erro no download:', error);
+        this.$store.commit('alert/addAlert', {
+          message: this.$t('download-error'),
+          type: 'error',
+        });
+      } finally {
+        this.isDownloading = false;
+        this.currentDownloadFormat = null;
+        this.currentDownloadLayer = null;
+      }
+    },
+
+    downloadFile(data, filename, mimeType) {
+      return new Promise((resolve, reject) => {
+        try {
+          let blob;
+
+          if (filename.endsWith('.csv')) {
+            const BOM = '\uFEFF';
+            const csvData = BOM + data;
+            blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+          } else {
+            blob = new Blob([data], { type: mimeType });
+          }
+
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+
+          link.setAttribute('href', url);
+          link.setAttribute('download', filename);
+          link.style.visibility = 'hidden';
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    },
+
+    generateCSV(features) {
+      if (!features || features.length === 0) return '';
+
+      try {
+        const allKeys = new Set();
+        features.forEach((feature) => {
+          if (feature && typeof feature === 'object') {
+            Object.keys(feature).forEach((key) => allKeys.add(key));
+          }
+        });
+
+        if (allKeys.size === 0) return '';
+
+        const headers = Array.from(allKeys);
+
+        const csvHeaders = headers.map((header) => this.escapeCSVValue(header)).join(',');
+
+        const csvRows = features.map((feature) => headers.map((header) => {
+          const value = feature[header];
+          return this.escapeCSVValue(value);
+        }).join(',')).join('\n');
+
+        const csvContent = `${csvHeaders}\n${csvRows}`;
+
+        return csvContent;
+      } catch (error) {
+        return '';
+      }
+    },
+
+    escapeCSVValue(value) {
+      if (value === null || value === undefined) return '';
+
+      const stringValue = String(value);
+
+      let escapedValue = stringValue.replace(/"/g, '""');
+
+      if (escapedValue.includes(',') || escapedValue.includes('\n')
+          || escapedValue.includes('\r') || stringValue.includes('"')) {
+        escapedValue = `"${escapedValue}"`;
+      }
+
+      return escapedValue;
+    },
+
+    generateJSON(features, layerName) {
+      const exportData = {
+        layer: layerName,
+        exportDate: new Date().toISOString(),
+        coordinates: this.currentLatLng ? {
+          lat: this.currentLatLng.lat,
+          lng: this.currentLatLng.lng,
+        } : null,
+        totalFeatures: features.length,
+        features: features.map((feature) => {
+          const result = {
+            properties: { ...feature },
+          };
+
+          if (feature.geometry_wkt) {
+            result.geometry_wkt = feature.geometry_wkt;
+            delete result.properties.geometry_wkt;
+          }
+
+          return result;
+        }),
+      };
+
+      return JSON.stringify(exportData, null, 2);
     },
   },
 };
@@ -692,4 +961,55 @@ export default {
 .v-card-text
   .v-row:not(:last-child)
     margin-bottom: 4px
+
+.close-btn
+  transition: all 0.3s ease
+  &:hover
+    background-color: rgba(255, 255, 255, 0.2) !important
+    transform: scale(1.05)
+
+.fundo-primary
+  .v-btn--fab.v-size--x-small
+    transition: all 0.2s ease
+    &:hover
+      transform: scale(1.1)
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important
+
+    &.v-btn--loading
+      transform: none
+
+    &.v-btn--disabled
+      opacity: 0.5
+      transform: none !important
+
+.v-progress-circular
+  display: inline-block
+
+.card-popup
+  border-radius: 8px !important
+
+  .v-card
+    border-radius: 8px !important
+
+  .v-tabs
+    border-radius: 0 0 8px 8px !important
+
+.text-subtitle-2
+  word-break: break-word
+  hyphens: auto
+
+.list-separator
+  &:hover
+    background-color: rgba(0, 0, 0, 0.02)
+
+@media (max-width: 600px)
+  .fundo-primary
+    padding: 8px !important
+
+    .text-caption
+      display: none
+
+    .v-btn--fab.v-size--x-small
+      width: 28px !important
+      height: 28px !important
 </style>
