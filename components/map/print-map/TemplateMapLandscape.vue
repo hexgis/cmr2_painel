@@ -13,13 +13,12 @@
       width="auto"
       @click:outside="$emit('close')"
     >
-      <v-container style="background-color: white; max-width: 100%;">
-        <div style="position: relative;">
+      <v-container class="white w-100 dialog-container">
+        <div class="d-flex justify-end">
           <v-btn
             icon
             x-small
-            class="no-print"
-            style="position: absolute; top: 10px; right: 10px; z-index: 1000"
+            class="no-print position-absolute"
             @click="$emit('close')"
           >
             <v-icon>mdi-close</v-icon>
@@ -28,7 +27,7 @@
         <v-row
           id="map-for-print"
           no-gutters
-          style="width: 1230px; height: 780px; max-height: 780px; overflow: hidden"
+          class="w-100 overflow-hidden map-print-dimensions"
         >
           <v-col
             id="monitoring-data-details"
@@ -42,7 +41,9 @@
             >
               <template
                 v-if="showFeaturesMonitoring
-                  && hasActiveMonitoringStages && selectedItemsCount >= 0 && selectedItemsCount <= 7"
+                  && hasActiveMonitoringStages
+                  && selectedItemsCount >= 0
+                  && selectedItemsCount <= 7"
               >
                 <!-- Bloco para Monitoramento -->
                 <div
@@ -144,7 +145,8 @@
               :leaf-size="leafSize"
               :main-map="mainMap"
               :selected-base-map="selectedBaseMap"
-              class="map-wrapper"
+              :dialog-visible="showDialog"
+              class="w-100"
               @updateBounds="updateBounds"
               @getCenter="getCenter"
               @getZoom="getZoom"
@@ -154,7 +156,7 @@
             cols="4"
             class="pl-1 mt-2"
           >
-            <div class="border_container">
+            <div class="h-100">
               <div class="d-flex justify-space-between pl-8 pr-8 ga-1 align-center ma-4">
                 <div style="width: 20%">
                   <v-img
@@ -171,7 +173,7 @@
                   />
                 </div>
               </div>
-              <div class="font-title pb-2">
+              <div class="text-body-1 pb-2">
                 <p>
                   {{ mapTitle }}
                 </p>
@@ -194,32 +196,12 @@
                       v-if="hasLegend"
                       class="d-block ma-1"
                     >
-                      <strong style="font-size: small">{{ $t('legend') }}</strong>
+                      <strong class="text-body-1">{{ $t('legend') }}</strong>
                     </p>
-                    <div
-                      class="ma-1 flex-wrap"
-                      style="
-                        width: 100%;
-                        max-height: 100%;
-                        overflow: hidden;
-                      "
-                    >
-                      <div
-                        style="
-                          display: flex;
-                          justify-content: flex-start;
-                          align-items: flex-start;
-                          gap: 5px;
-                        "
-                      />
+                    <div class="ma-1 flex-wrap w-100 h-100 overflow-hidden">
+                      <div class="d-flex justify-start align-start" />
 
-                      <div
-                        style="
-                          display: flex;
-                          justify-content: flex-start;
-                          align-items: flex-start;
-                          gap: 5px;"
-                      >
+                      <div class="d-flex justify-start align-start gap-1">
                         <div
                           v-if="showFeaturesMonitoring
                             && hasActiveMonitoringStages && selectedItemsCount > 0"
@@ -230,7 +212,7 @@
                               {{ monitoringCount }}
                             </v-chip>
                           </p>
-                          <hr style="border: 1px solid red; margin: 0; margin-top: 0px;">
+                          <hr class="monitoring-divider ma-0">
                           <CustomizedLegend
                             class="pt-1"
                             :items="monitoringItems"
@@ -246,7 +228,7 @@
                               {{ alertsCount }}
                             </v-chip>
                           </p>
-                          <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
+                          <hr class="alerts-divider ma-0 mt-1">
                           <CustomizedLegend
                             class="pt-1"
                             :items="alertsItems"
@@ -258,10 +240,10 @@
                             && (Object.values(supportLayers).filter(l => l.visible).length <= 7)
                             && (Object.values(supportLayerUser).filter(l => l.visible).length <= 7)"
                         >
-                          <p style="width: 120px;">
+                          <p class="overlay-title">
                             <strong>Sobreposição de camadas</strong>
                           </p>
-                          <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
+                          <hr class="support-divider ma-0 mt-1">
                           <LayerList
                             :layers="supportLayerUser"
                             :is-user-layer="true"
@@ -280,7 +262,7 @@
                               {{ tableLandUse.length }}
                             </v-chip>
                           </p>
-                          <hr style="border: 1px solid blue; margin: 0; margin-top: 0px;">
+                          <hr class="land-use-divider ma-0">
                           <CustomizedLegend
                             class="pt-1"
                             :items="landUseItems"
@@ -291,7 +273,7 @@
                           <p>
                             <strong>INPE - Prodes</strong>
                           </p>
-                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                          <hr class="inpe-divider ma-0 mt-1">
                           <CustomizedLegend
                             class="pt-1"
                             :items="prodesItems"
@@ -301,7 +283,7 @@
                           <p>
                             <strong>INPE - Deter</strong>
                           </p>
-                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                          <hr class="inpe-divider ma-0 mt-1">
                           <CustomizedLegend
                             class="pt-1"
                             :items="deterItems"
@@ -311,7 +293,7 @@
                           <p>
                             <strong>INPE - Focos de Calor</strong>
                           </p>
-                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                          <hr class="inpe-divider ma-0 mt-1">
                           <CustomizedLegend
                             class="pt-1"
                             :items="heatFocusItems.filter(item =>
@@ -439,8 +421,8 @@
             </div>
           </v-col>
         </v-row>
-        <div class="no-print">
-          <div class="d-flex flex-row align-md-center mr-6 mt-2">
+        <div class="no-print white">
+          <div class="d-flex align-center overflow-hidden mt-2">
             <v-btn
               class="ml-4 mb-2"
               @click="$emit('back')"
@@ -477,7 +459,7 @@
   </div>
 </template>
 
-<i18n>
+<i18n lang="json">
 {
   "en": {
     "print-out": "Print Out",
@@ -688,7 +670,8 @@ export default {
       });
       const addValue = (target, key, value) => {
         const updatedValue = (target[key] || 0) + (parseFloat(value) || 0);
-        target[key] = updatedValue;
+        const localTarget = target;
+        localTarget[key] = updatedValue;
       };
       const combined = {};
       const processTable = (table, type) => {
@@ -700,7 +683,9 @@ export default {
           keys[type].forEach((key) => addValue(data[type], `nu_area_${key}`, item[`nu_area_${key}`]));
         });
       };
-      if (!Array.isArray(this.tableMonitoring) || !Array.isArray(this.tableLandUse) || !Array.isArray(this.tableAlerts)) {
+      if (!Array.isArray(this.tableMonitoring)
+      || !Array.isArray(this.tableLandUse)
+      || !Array.isArray(this.tableAlerts)) {
         console.warn('tableMonitoring, tableLandUse ou tableAlerts não são arrays válidos.');
         return [];
       }
@@ -715,7 +700,8 @@ export default {
       const alertsKeys = ['cr_ha', 'dg_ha', 'dr_ha'];
       const initializeObject = (keys) => keys.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
       const addValue = (target, key, value) => {
-        target[key] += parseFloat(value) || 0;
+        const localTarget = target;
+        localTarget[key] += parseFloat(value) || 0;
       };
       if (!Array.isArray(this.combinedTableData)) {
         console.warn('combinedTableData não é um array válido.');
@@ -939,12 +925,36 @@ export default {
 
     adjustMapSizeForPrint(tamanho) {
       const mapDimensions = this.getMapDimensions(tamanho);
-      document.getElementById(
-        'map-for-print',
-      ).style.width = `${mapDimensions.width}px`;
-      document.getElementById(
-        'map-for-print',
-      ).style.height = `${mapDimensions.height}px`;
+      const mapElement = document.getElementById('map-for-print');
+      if (!mapElement) {
+        console.error('Elemento map-for-print não encontrado');
+        return;
+      }
+      const { width, height } = mapDimensions;
+      mapElement.style.setProperty('width', `${width}px`, 'important');
+      mapElement.style.setProperty('height', `${height}px`, 'important');
+      mapElement.style.setProperty('min-width', `${width}px`, 'important');
+      mapElement.style.setProperty('min-height', `${height}px`, 'important');
+      mapElement.style.setProperty('max-width', `${width}px`, 'important');
+      mapElement.style.setProperty('max-height', `${height}px`, 'important');
+      mapElement.style.setProperty('background', 'white', 'important');
+      mapElement.style.setProperty('background-color', 'white', 'important');
+      mapElement.style.setProperty('overflow', 'hidden', 'important');
+      const mapContainer = mapElement.querySelector('.leaflet-container');
+      if (mapContainer) {
+        mapContainer.style.setProperty('width', '100%', 'important');
+        mapContainer.style.setProperty('height', '100%', 'important');
+        mapContainer.style.setProperty('background', 'white', 'important');
+        mapContainer.style.setProperty('background-color', 'white', 'important');
+      }
+
+      this.$nextTick(() => {
+        const mapForPrint = this.$refs.mapForPrint || this.$children.find((child) => child.$options.name === 'MapForPrint');
+        if (mapForPrint && mapForPrint.map) {
+          mapForPrint.map.invalidateSize(true);
+          mapForPrint.map.invalidateSize(true);
+        }
+      });
     },
 
     getMapDimensions(tamanho) {
@@ -959,10 +969,56 @@ export default {
     },
 
     print() {
-      this.adjustMapSizeForPrint(this.leafSize.type);
-      const style = document.createElement('style');
-      style.setAttribute('media', 'print');
-      window.print();
+      const mapElement = document.getElementById('map-for-print');
+      if (!mapElement) {
+        console.error('Elemento map-for-print não encontrado');
+        return;
+      }
+      // Salvar estado original completo
+      const originalWidth = mapElement.style.width;
+      const originalHeight = mapElement.style.height;
+      const originalMinWidth = mapElement.style.minWidth;
+      const originalMinHeight = mapElement.style.minHeight;
+      const originalMaxWidth = mapElement.style.maxWidth;
+      const originalMaxHeight = mapElement.style.maxHeight;
+      const originalBackground = mapElement.style.background;
+      const originalBackgroundColor = mapElement.style.backgroundColor;
+      const originalOverflow = document.body.style.overflow;
+
+      const restoreOriginalState = () => {
+        // Restaurar todas as propriedades alteradas
+        mapElement.style.width = originalWidth;
+        mapElement.style.height = originalHeight;
+        mapElement.style.minWidth = originalMinWidth;
+        mapElement.style.minHeight = originalMinHeight;
+        mapElement.style.maxWidth = originalMaxWidth;
+        mapElement.style.maxHeight = originalMaxHeight;
+        mapElement.style.background = originalBackground;
+        mapElement.style.backgroundColor = originalBackgroundColor;
+        document.body.style.overflow = originalOverflow;
+        this.$nextTick(() => {
+          const mapForPrint = this.$refs.mapForPrint || this.$children.find((child) => child.$options.name === 'MapForPrint');
+          if (mapForPrint && mapForPrint.map) {
+            mapForPrint.map.invalidateSize();
+          }
+        });
+      };
+
+      try {
+        document.body.style.overflow = 'hidden';
+        this.adjustMapSizeForPrint(this.leafSize.type);
+        const afterPrintHandler = () => {
+          restoreOriginalState();
+          window.removeEventListener('afterprint', afterPrintHandler);
+        };
+        window.addEventListener('afterprint', afterPrintHandler);
+        window.print();
+        restoreOriginalState();
+        window.removeEventListener('afterprint', afterPrintHandler);
+      } catch (error) {
+        console.error('Erro durante impressão:', error);
+        restoreOriginalState();
+      }
     },
 
     async saveImage() {
@@ -981,8 +1037,9 @@ export default {
         const originalWidth = node.style.width;
         const originalHeight = node.style.height;
 
-        node.style.width = '1230px';
-        node.style.height = '780px';
+        const mapDimensions = this.getMapDimensions(this.leafSize.type);
+        node.style.width = `${mapDimensions.width}px`;
+        node.style.height = `${mapDimensions.height}px`;
 
         const options = {
           quality: 1,
@@ -1075,6 +1132,10 @@ export default {
 
 .vue-leaflet-map {
   height: 100% !important;
+  width:100% !important;
+}
+.leaflet-container {
+  width:100% !important;
 }
 
 .legend-info-map {
@@ -1166,14 +1227,9 @@ p {
   height: 100%;
 }
 
-.border_container {
-  height: 100%;
-}
-
 .hight_container_mini_map {
   height: 150px;
   max-height: 150px;
-  width: 100%;
 }
 
 .font-page p {
@@ -1200,4 +1256,116 @@ img.layer-thumbnail {
   z-index: 20;
   background: #ffffff;
 }
+.map-print-dimensions {
+  width: 100%;
+  height: 740px;
+  transition: width 0.3s ease, height 0.3s ease;
+  background: transparent !important;
+  overflow: hidden;
+}
+
+.map-print-dimensions .leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  background: transparent !important;
+}
+
+@media print {
+  .map-print-dimensions {
+    background: white !important;
+  }
+}
+
+.v-dialog {
+  overflow: hidden !important;
+}
+
+.v-dialog .v-card,
+.v-dialog .v-sheet {
+  overflow: hidden !important;
+}
+
+.v-container.white {
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.dialog-container {
+  padding: 16px;
+  max-height: 95vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media print {
+  .dialog-container {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .map-print-dimensions {
+    transition: none !important;
+    background: white !important;
+  }
+
+  #map-for-print {
+    width: 1000px !important;
+    height: 707px !important;
+    min-width: 1000px !important;
+    min-height: 707px !important;
+    max-width: 1000px !important;
+    max-height: 707px !important;
+    background: white !important;
+    background-color: white !important;
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+  }
+
+  #map-for-print .leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
+    background: white !important;
+    background-color: white !important;
+  }
+
+  #map-for-print .leaflet-control-zoom,
+  #map-for-print .leaflet-control-attribution {
+    display: none !important;
+  }
+
+  .v-container.white {
+    width: auto !important;
+    max-width: none !important;
+    overflow: visible !important;
+  }
+
+  .v-card {
+    page-break-inside: avoid !important;
+  }
+}.overlay-title {
+  width: 120px;
+}
+
+.monitoring-divider {
+  border: 1px solid red;
+  margin-top: 0px;
+}
+
+.alerts-divider {
+  border: 1px solid blue;
+}
+
+.support-divider {
+  border: 1px solid blue;
+}
+
+.land-use-divider {
+  border: 1px solid blue;
+  margin-top: 0px;
+}
+
+.inpe-divider {
+  border: 1px solid blue;
+}
+
 </style>
