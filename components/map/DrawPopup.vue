@@ -31,19 +31,6 @@
       <div class="d-block">
         <div class="d-flex">
           <v-spacer />
-          <v-tooltip top>
-            <template #activator="{ on }">
-              <v-btn
-                icon
-                small
-                v-on="on"
-                @click="buttonPopup('Delete', layer)"
-              >
-                <v-icon>{{ 'mdi-delete' }}</v-icon>
-              </v-btn>
-            </template>
-            <span>{{ $t('delete-button') }}</span>
-          </v-tooltip>
           <v-tooltip
             v-if="!layer.hasOwnProperty('buffered')"
             top
@@ -59,6 +46,19 @@
               </v-btn>
             </template>
             <span>{{ $t('edit-button') }}</span>
+          </v-tooltip>
+          <v-tooltip top>
+            <template #activator="{ on }">
+              <v-btn
+                icon
+                small
+                v-on="on"
+                @click="buttonPopup('Delete', layer)"
+              >
+                <v-icon>{{ 'mdi-delete' }}</v-icon>
+              </v-btn>
+            </template>
+            <span>{{ $t('delete-button') }}</span>
           </v-tooltip>
         </div>
       </div>
@@ -70,19 +70,6 @@
       <div class="d-block">
         <div class="d-flex">
           <v-spacer />
-          <v-tooltip top>
-            <template #activator="{ on }">
-              <v-btn
-                icon
-                small
-                v-on="on"
-                @click="buttonPopup('Delete', layer)"
-              >
-                <v-icon>{{ 'mdi-delete' }}</v-icon>
-              </v-btn>
-            </template>
-            <span>{{ $t('delete-button') }}</span>
-          </v-tooltip>
           <v-tooltip
             v-if="!layer.hasOwnProperty('buffered')"
             top
@@ -98,6 +85,19 @@
               </v-btn>
             </template>
             <span>{{ $t('edit-button') }}</span>
+          </v-tooltip>
+          <v-tooltip top>
+            <template #activator="{ on }">
+              <v-btn
+                icon
+                small
+                v-on="on"
+                @click="buttonPopup('Delete', layer)"
+              >
+                <v-icon>{{ 'mdi-delete' }}</v-icon>
+              </v-btn>
+            </template>
+            <span>{{ $t('delete-button') }}</span>
           </v-tooltip>
           <v-tooltip top>
             <template #activator="{ on }">
@@ -137,19 +137,6 @@
       <div class="d-block">
         <div class="d-flex">
           <v-spacer />
-          <v-tooltip top>
-            <template #activator="{ on }">
-              <v-btn
-                icon
-                small
-                v-on="on"
-                @click="buttonPopup('Delete', layer)"
-              >
-                <v-icon>{{ 'mdi-delete' }}</v-icon>
-              </v-btn>
-            </template>
-            <span>{{ $t('delete-button') }}</span>
-          </v-tooltip>
           <v-tooltip
             v-if="!layer.hasOwnProperty('buffered')"
             top
@@ -165,6 +152,19 @@
               </v-btn>
             </template>
             <span>{{ $t('edit-button') }}</span>
+          </v-tooltip>
+          <v-tooltip top>
+            <template #activator="{ on }">
+              <v-btn
+                icon
+                small
+                v-on="on"
+                @click="buttonPopup('Delete', layer)"
+              >
+                <v-icon>{{ 'mdi-delete' }}</v-icon>
+              </v-btn>
+            </template>
+            <span>{{ $t('delete-button') }}</span>
           </v-tooltip>
           <v-tooltip top>
             <template #activator="{ on }">
@@ -217,19 +217,6 @@
       <div class="d-block">
         <div class="d-flex">
           <v-spacer />
-          <v-tooltip top>
-            <template #activator="{ on }">
-              <v-btn
-                icon
-                small
-                v-on="on"
-                @click="buttonPopup('Delete', layer)"
-              >
-                <v-icon>{{ 'mdi-delete' }}</v-icon>
-              </v-btn>
-            </template>
-            <span>{{ $t('delete-button') }}</span>
-          </v-tooltip>
           <v-tooltip
             v-if="!layer.hasOwnProperty('buffered')"
             top
@@ -245,6 +232,19 @@
               </v-btn>
             </template>
             <span>{{ $t('edit-button') }}</span>
+          </v-tooltip>
+          <v-tooltip top>
+            <template #activator="{ on }">
+              <v-btn
+                icon
+                small
+                v-on="on"
+                @click="buttonPopup('Delete', layer)"
+              >
+                <v-icon>{{ 'mdi-delete' }}</v-icon>
+              </v-btn>
+            </template>
+            <span>{{ $t('delete-button') }}</span>
           </v-tooltip>
           <v-tooltip top>
             <template #activator="{ on }">
