@@ -747,7 +747,7 @@ export default {
           row.nu_longitude
         ]);
 
-        const csvContent = this.$download.convertArrayToCSV(rows, headers);
+        const csvContent = this.$download.convertToCSV(rows, headers);
         this.$download.downloadCSV(csvContent, 'alerts_table.csv');
       } catch (error) {
         console.error('Erro ao baixar tabela CSV:', error);

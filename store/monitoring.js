@@ -858,7 +858,7 @@ export default {
           row.nu_longitude
         ]);
 
-        const csvContent = this.$download.convertArrayToCSV(data, headers, ',');
+        const csvContent = this.$download.convertToCSV(data, headers, ',');
         this.$download.downloadCSV(csvContent, 'monitoring_table.csv');
       } catch (error) {
         console.error('Erro ao baixar tabela CSV:', error);

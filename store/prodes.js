@@ -263,7 +263,7 @@ export const actions = {
           item.nu_longitude || ''
         ]);
 
-        const csvContent = this.$download.convertArrayToCSV(data, headers, ';');
+        const csvContent = this.$download.convertToCSV(data, headers, ';');
         const fileName = `dados_prodes_${new Date().toISOString().slice(0, 10)}.csv`;
         this.$download.downloadCSV(csvContent, fileName);
       } catch (error) {

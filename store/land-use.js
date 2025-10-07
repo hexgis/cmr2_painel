@@ -688,30 +688,30 @@ export const actions = {
         'Mineração (ha)', 'Não observado (ha)', 'Total (ha)',
       ];
 
-        const data = state.tableLandUse.map(row => [
-          row.co_funai,
-          row.ds_cr,
-          row.no_ti,
-          row.nu_ano,
-          ...['ag', 'cr', 'dg', 'ma', 'sv', 'vn', 'vi', 'rv', 'mi', 'no'].map(k => parseFloat(row[`nu_area_${k}_ha`]) || 0),
-          parseFloat(row.nu_area_ha) || 0,
-        ]);
+      const data = state.tableLandUse.map((row) => [
+        row.co_funai,
+        row.ds_cr,
+        row.no_ti,
+        row.nu_ano,
+        ...['ag', 'cr', 'dg', 'ma', 'sv', 'vn', 'vi', 'rv', 'mi', 'no'].map((k) => parseFloat(row[`nu_area_${k}_ha`]) || 0),
+        parseFloat(row.nu_area_ha) || 0,
+      ]);
 
-        const csvContent = this.$download.convertArrayToCSV(data, headers, ',');
-        this.$download.downloadCSV(csvContent, 'landUse_table.csv');
-      } catch (error) {
-        console.error('Erro ao baixar tabela CSV:', error);
-        commit('alert/addAlert', {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('download'),
-            resource: this.$i18n.t('table'),
-          }),
-          type: 'error',
-        }, { root: true });
-      } finally {
-        commit('setLoadingCSV', false);
-      }
-    },
+      const csvContent = this.$download.convertToCSV(data, headers, ',');
+      this.$download.downloadCSV(csvContent, 'landUse_table.csv');
+    } catch (error) {
+      console.error('Erro ao baixar tabela CSV:', error);
+      commit('alert/addAlert', {
+        message: this.$i18n.t('default-error', {
+          action: this.$i18n.t('download'),
+          resource: this.$i18n.t('table'),
+        }),
+        type: 'error',
+      }, { root: true });
+    } finally {
+      commit('setLoadingCSV', false);
+    }
+  },
 
   async toggleLegendVisibility({ commit, dispatch, state }, { estagio, visible }) {
     commit('setLegendVisibility', { estagio, visible });

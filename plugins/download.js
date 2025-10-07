@@ -25,41 +25,40 @@ function escapeCSVValue(value) {
 }
 
 /**
- * Converts an array of objects to a CSV string.
- * @param {Array} data - Array of objects to convert
- * @param {Array|null} customHeaders - Custom header list (optional)
+ * Converts data to a CSV string. Supports both arrays of objects and arrays of arrays.
+ * @param {Array} data - Array of objects or array of arrays to convert
+ * @param {Array|null} customHeaders - Custom header list (required for array of arrays, optional for objects)
  * @param {string} delimiter - Column separator (default: ',')
  * @returns {string} - CSV content as string
  */
 function convertToCSV(data, customHeaders = null, delimiter = ',') {
   if (!data || !Array.isArray(data) || data.length === 0) return '';
 
-  const headers = customHeaders || Object.keys(data[0]);
-  const csvHeaders = headers.map((header) => escapeCSVValue(header)).join(delimiter);
+  // Check if data is array of arrays or array of objects
+  const isArrayOfArrays = Array.isArray(data[0]);
 
-  const csvRows = data.map((obj) => headers.map((key) => {
-    const value = obj[key];
-    return escapeCSVValue(value);
-  }).join(delimiter));
+  if (isArrayOfArrays) {
+    // Handle array of arrays
+    if (!customHeaders || !Array.isArray(customHeaders)) {
+      throw new Error('Headers are required when converting array of arrays to CSV');
+    }
 
-  return `${csvHeaders}\n${csvRows.join('\n')}`;
-}
+    const csvHeaders = customHeaders.map((header) => escapeCSVValue(header)).join(delimiter);
+    const csvRows = data.map((row) => row.map((value) => escapeCSVValue(value)).join(delimiter));
 
-/**
- * Converts an array of arrays to a CSV string.
- * @param {Array} data - Array of arrays (rows) to convert
- * @param {Array} headers - Array of header strings
- * @param {string} delimiter - Column separator (default: ',')
- * @returns {string} - CSV content as string
- */
-function convertArrayToCSV(data, headers, delimiter = ',') {
-  if (!data || !Array.isArray(data)) return '';
-  if (!headers || !Array.isArray(headers)) return '';
+    return `${csvHeaders}\n${csvRows.join('\n')}`;
+  } else {
+    // Handle array of objects
+    const headers = customHeaders || Object.keys(data[0]);
+    const csvHeaders = headers.map((header) => escapeCSVValue(header)).join(delimiter);
 
-  const csvHeaders = headers.map((header) => escapeCSVValue(header)).join(delimiter);
-  const csvRows = data.map((row) => row.map((value) => escapeCSVValue(value)).join(delimiter));
+    const csvRows = data.map((obj) => headers.map((key) => {
+      const value = obj[key];
+      return escapeCSVValue(value);
+    }).join(delimiter));
 
-  return `${csvHeaders}\n${csvRows.join('\n')}`;
+    return `${csvHeaders}\n${csvRows.join('\n')}`;
+  }
 }
 
 /**
@@ -177,7 +176,6 @@ async function downloadPDF(data, headers, title, fileName, options = {}) {
 // Main download utilities object
 const downloadUtils = {
   convertToCSV,
-  convertArrayToCSV,
   downloadCSV,
   downloadPDF,
   escapeValue: escapeCSVValue,

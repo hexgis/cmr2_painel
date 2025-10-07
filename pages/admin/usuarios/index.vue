@@ -1530,7 +1530,7 @@ export default {
         user.institution && user.institution.acronym ? user.institution.acronym : user.institution || '',
       ]);
 
-      const csvContent = this.$download.convertArrayToCSV(rows, headers);
+      const csvContent = this.$download.convertToCSV(rows, headers);
       this.$download.downloadCSV(csvContent, 'usuarios.csv');
     },
 
@@ -1573,7 +1573,7 @@ export default {
         log.is_active ? 'Ativo' : 'Inativo',
       ]);
 
-      const csvContent = this.$download.convertArrayToCSV(rows, headers);
+      const csvContent = this.$download.convertToCSV(rows, headers);
       this.$download.downloadCSV(csvContent, 'dados_cadastrais_usuario.csv');
     },
 
@@ -1630,8 +1630,8 @@ export default {
         change.role,
       ]);
 
-      const loginCsvContent = this.$download.convertArrayToCSV(loginRows, loginHeaders);
-      const roleCsvContent = this.$download.convertArrayToCSV(roleRows, roleHeaders);
+      const loginCsvContent = this.$download.convertToCSV(loginRows, loginHeaders);
+      const roleCsvContent = this.$download.convertToCSV(roleRows, roleHeaders);
 
       const csvContent = `HISTÓRICO DE LOGIN\n${loginCsvContent}\n\nHISTÓRICO DE ALTERAÇÕES DE PAPÉIS\n${roleCsvContent}`;
 
