@@ -577,15 +577,30 @@ export default {
       }, 500);
     },
 
-    generateCSV() {
-      // Usando o plugin de download - método convertToCSV
-      const data = this.filteredByColumns.map((institution) => ({
-        Nome: institution.name,
-        Tipo: institution.institution_type || '',
-      }));
+    async generateCSV() {
+      try {
+        // Prepare data for CSV
+        const data = this.filteredByColumns.map((institution) => ({
+          Nome: institution.name,
+          Tipo: institution.institution_type || '',
+        }));
 
-      const csvContent = this.$download.convertToCSV(data);
-      this.$download.downloadCSV(csvContent, 'instituicoes.csv');
+        const headers = ['Nome', 'Tipo'];
+
+        // Generate and download CSV using the new unified function
+        const result = await this.$download.csv(data, headers, 'instituicoes', {
+          delimiter: ',',
+          dateFormat: 'iso',
+          includeTimestamp: true,
+        });
+      } catch (error) {
+        console.error('Erro ao gerar CSV:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: `${error.message || 'Erro ao exportar arquivo CSV. Tente novamente.'}`,
+          type: 'error',
+        });
+      }
     },
 
     async generatePDF() {

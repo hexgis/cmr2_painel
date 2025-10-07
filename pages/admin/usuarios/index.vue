@@ -1517,21 +1517,95 @@ export default {
       }
     },
 
-    generateCSV() {
-      // CSV headers
-      const headers = ['Usuário', 'Primeiro Nome', 'Último Nome', 'Email', 'Administrador', 'Acesso Permitido', 'Vínculo Institucional'];
-      const rows = this.filteredByColumns.map((user) => [
-        user.username,
-        user.first_name || '',
-        user.last_name || '',
-        user.email,
-        user.is_admin ? 'Sim' : 'Não',
-        user.is_active ? 'Ativo' : 'Inativo',
-        user.institution && user.institution.acronym ? user.institution.acronym : user.institution || '',
-      ]);
+    async generateCSV() {
+      try {
+        // Show loading state
+        this.loadingUsers = true;
 
-      const csvContent = this.$download.convertToCSV(rows, headers);
-      this.$download.downloadCSV(csvContent, 'usuarios.csv');
+        // CSV headers with better formatting
+        const headers = [
+          'Usuário',
+          'Primeiro Nome',
+          'Último Nome',
+          'Email',
+          'Administrador',
+          'Acesso Permitido',
+          'Vínculo Institucional',
+          'Data de Criação',
+          'Último Login',
+        ];
+
+        // Process data with better handling
+        const rows = this.filteredByColumns.map((user) => [
+          user.username || '',
+          user.first_name || '',
+          user.last_name || '',
+          user.email || '',
+          user.is_admin ? 'Sim' : 'Não',
+          user.is_active ? 'Ativo' : 'Inativo',
+          this.getInstitutionDisplay(user),
+          this.formatDate(user.date_joined),
+          this.formatDate(user.last_login),
+        ]);
+
+        // Generate and download CSV using the new unified function
+        const result = await this.$download.csv(rows, headers, 'usuarios', {
+          delimiter: ',',
+          dateFormat: 'iso',
+          includeTimestamp: true,
+        });
+
+        // Success feedback
+        this.$store.commit('alert/addAlert', {
+          timeout: 3000,
+          message: `✅ Arquivo CSV exportado com sucesso! (${result.recordCount} usuários)`,
+          type: 'success',
+        });
+      } catch (error) {
+        console.error('Erro ao gerar CSV:', error);
+
+        // Error feedback
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: `❌ ${error.message || 'Erro ao exportar arquivo CSV. Tente novamente.'}`,
+          type: 'error',
+        });
+      } finally {
+        // Hide loading state
+        this.loadingUsers = false;
+      }
+    },
+
+    // Helper method for institution display
+    getInstitutionDisplay(user) {
+      if (user.institution) {
+        if (user.institution.acronym) {
+          return user.institution.acronym;
+        }
+        if (user.institution.name) {
+          return user.institution.name;
+        }
+        if (typeof user.institution === 'string') {
+          return user.institution;
+        }
+      }
+      return 'N/A';
+    },
+
+    // Helper method for date formatting
+    formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      try {
+        return new Date(dateString).toLocaleString('pt-BR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      } catch (error) {
+        return 'Data inválida';
+      }
     },
 
     expandButton() {
@@ -1548,33 +1622,88 @@ export default {
       }, 500);
     },
 
-    generateLogsPDF() {
-      const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status'];
-      const data = this.filteredUserLogs.map((log) => ({
-        'Alterado por': log.alterado_por,
-        'Alterado em': new Date(log.action_time).toLocaleString('pt-BR'),
-        Nome: log.username,
-        Email: log.email,
-        'Vínculo Institucional': log.institution,
-        Status: log.is_active ? 'Ativo' : 'Inativo',
-      }));
+    async generateLogsPDF() {
+      try {
+        // Validate data
+        if (!this.filteredUserLogs || this.filteredUserLogs.length === 0) {
+          this.$store.commit('alert/addAlert', {
+            timeout: 3000,
+            message: 'Nenhum log encontrado para exportar.',
+            type: 'warning',
+          });
+          return;
+        }
 
-      this.$download.downloadPDF(data, headers, 'Dados Cadastrais do Usuário', 'dados_cadastrais_usuario.pdf');
+        const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status'];
+        const data = this.filteredUserLogs.map((log) => ({
+          'Alterado por': log.alterado_por || 'N/A',
+          'Alterado em': this.formatDate(log.action_time),
+          Nome: log.username || 'N/A',
+          Email: log.email || 'N/A',
+          'Vínculo Institucional': log.institution || 'N/A',
+          Status: log.is_active ? 'Ativo' : 'Inativo',
+        }));
+
+        // Dynamic filename with timestamp
+        const username = (this.selectedUserLogs && this.selectedUserLogs.username) || 'usuario';
+        const filename = this.$download.generateFileName(`dados_cadastrais_${username}`, 'pdf', {
+          includeTimestamp: true,
+          dateFormat: 'iso',
+        });
+
+        await this.$download.downloadPDF(
+          data,
+          headers,
+          `Dados Cadastrais do Usuário: ${(this.selectedUserLogs && this.selectedUserLogs.username) || 'N/A'}`,
+          filename,
+        );
+      } catch (error) {
+        console.error('Erro ao gerar PDF dos logs:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: 'Erro ao exportar PDF. Tente novamente.',
+          type: 'error',
+        });
+      }
     },
 
-    generateLogsCSV() {
-      const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status'];
-      const rows = this.filteredUserLogs.map((log) => [
-        log.alterado_por,
-        new Date(log.action_time).toLocaleString('pt-BR'),
-        log.username,
-        log.email,
-        log.institution,
-        log.is_active ? 'Ativo' : 'Inativo',
-      ]);
+    async generateLogsCSV() {
+      try {
+        const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status'];
+        const rows = this.filteredUserLogs.map((log) => [
+          log.alterado_por || 'N/A',
+          this.formatDate(log.action_time),
+          log.username || 'N/A',
+          log.email || 'N/A',
+          log.institution || 'N/A',
+          log.is_active ? 'Ativo' : 'Inativo',
+        ]);
 
-      const csvContent = this.$download.convertToCSV(rows, headers);
-      this.$download.downloadCSV(csvContent, 'dados_cadastrais_usuario.csv');
+        // Generate filename with username
+        const username = (this.selectedUserLogs && this.selectedUserLogs.username) || 'usuario';
+        const baseName = `dados_cadastrais_${username}`;
+
+        // Generate and download CSV using the new unified function
+        const result = await this.$download.csv(rows, headers, baseName, {
+          delimiter: ',',
+          dateFormat: 'iso',
+          includeTimestamp: true,
+        });
+
+        // Success feedback
+        this.$store.commit('alert/addAlert', {
+          timeout: 3000,
+          message: `✅ CSV dos dados cadastrais exportado com sucesso! (${result.recordCount} registros)`,
+          type: 'success',
+        });
+      } catch (error) {
+        console.error('Erro ao gerar CSV dos logs:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: `❌ ${error.message || 'Erro ao exportar CSV. Tente novamente.'}`,
+          type: 'error',
+        });
+      }
     },
 
     async generateAccessPDF() {
@@ -1604,38 +1733,63 @@ export default {
 
         const allHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Alterado Por', 'Data/Hora', 'Ação', 'Papel'];
 
-        await this.$download.downloadPDF(combinedData, allHeaders, 'Registro de Acessos do Usuário', 'registro_acessos_usuario.pdf');
+        const filename = this.$download.generateFileName('registro_acessos_usuario', 'pdf', {
+          includeTimestamp: true,
+          dateFormat: 'iso',
+        });
+
+        await this.$download.downloadPDF(combinedData, allHeaders, 'Registro de Acessos do Usuário', filename);
       } catch (error) {
         console.error('Erro ao gerar PDF:', error);
       }
     },
 
-    generateAccessCSV() {
-      const loginHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Latitude', 'Longitude'];
-      const loginRows = this.filteredUserLoginHistory.map((login) => [
-        login.last_date_login,
-        login.ip,
-        login.location,
-        login.type_device,
-        login.browser,
-        login.latitude,
-        login.longitude,
-      ]);
+    async generateAccessCSV() {
+      try {
+        // Login data
+        const loginHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Latitude', 'Longitude'];
+        const loginRows = this.filteredUserLoginHistory.map((login) => [
+          login.last_date_login,
+          login.ip,
+          login.location,
+          login.type_device,
+          login.browser,
+          login.latitude,
+          login.longitude,
+        ]);
 
-      const roleHeaders = ['Alterado Por', 'Data/Hora', 'Ação', 'Papel'];
-      const roleRows = this.filteredUserRoleChanges.map((change) => [
-        change.changed_by,
-        change.changed_at,
-        change.action,
-        change.role,
-      ]);
+        // Role changes data
+        const roleHeaders = ['Alterado Por', 'Data/Hora', 'Ação', 'Papel'];
+        const roleRows = this.filteredUserRoleChanges.map((change) => [
+          change.changed_by,
+          change.changed_at,
+          change.action,
+          change.role,
+        ]);
 
-      const loginCsvContent = this.$download.convertToCSV(loginRows, loginHeaders);
-      const roleCsvContent = this.$download.convertToCSV(roleRows, roleHeaders);
+        // Generate individual CSV contents
+        const loginCsvContent = this.$download.convertToCSV(loginRows, loginHeaders);
+        const roleCsvContent = this.$download.convertToCSV(roleRows, roleHeaders);
 
-      const csvContent = `HISTÓRICO DE LOGIN\n${loginCsvContent}\n\nHISTÓRICO DE ALTERAÇÕES DE PAPÉIS\n${roleCsvContent}`;
+        // Combine both sections
+        const combinedCsvContent = `HISTÓRICO DE LOGIN\n${loginCsvContent}\n\nHISTÓRICO DE ALTERAÇÕES DE PAPÉIS\n${roleCsvContent}`;
 
-      this.$download.downloadCSV(csvContent, 'registro_acessos_usuario.csv');
+        // Generate filename
+        const filename = this.$download.generateFileName('registro_acessos_usuario', 'csv', {
+          includeTimestamp: true,
+          dateFormat: 'iso',
+        });
+
+        // Download the combined file
+        this.$download.downloadCSV(combinedCsvContent, filename);
+      } catch (error) {
+        console.error('Erro ao gerar CSV de acessos:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: 'Erro ao exportar CSV de acessos. Tente novamente.',
+          type: 'error',
+        });
+      }
     },
 
     ...mapActions('admin', ['fetchInstitutionList']),

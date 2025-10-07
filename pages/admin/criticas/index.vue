@@ -814,21 +814,34 @@ export default {
       this.showFilters = !this.showFilters;
     },
     async downloadCsv() {
-      const headers = ['Código', 'Assunto', 'Solicitante', 'Tipo', 'Status', 'Prioridade', 'Analisado Por', 'Data Abertura', 'Data Análise'];
-      const csvData = this.filteredCards.map((card) => ({
-        Código: card.code,
-        Assunto: card.subject,
-        Solicitante: card.requesting,
-        Tipo: card.solicitation_name,
-        Status: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.status_category_display || '',
-        Prioridade: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.priority_display || '',
-        'Analisado Por': card.ticket_status && card.ticket_status.analyzed_by || '',
-        'Data Abertura': card.opened_in_formatted || '',
-        'Data Análise': card.ticket_status && card.ticket_status.analyzed_in_formatted || '',
-      }));
+      try {
+        const headers = ['Código', 'Assunto', 'Solicitante', 'Tipo', 'Status', 'Prioridade', 'Analisado Por', 'Data Abertura', 'Data Análise'];
+        const csvData = this.filteredCards.map((card) => ({
+          Código: card.code,
+          Assunto: card.subject,
+          Solicitante: card.requesting,
+          Tipo: card.solicitation_name,
+          Status: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.status_category_display || '',
+          Prioridade: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.priority_display || '',
+          'Analisado Por': card.ticket_status && card.ticket_status.analyzed_by || '',
+          'Data Abertura': card.opened_in_formatted || '',
+          'Data Análise': card.ticket_status && card.ticket_status.analyzed_in_formatted || '',
+        }));
 
-      const csvContent = this.$download.convertToCSV(csvData, headers);
-      this.$download.downloadCSV(csvContent, 'criticas_sugestoes.csv');
+        // Generate and download CSV using the new unified function
+        await this.$download.csv(csvData, headers, 'criticas_sugestoes', {
+          delimiter: ',',
+          dateFormat: 'iso',
+          includeTimestamp: true,
+        });
+      } catch (error) {
+        console.error('Erro ao gerar CSV:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: `${error.message || 'Erro ao exportar arquivo CSV. Tente novamente.'}`,
+          type: 'error',
+        });
+      }
     },
 
     async downloadPdf() {
