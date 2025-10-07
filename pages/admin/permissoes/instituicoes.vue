@@ -69,7 +69,7 @@
           @click.stop
         />
 
-        <!-- Export section -->
+        <!-- Export buttons -->
         <div class="d-flex align-center ml-3">
           <div class="export-icons">
             <div class="export-label text-uppercase mr-2">

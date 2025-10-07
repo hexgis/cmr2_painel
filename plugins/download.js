@@ -1,6 +1,7 @@
 /**
  * Download Plugin for Nuxt.js
  * Provides global CSV download utilities accessible via this.$download
+ * Documentação em: /docs/download.md
  */
 
 /**

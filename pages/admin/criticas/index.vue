@@ -347,22 +347,26 @@
           </v-card-text>
         </CustomDialog>
 
-        <div class="d-flex justify-space-between align-center">
-          <p class="text-uppercase">
-            <strong>{{ $t('export') }}</strong> {{ $t('as') }}
-          </p>
-          <div class="d-flex align-center">
+        <!-- Export buttons -->
+        <div class="d-flex align-center ml-3">
+          <div class="export-icons">
+            <div class="export-label text-uppercase mr-2">
+              {{ $t('export') }}
+            </div>
+
             <v-tooltip top>
               <template #activator="{ on, attrs }">
                 <v-btn
                   icon
                   color="#D92B3F"
-                  class="mr-2"
                   v-bind="attrs"
+                  class="mr-2"
                   v-on="on"
                   @click="downloadPdf"
                 >
-                  <v-icon>mdi-file-pdf-box</v-icon>
+                  <v-icon size="40">
+                    mdi-file-pdf-box
+                  </v-icon>
                 </v-btn>
               </template>
               <span>PDF</span>
@@ -373,11 +377,14 @@
                 <v-btn
                   icon
                   color="#43A047"
+                  class="mr-3"
                   v-bind="attrs"
-                  v-on="on"
                   @click="downloadCsv"
+                  v-on="on"
                 >
-                  <v-icon>mdi-file-excel-box</v-icon>
+                  <v-icon size="40">
+                    mdi-file-excel-box
+                  </v-icon>
                 </v-btn>
               </template>
               <span>CSV</span>
@@ -444,11 +451,10 @@
     </div>
   </div>
 </template>
-<i18n>
+<i18n lang="json">
   {
     "en": {
-      "export": "Export",
-      "as": "As",
+      "export": "Export:",
       "noFileSelected": "No file selected",
       "attachFile": "Attach File",
       "approveRequestCreation": "Approve request upon creation",
@@ -472,8 +478,7 @@
       "andMoreFiles": "and {count} more files"
     },
     "pt-br": {
-      "export": "Exportar",
-      "as": "Como",
+      "export": "Exportar:",
       "noFileSelected": "Nenhum arquivo selecionado",
       "attachFile": "Anexar Arquivo",
       "approveRequestCreation": "Deferir solicitação na criação",
@@ -1169,4 +1174,15 @@ export default {
   &--active
     border-color: #1976d2
     background-color: #f3f8ff
+
+.export-label
+  letter-spacing: 0.5px
+  font-size: 0.8rem
+  display: flex
+  align-items: center
+
+.export-icons
+  display: flex
+  align-items: center
+  gap: 0.25rem
 </style>
