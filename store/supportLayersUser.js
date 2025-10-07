@@ -4,6 +4,7 @@ export const state = () => ({
   supportLayerUser: {},
   popupInfo: {},
   selectedColor: '#FF0000',
+  loadingUpdateLayerUser: false,
 });
 
 export const getters = {
@@ -57,8 +58,18 @@ export const mutations = {
 
   setLayerColor(state, { id, color }) {
     if (state.supportLayerUser[id]) {
-      state.supportLayerUser[id].color = color;
+      Vue.set(state.supportLayerUser[id], 'color', color);
     }
+  },
+
+  setLayerName(state, { id, name }) {
+    if (state.supportLayerUser[id]) {
+      Vue.set(state.supportLayerUser[id], 'name', name);
+    }
+  },
+
+  setLoadingUpdateLayerUser(state, loading) {
+    state.loadingUpdateLayerUser = loading;
   },
 };
 
@@ -98,6 +109,27 @@ export const actions = {
     const response = await this.$api.$get(`user/upload-file/geo/detail/${info.id}/`);
     if (response) {
       commit('setLayersDetail', { info, response });
+    }
+  },
+
+  async updateUserLayerProperties({ dispatch, commit }, {
+    id, color, name, message,
+  }) {
+    try {
+      commit('setLoadingUpdateLayerUser', true);
+      const url = `user/upload-file/geo/${id}/update-properties/`;
+      await this.$api.patch(url, { color, name });
+      commit('setLayerColor', { id, color });
+      commit('setLayerName', { id, name });
+      await dispatch('getLayersUser');
+    } catch (error) {
+      commit(
+        'alert/addAlert',
+        { message },
+        { root: true },
+      );
+    } finally {
+      commit('setLoadingUpdateLayerUser', false);
     }
   },
 };

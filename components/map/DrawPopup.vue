@@ -142,19 +142,6 @@
               <v-btn
                 icon
                 small
-                @click="layerRelationship"
-                v-on="on"
-              >
-                <v-icon>{{ 'mdi-crosshairs' }}</v-icon>
-              </v-btn>
-            </template>
-            <span>{{ $t('search-area-label') }}</span>
-          </v-tooltip>
-          <v-tooltip top>
-            <template #activator="{ on }">
-              <v-btn
-                icon
-                small
                 v-on="on"
                 @click="buttonPopup('Delete', layer)"
               >
@@ -230,19 +217,6 @@
       <div class="d-block">
         <div class="d-flex">
           <v-spacer />
-          <v-tooltip top>
-            <template #activator="{ on }">
-              <v-btn
-                icon
-                small
-                @click="layerRelationship"
-                v-on="on"
-              >
-                <v-icon>{{ 'mdi-crosshairs' }}</v-icon>
-              </v-btn>
-            </template>
-            <span>{{ $t('search-area-label') }}</span>
-          </v-tooltip>
           <v-tooltip top>
             <template #activator="{ on }">
               <v-btn
@@ -374,10 +348,6 @@ export default {
       type: Array,
       default: null,
     },
-    relationship: {
-      type: Function,
-      default: null,
-    },
   },
 
   data() {
@@ -390,8 +360,7 @@ export default {
 
   computed: {
     formattedArea() {
-      console.log(this.content.area);      
-      const area = parseFloat(this.content.area.replace('ha', '').trim());      
+      const area = parseFloat(this.content.area.replace('ha', '').trim());
       return `${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(area)} ha`;
     },
   },
@@ -417,10 +386,6 @@ export default {
         type,
         layer: layer._leaflet_id,
       });
-    },
-
-    layerRelationship() {
-      this.relationship(this.layer, this.type);
     },
 
     ...mapMutations('map', ['setButtonPopup']),
