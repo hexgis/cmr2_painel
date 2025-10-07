@@ -1553,10 +1553,10 @@ export default {
       const data = this.filteredUserLogs.map((log) => ({
         'Alterado por': log.alterado_por,
         'Alterado em': new Date(log.action_time).toLocaleString('pt-BR'),
-        'Nome': log.username,
-        'Email': log.email,
+        Nome: log.username,
+        Email: log.email,
         'Vínculo Institucional': log.institution,
-        'Status': log.is_active ? 'Ativo' : 'Inativo',
+        Status: log.is_active ? 'Ativo' : 'Inativo',
       }));
 
       this.$download.downloadPDF(data, headers, 'Dados Cadastrais do Usuário', 'dados_cadastrais_usuario.pdf');
@@ -1582,24 +1582,24 @@ export default {
         // Login History data
         const loginData = this.filteredUserLoginHistory.map((login) => ({
           'Data de Login': login.last_date_login,
-          'IP': login.ip,
-          'Localização': login.location,
-          'Dispositivo': login.type_device,
-          'Navegador': login.browser,
+          IP: login.ip,
+          Localização: login.location,
+          Dispositivo: login.type_device,
+          Navegador: login.browser,
         }));
 
-        // Role Changes data  
+        // Role Changes data
         const roleData = this.filteredUserRoleChanges.map((change) => ({
           'Alterado Por': change.changed_by,
           'Data/Hora': change.changed_at,
-          'Ação': change.action,
-          'Papel': change.role,
+          Ação: change.action,
+          Papel: change.role,
         }));
 
         // Create combined data for PDF with sections
         const combinedData = [
-          ...loginData.map(item => ({ ...item, _section: 'login' })),
-          ...roleData.map(item => ({ ...item, _section: 'roles' }))
+          ...loginData.map((item) => ({ ...item, _section: 'login' })),
+          ...roleData.map((item) => ({ ...item, _section: 'roles' })),
         ];
 
         const allHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Alterado Por', 'Data/Hora', 'Ação', 'Papel'];

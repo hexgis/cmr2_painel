@@ -351,21 +351,37 @@
           <p class="text-uppercase">
             <strong>{{ $t('export') }}</strong> {{ $t('as') }}
           </p>
-          <div class="d-flex">
-            <div class="styled-btn">
-              <SavePdf :active-cards="filteredCards" />
-            </div>
-            <div
-              class="styled-btn"
-              style="cursor: pointer;"
-              @click="downloadCsv"
-            >
-              <v-img
-                src="/img/icons/file-excel-box.png"
-                max-width="50"
-                max-height="50"
-              />
-            </div>
+          <div class="d-flex align-center">
+            <v-tooltip top>
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  icon
+                  color="#D92B3F"
+                  class="mr-2"
+                  v-bind="attrs"
+                  v-on="on"
+                  @click="downloadPdf"
+                >
+                  <v-icon>mdi-file-pdf-box</v-icon>
+                </v-btn>
+              </template>
+              <span>PDF</span>
+            </v-tooltip>
+
+            <v-tooltip top>
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  icon
+                  color="#43A047"
+                  v-bind="attrs"
+                  v-on="on"
+                  @click="downloadCsv"
+                >
+                  <v-icon>mdi-file-excel-box</v-icon>
+                </v-btn>
+              </template>
+              <span>CSV</span>
+            </v-tooltip>
           </div>
         </div>
       </v-col>
@@ -488,14 +504,13 @@ import GraphicBar from '/components/admin/GraphicBar.vue';
 import StatusFilter from '/components/admin/StatusFilter.vue';
 import SearchFilters from '/components/admin/SearchFilters.vue';
 import CustomDialog from '/components/admin/CustomDialog.vue';
-import SavePdf from '/components/admin/SavePdf.vue';
 
 import { mapGetters } from 'vuex';
 
 export default {
   name: 'CriticasSugestoes',
   components: {
-    GraphicBar, SuggestionsCard, StatusFilter, SearchFilters, CustomDialog, SavePdf,
+    GraphicBar, SuggestionsCard, StatusFilter, SearchFilters, CustomDialog,
   },
   layout: 'admin',
   middleware: 'admin',
@@ -794,7 +809,38 @@ export default {
       this.showFilters = !this.showFilters;
     },
     async downloadCsv() {
-      await this.$store.dispatch('admin/sendCsvData', { filteredData: this.filteredCards });
+      const headers = ['Código', 'Assunto', 'Solicitante', 'Tipo', 'Status', 'Prioridade', 'Analisado Por', 'Data Abertura', 'Data Análise'];
+      const csvData = this.filteredCards.map((card) => ({
+        Código: card.code,
+        Assunto: card.subject,
+        Solicitante: card.requesting,
+        Tipo: card.solicitation_name,
+        Status: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.status_category_display || '',
+        Prioridade: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.priority_display || '',
+        'Analisado Por': card.ticket_status && card.ticket_status.analyzed_by || '',
+        'Data Abertura': card.opened_in_formatted || '',
+        'Data Análise': card.ticket_status && card.ticket_status.analyzed_in_formatted || '',
+      }));
+
+      const csvContent = this.$download.convertToCSV(csvData, headers);
+      this.$download.downloadCSV(csvContent, 'criticas_sugestoes.csv');
+    },
+
+    async downloadPdf() {
+      const headers = ['Código', 'Assunto', 'Solicitante', 'Tipo', 'Status', 'Prioridade', 'Analisado Por', 'Data Abertura', 'Data Análise'];
+      const pdfData = this.filteredCards.map((card) => ({
+        Código: card.code,
+        Assunto: card.subject,
+        Solicitante: card.requesting,
+        Tipo: card.solicitation_name,
+        Status: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.status_category_display || '',
+        Prioridade: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.priority_display || '',
+        'Analisado Por': card.ticket_status && card.ticket_status.analyzed_by || '',
+        'Data Abertura': card.opened_in_formatted || '',
+        'Data Análise': card.ticket_status && card.ticket_status.analyzed_in_formatted || '',
+      }));
+
+      await this.$download.downloadPDF(pdfData, headers, 'Críticas e Sugestões', 'criticas_sugestoes.pdf');
     },
     goToCardDetails(cardId) {
       this.$router.push(`/admin/criticas/${cardId}`);
@@ -1010,10 +1056,6 @@ export default {
   overflow-y: auto
   width: 100%
   padding: 2rem
-
-.styled-btn
-  padding: 1rem 1rem 0
-  border-radius: 8px
 
 .card--wrapper
   display: grid
