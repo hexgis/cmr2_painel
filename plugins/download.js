@@ -98,11 +98,87 @@ function downloadCSV(csvContent, fileName) {
   }, 100);
 }
 
+/**
+ * Downloads PDF data with jsPDF and autoTable.
+ * @param {Array} data - Array of objects to include in PDF
+ * @param {Array} headers - Array of header strings
+ * @param {string} title - Title for the PDF document
+ * @param {string} fileName - Name of the file (should end with .pdf)
+ * @param {Object} options - Additional options for PDF generation
+ */
+async function downloadPDF(data, headers, title, fileName, options = {}) {
+  if (process.server) {
+    console.warn('downloadPDF can only be used on client-side');
+    return;
+  }
+
+  if (!fileName.endsWith('.pdf')) {
+    fileName += '.pdf';
+  }
+
+  try {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+
+    const defaultOptions = {
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4',
+      titleFontSize: 12,
+      titleY: 20,
+      tableStartY: 30,
+      headStyles: {
+        fillColor: '#D92B3F',
+        textColor: [255, 255, 255],
+      },
+      ...options
+    };
+
+    const doc = new jsPDF({
+      orientation: defaultOptions.orientation,
+      unit: defaultOptions.unit,
+      format: defaultOptions.format,
+    });
+
+    // Add title
+    doc.setFontSize(defaultOptions.titleFontSize);
+    doc.text(title, 15, defaultOptions.titleY);
+
+    // Prepare table data
+    const tableData = data.map(item =>
+      headers.map(header => {
+        if (typeof header === 'object') {
+          return item[header.value] || '';
+        }
+        return item[header] || '';
+      })
+    );
+
+    const tableHeaders = headers.map(header =>
+      typeof header === 'object' ? header.text : header
+    );
+
+    // Generate table
+    autoTable(doc, {
+      startY: defaultOptions.tableStartY,
+      head: [tableHeaders],
+      body: tableData,
+      headStyles: defaultOptions.headStyles,
+    });
+
+    doc.save(fileName);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw error;
+  }
+}
+
 // Main download utilities object
 const downloadUtils = {
   convertToCSV,
   convertArrayToCSV,
   downloadCSV,
+  downloadPDF,
   escapeValue: escapeCSVValue,
 };
 

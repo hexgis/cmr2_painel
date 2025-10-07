@@ -23,13 +23,23 @@
         <!-- botão para escolher colunas -->
         <v-menu offset-y>
           <template #activator="{ on, attrs }">
-            <v-btn text small v-bind="attrs" v-on="on">
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
               Selecionar colunas
-              <v-icon right>mdi-chevron-down</v-icon>
+              <v-icon right>
+                mdi-chevron-down
+              </v-icon>
             </v-btn>
           </template>
           <v-list dense>
-            <v-list-item v-for="h in headers" :key="h.value">
+            <v-list-item
+              v-for="h in headers"
+              :key="h.value"
+            >
               <v-list-item-action>
                 <v-checkbox
                   v-model="visibleColumns"
@@ -72,11 +82,13 @@
                   icon
                   color="#D92B3F"
                   v-bind="attrs"
-                  v-on="on"
                   class="mr-2"
+                  v-on="on"
                   @click="generatePDF"
                 >
-                  <v-icon size="40">mdi-file-pdf-box</v-icon>
+                  <v-icon size="40">
+                    mdi-file-pdf-box
+                  </v-icon>
                 </v-btn>
               </template>
               <span>PDF</span>
@@ -87,12 +99,14 @@
                 <v-btn
                   icon
                   color="#43A047"
-                  @click="generateCSV"
                   class="mr-3"
                   v-bind="attrs"
+                  @click="generateCSV"
                   v-on="on"
                 >
-                  <v-icon size="40">mdi-file-excel-box</v-icon>
+                  <v-icon size="40">
+                    mdi-file-excel-box
+                  </v-icon>
                 </v-btn>
               </template>
               <span>CSV</span>
@@ -133,26 +147,43 @@
           :close-on-content-click="false"
         >
           <template #activator="{ on, attrs }">
-            <v-btn text small v-bind="attrs" v-on="on">
-              {{ header.text }}<v-icon small>mdi-filter-variant</v-icon>
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ header.text }}<v-icon small>
+                mdi-filter-variant
+              </v-icon>
             </v-btn>
           </template>
           <v-card style="width:250px">
             <v-text-field
               v-model="searchName"
               placeholder="Pesquisar..."
-              outlined dense hide-details clearable
-              class="mx-3 mt-3" @click.stop
+              outlined
+              dense
+              hide-details
+              clearable
+              class="mx-3 mt-3"
+              @click.stop
             />
-            <v-divider/>
-            <v-list dense class="filter-list">
+            <v-divider />
+            <v-list
+              dense
+              class="filter-list"
+            >
               <v-list-item
-                v-for="name in filteredNameList" :key="name"
+                v-for="name in filteredNameList"
+                :key="name"
               >
                 <v-checkbox
                   v-model="columnFilters.name"
-                  :value="name" :label="name"
-                  dense @change="nameMenu = false"
+                  :value="name"
+                  :label="name"
+                  dense
+                  @change="nameMenu = false"
                 />
               </v-list-item>
             </v-list>
@@ -168,26 +199,43 @@
           :close-on-content-click="false"
         >
           <template #activator="{ on, attrs }">
-            <v-btn text small v-bind="attrs" v-on="on">
-              {{ header.text }}<v-icon small>mdi-filter-variant</v-icon>
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ header.text }}<v-icon small>
+                mdi-filter-variant
+              </v-icon>
             </v-btn>
           </template>
           <v-card style="width:250px">
             <v-text-field
               v-model="searchType"
               placeholder="Pesquisar..."
-              outlined dense hide-details clearable
-              class="mx-3 mt-3" @click.stop
+              outlined
+              dense
+              hide-details
+              clearable
+              class="mx-3 mt-3"
+              @click.stop
             />
-            <v-divider/>
-            <v-list dense class="filter-list">
+            <v-divider />
+            <v-list
+              dense
+              class="filter-list"
+            >
               <v-list-item
-                v-for="type in filteredTypeList" :key="type"
+                v-for="type in filteredTypeList"
+                :key="type"
               >
                 <v-checkbox
                   v-model="columnFilters.institution_type"
-                  :value="type" :label="type"
-                  dense @change="typeMenu = false"
+                  :value="type"
+                  :label="type"
+                  dense
+                  @change="typeMenu = false"
                 />
               </v-list-item>
             </v-list>
@@ -198,7 +246,14 @@
       <template #item.actions="{ item }">
         <v-tooltip top>
           <template #activator="{ on, attrs }">
-            <v-btn icon small color="grey darken-2" v-bind="attrs" v-on="on" @click="openEditDialog(item)">
+            <v-btn
+              icon
+              small
+              color="grey darken-2"
+              v-bind="attrs"
+              v-on="on"
+              @click="openEditDialog(item)"
+            >
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
           </template>
@@ -206,7 +261,14 @@
         </v-tooltip>
         <v-tooltip top>
           <template #activator="{ on, attrs }">
-            <v-btn icon small color="red" v-bind="attrs" v-on="on" @click="deleteInstitution(item)">
+            <v-btn
+              icon
+              small
+              color="red"
+              v-bind="attrs"
+              v-on="on"
+              @click="deleteInstitution(item)"
+            >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
@@ -277,7 +339,7 @@
   </div>
 </template>
 
-<i18n>
+<i18n lang="json">
 {
   "en": {
     "manageInstitutions": "Manage Institutions",
@@ -352,8 +414,8 @@ export default {
       },
 
       institutionTypes: [
-     'FUNAI Sede',
-     'Outros'
+        'FUNAI Sede',
+        'Outros',
       ],
 
       requiredRule: (v) => !!v || 'Campo obrigatório',
@@ -368,34 +430,30 @@ export default {
     },
 
     filteredHeaders() {
-      return this.headers.filter(h => this.visibleColumns.includes(h.value));
+      return this.headers.filter((h) => this.visibleColumns.includes(h.value));
     },
 
     filteredByColumns() {
-      return this.filteredInstitutions.filter(institution => {
-        return Object.entries(this.columnFilters).every(([col, vals]) => {
-          return !vals.length || vals.includes(institution[col]);
-        });
-      });
+      return this.filteredInstitutions.filter((institution) => Object.entries(this.columnFilters).every(([col, vals]) => !vals.length || vals.includes(institution[col])));
     },
 
     filteredNameList() {
       const term = (this.searchName || '').toLowerCase();
-      return [...new Set(this.filteredInstitutions.map(i => i.name))]
-        .filter(v => v.toLowerCase().includes(term));
+      return [...new Set(this.filteredInstitutions.map((i) => i.name))]
+        .filter((v) => v.toLowerCase().includes(term));
     },
 
     filteredTypeList() {
       const term = (this.searchType || '').toLowerCase();
-      return [...new Set(this.filteredInstitutions.map(i => i.institution_type))]
-        .filter(v => v && v.toLowerCase().includes(term));
+      return [...new Set(this.filteredInstitutions.map((i) => i.institution_type))]
+        .filter((v) => v && v.toLowerCase().includes(term));
     },
   },
 
   watch: {
     searchAll(val) {
       this.search = val;
-    }
+    },
   },
 
   async mounted() {
@@ -520,49 +578,43 @@ export default {
     },
 
     generateCSV() {
-      const headers = ['Nome', 'Tipo'];
-      const rows = this.filteredByColumns.map(institution => [
-        institution.name,
-        institution.institution_type || '',
-      ]);
-      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'instituicoes.csv';
-      link.click();
-      URL.revokeObjectURL(link.href);
+      // Usando o plugin de download - método convertToCSV
+      const data = this.filteredByColumns.map((institution) => ({
+        Nome: institution.name,
+        Tipo: institution.institution_type || '',
+      }));
+
+      const csvContent = this.$download.convertToCSV(data);
+      this.$download.downloadCSV(csvContent, 'instituicoes.csv');
     },
 
-    generatePDF() {
-      // Similar to users PDF generation
-      import('jspdf').then(({ default: jsPDF }) => {
-        import('jspdf-autotable').then(({ default: autoTable }) => {
-          const doc = new jsPDF({
-            orientation: 'landscape',
-            unit: 'mm',
-            format: 'a4',
-          });
+    async generatePDF() {
+      try {
+        // Usando o plugin de download - método downloadPDF
+        const headers = [
+          { text: 'Nome', value: 'name' },
+          { text: 'Tipo', value: 'institution_type' },
+        ];
 
-          doc.setFontSize(12);
-          doc.text('Lista de Instituições', 15, 20);
+        const data = this.filteredByColumns.map((institution) => ({
+          name: institution.name,
+          institution_type: institution.institution_type || '',
+        }));
 
-          autoTable(doc, {
-            startY: 30,
-            head: [['Nome', 'Tipo']],
-            body: this.filteredByColumns.map((institution) => [
-              institution.name,
-              institution.institution_type || '',
-            ]),
-            headStyles: {
-              fillColor: '#D92B3F',
-              textColor: [255, 255, 255],
-            },
-          });
-
-          doc.save('lista_de_instituicoes.pdf');
+        await this.$download.downloadPDF(
+          data,
+          headers,
+          'Lista de Instituições',
+          'lista_de_instituicoes.pdf',
+        );
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 3000,
+          message: 'Erro ao gerar PDF. Tente novamente.',
+          color: 'error',
         });
-      });
+      }
     },
   },
 };
