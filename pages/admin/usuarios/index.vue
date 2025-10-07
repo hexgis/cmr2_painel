@@ -1004,8 +1004,6 @@
 
 <script>
 import { mapState, mapActions } from 'vuex';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import GraphicBar from '/components/admin/GraphicBar.vue';
 import SearchFiltersUser from '/components/admin/SearchFiltersUser.vue';
 import CustomDialog from '/components/admin/CustomDialog.vue';
@@ -1551,33 +1549,17 @@ export default {
     },
 
     generateLogsPDF() {
-      const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4',
-      });
+      const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status'];
+      const data = this.filteredUserLogs.map((log) => ({
+        'Alterado por': log.alterado_por,
+        'Alterado em': new Date(log.action_time).toLocaleString('pt-BR'),
+        'Nome': log.username,
+        'Email': log.email,
+        'Vínculo Institucional': log.institution,
+        'Status': log.is_active ? 'Ativo' : 'Inativo',
+      }));
 
-      doc.setFontSize(12);
-      doc.text('Dados Cadastrais do Usuário', 15, 20);
-
-      autoTable(doc, {
-        startY: 30,
-        head: [['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status']],
-        body: this.filteredUserLogs.map((log) => [
-          log.alterado_por,
-          new Date(log.action_time).toLocaleString('pt-BR'),
-          log.username,
-          log.email,
-          log.institution,
-          log.is_active ? 'Ativo' : 'Inativo',
-        ]),
-        headStyles: {
-          fillColor: '#D92B3F',
-          textColor: [255, 255, 255],
-        },
-      });
-
-      doc.save('dados_cadastrais_usuario.pdf');
+      this.$download.downloadPDF(data, headers, 'Dados Cadastrais do Usuário', 'dados_cadastrais_usuario.pdf');
     },
 
     generateLogsCSV() {
@@ -1595,53 +1577,37 @@ export default {
       this.$download.downloadCSV(csvContent, 'dados_cadastrais_usuario.csv');
     },
 
-    generateAccessPDF() {
-      const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4',
-      });
+    async generateAccessPDF() {
+      try {
+        // Login History data
+        const loginData = this.filteredUserLoginHistory.map((login) => ({
+          'Data de Login': login.last_date_login,
+          'IP': login.ip,
+          'Localização': login.location,
+          'Dispositivo': login.type_device,
+          'Navegador': login.browser,
+        }));
 
-      doc.setFontSize(12);
-      doc.text('Registro de Acessos do Usuário', 15, 20);
+        // Role Changes data  
+        const roleData = this.filteredUserRoleChanges.map((change) => ({
+          'Alterado Por': change.changed_by,
+          'Data/Hora': change.changed_at,
+          'Ação': change.action,
+          'Papel': change.role,
+        }));
 
-      // Login History
-      autoTable(doc, {
-        startY: 30,
-        head: [['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador']],
-        body: this.filteredUserLoginHistory.map((login) => [
-          login.last_date_login,
-          login.ip,
-          login.location,
-          login.type_device,
-          login.browser,
-        ]),
-        headStyles: {
-          fillColor: '#D92B3F',
-          textColor: [255, 255, 255],
-        },
-      });
+        // Create combined data for PDF with sections
+        const combinedData = [
+          ...loginData.map(item => ({ ...item, _section: 'login' })),
+          ...roleData.map(item => ({ ...item, _section: 'roles' }))
+        ];
 
-      // Role Changes
-      const finalY = doc.lastAutoTable.finalY + 20;
-      doc.text('Histórico de Alterações de Papéis', 15, finalY);
+        const allHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Alterado Por', 'Data/Hora', 'Ação', 'Papel'];
 
-      autoTable(doc, {
-        startY: finalY + 10,
-        head: [['Alterado Por', 'Data/Hora', 'Ação', 'Papel']],
-        body: this.filteredUserRoleChanges.map((change) => [
-          change.changed_by,
-          change.changed_at,
-          change.action,
-          change.role,
-        ]),
-        headStyles: {
-          fillColor: '#D92B3F',
-          textColor: [255, 255, 255],
-        },
-      });
-
-      doc.save('registro_acessos_usuario.pdf');
+        await this.$download.downloadPDF(combinedData, allHeaders, 'Registro de Acessos do Usuário', 'registro_acessos_usuario.pdf');
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+      }
     },
 
     generateAccessCSV() {
