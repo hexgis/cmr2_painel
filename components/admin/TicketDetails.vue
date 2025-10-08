@@ -1105,7 +1105,11 @@ export default {
     },
 
     async downloadAttachedFile(file) {
-      await this.$fileDownloader.downloadQuestionAttachment(file, {
+      if (!file || !file.id) return;
+
+      const downloadUrl = `/adm-panel/tickets/download/${file.id}/question/`;
+
+      await this.$downloader.file(downloadUrl, file.file_name, {
         showLoading: true,
         showSuccess: true,
       });

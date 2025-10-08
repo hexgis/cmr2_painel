@@ -138,7 +138,11 @@ export default {
     },
 
     async downloadAttachment(attachment) {
-      await this.$fileDownloader.downloadAnswerAttachment(attachment, {
+      if (!attachment || !attachment.id) return;
+
+      const downloadUrl = `/adm-panel/tickets/download/${attachment.id}/answer/`;
+
+      await this.$downloader.file(downloadUrl, attachment.name_file, {
         showLoading: true,
         showSuccess: true,
       });
