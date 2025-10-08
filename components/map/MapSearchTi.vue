@@ -62,7 +62,7 @@
     </div>
 </template>
 
-<i18n>
+<i18n lang="json">
   {
     "en": { "search-label": "Search for Indigenous Lands" },
     "pt-br": { "search-label": "Pesquisar por Terras Indígenas" }
@@ -71,7 +71,7 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
-import { convertTextToHtml, convertHtmlToText } from '@/utils/formatText'
+import { convertTextToHtml } from '@/utils/formatText'
 import BaseTiMetadata from '../base/BaseTiMetadata.vue'
 
 export default {

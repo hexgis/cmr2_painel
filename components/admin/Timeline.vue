@@ -137,9 +137,11 @@ export default {
       return `${baseUrl}adm-panel/tickets/download/${attachmentId}/${attachmentType}/`;
     },
 
-    downloadAttachment(attachment) {
-      const link = this.getDownloadLink(attachment);
-      window.open(link, '_blank');
+    async downloadAttachment(attachment) {
+      await this.$fileDownloader.downloadAnswerAttachment(attachment, {
+        showLoading: true,
+        showSuccess: true,
+      });
     },
 
     getFileIcon(fileName) {

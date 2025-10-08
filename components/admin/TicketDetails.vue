@@ -1104,12 +1104,11 @@ export default {
       target.style.display = 'none';
     },
 
-    downloadAttachedFile(file) {
-      const baseUrl = this.$api.defaults.baseURL;
-      const attachmentId = file.id;
-      const attachmentType = 'question';
-      const downloadUrl = `${baseUrl}adm-panel/tickets/download/${attachmentId}/${attachmentType}/`;
-      window.open(downloadUrl, '_blank');
+    async downloadAttachedFile(file) {
+      await this.$fileDownloader.downloadQuestionAttachment(file, {
+        showLoading: true,
+        showSuccess: true,
+      });
     },
 
     truncateFileName(fileName, maxLength) {

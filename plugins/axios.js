@@ -1,14 +1,5 @@
 export default function ({ $axios, store }, inject) {
-    const token = store.getters['auth/getToken']
-        ? store.getters['auth/getToken']
-        : null
-
     const api = $axios.create({
-        headers: token ? {
-            common: {
-                Authorization: 'Bearer ' + token,
-            },
-        } : {},
         baseURL: process.env.API_URL,
     })
     const apiSkynet = $axios.create({
