@@ -641,37 +641,35 @@ export default {
     activePopup(type, layerId) {
       // If the action is 'Delete', remove the specified layer from the map.
       if (type === 'Delete') {
-        this.map.removeLayer(this.drawnItems._layers[layerId]);
+        const layer = this.drawnItems._layers[layerId];
+        window.controlBuffer.removeBuffer(layer);
+        this.map.removeLayer(layer);
         delete this.drawnItems._layers[layerId];
         this.hasDraw = Object.keys(this.drawnItems._layers).length > 0;
       }
       // If the action is 'Edit' or 'Buffer'.
       if (type === 'Edit' || type === 'Buffer') {
-        this.setIsDrawing(true);
         // Disable the current drawing instance, if it exists.
-        if (this.drawInstance) {
-          this.drawInstance.disable();
-        }
-        // Set the 'isButtonEditClicked' flag to true.
-        this.isButtonEditClicked = true;
+        if (this.drawInstance) this.drawInstance.disable();
+        // Set the 'isButtonEditClicked' flag to true only for Edit.
+        this.isButtonEditClicked = type === 'Edit';
         // Get all layers in drawnItems and filter the selected layer by its ID.
         const allLayers = Object.values(this.drawnItems._layers);
-        const selectedLayer = allLayers.filter(
-          (layer) => layer._leaflet_id === layerId,
-        );
-        // Close the popup of the selected layer.
-        selectedLayer[0].closePopup();
+        const selectedLayer = allLayers.find((layer) => layer._leaflet_id === layerId);
+        selectedLayer.closePopup();
         // Create a FeatureGroup containing the selected layer.
         const editingLayer = new this.$L.FeatureGroup();
-        editingLayer._layers = selectedLayer;
+        editingLayer.addLayer(selectedLayer);
         editingLayer._map = this.drawnItems._map;
         editingLayer._mapToAdd = this.drawnItems._mapToAdd;
-        // Create a new drawing instance based on the specified action ('Edit' or 'Buffer').
-        this.drawInstance = new this.$L.EditToolbar[type](this.map, {
-          featureGroup: editingLayer,
-        });
-        // Enable the new drawing instance.
-        this.drawInstance.enable();
+        if (type === 'Buffer' && window.controlBuffer) window.controlBuffer.createBuffer(selectedLayer);
+        else {
+          this.drawInstance = new this.$L.EditToolbar.Edit(this.map, {
+            featureGroup: editingLayer,
+          });
+          // Enable the new drawing instance.
+          this.drawInstance.enable();
+        }
       }
     },
 
