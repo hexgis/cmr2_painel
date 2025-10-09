@@ -209,6 +209,7 @@ export default {
         await this.checkPrivacyAgreement();
       }
     }
+    this.$vuetify.theme.dark = this.user.settings.dark_mode_active || false;
   },
 
   mounted() {

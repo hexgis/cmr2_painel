@@ -31,6 +31,7 @@ export default {
         upload: 'uploading',
         file: 'file',
         drawing: 'drawing',
+        theme: 'theme'
     },
     'pt-br': {
         'default-error':
@@ -64,5 +65,6 @@ export default {
         upload: 'fazer upload',
         file: 'arquivo',
         drawing: 'desenho',
+        theme: 'tema'
     },
 }

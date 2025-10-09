@@ -1,11 +1,17 @@
 <template>
   <v-form class="fill-height">
-    <v-card class="px-3 py-3" elevation="0">
+    <v-card
+      class="px-3 py-3"
+      elevation="0"
+    >
       <v-row>
         <v-col cols="12">
           <v-switch
             :label="$t('info-message')"
-            @click="toggleTheme"
+            :loading="loadingUpdateTheme"
+            :disabled="loadingUpdateTheme"
+            :input-value="darkMode"
+            @change="toggleTheme"
           />
         </v-col>
       </v-row>
@@ -27,50 +33,26 @@
 </i18n>
 
 <script>
-import { mapState} from 'vuex';
+import { mapState, mapActions } from 'vuex';
 
 export default {
   name: 'ProfilePanelSettingsMap',
-  props: {
-    newBoundingBox: {
-      type: Object,
-      default: () => null,
-    },
-  },
 
   computed: {
-    ...mapState({
-      token: state => state.auth.token
-    })
-  },
+    darkMode() {
+      return this.user.settings.dark_mode_active || false;
+    },
 
-  mounted() {
-    const theme = localStorage.getItem('useDarkTheme');
-    if (theme) {
-      this.$vuetify.theme.dark = theme === 'true';
-    }
+    ...mapState('userProfile', ['user', 'loadingUpdateTheme']),
   },
 
   methods: {
-    toggleTheme() {
-      this.$vuetify.theme.dark = !this.$vuetify.theme.dark;
-      localStorage.setItem('useDarkTheme', this.$vuetify.theme.dark.toString());
-      this.updateThemeSettings(this.$vuetify.theme.dark);
+    async toggleTheme(value) {
+      const isUpdated = await this.updateThemeSettings(value);
+      if (isUpdated) this.$vuetify.theme.dark = value;
     },
 
-    async updateThemeSettings(isDark) { 
-      try {
-        const response = await this.$axios.patch('/user/update-settings/', {
-          theme_mode: isDark
-        }, {
-          headers: {
-            Authorization: `Bearer ${this.token}`
-          }
-        });
-      } catch (error) {
-        console.error('Erro ao atualizar a configuração de tema:', error.response ? error.response.data : error.message);
-      }
-    }
-  }
+    ...mapActions('userProfile', ['updateThemeSettings']),
+  },
 };
 </script>
