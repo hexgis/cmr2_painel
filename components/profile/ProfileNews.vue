@@ -108,7 +108,10 @@
         </div>
       </v-card-text>
 
-      <v-card-actions v-if="displayedNews.length > 1" class="navigation-actions">
+      <v-card-actions
+        v-if="displayedNews.length > 1"
+        class="navigation-actions"
+      >
         <v-btn
           color="#d92b3f"
           text
@@ -240,7 +243,7 @@ export default {
   watch: {
     value(newVal) {
       if (newVal) {
-        this.openNewsDialog(this.showAllNews);
+        this.openNewsDialog();
       } else {
         this.closeNewsDialog();
       }
@@ -259,7 +262,7 @@ export default {
     this.loadReadNews();
 
     if (this.value) {
-      this.openNewsDialog(this.showAllNews);
+      this.openNewsDialog();
     }
   },
 

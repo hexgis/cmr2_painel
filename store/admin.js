@@ -3,6 +3,7 @@ export const state = () => ({
   activeUsers: 0,
   newAccessRequests: 0,
   accessRequestsCount: 0,
+  pendingRequestsCount: 0,
   newUsersRequest: [],
   tickets: [],
   ticketDetail: [],
@@ -18,6 +19,9 @@ export const mutations = {
   },
   setNewAccessRequest(state, newAccessRequests) {
     state.newAccessRequests = newAccessRequests;
+  },
+  setPendingRequestsCount(state, count) {
+    state.pendingRequestsCount = count;
   },
   setNewUsersRequest(state, usersRequest) {
     state.newUsersRequest = usersRequest;
@@ -223,6 +227,19 @@ export const actions = {
       link.remove();
     } catch (error) {
       console.error('Erro ao baixar o arquivo:', error);
+    }
+  },
+
+  async fetchPendingRequestsCount({ rootState, commit }) {
+    try {
+      if (!rootState.userProfile.user) {
+        commit('setPendingRequestsCount', 0);
+        return;
+      }
+      const { data } = await this.$api.get('/user/restricted-access/pending-count/');
+      commit('setPendingRequestsCount', data.count || 0);
+    } catch (error) {
+      commit('setPendingRequestsCount', 0);
     }
   },
 };

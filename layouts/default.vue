@@ -198,6 +198,10 @@ export default {
         this.windowWidth = window.innerWidth;
       }
     },
+
+    user() {
+      this.initializeMethods();
+    },
   },
 
   async created() {
@@ -217,15 +221,11 @@ export default {
 
     this.$nextTick(() => {
       this.getLeafletControlRef();
-
-      if (
-        window.innerWidth > 768
-                && this.user
-                && this.user.settings.drawer_open_on_init
-      ) {
+      if (window.innerWidth > 768 && this.user && this.user.settings.drawer_open_on_init) {
         this.openDrawer();
       }
     });
+    this.initializeMethods();
   },
 
   beforeDestroy() {
@@ -233,8 +233,6 @@ export default {
   },
 
   methods: {
-    ...mapMutations('userProfile', ['openDrawer', 'closeDrawer']),
-
     async checkPrivacyAgreement() {
       if (!this.isLoggedIn) {
         return;
@@ -291,9 +289,17 @@ export default {
         });
       }
     },
+
     updateWindowWidth() {
       this.windowWidth = window.innerWidth;
     },
+
+    async initializeMethods() {
+      await this.$store.dispatch('admin/fetchPendingRequestsCount');
+      await this.$store.dispatch('userProfile/checkUnreadNews');
+    },
+
+    ...mapMutations('userProfile', ['openDrawer', 'closeDrawer']),
   },
 };
 </script>
