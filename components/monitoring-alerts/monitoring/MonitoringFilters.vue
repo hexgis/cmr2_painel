@@ -167,10 +167,11 @@
         class="mt-n3 mb-1"
       >
         <DialogConfirmDownload module="monitoring" />
+
         <DialogConfirmDownload
           ref="infoDialog"
           module="monitoring"
-          :information-only="true"
+          information-only
         />
 
         <v-btn
@@ -489,9 +490,7 @@ export default {
   watch: {
     totalFeatures(newValue) {
       if (newValue && newValue > 10000 && this.$refs.infoDialog) {
-        this.$nextTick(() => {
-          this.$refs.infoDialog.openDialog();
-        });
+        this.$refs.infoDialog.openDialog();
       }
     },
     'filters.currentView': function (value) {

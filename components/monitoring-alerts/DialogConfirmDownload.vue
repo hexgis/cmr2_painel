@@ -4,7 +4,7 @@
     persistent
     max-width="500"
   >
-    <template #activator="{ on, attrs }">
+    <template #activator="{}">
       <v-tooltip
         v-if="!informationOnly"
         bottom
@@ -97,7 +97,7 @@
   </v-dialog>
 </template>
 
-<i18n>
+<i18n lang="json">
 {
   "en": {
     "attention-label": "Attention",
