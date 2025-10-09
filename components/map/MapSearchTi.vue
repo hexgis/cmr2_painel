@@ -63,10 +63,14 @@
 </template>
 
 <i18n lang="json">
-  {
-    "en": { "search-label": "Search for Indigenous Lands" },
-    "pt-br": { "search-label": "Pesquisar por Terras Indígenas" }
+{
+  "en": {
+    "search-label": "Search for Indigenous Lands"
+  },
+  "pt-br": {
+    "search-label": "Pesquisar por Terras Indígenas"
   }
+}
 </i18n>
 
 <script>
