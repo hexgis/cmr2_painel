@@ -168,12 +168,6 @@
       >
         <DialogConfirmDownload module="monitoring" />
 
-        <DialogConfirmDownload
-          ref="infoDialog"
-          module="monitoring"
-          information-only
-        />
-
         <v-btn
           :loading="isLoadingStatistic"
           small
@@ -408,7 +402,6 @@ export default {
       flattened: [],
       dialog: false,
       tableDialogMonitoring: false,
-      isLoadingTable: false,
       isLoadingCSV: false,
       isLoadingGeoJson: false,
       loadingEstagios: {},
@@ -485,14 +478,10 @@ export default {
       'totalFeatures',
       'loadingMonitoringStats',
       'loadingMonitoringFilter',
+      'isLoadingTable',
     ]),
   },
   watch: {
-    totalFeatures(newValue) {
-      if (newValue && newValue > 10000 && this.$refs.infoDialog) {
-        this.$refs.infoDialog.openDialog();
-      }
-    },
     'filters.currentView': function (value) {
       if (value && this.filters.cr.length > 0) {
         this.filters.cr = [];
@@ -649,15 +638,9 @@ export default {
         this.error = true;
       }
     },
-    showTableDialog(value) {
+    async showTableDialog(value) {
       this.tableDialogMonitoring = value;
-      this.getDataTableMonitoring();
-
-      if (this.totalFeatures && this.totalFeatures > 10000 && this.$refs.infoDialog) {
-        this.$nextTick(() => {
-          this.$refs.infoDialog.openDialog();
-        });
-      }
+      await this.getDataTableMonitoring();
     },
     closeTable(value) {
       this.tableDialogMonitoring = value;

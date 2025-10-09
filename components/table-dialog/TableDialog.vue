@@ -78,8 +78,8 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+
     <v-dialog
-      v-if="value.length >= 10000"
       v-model="confirmDialog"
       max-width="500"
     >
@@ -99,6 +99,37 @@
             color="primary"
             text
             @click="confirmDialog = false"
+          >
+            <v-icon>mdi-check</v-icon>
+            {{ $t('acknowledge-label') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog
+      v-model="downloadDialog"
+      max-width="500"
+    >
+      <v-card>
+        <v-card-title class="headline">
+          {{ $t('confirm-dialog-title') }}
+        </v-card-title>
+        <v-card-text class="mt-4">
+          <p>{{ $t('description-label-3') }}</p>
+        </v-card-text>
+        <v-card-text>
+          <p>
+            {{ $t('description-label-4') }}
+            <a href="mailto:cmr@funai.gov.br">cmr@funai.gov.br</a>.
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            text
+            @click="downloadDialog = false"
           >
             {{ $t('cancel') }}
           </v-btn>
@@ -171,7 +202,8 @@ export default {
   data() {
     return {
       confirmDialog: false,
-      isDownloading: false, // Adicione esta variável
+      downloadDialog: false,
+      isDownloading: false,
       row: null,
       dialogPrint: false,
       selected: [],
@@ -189,6 +221,12 @@ export default {
       set(value) {
         this.fCloseTable(value);
       },
+    },
+  },
+
+  watch: {
+    value(val) {
+      if (val && val.length >= 10000) this.confirmDialog = true;
     },
   },
 
@@ -217,14 +255,14 @@ export default {
 
     async handleDownloadClick() {
       if (this.value.length >= 10000) {
-        this.confirmDialog = true;
+        this.downloadDialog = true;
       } else {
         await this.startDownload();
       }
     },
 
     async handleDownloadConfirmed() {
-      this.confirmDialog = false;
+      this.downloadDialog = false;
       await this.startDownload();
     },
 
@@ -246,17 +284,23 @@ export default {
 {
   "en": {
     "confirm-dialog-title": "Confirmation",
-    "confirm-dialog-message1": "This action will load the table data. Do you want to continue?",
-    "confirm-dialog-message2": "This action will load the table data. Do you want to continue?",
+    "confirm-dialog-message1": "Due to technical limitations, the generated table has a maximum limit of 10,000 features. The executed query generated a higher number of polygons, so it is possible that not all polygons will be available in the generated file.",
+    "confirm-dialog-message2": "If you need to download the complete data, please contact the CMR team via Contact Us on the platform or by email ",
+    "description-label-3": "Due to technical limitations, the generated file has a maximum limit of 10,000 features. The query made generated a number of polygons greater than that, so it is possible that not all polygons will be available in the generated file.",
+    "description-label-4": "If you need to download the complete data, please contact the CMR team via Contact Us on the platform or by email ",
     "confirm": "Confirm",
+    "acknowledge-label": "Acknowledge",
     "download-label": "Download",
     "cancel": "Cancel"
   },
   "pt-br": {
     "confirm-dialog-title": "Atenção",
-    "confirm-dialog-message1": "Devido a limitações técnicas, o arquivo gerado possui um limite máximo de 10.000 feições. A consulta realizada gerou um número superior de polígonos, de forma que nem todos poderão estar disponíveis no arquivo gerado.",
-    "confirm-dialog-message2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail",
+    "confirm-dialog-message1": "Devido a limitações técnicas, a tabela gerado possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
+    "confirm-dialog-message2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail ",
+    "description-label-3": "Devido a limitações técnicas, os arquivo gerado possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
+    "description-label-4": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail ",
     "confirm": "Confirmar",
+    "acknowledge-label": "Ciente",
     "download-label": "Baixar",
     "cancel": "Cancelar"
   }

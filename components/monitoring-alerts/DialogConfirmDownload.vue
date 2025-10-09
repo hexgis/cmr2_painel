@@ -6,7 +6,6 @@
   >
     <template #activator="{}">
       <v-tooltip
-        v-if="!informationOnly"
         bottom
       >
         <template #activator="{ on: onTooltip, attrs: attrsTooltip }">
@@ -65,7 +64,6 @@
       <v-card-actions>
         <v-spacer />
         <v-btn
-          v-if="!informationOnly"
           color="red darken-1"
           text
           @click="dialog = false"
@@ -74,7 +72,6 @@
           {{ $t('cancel-label') }}
         </v-btn>
         <v-btn
-          v-if="!informationOnly"
           color="green darken-1"
           :loading="isLoadingGeoJson"
           text
@@ -82,15 +79,6 @@
         >
           <v-icon>mdi-download</v-icon>
           {{ $t('download-label') }}
-        </v-btn>
-        <v-btn
-          v-if="informationOnly"
-          color="primary"
-          text
-          @click="dialog = false"
-        >
-          <v-icon>mdi-check</v-icon>
-          {{ $t('acknowledge-label') }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -134,10 +122,6 @@ export default {
       required: true,
       validator: (value) => ['monitoring', 'urgent-alerts'].includes(value),
     },
-    informationOnly: {
-      type: Boolean,
-      default: false,
-    },
   },
 
   data() {
@@ -156,17 +140,7 @@ export default {
          || state[this.module].isLoadingDownloadTableAlerts || false;
       },
     }),
-    ...mapState('monitoring', [
-      'totalFeatures',
-    ]),
-  },
-
-  watch: {
-    totalFeatures(newValue) {
-      if (this.informationOnly && newValue && newValue > 10000) {
-        this.dialog = true;
-      }
-    },
+    ...mapState('monitoring', ['totalFeatures']),
   },
 
   methods: {
@@ -174,7 +148,7 @@ export default {
       try {
         this.$store.commit(`${this.module}/setLoadingGeoJson`, true);
 
-        if (this.totalFeatures && this.totalFeatures > 10000) {
+        if (this.totalFeatures && this.totalFeatures >= 10000) {
           this.dialog = true;
         } else {
           this.dialog = false;
