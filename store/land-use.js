@@ -697,8 +697,8 @@ export const actions = {
         parseFloat(row.nu_area_ha) || 0,
       ]);
 
-      const csvContent = this.$download.convertToCSV(data, headers, ',');
-      this.$download.downloadCSV(csvContent, 'landUse_table.csv');
+      const csvContent = this.$downloader.convertToCSV(data, headers, ',');
+      this.$downloader.downloadCSV(csvContent, 'landUse_table.csv');
     } catch (error) {
       console.error('Erro ao baixar tabela CSV:', error);
       commit('alert/addAlert', {

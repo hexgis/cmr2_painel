@@ -829,7 +829,7 @@ export default {
         }));
 
         // Generate and download CSV using the new unified function
-        await this.$download.csv(csvData, headers, 'criticas_sugestoes', {
+        await this.$downloader.csv(csvData, headers, 'criticas_sugestoes', {
           delimiter: ',',
           dateFormat: 'iso',
           includeTimestamp: true,
@@ -858,7 +858,7 @@ export default {
         'Data Análise': card.ticket_status && card.ticket_status.analyzed_in_formatted || '',
       }));
 
-      await this.$download.downloadPDF(pdfData, headers, 'Críticas e Sugestões', 'criticas_sugestoes.pdf');
+      await this.$downloader.downloadPDF(pdfData, headers, 'Críticas e Sugestões', 'criticas_sugestoes.pdf');
     },
     goToCardDetails(cardId) {
       this.$router.push(`/admin/criticas/${cardId}`);

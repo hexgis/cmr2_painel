@@ -588,7 +588,7 @@ export default {
         const headers = ['Nome', 'Tipo'];
 
         // Generate and download CSV using the new unified function
-        const result = await this.$download.csv(data, headers, 'instituicoes', {
+        const result = await this.$downloader.csv(data, headers, 'instituicoes', {
           delimiter: ',',
           dateFormat: 'iso',
           includeTimestamp: true,
@@ -616,7 +616,7 @@ export default {
           institution_type: institution.institution_type || '',
         }));
 
-        await this.$download.downloadPDF(
+        await this.$downloader.downloadPDF(
           data,
           headers,
           'Lista de Instituições',

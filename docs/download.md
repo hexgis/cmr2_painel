@@ -1,3 +1,11 @@
+# ⚠️ DOCUMENTAÇÃO DESCONTINUADA
+
+**ATENÇÃO: Este plugin foi migrado para `this.$downloader`. Esta documentação é mantida apenas para referência histórica.**
+
+**Use a nova API:** `this.$downloader` em vez de `this.$download`
+
+---
+
 # Plugin de Download - Exemplos de Uso
 
 O plugin de download oferece funções utilitárias para exportar dados em CSV e PDF de forma padronizada em toda a aplicação.

@@ -219,8 +219,8 @@ export const actions = {
           throw new Error('Nenhum dado disponível para exportação');
         }
 
-        const csvContent = this.$download.convertToCSV(analyticsMonitoringcsv, null, ';');
-        this.$download.downloadCSV(csvContent, defaultFileName);
+        const csvContent = this.$downloader.convertToCSV(analyticsMonitoringcsv, null, ';');
+        this.$downloader.downloadCSV(csvContent, defaultFileName);
       } catch (error) {
         commit(
           'alert/addAlert',
@@ -263,9 +263,9 @@ export const actions = {
           item.nu_longitude || ''
         ]);
 
-        const csvContent = this.$download.convertToCSV(data, headers, ';');
+        const csvContent = this.$downloader.convertToCSV(data, headers, ';');
         const fileName = `dados_prodes_${new Date().toISOString().slice(0, 10)}.csv`;
-        this.$download.downloadCSV(csvContent, fileName);
+        this.$downloader.downloadCSV(csvContent, fileName);
       } catch (error) {
         commit(
           'alert/addAlert',

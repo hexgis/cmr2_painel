@@ -1549,7 +1549,7 @@ export default {
         ]);
 
         // Generate and download CSV using the new unified function
-        const result = await this.$download.csv(rows, headers, 'usuarios', {
+        const result = await this.$downloader.csv(rows, headers, 'usuarios', {
           delimiter: ',',
           dateFormat: 'iso',
           includeTimestamp: true,
@@ -1646,12 +1646,12 @@ export default {
 
         // Dynamic filename with timestamp
         const username = (this.selectedUserLogs && this.selectedUserLogs.username) || 'usuario';
-        const filename = this.$download.generateFileName(`dados_cadastrais_${username}`, 'pdf', {
+        const filename = this.$downloader.generateFileName(`dados_cadastrais_${username}`, 'pdf', {
           includeTimestamp: true,
           dateFormat: 'iso',
         });
 
-        await this.$download.downloadPDF(
+        await this.$downloader.downloadPDF(
           data,
           headers,
           `Dados Cadastrais do Usuário: ${(this.selectedUserLogs && this.selectedUserLogs.username) || 'N/A'}`,
@@ -1684,7 +1684,7 @@ export default {
         const baseName = `dados_cadastrais_${username}`;
 
         // Generate and download CSV using the new unified function
-        const result = await this.$download.csv(rows, headers, baseName, {
+        const result = await this.$downloader.csv(rows, headers, baseName, {
           delimiter: ',',
           dateFormat: 'iso',
           includeTimestamp: true,
@@ -1733,12 +1733,12 @@ export default {
 
         const allHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Alterado Por', 'Data/Hora', 'Ação', 'Papel'];
 
-        const filename = this.$download.generateFileName('registro_acessos_usuario', 'pdf', {
+        const filename = this.$downloader.generateFileName('registro_acessos_usuario', 'pdf', {
           includeTimestamp: true,
           dateFormat: 'iso',
         });
 
-        await this.$download.downloadPDF(combinedData, allHeaders, 'Registro de Acessos do Usuário', filename);
+        await this.$downloader.downloadPDF(combinedData, allHeaders, 'Registro de Acessos do Usuário', filename);
       } catch (error) {
         console.error('Erro ao gerar PDF:', error);
       }
@@ -1768,20 +1768,20 @@ export default {
         ]);
 
         // Generate individual CSV contents
-        const loginCsvContent = this.$download.convertToCSV(loginRows, loginHeaders);
-        const roleCsvContent = this.$download.convertToCSV(roleRows, roleHeaders);
+        const loginCsvContent = this.$downloader.convertToCSV(loginRows, loginHeaders);
+        const roleCsvContent = this.$downloader.convertToCSV(roleRows, roleHeaders);
 
         // Combine both sections
         const combinedCsvContent = `HISTÓRICO DE LOGIN\n${loginCsvContent}\n\nHISTÓRICO DE ALTERAÇÕES DE PAPÉIS\n${roleCsvContent}`;
 
         // Generate filename
-        const filename = this.$download.generateFileName('registro_acessos_usuario', 'csv', {
+        const filename = this.$downloader.generateFileName('registro_acessos_usuario', 'csv', {
           includeTimestamp: true,
           dateFormat: 'iso',
         });
 
         // Download the combined file
-        this.$download.downloadCSV(combinedCsvContent, filename);
+        this.$downloader.downloadCSV(combinedCsvContent, filename);
       } catch (error) {
         console.error('Erro ao gerar CSV de acessos:', error);
         this.$store.commit('alert/addAlert', {
