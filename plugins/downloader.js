@@ -32,20 +32,21 @@ function extractFilenameFromHeader(contentDisposition, fallback = 'download') {
 
   const patterns = [
     /filename\*=(?:UTF-8'')?([^;]+)/i, // RFC 6266 (UTF-8)
-    /filename=['"]([^'";]+)['"]/i,     // Com aspas
-    /filename=([^;'"\s]+)/i,           // Sem aspas
+    /filename=['"]([^'";]+)['"]/i, // Com aspas
+    /filename=([^;'"\s]+)/i, // Sem aspas
   ];
 
-  for (const pattern of patterns) {
+  Object.values(patterns).forEach((pattern) => {
     const match = contentDisposition.match(pattern);
-    if (match?.[1]) {
+    if (match && match[1]) {
       try {
         return sanitizeFilename(decodeURIComponent(match[1].trim()));
-      } catch {
+      } catch (_) {
         return sanitizeFilename(match[1].trim());
       }
     }
-  }
+    return fallback;
+  });
 
   return fallback;
 }
@@ -55,7 +56,7 @@ function extractFilenameFromHeader(contentDisposition, fallback = 'download') {
  * @param {Blob} blob
  * @param {string} filename
  */
-function triggerDownload(blob, filename) {
+function trigger(blob, filename) {
   const downloadUrl = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = downloadUrl;
@@ -68,106 +69,16 @@ function triggerDownload(blob, filename) {
 }
 
 /**
- * Main class for download management.
+ * Downloads a file from a Blob.
+ * @param {*} blob - Blob data
+ * @param {*} contentDisposition - Content-Disposition header
+ * @param {*} filename - Fallback filename
  */
-class Downloader {
-  constructor(api, toast) {
-    this.api = api;
-    this.toast = toast;
-  }
-
-  /**
-   * Downloads a file via HTTP request.
-   * @param {string} url - File URL for download
-   * @param {string} [filename='download'] - Filename
-   * @param {Object} [options={}] - Additional options
-   * @returns {Promise<{success: boolean, filename?: string, error?: Error}>}
-   */
-  async file(url, filename = 'download', options = {}) {
-    if (!url) {
-      this.toast?.error('Download URL not provided.');
-      return { success: false, error: new Error('Download URL not provided') };
-    }
-
-    const { showLoading, showSuccess, requestConfig } = options;
-
-    try {
-      if (showLoading) this.toast?.info('Preparing download...');
-
-      const response = await this.api({
-        method: 'GET',
-        url,
-        responseType: 'blob',
-        ...requestConfig,
-      });
-
-      const contentType = response.headers['content-type'] || 'application/octet-stream';
-      const contentDisposition = response.headers['content-disposition'];
-      const finalFilename = extractFilenameFromHeader(contentDisposition, filename);
-
-      const blob = new Blob([response.data], { type: contentType });
-      triggerDownload(blob, finalFilename);
-
-      if (showSuccess) this.toast?.success('File downloaded successfully!');
-      return { success: true, filename: finalFilename };
-
-    } catch (error) {
-      console.error('Error downloading file:', error);
-
-      const status = error.response?.status;
-      if (this.toast) {
-        if (status === 401) this.toast.error('Unauthorized. Please login again.');
-        else if (status === 404) this.toast.error('File not found.');
-        else this.toast.error('Error downloading file.');
-      }
-
-      return { success: false, error };
-    }
-  }
-
-  /**
-   * Downloads data directly as a blob (or string/ArrayBuffer).
-   * @param {Blob|ArrayBuffer|string} data
-   * @param {string} filename
-   * @param {string} [mimeType='application/octet-stream']
-   * @param {Object} [options={}]
-   * @returns {Promise<{success: boolean, filename?: string, error?: Error}>}
-   */
-  async blob(data, filename, mimeType = 'application/octet-stream', options = {}) {
-    const { showLoading, showSuccess } = options;
-
-    try {
-      if (showLoading) this.toast?.info('Preparing download...');
-
-      const blob = new Blob([data], { type: mimeType });
-      triggerDownload(blob, filename);
-
-      if (showSuccess) this.toast?.success('File downloaded successfully!');
-      return { success: true, filename: sanitizeFilename(filename) };
-
-    } catch (error) {
-      console.error('Error downloading blob:', error);
-      this.toast?.error('Error downloading file.');
-      return { success: false, error };
-    }
-  }
-
-  /**
-   * Generates a URL by replacing {key} placeholders with values.
-   * @param {string} baseUrl
-   * @param {string} endpoint
-   * @param {Object} [params={}] - Parameters for replacement
-   * @returns {string} - Built URL
-   */
-  static buildUrl(baseUrl, endpoint, params = {}) {
-    return Object.entries(params).reduce(
-      (url, [key, value]) => url.replace(`{${key}}`, encodeURIComponent(value)),
-      `${baseUrl}${endpoint}`
-    );
-  }
+function file(blob, contentDisposition = '', filename = 'download') {
+  const finalFilename = extractFilenameFromHeader(contentDisposition, filename);
+  trigger(blob, finalFilename);
 }
 
-export default (context, inject) => {
-  const downloader = new Downloader(context.$api, context.$toast);
-  inject('downloader', downloader);
+export default (_, inject) => {
+  inject('downloader', { file });
 };

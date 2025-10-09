@@ -603,7 +603,7 @@
 </i18n>
 
 <script>
-import { mapGetters, mapState } from 'vuex';
+import { mapGetters, mapState, mapActions } from 'vuex';
 import LoadingIconVue from '../map/file-loader/LoadingIcon.vue';
 import PriorityBadge from './PriorityBadge.vue';
 import StatusBadge from './StatusBadge.vue';
@@ -1106,13 +1106,7 @@ export default {
 
     async downloadAttachedFile(file) {
       if (!file || !file.id) return;
-
-      const downloadUrl = `/adm-panel/tickets/download/${file.id}/question/`;
-
-      await this.$downloader.file(downloadUrl, file.file_name, {
-        showLoading: true,
-        showSuccess: true,
-      });
+      await this.downloadFileTicketDetails({ file, downloadType: 'question' });
     },
 
     truncateFileName(fileName, maxLength) {
@@ -1126,6 +1120,8 @@ export default {
 
       return `${nameWithoutExt.substring(0, availableLength)}...${ext}`;
     },
+
+    ...mapActions('admin', ['downloadFileTicketDetails']),
   },
 };
 </script>
