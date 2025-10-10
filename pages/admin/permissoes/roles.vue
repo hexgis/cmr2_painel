@@ -1,7 +1,7 @@
 <template>
   <div class="group">
     <span class="d-flex align-center justify-space-between">
-      <h1 class="text-uppercase">Gerenciamento de Papéis</h1>
+      <h1 class="text-uppercase">Gerenciamento de Perfis</h1>
       <v-btn
         color="primary"
         text
@@ -55,7 +55,7 @@
         outlined
         class="pt-8"
         hide-details="auto"
-        label="Nome do Papel"
+        label="Nome do Perfil"
       />
       <v-text-field
         v-model="cardDescription"
@@ -88,7 +88,7 @@ import PermissionManager from '/components/admin/PermissionManager.vue';
 import { mapGetters } from 'vuex';
 
 export default {
-  name: 'Papeis',
+  name: 'UserProfiles',
   components: { CardRole, CustomDialog, PermissionManager },
   layout: 'admin',
   data() {
@@ -104,22 +104,6 @@ export default {
       users: [],
     };
   },
-  async mounted() {
-    this.loadingRoles = true;
-    try {
-      await this.loadUsers();
-      await this.$store.dispatch('admin/fetchRolesList');
-      this.permissions = await this.$api.get('user/group/');
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      this.$store.commit('alert/addAlert', {
-        timeout: 5000,
-        message: 'Erro ao carregar dados dos papéis',
-      });
-    } finally {
-      this.loadingRoles = false;
-    }
-  },
   computed: {
     ...mapGetters('admin', ['rolesList']),
 
@@ -131,7 +115,23 @@ export default {
         this.permissions.data = value;
       },
     },
+  },
 
+  async mounted() {
+    this.loadingRoles = true;
+    try {
+      await this.loadUsers();
+      await this.$store.dispatch('admin/fetchRolesList');
+      this.permissions = await this.$api.get('user/group/');
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      this.$store.commit('alert/addAlert', {
+        timeout: 5000,
+        message: 'Erro ao carregar dados dos perfis',
+      });
+    } finally {
+      this.loadingRoles = false;
+    }
   },
   methods: {
     async loadUsers() {
@@ -183,16 +183,16 @@ export default {
 
           this.$store.commit('alert/addAlert', {
             timeout: 5000,
-            message: `Papel "${roleName}" foi criado com sucesso! ${usersCount > 0 ? `Usuários associados: ${usersCount}.` : 'Nenhum usuário associado.'}`,
+            message: `Perfil "${roleName}" foi criado com sucesso! ${usersCount > 0 ? `Usuários associados: ${usersCount}.` : 'Nenhum usuário associado.'}`,
           });
         }
       } catch (error) {
         console.error('Error creating role:', error);
 
-        let errorMessage = 'Erro ao criar papel.';
+        let errorMessage = 'Erro ao criar perfil.';
         if (error.response && error.response.data) {
           if (error.response.data.name && error.response.data.name.includes('already exists')) {
-            errorMessage = 'Já existe um papel com este nome.';
+            errorMessage = 'Já existe um perfil com este nome.';
           } else if (error.response.data.detail) {
             errorMessage = error.response.data.detail;
           }

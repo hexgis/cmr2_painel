@@ -73,7 +73,7 @@ export default {
     },
     label: {
       type: String,
-      default: 'Papel',
+      default: 'Perfil',
     },
     isPermissionChanged: {
       type: Boolean,
