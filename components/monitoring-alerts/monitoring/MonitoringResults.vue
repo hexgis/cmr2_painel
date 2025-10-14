@@ -208,10 +208,10 @@
 
     <!-- Modais -->
     <TableDialog
-      v-if="tableDialog && formattedTableMonitoring"
-      :table="tableDialog"
+      v-if="tableDialog"
+      :value="tableDialog"
       :headers="headers"
-      :value="formattedTableMonitoring"
+      :table="formattedTableMonitoring()"
       :loading-table="isLoadingTable"
       :table-name="$t('table-name')"
       :f-close-table="closeTableDialog"
@@ -222,7 +222,7 @@
       :value="analyticDialog"
       :close-dialog="closeAnalyticalDialog"
       :table="formattedAnalyticData"
-      :loading="isLoadingAnalytics"
+      :loading="isLoadingStatistic"
       @update:group="updateAnalyticDialog"
       @download="downloadAnalytics"
     />
@@ -314,10 +314,6 @@ export default {
       return this.$store.state.monitoring.loadingStats;
     },
 
-    isLoadingAnalytics() {
-      return this.$store.state.monitoring.loadingAnalytics;
-    },
-
     isLoadingHeatmap() {
       return this.$store.state.monitoring.loadingHeatmap;
     },
@@ -328,18 +324,6 @@ export default {
 
     statsTableMonitoring() {
       return this.$store.state.monitoring.stats.tableMonitoring;
-    },
-
-    formattedTableMonitoring() {
-      if (!this.statsTableMonitoring) return [];
-      return this.statsTableMonitoring.map((item) => {
-        const formattedItem = { ...item };
-        this.headers.forEach((header) => {
-          const field = header.value;
-          formattedItem[field] = this.formatFieldValue(item[field], field);
-        });
-        return formattedItem;
-      });
     },
 
     formattedAnalyticData() {
@@ -398,6 +382,18 @@ export default {
           break;
       }
       this.$store.dispatch('monitoring/downloadAnalyticCSV', defaultFileName);
+    },
+
+    formattedTableMonitoring() {
+      const tableMonitoring = this.$store.state.monitoring.stats.tableMonitoring || [];
+      return tableMonitoring.map((item) => {
+        const formattedItem = { ...item };
+        this.headers.forEach((header) => {
+          const field = header.value;
+          formattedItem[field] = this.formatFieldValue(item[field], field);
+        });
+        return formattedItem;
+      });
     },
 
     closeTableDialog() {

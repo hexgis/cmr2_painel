@@ -5,35 +5,32 @@
       transition="dialog-bottom-transition"
       persistent
       no-click-animation
-      width="80vw"
+      width="70vw"
       :fullscreen="$vuetify.breakpoint.smAndDown"
     >
-      <v-card max-height="80vh">
+      <v-card>
         <v-toolbar
           dark
           color="secondary"
+          dense
         >
           <h3>{{ tableName }}</h3>
           <v-spacer />
           <v-btn
             icon
+            small
             @click="fCloseTable(false)"
           >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
 
-        <v-skeleton-loader
-          v-if="loadingTable"
-          type="table-row-divider@8"
-        />
-
-        <v-card-text v-if="!loadingTable">
+        <v-card-text>
           <div class="d-flex justify-end ma-4">
             <v-tooltip bottom>
               <template #activator="{ on, attrs }">
                 <v-btn
-                  small
+                  x-small
                   fab
                   color="secondary"
                   v-bind="attrs"
@@ -50,10 +47,11 @@
           <v-data-table
             :headers="headers"
             :items-per-page="5"
-            :items="value"
+            :items="table"
             class="font-weight-regular table-height"
             multi-sort
             height="50vh"
+            :loading="loadingTable"
             fixed-header
             mobile-breakpoint="0"
             :footer-props="{
@@ -115,8 +113,9 @@ export default {
 
   props: {
     table: {
-      type: Boolean,
+      type: Array,
       required: true,
+      default: () => [],
     },
     headers: {
       type: Array,
@@ -124,9 +123,9 @@ export default {
       default: () => [],
     },
     value: {
-      type: Array,
+      type: Boolean,
       required: true,
-      default: () => [],
+      default: false,
     },
     loadingTable: {
       type: Boolean,
@@ -153,7 +152,7 @@ export default {
   computed: {
     localTable: {
       get() {
-        return this.table;
+        return this.value;
       },
       set(value) {
         this.fCloseTable(value);

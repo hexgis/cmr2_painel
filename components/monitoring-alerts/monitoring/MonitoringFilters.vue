@@ -1,11 +1,12 @@
 <template>
   <v-form ref="monitoringForm">
-    <v-card>
-      <v-card-title class="d-flex justify-space-between">
+    <v-card class="pa-0">
+      <v-card-title class="py-0 pt-4 d-flex justify-space-between">
         <v-checkbox
           v-model="currentViewArea"
           :label="$t('current-view')"
           :rules="currentViewRules"
+          class="ma-0 pa-0"
         />
         <v-tooltip
           bottom
@@ -15,6 +16,7 @@
             <v-switch
               v-bind="props"
               v-model="showFeaturesMonitoring"
+              class="ma-0 pa-0"
             />
           </template>
         </v-tooltip>

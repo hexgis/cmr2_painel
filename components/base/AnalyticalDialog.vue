@@ -12,27 +12,30 @@
       <v-toolbar
         dark
         color="secondary"
+        dense
       >
         <h3>{{ $t('analyticsTitle') }}</h3>
         <v-spacer />
         <v-btn
           icon
+          small
+          class="mr-1"
           @click="closeDialog(false)"
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-toolbar>
+
       <v-container fluid>
         <v-container grid-list-xs>
           <v-row>
             <v-col cols="12">
               <div>
-                <span class="text-uppercase">{{ $t('groupBy') }}:</span>
                 <a class="d-flex justify-end">
                   <v-tooltip bottom>
                     <template #activator="{ on, attrs }">
                       <v-btn
-                        small
+                        x-small
                         fab
                         color="secondary"
                         :loading="loadingCsv"
@@ -48,50 +51,58 @@
                 </a>
               </div>
               <div class="mb-2">
+                <span class="text-uppercase text-caption">{{ $t('groupBy') }}:</span>
+
                 <v-btn
-                  class="mx-1 my-2"
+                  class="mx-1"
                   :class="{ 'button-pressed': currentType === 'funai' }"
                   :disabled="loading"
+                  small
                   @click="groupAnalyticByType('funai')"
                 >
                   {{ $t('indigenousLand') }}
                 </v-btn>
                 <v-btn
-                  class="mx-1 my-2"
+                  class="mx-1"
                   :class="{ 'button-pressed': currentType === 'co_funai_and_monthyear' }"
                   :disabled="loading"
+                  small
                   @click="groupAnalyticByType('co_funai_and_monthyear')"
                 >
                   {{ $t('indigenousLandMonthYear') }}
                 </v-btn>
                 <v-btn
-                  class="mx-1 my-2"
+                  class="mx-1"
                   :class="{ 'button-pressed': currentType === 'monthyear' }"
                   :disabled="loading"
+                  small
                   @click="groupAnalyticByType('monthyear')"
                 >
                   {{ $t('monthYear') }}
                 </v-btn>
                 <v-btn
-                  class="mx-1 my-2"
+                  class="mx-1"
                   :class="{ 'button-pressed': currentType === 'year' }"
                   :disabled="loading"
+                  small
                   @click="groupAnalyticByType('year')"
                 >
                   {{ $t('year') }}
                 </v-btn>
                 <v-btn
-                  class="mx-1 my-2"
+                  class="mx-1"
                   :class="{ 'button-pressed': currentType === 'day' }"
                   :disabled="loading"
+                  small
                   @click="groupAnalyticByType('day')"
                 >
                   {{ $t('day') }}
                 </v-btn>
                 <v-btn
-                  class="mx-1 my-2"
+                  class="mx-1"
                   :class="{ 'button-pressed': currentType === 'co_funai_year' }"
                   :disabled="loading"
+                  small
                   @click="groupAnalyticByType('co_funai_year')"
                 >
                   {{ $t('indigenousLandYear') }}
@@ -125,13 +136,16 @@
               </div>
             </v-col>
           </v-row>
+
           <v-divider class="my-2" />
+
           <v-data-table
             :headers="showHeaders"
             :items="table"
-            :items-per-page="-1"
+            :items-per-page="10"
             :loading="loading"
-            height="50vh"
+            :disable-pagination="loading"
+            height="40vh"
             class="elevation-1"
             multi-sort
             fixed-header
