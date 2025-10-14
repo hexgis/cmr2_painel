@@ -143,7 +143,7 @@
           :input-value="getHeatMapMonitoring"
           class="ma-0 pa-0"
           :loading="isLoadingHeatmap"
-          :disabled="isLoadingHeatmap"
+          :disabled="isLoadingHeatmap || getActiveLegendItems"
           hide-details
           @change="toggleHeatMapLayer($event)"
         />
@@ -322,6 +322,10 @@ export default {
       return this.$store.state.monitoring.loadingHeatmap;
     },
 
+    getActiveLegendItems() {
+      return !this.$store.getters['monitoring/getActiveLegendItems'].length;
+    },
+
     statsTableMonitoring() {
       return this.$store.state.monitoring.stats.tableMonitoring;
     },
@@ -360,8 +364,8 @@ export default {
     },
 
     async showTableDialog() {
-      await this.$store.dispatch('monitoring/getDataTableMonitoring');
       this.tableDialog = true;
+      await this.$store.dispatch('monitoring/getDataTableMonitoring');
     },
 
     async updateAnalyticDialog(type) {

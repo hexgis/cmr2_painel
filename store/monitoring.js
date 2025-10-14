@@ -97,8 +97,11 @@ export default {
       }
 
       if (stages && stages.length) {
-        // no_estagio IN ('DR','CR')
-        filters.push(`no_estagio IN (${stages.filter((stage) => stage.visible).map((stage) => `'${stage.name}'`).join(',')})`);
+        const stagesVisible = stages.filter((stage) => stage.visible);
+        if (stagesVisible.length) {
+          // no_estagio IN ('DR','CR')
+          filters.push(`no_estagio IN (${stagesVisible.map((stage) => `'${stage.name}'`).join(',')})`);
+        }
       }
 
       console.log(filters.join(' AND '));
@@ -261,10 +264,18 @@ export default {
   },
 
   actions: {
-    updateWmsMonitoring({ commit, getters, rootState }) {
+    async updateWmsMonitoring({
+      state, dispatch, commit, getters, rootState,
+    }) {
       let urlGeoserver = rootState.map.geoserverUrl;
       urlGeoserver += `&CQL_FILTER=${encodeURIComponent(getters.getGenerateCqlFilterMonitoring)}`;
       commit('setUrlWmsMonitoring', urlGeoserver);
+      if (state.heatMapMonitoring) {
+        commit('clearHeatmap');
+        // commit('setHeatMapMonitoring', true);
+        await dispatch('generateHeatmapMonitoring');
+        commit('setHeatMapMonitoring', true);
+      }
     },
 
     async generateUrlWmsMonitoring({

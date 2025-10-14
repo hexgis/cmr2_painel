@@ -67,6 +67,7 @@ export default {
 
   methods: {
     createMonitoramentoHeatLayer() {
+      this.removeMonitoramentoHeatLayer();
       this.heatmapLayer = this.$L.heatLayer(
         this.stats.heatmapMonitoring,
         this.resultsHeatmapOptions,
@@ -77,6 +78,7 @@ export default {
     removeMonitoramentoHeatLayer() {
       if (this.heatmapLayer) {
         window.mapMain.removeLayer(this.heatmapLayer);
+        this.heatmapLayer = null;
       }
     },
   },
