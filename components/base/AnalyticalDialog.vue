@@ -146,7 +146,6 @@
             :loading="loading"
             :disable-pagination="loading"
             height="40vh"
-            class="elevation-1"
             multi-sort
             fixed-header
             mobile-breakpoint="0"
