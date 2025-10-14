@@ -443,7 +443,7 @@ export default {
     },
 
     formatFieldValue(value, field = '') {
-      if (value == null) return 'N/A';
+      if (value == null) return '0';
 
       const fieldName = field.toLowerCase();
 
@@ -467,7 +467,7 @@ export default {
           : parseInt(num, 10).toLocaleString('pt-BR');
       }
 
-      return value.toString() || 'N/A';
+      return value.toString() || '0';
     },
   },
 };
