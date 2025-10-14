@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import ConfirmDialog from '~/components/base/ConfirmDownloadDialog.vue'
+import ConfirmDialog from '~/components/base/ConfirmDialog.vue'
 
 export default (context, inject) => {
     const ConfirmConstructor = Vue.extend(ConfirmDialog)
@@ -13,9 +13,7 @@ export default (context, inject) => {
     const instance = new ConfirmConstructor(options)
     instance.$mount()
 
-    if (process.client) {
-        document.body.appendChild(instance.$el)
-    }
+    if (process.client) document.body.appendChild(instance.$el)
 
     inject('confirm', (options) => instance.open(options))
 }

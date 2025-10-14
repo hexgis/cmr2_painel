@@ -71,8 +71,7 @@ export default {
       maxFeatures: state.downloadGeoserverMaxFeatures,
     }),
 
-    // eslint-disable-next-line no-unused-vars
-    getGenerateCqlFilterMonitoring: (state, getters, _, rootGetters) => {
+    getGenerateCqlFilterMonitoring: (state, getters) => {
       const cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
       const ti = getters.getFormattedIndigenousLands('co_funai').join(',');
       const { stages } = state.stats;
@@ -352,7 +351,14 @@ export default {
       try {
         commit('setLoadingDownloadGeojson', true);
         if (state.stats.totalFeatures > state.downloadGeoserverMaxFeatures) {
-          const confirmed = await this.$confirm();
+          const confirmed = await this.$confirm({
+            typeDescription: 'detailed',
+            descriptionFirst: this.$i18n.t('monitoring-description-label-1'),
+            descriptionSecond: this.$i18n.t('monitoring-description-label-2'),
+            confirm: this.$i18n.t('download'),
+            iconConfirm: 'mdi-download',
+            iconCancel: 'mdi-close',
+          });
           if (!confirmed) return;
         }
         const response = await this.$api.$get(rootState.map.geoserverUrl, {

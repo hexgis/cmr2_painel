@@ -1,12 +1,12 @@
 <template>
   <v-dialog
     v-model="dialog"
-    :max-width="options.width || 400"
+    :max-width="options.width || 500"
     persistent
   >
     <v-card>
       <v-card-title class="text-h6">
-        {{ $t('attention-label') }}
+        {{ useTitle }}
 
         <v-spacer />
 
@@ -18,13 +18,23 @@
         </v-btn>
       </v-card-title>
 
-      <v-card-text class="mt-4">
-        <p>{{ $t('description-label-1') }}</p>
+      <v-card-text class="container-vcard">
+        <template v-if="useType === 'simple'">
+          <p>
+            {{ descriptionFirst }}
+          </p>
+        </template>
 
-        <p>
-          {{ $t('description-label-2') }}
-          <a href="mailto:cmr@funai.gov.br">cmr@funai.gov.br</a>.
-        </p>
+        <template v-if="useType === 'detailed'">
+          <p>
+            {{ descriptionFirst }}
+          </p>
+
+          <p>
+            {{ descriptionSecond }}
+            <a href="mailto:cmr@funai.gov.br">cmr@funai.gov.br</a>.
+          </p>
+        </template>
       </v-card-text>
 
       <v-card-actions>
@@ -34,16 +44,20 @@
           text
           @click="cancel"
         >
-          <v-icon>mdi-close</v-icon>
-          {{ $t('cancel-label') }}
+          <v-icon v-if="useIconCancel">
+            {{ useIconCancel }}
+          </v-icon>
+          {{ useCancel }}
         </v-btn>
         <v-btn
           color="green darken-1"
           text
           @click="confirm"
         >
-          <v-icon>mdi-download</v-icon>
-          {{ $t('download-label') }}
+          <v-icon v-if="useIconConfirm">
+            {{ useIconConfirm }}
+          </v-icon>
+          {{ useConfirm }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -53,18 +67,14 @@
 <i18n>
 {
   "en": {
-    "attention-label": "Attention",
-    "download-label": "Download",
-    "cancel-label": "Cancel",
-    "description-label-1": "Due to technical limitations, the generated file has a maximum limit of 10,000 features. The query made generated a number of polygons greater than that, so it is possible that not all polygons will be available in the generated file.",
-    "description-label-2": "If you need to download the complete data, please contact the CMR team via Contact Us on the platform or by email "
+    "title-label": "Attention",
+    "confirm-label": "Understood",
+    "cancel-label": "Cancel"
   },
   "pt-br": {
-    "attention-label": "Atenção",
-    "download-label": "Baixar",
-    "cancel-label": "Cancelar",
-    "description-label-1": "Devido a limitações técnicas, os arquivo gerado possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
-    "description-label-2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail "
+    "title-label": "Atenção",
+    "confirm-label": "Ciente",
+    "cancel-label": "Cancelar"
   }
 }
 </i18n>
@@ -80,6 +90,17 @@ export default {
       currentResolve: null,
       queue: [],
     };
+  },
+
+  computed: {
+    useTitle() { return this.options.title || this.$t('title-label'); },
+    useCancel() { return this.options.cancel || this.$t('cancel-label'); },
+    useIconCancel() { return this.options.iconCancel || ''; },
+    useIconConfirm() { return this.options.iconConfirm || ''; },
+    useConfirm() { return this.options.confirm || this.$t('confirm-label'); },
+    useType() { return this.options.typeDescription || 'simple'; },
+    descriptionFirst() { return this.options.descriptionFirst || ''; },
+    descriptionSecond() { return this.options.descriptionSecond || ''; },
   },
 
   watch: {
@@ -139,3 +160,12 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.container-vcard {
+  text-align: justify;
+  margin-top: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+</style>
