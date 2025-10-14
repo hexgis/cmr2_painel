@@ -398,11 +398,22 @@
                   </v-tooltip>
                 </template>
               </v-select>
-              <v-checkbox
-                v-model="editUserData.is_inactive"
-                label="Inativo"
-                class="mt-n2"
-              />
+              <v-row align="center">
+                <v-col cols="auto">
+                  <v-checkbox
+                    v-model="editUserData.is_inactive"
+                    label="Inativo"
+                    density="compact"
+                  />
+                </v-col>
+                <v-col cols="auto">
+                  <v-checkbox
+                    v-model="editUserData.is_internal"
+                    label="Usuário Interno"
+                    density="compact"
+                  />
+                </v-col>
+              </v-row>
               <UserManager
                 :available-roles="rolesList"
                 :selected-roles="editUserData.roles || []"
@@ -1563,6 +1574,7 @@ export default {
 
     async openEditDialog(user) {
       try {
+        console.log('Dados do usuário para edição:', user);
       // Busca os dados do usuário e as roles disponíveis simultaneamente
         const [userResponse, rolesResponse] = await Promise.all([
           this.$api.get(`/user/${user.id}/`),
@@ -1580,6 +1592,7 @@ export default {
           email: userData.email,
           institution_id: userData.institution_id,
           is_inactive: !userData.is_active,
+          is_internal: user.is_internal,
           roles: userData.roles || [],
         };
 

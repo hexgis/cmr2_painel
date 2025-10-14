@@ -96,6 +96,11 @@
                         </div>
                         <div class="info-details">
                           <div class="info-item">
+                            <strong>{{ $t('type-of-user') }}:
+                            </strong>{{ userRequestData.is_internal
+                              ? $t('funai-user') : $t('external-user') }}
+                          </div>
+                          <div class="info-item">
                             <strong>{{ $t('server') }}:</strong> {{ userRequestData.name }}
                           </div>
                           <div class="info-item">
@@ -682,7 +687,10 @@
     "coordinator_siape_registration": "Coordinator SIAPE Registration",
     "coordinator": "Coordinator",
     "attachment": "Attachment",
-    "attachment-download": "Download Attachment"
+    "attachment-download": "Download Attachment",
+    "type-of-user": "Type of User",
+    "funai-user": "Internal User",
+    "external-user": "External User"
   },
   "pt-br": {
     "choose-user-bond": "Escolha um vínculo para o usuário:",
@@ -726,7 +734,10 @@
     "coordinator_siape_registration": "Matrícula SIAPE Coordenador",
     "coordinator": "Coordenador",
     "attachment": "Anexo",
-    "attachment-download": "Baixar anexo"
+    "attachment-download": "Baixar anexo",
+    "type-of-user": "Tipo",
+    "funai-user": "Usuário Interno",
+    "external-user": "Usuário Externo"
   }
 }
 </i18n>
