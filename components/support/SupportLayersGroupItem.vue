@@ -28,7 +28,10 @@
           />
         </v-list-item-avatar>
         <v-list-item-content>
-          <v-list-item-title class="text-wrap">
+          <v-list-item-title
+            class="text-wrap"
+            :title="layer.tooltip"
+          >
             <span class="text-cursor">
               {{ layer.name }}
             </span>
