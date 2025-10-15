@@ -564,7 +564,10 @@ export default {
      */
     generateJson(obj) {
       // Create an array to store circle geometries.
-      const circles = [];
+      const geojson = {
+        type: 'FeatureCollection',
+        features: [],
+      };
       // Iterate through the layers in drawnItems.
       Object.values(this.drawnItems._layers).forEach((layer) => {
         // Check if the layer has a radius (is a circle).
@@ -572,24 +575,19 @@ export default {
           // Extract coordinates and create a polygon representing the circle.
           const coordinates = [layer._latlng.lng, layer._latlng.lat];
           const circle = circleToPolygon(coordinates, layer._mRadius, 512);
-          circles.push(circle);
+          geojson.features.push({
+            type: 'Feature',
+            geometry: circle,
+            properties: {},
+          });
+          return;
         }
-      });
-      // Convert drawnItems to GeoJSON format.
-      const geometry = this.drawnItems.toGeoJSON();
-      // Iterate through the circle geometries and add them to the GeoJSON.
-      circles.forEach((circle) => {
-        const circleGeojson = {
-          type: 'Feature',
-          geometry: { coordinates: circle.coordinates, type: circle.type },
-          properties: {},
-        };
-        geometry.features.push(circleGeojson);
+        geojson.features.push(layer.toGeoJSON());
       });
       // Define available actions for the drawing.
       const actions = {
-        Download: () => this.downloadDraw(geometry, obj.name),
-        Save: () => this.saveIntoDb(geometry, obj.name),
+        Download: () => this.downloadDraw(geojson, obj.name),
+        Save: () => this.saveIntoDb(geojson, obj.name),
       };
       // Get the specified action based on obj.type and execute it.
       const action = actions[obj.type];
@@ -629,7 +627,7 @@ export default {
       // that finishes the drawing.
       setTimeout(() => {
         this.setIsDrawing(false);
-      }, 300);
+      }, 100);
     },
 
     /**
