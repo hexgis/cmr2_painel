@@ -43,6 +43,7 @@
           :disabled="!saveActive"
           style="color: #FFFFFF"
           elevated
+          class="mr-5"
           @click="$emit('save')"
         >
           {{ $t('save') }}

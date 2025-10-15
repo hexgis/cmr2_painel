@@ -1,41 +1,80 @@
 <template>
-  <div class="permissions-container">
-    <div class="permission-list">
-      <h5>{{ title }}</h5>
-      <v-list dense>
-        <template v-if="loading">
-          <v-skeleton-loader
-            v-for="n in 5"
-            :key="n"
-            type="list-item"
-            tile
-          />
-        </template>
-        <template v-else>
-          <v-list-item
-            v-for="role in filteredAvailableRoles"
-            :key="role.id"
-            @click="selectRole(role)"
-          >
-            <v-list-item-title>{{ role.name }}</v-list-item-title>
-            <v-icon>mdi-chevron-right</v-icon>
-          </v-list-item>
-        </template>
-      </v-list>
+  <div class="d-flex justify-space-between mt-2">
+    <div class="flex-grow-1 mr-2">
+      <h5 class="text-subtitle-2 font-weight-small mb-2">
+        {{ title }}
+      </h5>
+      <v-sheet
+        outlined
+        rounded
+        class="overflow-hidden"
+        height="210"
+      >
+        <v-list
+          dense
+          class="pa-0 fill-height"
+          style="overflow-y: auto;"
+        >
+          <template v-if="loading">
+            <v-skeleton-loader
+              v-for="n in 5"
+              :key="n"
+              type="list-item"
+              tile
+            />
+          </template>
+
+          <template v-else>
+            <v-list-item
+              v-for="role in filteredAvailableRoles"
+              :key="role.id"
+              class="px-3"
+              @click="selectRole(role)"
+            >
+              <v-list-item-title class="text-body-2">
+                {{ role.name }}
+              </v-list-item-title>
+              <v-icon small>
+                mdi-chevron-right
+              </v-icon>
+            </v-list-item>
+          </template>
+        </v-list>
+      </v-sheet>
     </div>
 
-    <div class="permission-list">
-      <h5>Perfil(s) escolhido(s)</h5>
-      <v-list dense>
-        <v-list-item
-          v-for="role in selectedRoles"
-          :key="role.id"
-          @click="removeRole(role)"
+    <div class="flex-grow-1 ml-2">
+      <h5
+        class="text-subtitle-2 font-weight-small mb-2"
+      >
+        Perfil(s) escolhido(s)
+      </h5>
+      <v-sheet
+        outlined
+        rounded
+        class="overflow-hidden"
+        height="210"
+      >
+        <v-list
+          dense
+          class="pa-0 fill-height"
+          style="overflow-y: auto;"
         >
-          <v-list-item-title>{{ role.name }}</v-list-item-title>
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-list-item>
-      </v-list>
+          <v-list-item
+            v-for="role in selectedRoles"
+            :key="role.id"
+            class="px-3"
+            @click="removeRole(role)"
+          >
+            <v-list-item-title class="text-body-2">
+              {{ role.name }}
+            </v-list-item-title>
+            <v-icon small>
+              mdi-chevron-left
+            </v-icon>
+          </v-list-item>
+        </v-list>
+      </v-sheet>
     </div>
   </div>
 </template>
@@ -83,21 +122,6 @@ export default {
 </script>
 
 <style lang="sass" scoped>
-.permissions-container
-  display: flex
-  justify-content: space-between
-  margin-top: 20px
-
-.permission-list
-  width: 48%
-  padding: 1rem
-
-h5
-  margin-bottom: 10px
-
-.v-list
-  border-radius: 8px
-  border: 1px solid #9A9997
-  height: 210px
-  overflow-y: auto
+.flex-grow-1
+  flex-basis: 48%
 </style>

@@ -33,66 +33,81 @@
           title="Novo Usuário"
           max-width="500px"
           :has-cta="true"
-          :save-active="formValid"
+          :save-active="newUserFormValid"
           @save="addUser"
         >
           <v-card-text>
             <v-form
-              ref="form"
-              v-model="formValid"
+              ref="newUserForm"
+              v-model="newUserFormValid"
             >
-              <v-row class="pa-3">
-                <v-text-field
-                  v-model="newUser.username"
-                  label="Usuário"
-                  outlined
-                  :rules="[requiredRule]"
-                />
-                <v-spacer />
-                <v-text-field
-                  v-model="newUser.first_name"
-                  label="Primeiro Nome"
-                  outlined
-                />
-              </v-row>
-              <v-row class="pa-3">
-                <v-text-field
-                  v-model="newUser.last_name"
-                  label="Último Nome"
-                  outlined
-                />
-                <v-spacer />
-                <v-text-field
-                  v-model="newUser.email"
-                  label="E-mail"
-                  outlined
-                  :rules="[requiredRule, emailRule]"
-                />
-              </v-row>
-              <v-select
-                v-model="newUser.institution_id"
-                :label="$t('institution')"
-                :items="$store.state.admin.institutionList"
-                item-text="acronym"
-                outlined
-                item-value="id"
-                :rules="[requiredRule]"
-                required
+              <v-row
+                no-gutters
+                class="mx-2"
               >
-                <template #item="{ item }">
-                  <v-tooltip bottom>
-                    <template #activator="{ on, attrs }">
-                      <v-list-item-content
-                        v-bind="attrs"
-                        v-on="on"
-                      >
-                        <v-list-item-title>{{ item.acronym }}</v-list-item-title>
-                      </v-list-item-content>
+                <v-col
+                  cols="6"
+                  class="pr-2"
+                >
+                  <v-text-field
+                    v-model="newUser.username"
+                    label="Usuário"
+                    outlined
+                    :rules="[requiredRule]"
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    v-model="newUser.first_name"
+                    label="Primeiro Nome"
+                    outlined
+                  />
+                </v-col>
+                <v-col
+                  cols="6"
+                  class="pr-2"
+                >
+                  <v-text-field
+                    v-model="newUser.last_name"
+                    label="Último Nome"
+                    outlined
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    v-model="newUser.email"
+                    label="E-mail"
+                    outlined
+                    :rules="[requiredRule, emailRule]"
+                  />
+                </v-col>
+                <v-col>
+                  <v-select
+                    v-model="newUser.institution_id"
+                    :label="$t('institution')"
+                    :items="$store.state.admin.institutionList"
+                    item-text="acronym"
+                    outlined
+                    item-value="id"
+                    :rules="[requiredRule]"
+                    required
+                  >
+                    <template #item="{ item }">
+                      <v-tooltip bottom>
+                        <template #activator="{ on, attrs }">
+                          <v-list-item-content
+                            v-bind="attrs"
+                            v-on="on"
+                          >
+                            <v-list-item-title>{{ item.acronym }}</v-list-item-title>
+                          </v-list-item-content>
+                        </template>
+                        <span>{{ item.name }}</span>
+                      </v-tooltip>
                     </template>
-                    <span>{{ item.name }}</span>
-                  </v-tooltip>
-                </template>
-              </v-select>
+                  </v-select>
+                </v-col>
+              </v-row>
 
               <UserManager
                 :available-roles="rolesList"
@@ -338,75 +353,90 @@
           title="Editar Usuário"
           max-width="500px"
           :has-cta="true"
-          :save-active="formValid"
+          :save-active="editUserFormValid"
           @save="editUser"
         >
           <v-card-text>
             <v-form
-              ref="form"
-              v-model="formValid"
+              ref="editUserForm"
+              v-model="editUserFormValid"
             >
-              <v-row class="pa-3">
-                <v-text-field
-                  v-model="editUserData.username"
-                  outlined
-                  label="Usuário"
-                  :rules="[requiredRule]"
-                />
-                <v-spacer />
-                <v-text-field
-                  v-model="editUserData.first_name"
-                  outlined
-                  label="Primeiro Nome"
-                />
-              </v-row>
-              <v-row class="pa-3">
-                <v-text-field
-                  v-model="editUserData.last_name"
-                  outlined
-                  label="Último Nome"
-                />
-                <v-spacer />
-                <v-text-field
-                  v-model="editUserData.email"
-                  outlined
-                  label="E-mail"
-                  :rules="[requiredRule, emailRule]"
-                />
-              </v-row>
-              <v-select
-                v-model="editUserData.institution_id"
-                :label="$t('institution')"
-                :items="$store.state.admin.institutionList"
-                outlined
-                item-text="acronym"
-                item-value="id"
-                :rules="[requiredRule]"
-                required
+              <v-row
+                no-gutters
+                class="pa-0"
               >
-                <template #item="{ item }">
-                  <v-tooltip bottom>
-                    <template #activator="{ on, attrs }">
-                      <v-list-item-content
-                        v-bind="attrs"
-                        v-on="on"
-                      >
-                        <v-list-item-title>{{ item.acronym }}</v-list-item-title>
-                      </v-list-item-content>
+                <v-col
+                  cols="6"
+                  class="pr-2"
+                >
+                  <v-text-field
+                    v-model="editUserData.username"
+                    outlined
+                    label="Usuário"
+                    :rules="[requiredRule]"
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    v-model="editUserData.first_name"
+                    outlined
+                    label="Primeiro Nome"
+                  />
+                </v-col>
+                <v-col
+                  cols="6"
+                  class="pr-2"
+                >
+                  <v-text-field
+                    v-model="editUserData.last_name"
+                    outlined
+                    label="Último Nome"
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    v-model="editUserData.email"
+                    outlined
+                    label="E-mail"
+                    :rules="[requiredRule, emailRule]"
+                  />
+                </v-col>
+                <v-col cols="12">
+                  <v-select
+                    v-model="editUserData.institution_id"
+                    :label="$t('institution')"
+                    :items="$store.state.admin.institutionList"
+                    outlined
+                    item-text="acronym"
+                    item-value="id"
+                    :rules="[requiredRule]"
+                    required
+                  >
+                    <template #item="{ item }">
+                      <v-tooltip bottom>
+                        <template #activator="{ on, attrs }">
+                          <v-list-item-content
+                            v-bind="attrs"
+                            v-on="on"
+                          >
+                            <v-list-item-title>{{ item.acronym }}</v-list-item-title>
+                          </v-list-item-content>
+                        </template>
+                        <span>{{ item.name }}</span>
+                      </v-tooltip>
                     </template>
-                    <span>{{ item.name }}</span>
-                  </v-tooltip>
-                </template>
-              </v-select>
-              <v-row align="center">
-                <v-col cols="auto">
+                  </v-select>
+                </v-col>
+                <v-col
+                  cols="12"
+                  class="d-flex align-center mt-n6"
+                >
                   <v-checkbox
                     v-model="editUserData.is_inactive"
                     label="Inativo"
                     density="compact"
+                    class="mr-4"
                   />
-                </v-col>
-                <v-col cols="auto">
                   <v-checkbox
                     v-model="editUserData.is_internal"
                     label="Usuário Interno"
@@ -454,23 +484,25 @@
             <v-list-item
               v-for="h in headers"
               :key="h.value"
+              class="min-height-auto py-1"
             >
-              <v-list-item-action>
+              <v-list-item-action class="my-0 mr-2">
                 <v-checkbox
                   v-model="visibleColumns"
                   :value="h.value"
                   dense
                   hide-details
+                  class="mt-0"
                 />
               </v-list-item-action>
-              <v-list-item-content>
+              <v-list-item-content class="py-0">
                 <v-list-item-title>{{ h.text }}</v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-list>
         </v-menu>
 
-        <!-- pesquisa geral -->
+        <!-- Pesquisa geral -->
         <v-text-field
           v-model="searchAll"
           placeholder="Pesquisar tudo"
@@ -486,47 +518,49 @@
 
         <!-- Export section -->
         <div class="d-flex align-center ml-3">
-          <!-- Export icons -->
-          <div class="export-icons">
-            <div class="export-label text-uppercase mr-2">
-              {{ $t('export') }}
-            </div>
-            <SavePdfUser :users="filteredByColumns">
-              <template #activator="{ on, attrs }">
-                <v-btn
-                  icon
-                  color="#D92B3F"
-                  v-bind="attrs"
-                  class="mr-2"
-                  v-on="on"
-                >
-                  <v-icon>mdi-file-pdf-box</v-icon>
-                </v-btn>
-              </template>
-            </SavePdfUser>
-
-            <v-tooltip top>
-              <template #activator="{ on, attrs }">
-                <v-btn
-                  icon
-                  color="#43A047"
-                  class="mr-3"
-                  v-bind="attrs"
-                  @click="generateCSV"
-                  v-on="on"
-                >
-                  <v-icon size="40">
-                    mdi-file-excel-box
-                  </v-icon>
-                </v-btn>
-              </template>
-              <span>CSV</span>
-            </v-tooltip>
+          <div class="export-label text-uppercase mr-2 text-caption font-weight-bold">
+            {{ $t('export') }}
           </div>
+          <SavePdfUser :users="filteredByColumns">
+            <template #activator="{ on, attrs }">
+              <v-tooltip top>
+                <template #activator="{ on: tooltipOn, attrs: tooltipAttrs }">
+                  <v-btn
+                    icon
+                    color="#D92B3F"
+                    v-bind="{ ...attrs, ...tooltipAttrs }"
+                    class="mr-2"
+                    v-on="{ ...on, ...tooltipOn }"
+                  >
+                    <v-icon>mdi-file-pdf-box</v-icon>
+                  </v-btn>
+                </template>
+                <span>PDF</span>
+              </v-tooltip>
+            </template>
+          </SavePdfUser>
+
+          <v-tooltip top>
+            <template #activator="{ on, attrs }">
+              <v-btn
+                icon
+                color="#43A047"
+                class="mr-2"
+                v-bind="attrs"
+                @click="generateCSV"
+                v-on="on"
+              >
+                <v-icon size="40">
+                  mdi-file-excel-box
+                </v-icon>
+              </v-btn>
+            </template>
+            <span>CSV</span>
+          </v-tooltip>
         </div>
       </div>
 
-      <!-- botão adicionar novo usuário -->
+      <!-- Botão adicionar novo usuário -->
       <v-btn
         color="error"
         dark
@@ -538,497 +572,514 @@
         @mouseleave="collapseButtonIfNeeded"
       >
         <v-icon>mdi-plus</v-icon>
-        <span class="button-text ml-2">{{ $t('addNewUser') }}</span>
+        <slide-x-reverse-transition>
+          <span
+            v-if="!isButtonCollapsed"
+            class="button-text ml-2"
+          >
+            {{ $t('addNewUser') }}
+          </span>
+        </slide-x-reverse-transition>
       </v-btn>
     </div>
 
-    <template v-if="loadingUsers">
-      <v-skeleton-loader
-        v-for="n in 8"
-        :key="n"
-        type="table-row"
-        class="ma-1"
-      />
-    </template>
-
-    <v-data-table
-      v-else-if="filteredUsers.length"
-      :headers="filteredHeaders"
-      :items="filteredByColumns"
-      class="elevation-1 mt-4"
-      dense
-      :search="search"
-    >
-      <!-- Name Filter -->
-      <template #header.username="{ header }">
-        <v-menu
-          v-model="usernameMenu"
-          offset-y
-          :close-on-content-click="false"
-        >
-          <template #activator="{ on, attrs }">
-            <v-btn
-              text
-              small
-              v-bind="attrs"
-              v-on="on"
-            >
-              {{ header.text }}<v-icon small>
-                mdi-filter-variant
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-card style="width:250px">
-            <v-text-field
-              v-model="searchUsername"
-              placeholder="Pesquisar..."
-              outlined
-              dense
-              hide-details
-              clearable
-              class="mx-3 mt-3"
-              @click.stop
-            />
-            <v-divider />
-            <v-list
-              dense
-              class="filter-list"
-            >
-              <v-list-item
-                v-for="name in filteredUsernameList"
-                :key="name"
-              >
-                <v-checkbox
-                  v-model="columnFilters.username"
-                  :value="name"
-                  :label="name"
-                  dense
-                  @change="usernameMenu = false"
-                />
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-menu>
+    <div class="table-container">
+      <template v-if="loadingUsers">
+        <v-skeleton-loader
+          v-for="n in 8"
+          :key="n"
+          type="table-row"
+          class="ma-1"
+        />
       </template>
 
-      <!-- First Name Filter -->
-      <template #header.first_name="{ header }">
-        <v-menu
-          v-model="firstNameMenu"
-          offset-y
-          :close-on-content-click="false"
-        >
-          <template #activator="{ on, attrs }">
-            <v-btn
-              text
-              small
-              v-bind="attrs"
-              v-on="on"
-            >
-              {{ header.text }}<v-icon small>
-                mdi-filter-variant
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-card style="width:250px">
-            <v-text-field
-              v-model="searchFirstName"
-              placeholder="Pesquisar..."
-              outlined
-              dense
-              hide-details
-              clearable
-              class="mx-3 mt-3"
-              @click.stop
-            />
-            <v-divider />
-            <v-list
-              dense
-              class="filter-list"
-            >
-              <v-list-item
-                v-for="name in filteredFirstNameList"
-                :key="name"
-              >
-                <v-checkbox
-                  v-model="columnFilters.first_name"
-                  :value="name"
-                  :label="name"
-                  dense
-                  @change="firstNameMenu = false"
-                />
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-menu>
-      </template>
-
-      <!-- Last Name Filter -->
-      <template #header.last_name="{ header }">
-        <v-menu
-          v-model="lastNameMenu"
-          offset-y
-          :close-on-content-click="false"
-        >
-          <template #activator="{ on, attrs }">
-            <v-btn
-              text
-              small
-              v-bind="attrs"
-              v-on="on"
-            >
-              {{ header.text }}<v-icon small>
-                mdi-filter-variant
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-card style="width:250px">
-            <v-text-field
-              v-model="searchLastName"
-              placeholder="Pesquisar..."
-              outlined
-              dense
-              hide-details
-              clearable
-              class="mx-3 mt-3"
-              @click.stop
-            />
-            <v-divider />
-            <v-list
-              dense
-              class="filter-list"
-            >
-              <v-list-item
-                v-for="name in filteredLastNameList"
-                :key="name"
-              >
-                <v-checkbox
-                  v-model="columnFilters.last_name"
-                  :value="name"
-                  :label="name"
-                  dense
-                  @change="lastNameMenu = false"
-                />
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-menu>
-      </template>
-
-      <!-- Email Filter -->
-      <template #header.email="{ header }">
-        <v-menu
-          v-model="emailMenu"
-          offset-y
-          :close-on-content-click="false"
-        >
-          <template #activator="{ on, attrs }">
-            <v-btn
-              text
-              small
-              v-bind="attrs"
-              v-on="on"
-            >
-              {{ header.text }}<v-icon small>
-                mdi-filter-variant
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-card style="width:250px">
-            <v-text-field
-              v-model="searchEmail"
-              placeholder="Pesquisar..."
-              outlined
-              dense
-              hide-details
-              clearable
-              class="mx-3 mt-3"
-              @click.stop
-            />
-            <v-divider />
-            <v-list
-              dense
-              class="filter-list"
-            >
-              <v-list-item
-                v-for="mail in filteredEmailList"
-                :key="mail"
-              >
-                <v-checkbox
-                  v-model="columnFilters.email"
-                  :value="mail"
-                  :label="mail"
-                  dense
-                  @change="emailMenu = false"
-                />
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-menu>
-      </template>
-
-      <!-- Roles Filter -->
-      <template #header.roles="{ header }">
-        <v-menu
-          v-model="rolesMenu"
-          offset-y
-          :close-on-content-click="false"
-        >
-          <template #activator="{ on, attrs }">
-            <v-btn
-              text
-              small
-              v-bind="attrs"
-              v-on="on"
-            >
-              {{ header.text }}<v-icon small>
-                mdi-filter-variant
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-card style="width:250px">
-            <v-text-field
-              v-model="searchRoles"
-              placeholder="Pesquisar..."
-              outlined
-              dense
-              hide-details
-              clearable
-              class="mx-3 mt-3"
-              @click.stop
-            />
-            <v-divider />
-            <v-list
-              dense
-              class="filter-list"
-            >
-              <v-list-item
-                v-for="role in filteredRolesList"
-                :key="role"
-              >
-                <v-checkbox
-                  v-model="columnFilters.roles"
-                  :value="role"
-                  :label="role"
-                  dense
-                  @change="rolesMenu = false"
-                />
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-menu>
-      </template>
-
-      <template #item.roles="{ item }">
-        <div>
-          <span v-if="item.roles && item.roles.length > 0">
-            {{ item.roles.map(role => role.name).join(', ') }}
-          </span>
-          <span v-else>Nenhum perfil associado</span>
-        </div>
-      </template>
-
-      <!-- Administrator Filter -->
-      <template #header.is_admin="{ header }">
-        <v-menu offset-y>
-          <template #activator="{ on, attrs }">
-            <v-btn
-              text
-              small
-              v-bind="attrs"
-              v-on="on"
-            >
-              {{ header.text }}
-              <v-icon
-                small
-                class="ml-1"
-              >
-                mdi-filter-variant
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-list dense>
-            <v-list-item>
-              <v-checkbox
-                v-model="columnFilters.is_admin"
-                :value="true"
-                label="Sim"
-                dense
-              />
-            </v-list-item>
-            <v-list-item>
-              <v-checkbox
-                v-model="columnFilters.is_admin"
-                :value="false"
-                label="Não"
-                dense
-              />
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </template>
-
-      <!-- Access Allowed Filter -->
-      <template #header.is_active="{ header }">
-        <v-menu offset-y>
-          <template #activator="{ on, attrs }">
-            <v-btn
-              text
-              small
-              v-bind="attrs"
-              v-on="on"
-            >
-              {{ header.text }}
-              <v-icon
-                small
-                class="ml-1"
-              >
-                mdi-filter-variant
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-list dense>
-            <v-list-item>
-              <v-checkbox
-                v-model="columnFilters.is_active"
-                :value="true"
-                label="Ativo"
-                dense
-              />
-            </v-list-item>
-            <v-list-item>
-              <v-checkbox
-                v-model="columnFilters.is_active"
-                :value="false"
-                label="Inativo"
-                dense
-              />
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </template>
-
-      <!-- filtro Vínculo Institucional -->
-      <template #header.institution="{ header }">
-        <v-menu
-          v-model="institutionMenu"
-          offset-y
-          :close-on-content-click="false"
-        >
-          <template #activator="{ on, attrs }">
-            <v-btn
-              text
-              small
-              v-bind="attrs"
-              v-on="on"
-            >
-              {{ header.text }}
-              <v-icon
-                small
-                class="ml-1"
-              >
-                mdi-filter-variant
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-card style="width:250px">
-            <v-text-field
-              v-model="searchInstitution"
-              placeholder="Pesquisar..."
-              outlined
-              dense
-              hide-details
-              clearable
-              class="mx-3 mt-3"
-              @click.stop
-            />
-            <v-divider />
-            <v-list
-              dense
-              class="filter-list"
-            >
-              <v-list-item
-                v-for="inst in filteredInstitutionList"
-                :key="inst.id"
-              >
-                <v-checkbox
-                  v-model="columnFilters.institution"
-                  :value="inst.acronym"
-                  :label="inst.acronym"
-                  dense
-                  @change="institutionMenu = false"
-                />
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-menu>
-      </template>
-
-      <template #item.institution="{ item }">
-        {{
-          item.institution && item.institution.acronym
-            ? item.institution.acronym
-            : (item.institution && item.institution.name
-              ? item.institution.name
-              : 'N/A')
-        }}
-      </template>
-
-      <template #item.actions="{ item }">
-        <v-tooltip top>
-          <template #activator="{ on, attrs }">
-            <v-btn
-              icon
-              small
-              color="grey darken-2"
-              v-bind="attrs"
-              v-on="on"
-              @click="openEditDialog(item)"
-            >
-              <v-icon>mdi-pencil</v-icon>
-            </v-btn>
-          </template>
-          <span>Editar</span>
-        </v-tooltip>
-        <v-tooltip top>
-          <template #activator="{ on, attrs }">
-            <v-btn
-              icon
-              small
-              color="grey darken-2"
-              v-bind="attrs"
-              v-on="on"
-              @click="openLogsDialog(item)"
-            >
-              <v-icon>mdi-clock-outline</v-icon>
-            </v-btn>
-          </template>
-          <span>Logs</span>
-        </v-tooltip>
-      </template>
-      <template #item.is_active="{ item }">
-        <div class="d-flex align-center">
-          <v-icon
-            :color="item.is_active ? 'green' : 'red'"
-            small
+      <v-data-table
+        v-else-if="filteredUsers.length"
+        :headers="filteredHeaders"
+        :items="filteredByColumns"
+        class="elevation-1"
+        dense
+        :search="search"
+        :height="tableHeight"
+        fixed-header
+      >
+        <!-- Seus templates de header e item permanecem os mesmos -->
+        <template #header.username="{ header }">
+          <v-menu
+            v-model="usernameMenu"
+            offset-y
+            :close-on-content-click="false"
           >
-            {{ item.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
-          </v-icon>
-          <span class="ml-2">{{ item.is_active ? 'Ativo' : 'Inativo' }}</span>
-        </div>
-      </template>
-      <template #item.is_admin="{ item }">
-        <div class="d-flex align-center">
-          <v-icon
-            :color="item.is_admin ? '#F58A1F' : 'grey'"
-            small
+            <template #activator="{ on, attrs }">
+              <v-btn
+                text
+                small
+                v-bind="attrs"
+                v-on="on"
+                class="text-capitalize"
+              >
+                {{ header.text }}
+                <v-icon small class="ml-1">
+                  mdi-filter-variant
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-card width="250">
+              <v-text-field
+                v-model="searchUsername"
+                placeholder="Pesquisar..."
+                outlined
+                dense
+                hide-details
+                clearable
+                class="mx-3 mt-3"
+                @click.stop
+              />
+              <v-divider />
+              <v-list
+                dense
+                class="filter-list"
+                style="max-height: 200px; overflow-y: auto;"
+              >
+                <v-list-item
+                  v-for="name in filteredUsernameList"
+                  :key="name"
+                >
+                  <v-checkbox
+                    v-model="columnFilters.username"
+                    :value="name"
+                    :label="name"
+                    dense
+                    hide-details
+                    @change="usernameMenu = false"
+                  />
+                </v-list-item>
+              </v-list>
+            </v-card>
+          </v-menu>
+        </template>
+
+        <!-- First Name Filter -->
+        <template #header.first_name="{ header }">
+          <v-menu
+            v-model="firstNameMenu"
+            offset-y
+            :close-on-content-click="false"
           >
-            {{ item.is_admin ? 'mdi-account-star' : 'mdi-account' }}
-          </v-icon>
-          <span class="ml-2">{{ item.is_admin ? 'Sim' : 'Não' }}</span>
-        </div>
-      </template>
-    </v-data-table>
+            <template #activator="{ on, attrs }">
+              <v-btn
+                text
+                small
+                v-bind="attrs"
+                v-on="on"
+              >
+                {{ header.text }}<v-icon small>
+                  mdi-filter-variant
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-card style="width:250px">
+              <v-text-field
+                v-model="searchFirstName"
+                placeholder="Pesquisar..."
+                outlined
+                dense
+                hide-details
+                clearable
+                class="mx-3 mt-3"
+                @click.stop
+              />
+              <v-divider />
+              <v-list
+                dense
+                class="filter-list"
+              >
+                <v-list-item
+                  v-for="name in filteredFirstNameList"
+                  :key="name"
+                >
+                  <v-checkbox
+                    v-model="columnFilters.first_name"
+                    :value="name"
+                    :label="name"
+                    dense
+                    @change="firstNameMenu = false"
+                  />
+                </v-list-item>
+              </v-list>
+            </v-card>
+          </v-menu>
+        </template>
+
+        <!-- Last Name Filter -->
+        <template #header.last_name="{ header }">
+          <v-menu
+            v-model="lastNameMenu"
+            offset-y
+            :close-on-content-click="false"
+          >
+            <template #activator="{ on, attrs }">
+              <v-btn
+                text
+                small
+                v-bind="attrs"
+                v-on="on"
+              >
+                {{ header.text }}<v-icon small>
+                  mdi-filter-variant
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-card style="width:250px">
+              <v-text-field
+                v-model="searchLastName"
+                placeholder="Pesquisar..."
+                outlined
+                dense
+                hide-details
+                clearable
+                class="mx-3 mt-3"
+                @click.stop
+              />
+              <v-divider />
+              <v-list
+                dense
+                class="filter-list"
+              >
+                <v-list-item
+                  v-for="name in filteredLastNameList"
+                  :key="name"
+                >
+                  <v-checkbox
+                    v-model="columnFilters.last_name"
+                    :value="name"
+                    :label="name"
+                    dense
+                    @change="lastNameMenu = false"
+                  />
+                </v-list-item>
+              </v-list>
+            </v-card>
+          </v-menu>
+        </template>
+
+        <!-- Email Filter -->
+        <template #header.email="{ header }">
+          <v-menu
+            v-model="emailMenu"
+            offset-y
+            :close-on-content-click="false"
+          >
+            <template #activator="{ on, attrs }">
+              <v-btn
+                text
+                small
+                v-bind="attrs"
+                v-on="on"
+              >
+                {{ header.text }}<v-icon small>
+                  mdi-filter-variant
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-card style="width:250px">
+              <v-text-field
+                v-model="searchEmail"
+                placeholder="Pesquisar..."
+                outlined
+                dense
+                hide-details
+                clearable
+                class="mx-3 mt-3"
+                @click.stop
+              />
+              <v-divider />
+              <v-list
+                dense
+                class="filter-list"
+              >
+                <v-list-item
+                  v-for="mail in filteredEmailList"
+                  :key="mail"
+                >
+                  <v-checkbox
+                    v-model="columnFilters.email"
+                    :value="mail"
+                    :label="mail"
+                    dense
+                    @change="emailMenu = false"
+                  />
+                </v-list-item>
+              </v-list>
+            </v-card>
+          </v-menu>
+        </template>
+
+        <!-- Roles Filter -->
+        <template #header.roles="{ header }">
+          <v-menu
+            v-model="rolesMenu"
+            offset-y
+            :close-on-content-click="false"
+          >
+            <template #activator="{ on, attrs }">
+              <v-btn
+                text
+                small
+                v-bind="attrs"
+                v-on="on"
+              >
+                {{ header.text }}<v-icon small>
+                  mdi-filter-variant
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-card style="width:250px">
+              <v-text-field
+                v-model="searchRoles"
+                placeholder="Pesquisar..."
+                outlined
+                dense
+                hide-details
+                clearable
+                class="mx-3 mt-3"
+                @click.stop
+              />
+              <v-divider />
+              <v-list
+                dense
+                class="filter-list"
+              >
+                <v-list-item
+                  v-for="role in filteredRolesList"
+                  :key="role"
+                >
+                  <v-checkbox
+                    v-model="columnFilters.roles"
+                    :value="role"
+                    :label="role"
+                    dense
+                    @change="rolesMenu = false"
+                  />
+                </v-list-item>
+              </v-list>
+            </v-card>
+          </v-menu>
+        </template>
+
+        <template #item.roles="{ item }">
+          <div>
+            <span v-if="item.roles && item.roles.length > 0">
+              {{ item.roles.map(role => role.name).join(', ') }}
+            </span>
+            <span v-else>Nenhum perfil associado</span>
+          </div>
+        </template>
+
+        <!-- Administrator Filter -->
+        <template #header.is_admin="{ header }">
+          <v-menu offset-y>
+            <template #activator="{ on, attrs }">
+              <v-btn
+                text
+                small
+                v-bind="attrs"
+                v-on="on"
+              >
+                {{ header.text }}
+                <v-icon
+                  small
+                  class="ml-1"
+                >
+                  mdi-filter-variant
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-list dense>
+              <v-list-item>
+                <v-checkbox
+                  v-model="columnFilters.is_admin"
+                  :value="true"
+                  label="Sim"
+                  dense
+                />
+              </v-list-item>
+              <v-list-item>
+                <v-checkbox
+                  v-model="columnFilters.is_admin"
+                  :value="false"
+                  label="Não"
+                  dense
+                />
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </template>
+
+        <!-- Access Allowed Filter -->
+        <template #header.is_active="{ header }">
+          <v-menu offset-y>
+            <template #activator="{ on, attrs }">
+              <v-btn
+                text
+                small
+                v-bind="attrs"
+                v-on="on"
+              >
+                {{ header.text }}
+                <v-icon
+                  small
+                  class="ml-1"
+                >
+                  mdi-filter-variant
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-list dense>
+              <v-list-item>
+                <v-checkbox
+                  v-model="columnFilters.is_active"
+                  :value="true"
+                  label="Ativo"
+                  dense
+                />
+              </v-list-item>
+              <v-list-item>
+                <v-checkbox
+                  v-model="columnFilters.is_active"
+                  :value="false"
+                  label="Inativo"
+                  dense
+                />
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </template>
+
+        <!-- filtro Vínculo Institucional -->
+        <template #header.institution="{ header }">
+          <v-menu
+            v-model="institutionMenu"
+            offset-y
+            :close-on-content-click="false"
+          >
+            <template #activator="{ on, attrs }">
+              <v-btn
+                text
+                small
+                v-bind="attrs"
+                v-on="on"
+              >
+                {{ header.text }}
+                <v-icon
+                  small
+                  class="ml-1"
+                >
+                  mdi-filter-variant
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-card style="width:250px">
+              <v-text-field
+                v-model="searchInstitution"
+                placeholder="Pesquisar..."
+                outlined
+                dense
+                hide-details
+                clearable
+                class="mx-3 mt-3"
+                @click.stop
+              />
+              <v-divider />
+              <v-list
+                dense
+                class="filter-list"
+              >
+                <v-list-item
+                  v-for="inst in filteredInstitutionList"
+                  :key="inst.id"
+                >
+                  <v-checkbox
+                    v-model="columnFilters.institution"
+                    :value="inst.acronym"
+                    :label="inst.acronym"
+                    dense
+                    @change="institutionMenu = false"
+                  />
+                </v-list-item>
+              </v-list>
+            </v-card>
+          </v-menu>
+        </template>
+
+        <template #item.institution="{ item }">
+          {{
+            item.institution && item.institution.acronym
+              ? item.institution.acronym
+              : (item.institution && item.institution.name
+                ? item.institution.name
+                : 'N/A')
+          }}
+        </template>
+
+        <template #item.actions="{ item }">
+          <v-tooltip top>
+            <template #activator="{ on, attrs }">
+              <v-btn
+                icon
+                small
+                color="grey darken-2"
+                v-bind="attrs"
+                v-on="on"
+                @click="openEditDialog(item)"
+              >
+                <v-icon>mdi-pencil</v-icon>
+              </v-btn>
+            </template>
+            <span>Editar</span>
+          </v-tooltip>
+          <v-tooltip top>
+            <template #activator="{ on, attrs }">
+              <v-btn
+                icon
+                small
+                color="grey darken-2"
+                v-bind="attrs"
+                v-on="on"
+                @click="openLogsDialog(item)"
+              >
+                <v-icon>mdi-clock-outline</v-icon>
+              </v-btn>
+            </template>
+            <span>Logs</span>
+          </v-tooltip>
+        </template>
+
+        <template #item.is_active="{ item }">
+          <div class="d-flex align-center">
+            <v-icon
+              :color="item.is_active ? 'green' : 'red'"
+              small
+            >
+              {{ item.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
+            </v-icon>
+            <span class="ml-2">{{ item.is_active ? 'Ativo' : 'Inativo' }}</span>
+          </div>
+        </template>
+
+        <template #item.is_admin="{ item }">
+          <div class="d-flex align-center">
+            <v-icon
+              :color="item.is_admin ? '#F58A1F' : 'grey'"
+              small
+            >
+              {{ item.is_admin ? 'mdi-account-star' : 'mdi-account' }}
+            </v-icon>
+            <span class="ml-2">{{ item.is_admin ? 'Sim' : 'Não' }}</span>
+          </div>
+        </template>
+      </v-data-table>
+    </div>
   </div>
 </template>
 
@@ -1126,6 +1177,8 @@ export default {
       showFilters: false,
       showModal: false,
       formValid: false,
+      newUserFormValid: false,
+      editUserFormValid: true,
       loadingRoles: false,
       loadingUsers: false,
       newUser: {
@@ -1515,7 +1568,14 @@ export default {
         roles: [],
       };
       this.selectedInstitution = null;
-      this.$refs.form.resetValidation();
+      if (this.$refs.newUserForm) {
+        this.$refs.newUserForm.resetValidation();
+      }
+      if (this.$refs.editUserForm) {
+        this.$refs.editUserForm.resetValidation();
+      }
+      this.newUserFormValid = false;
+      this.editUserFormValid = true;
     },
 
     async editUser() {
@@ -1600,6 +1660,7 @@ export default {
         this.$store.commit('admin/setRolesList', rolesList);
 
         this.showModalEdit = true;
+        this.editUserFormValid = true;
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
 
@@ -1614,6 +1675,7 @@ export default {
           roles: user.roles || [],
         };
         this.showModalEdit = true;
+        this.editUserFormValid = true;
       }
     },
 
@@ -1795,103 +1857,30 @@ export default {
 </script>
 
 <style lang="sass" scoped>
-.line-separator
-    border: 1px solid #9A9997
-    margin: 1rem 0
-
 .user
-    height: 100vh
-    overflow-y: auto
-    width: 100%
-    padding: 2rem
+  height: 100vh
+  overflow: hidden
+  width: 100%
+  padding: 2rem
 
-.styled-btn
-    padding: 1rem 1rem 0
-    border-radius: 8px
+.table-container
+  height: calc(100vh - 300px)
+  overflow: hidden
+  position: relative
 
-.styled-btn:hover
-    opacity: 0.8
-
-.card--wrapper
-    display: grid
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr))
-    gap: 1rem
-
-.wrapper
-    display: flex
-    flex-direction: row
-    align-items: center
-    justify-content: space-between
-
-.filter-list
-    max-height: 200px
-    overflow-y: auto
-
-.export-container
-    display: flex
-    flex-direction: column
-    align-items: flex-end // Align items to the right
-    margin-top: 1rem
-    margin-bottom: 1rem
-
-.export-label
-    // text-transform: uppercase // Already applied via class
-    // font-weight: bold // Already applied via class
-    letter-spacing: 0.5px // Adjusted for better visual
-    margin-bottom: 0.5rem // Space between label and buttons
-    font-size: 0.8rem // Slightly smaller label
-    display: flex
-    align-items: center
-
-.export-actions
-    display: flex
-    gap: 0.5rem // Reduced gap for closer buttons
-
-.export-btn
-    min-width: 80px // Ensure buttons have a decent size
-    min-height: 80px // Ensure buttons have a decent size
-    padding: 0 !important // Remove default padding to center icon
-    display: flex
-    align-items: center
-    justify-content: center
-    border-radius: 8px // Rounded corners for buttons
-    i // Icon styling
-      font-size: 2rem // Ensure icons are large enough
-      line-height: 1 // Ensure icon is centered vertically
-
-.pdf-btn
-    background-color: #D9534F !important // Bootstrap's btn-danger color
-    color: #fff
-
-.csv-btn
-    background-color: #5CB85C !important // Bootstrap's btn-success color
-    color: #fff
-
+// Estilos mínimos necessários para o botão animado
 .add-user-btn
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)
   overflow: hidden
   white-space: nowrap
-  min-width: 40px
-  padding: 8px 16px
-
-  .button-text
-    transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), margin 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)
-    opacity: 1
-    transform: translateX(0)
-    margin-left: 8px
 
   &.collapsed
-    padding: 8px
+    min-width: 40px !important
 
-    .button-text
-      opacity: 0
-      width: 0
-      margin: 0
-      transform: translateX(-20px)
-      margin-left: 0
+.button-text
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)
 
-.export-icons
-  display: flex
-  align-items: center
-  gap: 0.25rem
+// Estilo para a área de exportação
+.export-label
+  letter-spacing: 0.5px
 </style>
