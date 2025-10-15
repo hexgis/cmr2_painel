@@ -14,7 +14,6 @@ function escapeCSVValue(value) {
   if (value === null || value === undefined) {
     return '';
   }
-  }
 
   const stringValue = String(value);
 
@@ -55,8 +54,8 @@ function extractFilenameFromHeader(contentDisposition, fallback = 'download') {
 
   const patterns = [
     /filename\*=(?:UTF-8'')?([^;]+)/i, // RFC 6266 (UTF-8)
-    /filename=['"]([^'";]+)['"]/i,     // Com aspas
-    /filename=([^;'"\s]+)/i,           // Sem aspas
+    /filename=['"]([^'";]+)['"]/i, // Com aspas
+    /filename=([^;'"\s]+)/i, // Sem aspas
   ];
 
   for (const pattern of patterns) {
@@ -113,18 +112,17 @@ function convertToCSV(data, customHeaders = null, delimiter = ',') {
     const csvRows = data.map((row) => row.map((value) => escapeCSVValue(value)).join(delimiter));
 
     return `${csvHeaders}\n${csvRows.join('\n')}`;
-  } else {
-    // Handle array of objects
-    const headers = customHeaders || Object.keys(data[0]);
-    const csvHeaders = headers.map((header) => escapeCSVValue(header)).join(delimiter);
-
-    const csvRows = data.map((obj) => headers.map((key) => {
-      const value = obj[key];
-      return escapeCSVValue(value);
-    }).join(delimiter));
-
-    return `${csvHeaders}\n${csvRows.join('\n')}`;
   }
+  // Handle array of objects
+  const headers = customHeaders || Object.keys(data[0]);
+  const csvHeaders = headers.map((header) => escapeCSVValue(header)).join(delimiter);
+
+  const csvRows = data.map((obj) => headers.map((key) => {
+    const value = obj[key];
+    return escapeCSVValue(value);
+  }).join(delimiter));
+
+  return `${csvHeaders}\n${csvRows.join('\n')}`;
 }
 
 /**
@@ -202,7 +200,7 @@ async function downloadPDF(data, headers, title, fileName, options = {}) {
         fontSize: 9,
       },
       margin: { top: 40 },
-      ...options
+      ...options,
     };
 
     const doc = new jsPDF({
@@ -223,18 +221,14 @@ async function downloadPDF(data, headers, title, fileName, options = {}) {
     doc.text(`Gerado em: ${timestamp}`, 15, defaultOptions.titleY + 8);
 
     // Prepare table data
-    const tableData = data.map(item =>
-      headers.map(header => {
-        if (typeof header === 'object') {
-          return String(item[header.value] || '');
-        }
-        return String(item[header] || '');
-      })
-    );
+    const tableData = data.map((item) => headers.map((header) => {
+      if (typeof header === 'object') {
+        return String(item[header.value] || '');
+      }
+      return String(item[header] || '');
+    }));
 
-    const tableHeaders = headers.map(header =>
-      typeof header === 'object' ? header.text : header
-    );
+    const tableHeaders = headers.map((header) => (typeof header === 'object' ? header.text : header));
 
     // Generate table
     autoTable(doc, {
@@ -261,7 +255,7 @@ async function downloadPDF(data, headers, title, fileName, options = {}) {
       doc.text(
         `Página ${i} de ${pageCount}`,
         doc.internal.pageSize.width - 25,
-        doc.internal.pageSize.height - 10
+        doc.internal.pageSize.height - 10,
       );
     }
 
@@ -363,6 +357,26 @@ class Downloader {
   }
 
   /**
+   * Converts data to a CSV string. Supports both arrays of objects and arrays of arrays.
+   * @param {Array} data - Array of objects or array of arrays to convert
+   * @param {Array|null} customHeaders - Custom header list
+   * @param {string} delimiter - Column separator (default: ',')
+   * @returns {string} - CSV content as string
+   */
+  convertToCSV(data, customHeaders = null, delimiter = ',') {
+    return convertToCSV(data, customHeaders, delimiter);
+  }
+
+  /**
+   * Downloads CSV data as a file with proper UTF-8 encoding and BOM.
+   * @param {string} csvContent - CSV content to download
+   * @param {string} fileName - Name of the file (should end with .csv)
+   */
+  downloadCSV(csvContent, fileName) {
+    downloadCSV(csvContent, fileName);
+  }
+
+  /**
    * Downloads a file via HTTP request.
    * @param {string} url - File URL for download
    * @param {string} [filename='download'] - Filename
@@ -396,7 +410,6 @@ class Downloader {
 
       if (showSuccess && this.toast) this.toast.success('File downloaded successfully!');
       return { success: true, filename: finalFilename };
-
     } catch (error) {
       console.error('Error downloading file:', error);
 
@@ -430,7 +443,6 @@ class Downloader {
 
       if (showSuccess && this.toast) this.toast.success('File downloaded successfully!');
       return { success: true, filename: sanitizeFilename(filename) };
-
     } catch (error) {
       console.error('Error downloading blob:', error);
       if (this.toast) this.toast.error('Error downloading file.');
@@ -548,7 +560,7 @@ class Downloader {
   static buildUrl(baseUrl, endpoint, params = {}) {
     return Object.entries(params).reduce(
       (url, [key, value]) => url.replace(`{${key}}`, encodeURIComponent(value)),
-      `${baseUrl}${endpoint}`
+      `${baseUrl}${endpoint}`,
     );
   }
 }

@@ -123,7 +123,7 @@
               Dados Cadastrais
             </v-tab>
             <v-tab class="text-capitalize">
-              Registro de Acessos do Usuário e seus Papéis de Acesso
+              Registro de Acessos do Usuário e seus perfis de Acesso
             </v-tab>
           </v-tabs>
 
@@ -307,7 +307,7 @@
 
                 <!-- Role Changes Table -->
                 <h3 class="mb-3">
-                  Histórico de Alterações de Papéis de Acesso
+                  Histórico de Alterações de Perfis de Acesso
                 </h3>
                 <v-data-table
                   :headers="roleChangesHeaders"
@@ -756,6 +756,67 @@
         </v-menu>
       </template>
 
+      <!-- Roles Filter -->
+      <template #header.roles="{ header }">
+        <v-menu
+          v-model="rolesMenu"
+          offset-y
+          :close-on-content-click="false"
+        >
+          <template #activator="{ on, attrs }">
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ header.text }}<v-icon small>
+                mdi-filter-variant
+              </v-icon>
+            </v-btn>
+          </template>
+          <v-card style="width:250px">
+            <v-text-field
+              v-model="searchRoles"
+              placeholder="Pesquisar..."
+              outlined
+              dense
+              hide-details
+              clearable
+              class="mx-3 mt-3"
+              @click.stop
+            />
+            <v-divider />
+            <v-list
+              dense
+              class="filter-list"
+            >
+              <v-list-item
+                v-for="role in filteredRolesList"
+                :key="role"
+              >
+                <v-checkbox
+                  v-model="columnFilters.roles"
+                  :value="role"
+                  :label="role"
+                  dense
+                  @change="rolesMenu = false"
+                />
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </template>
+
+      <template #item.roles="{ item }">
+        <div>
+          <span v-if="item.roles && item.roles.length > 0">
+            {{ item.roles.map(role => role.name).join(', ') }}
+          </span>
+          <span v-else>Nenhum perfil associado</span>
+        </div>
+      </template>
+
       <!-- Administrator Filter -->
       <template #header.is_admin="{ header }">
         <v-menu offset-y>
@@ -1032,15 +1093,13 @@ export default {
       selectedInstitution: null,
       users: [],
       filteredUsers: [],
-      showLogsModal: false,
-      userLogs: [],
-      selectedUserLogs: null,
       headers: [
         { text: 'Usuário', value: 'username' },
         { text: 'Primeiro Nome', value: 'first_name' },
         { text: 'Último Nome', value: 'last_name' },
         { text: 'Email', value: 'email' },
         { text: 'Administrador', value: 'is_admin' },
+        { text: 'Perfil', value: 'roles' },
         { text: 'Acesso Permitido', value: 'is_active' },
         { text: 'Vínculo Institucional', value: 'institution' },
         { text: 'Ações', value: 'actions', align: 'center' },
@@ -1071,6 +1130,8 @@ export default {
         last_name: '',
         email: '',
         institution_id: null,
+        is_inactive: false,
+        roles: [],
       },
       storeCategories: [
         { label: 'usuários ativos', total: 0, color: '#12A844' },
@@ -1080,7 +1141,7 @@ export default {
       requiredRule: (v) => !!v || 'Campo obrigatório',
       emailRule: (v) => /.+@.+\..+/.test(v) || 'E-mail inválido',
       userRoleChanges: [],
-      visibleColumns: ['username', 'email', 'is_admin', 'is_active', 'institution', 'actions'],
+      visibleColumns: ['username', 'email', 'roles', 'is_admin', 'is_active', 'institution', 'actions'],
       columnFilters: {
         is_admin: [], // [true, false]
         is_active: [], // [true, false]
@@ -1089,6 +1150,7 @@ export default {
         first_name: [],
         last_name: [],
         email: [],
+        roles: [],
       },
       searchInstitution: '',
       institutionMenu: false,
@@ -1096,10 +1158,12 @@ export default {
       firstNameMenu: false,
       lastNameMenu: false,
       emailMenu: false,
+      rolesMenu: false,
       searchUsername: '',
       searchFirstName: '',
       searchLastName: '',
       searchEmail: '',
+      searchRoles: '',
       searchAll: '',
       isButtonCollapsed: true,
       buttonCollapseTimeout: null,
@@ -1130,16 +1194,11 @@ export default {
         { text: 'Alterado Por', value: 'changed_by' },
         { text: 'Data/Hora', value: 'changed_at' },
         { text: 'Ação', value: 'action' },
-        { text: 'Papel', value: 'role' },
+        { text: 'Perfil', value: 'role' },
       ],
     };
   },
 
-  watch: {
-    searchAll(val) {
-      this.search = val;
-    },
-  },
   computed: {
     totalValue() {
       return this.storeCategories.reduce(
@@ -1153,12 +1212,21 @@ export default {
     },
 
     filteredByColumns() {
-      return this.filteredUsers.filter((user) => Object.entries(this.columnFilters).every(([col, vals]) => {
+      return this.filteredUsers.filter((user) => Object.entries(
+        this.columnFilters,
+      ).every(([col, vals]) => {
         if (!vals.length) return true;
 
         if (col === 'institution') {
-          const userInstitutionAcronym = user.institution && user.institution.acronym ? user.institution.acronym : 'N/A';
+          const userInstitutionAcronym = user.institution && user.institution.acronym
+            ? user.institution.acronym
+            : 'N/A';
           return vals.includes(userInstitutionAcronym);
+        }
+
+        if (col === 'roles') {
+          const userRoleNames = (user.roles || []).map((role) => role.name);
+          return vals.some((role) => userRoleNames.includes(role));
         }
 
         return vals.includes(user[col]);
@@ -1197,6 +1265,17 @@ export default {
         .filter((v) => v.toLowerCase().includes(term));
     },
 
+    filteredRolesList() {
+      const term = (this.searchRoles || '').toLowerCase();
+      const allRoles = [...new Set(
+        this.filteredUsers
+          .flatMap((u) => u.roles || [])
+          .map((role) => role.name)
+          .filter((name) => name),
+      )];
+      return allRoles.filter((name) => name.toLowerCase().includes(term));
+    },
+
     filteredUserLogs() {
       return this.userLogs || [];
     },
@@ -1210,6 +1289,12 @@ export default {
     },
 
     ...mapState('admin', ['institutionList', 'rolesList']),
+  },
+
+  watch: {
+    searchAll(val) {
+      this.search = val;
+    },
   },
 
   async mounted() {
@@ -1265,7 +1350,7 @@ export default {
         console.error('Erro ao carregar roles:', error);
         this.$store.commit('alert/addAlert', {
           timeout: 5000,
-          message: 'Erro ao carregar papéis',
+          message: 'Erro ao carregar perfis',
         });
       } finally {
         this.loadingRoles = false;
@@ -1373,7 +1458,7 @@ export default {
           // Notificação de sucesso detalhada
           this.$store.commit('alert/addAlert', {
             timeout: 5000,
-            message: `Usuário "${this.newUser.username}" foi criado com sucesso! ${this.newUser.roles.length > 0 ? `Papéis atribuídos: ${this.newUser.roles.map((r) => r.name).join(', ')}.` : ''}`,
+            message: `Usuário "${this.newUser.username}" foi criado com sucesso! ${this.newUser.roles.length > 0 ? `Perfis atribuídos: ${this.newUser.roles.map((r) => r.name).join(', ')}.` : ''}`,
           });
         }
       } catch (error) {
@@ -1448,7 +1533,7 @@ export default {
 
           this.$store.commit('alert/addAlert', {
             timeout: 5000,
-            message: `Usuário "${this.editUserData.username}" foi atualizado com sucesso! ${this.editUserData.roles.length > 0 ? `Papéis: ${this.editUserData.roles.map((r) => r.name).join(', ')}.` : 'Nenhum papel atribuído.'}`,
+            message: `Usuário "${this.editUserData.username}" foi atualizado com sucesso! ${this.editUserData.roles.length > 0 ? `Perfis: ${this.editUserData.roles.map((r) => r.name).join(', ')}.` : 'Nenhum perfil atribuído.'}`,
           });
         } else {
           throw new Error('Resposta inesperada da API.');
@@ -1722,7 +1807,7 @@ export default {
           'Alterado Por': change.changed_by,
           'Data/Hora': change.changed_at,
           Ação: change.action,
-          Papel: change.role,
+          Perfil: change.role,
         }));
 
         // Create combined data for PDF with sections
@@ -1731,7 +1816,7 @@ export default {
           ...roleData.map((item) => ({ ...item, _section: 'roles' })),
         ];
 
-        const allHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Alterado Por', 'Data/Hora', 'Ação', 'Papel'];
+        const allHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Alterado Por', 'Data/Hora', 'Ação', 'Perfil'];
 
         const filename = this.$downloader.generateFileName('registro_acessos_usuario', 'pdf', {
           includeTimestamp: true,
@@ -1759,7 +1844,7 @@ export default {
         ]);
 
         // Role changes data
-        const roleHeaders = ['Alterado Por', 'Data/Hora', 'Ação', 'Papel'];
+        const roleHeaders = ['Alterado Por', 'Data/Hora', 'Ação', 'Perfil'];
         const roleRows = this.filteredUserRoleChanges.map((change) => [
           change.changed_by,
           change.changed_at,

@@ -47,7 +47,7 @@ export default {
         {
           url: 'permissoes/roles/',
           icon: 'mdi-account-cog',
-          optionLabel: 'Papéis',
+          optionLabel: 'Perfil',
         },
         {
           url: 'permissoes/instituicoes/',

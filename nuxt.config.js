@@ -3,15 +3,6 @@ import messages from './plugins/i18n-messages.js';
 require('dotenv').config();
 
 export default {
-  // Outras configurações...
-  // serverMiddleware: [
-  //   { path: '/api', handler: '~/server-middleware/express.js' },
-  // ],
-
-  mode: 'universal',
-  /*
-     ** Headers of the page
-     */
   head: {
     titleTemplate: `%s - ${process.env.APP_NAME}`,
     title: 'CMR' || '',
@@ -29,39 +20,27 @@ export default {
     ],
     link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
   },
-  /*
-     ** Customize the progress-bar color
-     */
+
   loading: { color: '#C2293D', height: '4px' },
-  /*
-     ** Global CSS
-     */
+
   css: ['@mdi/font/css/materialdesignicons.css'],
-  /*
-     ** Plugins to load before mounting the App
-     */
+
   plugins: [
     '~/plugins/axios.js',
     '~/plugins/filters.js',
     '~/plugins/v-mask.js',
     '~/plugins/i18n.js',
     '~/plugins/downloader.js',
-    { src: '~/plugins/theme-config.js', mode: 'client' },
     { src: '~/plugins/vue-chartjs.js', mode: 'client' },
     { src: '~/plugins/vue2-leaflet-markercluster.js', mode: 'client' },
   ],
-  /*
-     ** Nuxt.js dev-modules
-     */
+
   buildModules: [
     '@nuxt/typescript-build',
     '@nuxtjs/vuetify',
     '@nuxtjs/moment',
   ],
 
-  /*
-     ** Nuxt.js modules
-     */
   modules: [
     // Doc: https://github.com/nuxt-community/dotenv-module
     '@nuxtjs/dotenv',
@@ -71,10 +50,7 @@ export default {
     'cookie-universal-nuxt',
     'nuxt-i18n',
   ],
-  /*
-     ** vuetify module configuration
-     ** https://github.com/nuxt-community/vuetify-module
-     */
+
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {
@@ -118,9 +94,7 @@ export default {
     locales: ['pt-br'],
     defaultLocale: 'pt-br',
   },
-  /*
-     ** Build configuration
-     */
+
   build: {
     extend(config, ctx) {
       if (ctx.isDev) {
