@@ -579,7 +579,6 @@ export default {
 
     async generateCSV() {
       try {
-        // Prepare data for CSV
         const data = this.filteredByColumns.map((institution) => ({
           Nome: institution.name,
           Tipo: institution.institution_type || '',
@@ -587,7 +586,6 @@ export default {
 
         const headers = ['Nome', 'Tipo'];
 
-        // Generate and download CSV using the new unified function
         const result = await this.$downloader.csv(data, headers, 'instituicoes', {
           delimiter: ',',
           dateFormat: 'iso',
@@ -605,7 +603,6 @@ export default {
 
     async generatePDF() {
       try {
-        // Usando o plugin de download - método downloadPDF
         const headers = [
           { text: 'Nome', value: 'name' },
           { text: 'Tipo', value: 'institution_type' },

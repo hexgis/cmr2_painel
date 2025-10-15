@@ -1561,7 +1561,6 @@ export default {
 
     async openEditDialog(user) {
       try {
-      // Busca os dados do usuário e as roles disponíveis simultaneamente
         const [userResponse, rolesResponse] = await Promise.all([
           this.$api.get(`/user/${user.id}/`),
           this.$api.get('/user/role/'),
@@ -1581,7 +1580,6 @@ export default {
           roles: userData.roles || [],
         };
 
-        // Atualiza a lista de roles disponíveis no store
         this.$store.commit('admin/setRolesList', rolesList);
 
         this.showModalEdit = true;
@@ -1604,10 +1602,8 @@ export default {
 
     async generateCSV() {
       try {
-        // Show loading state
         this.loadingUsers = true;
 
-        // CSV headers with better formatting
         const headers = [
           'Usuário',
           'Primeiro Nome',
@@ -1620,7 +1616,6 @@ export default {
           'Último Login',
         ];
 
-        // Process data with better handling
         const rows = this.filteredByColumns.map((user) => [
           user.username || '',
           user.first_name || '',
@@ -1633,14 +1628,12 @@ export default {
           this.formatDate(user.last_login),
         ]);
 
-        // Generate and download CSV using the new unified function
         const result = await this.$downloader.csv(rows, headers, 'usuarios', {
           delimiter: ',',
           dateFormat: 'iso',
           includeTimestamp: true,
         });
 
-        // Success feedback
         this.$store.commit('alert/addAlert', {
           timeout: 3000,
           message: `✅ Arquivo CSV exportado com sucesso! (${result.recordCount} usuários)`,
@@ -1649,19 +1642,16 @@ export default {
       } catch (error) {
         console.error('Erro ao gerar CSV:', error);
 
-        // Error feedback
         this.$store.commit('alert/addAlert', {
           timeout: 5000,
           message: `❌ ${error.message || 'Erro ao exportar arquivo CSV. Tente novamente.'}`,
           type: 'error',
         });
       } finally {
-        // Hide loading state
         this.loadingUsers = false;
       }
     },
 
-    // Helper method for institution display
     getInstitutionDisplay(user) {
       if (user.institution) {
         if (user.institution.acronym) {
@@ -1677,7 +1667,6 @@ export default {
       return 'N/A';
     },
 
-    // Helper method for date formatting
     formatDate(dateString) {
       if (!dateString) return 'N/A';
       try {
@@ -1709,7 +1698,6 @@ export default {
 
     async generateLogsPDF() {
       try {
-        // Validate data
         if (!this.filteredUserLogs || this.filteredUserLogs.length === 0) {
           this.$store.commit('alert/addAlert', {
             timeout: 3000,
@@ -1729,7 +1717,6 @@ export default {
           Status: log.is_active ? 'Ativo' : 'Inativo',
         }));
 
-        // Dynamic filename with timestamp
         const username = (this.selectedUserLogs && this.selectedUserLogs.username) || 'usuario';
         const filename = this.$downloader.generateFileName(`dados_cadastrais_${username}`, 'pdf', {
           includeTimestamp: true,
@@ -1764,18 +1751,15 @@ export default {
           log.is_active ? 'Ativo' : 'Inativo',
         ]);
 
-        // Generate filename with username
         const username = (this.selectedUserLogs && this.selectedUserLogs.username) || 'usuario';
         const baseName = `dados_cadastrais_${username}`;
 
-        // Generate and download CSV using the new unified function
         const result = await this.$downloader.csv(rows, headers, baseName, {
           delimiter: ',',
           dateFormat: 'iso',
           includeTimestamp: true,
         });
 
-        // Success feedback
         this.$store.commit('alert/addAlert', {
           timeout: 3000,
           message: `✅ CSV dos dados cadastrais exportado com sucesso! (${result.recordCount} registros)`,
@@ -1793,7 +1777,6 @@ export default {
 
     async generateAccessPDF() {
       try {
-        // Login History data
         const loginData = this.filteredUserLoginHistory.map((login) => ({
           'Data de Login': login.last_date_login,
           IP: login.ip,
@@ -1802,7 +1785,6 @@ export default {
           Navegador: login.browser,
         }));
 
-        // Role Changes data
         const roleData = this.filteredUserRoleChanges.map((change) => ({
           'Alterado Por': change.changed_by,
           'Data/Hora': change.changed_at,
@@ -1810,7 +1792,6 @@ export default {
           Perfil: change.role,
         }));
 
-        // Create combined data for PDF with sections
         const combinedData = [
           ...loginData.map((item) => ({ ...item, _section: 'login' })),
           ...roleData.map((item) => ({ ...item, _section: 'roles' })),
@@ -1831,7 +1812,6 @@ export default {
 
     async generateAccessCSV() {
       try {
-        // Login data
         const loginHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Latitude', 'Longitude'];
         const loginRows = this.filteredUserLoginHistory.map((login) => [
           login.last_date_login,
@@ -1843,7 +1823,6 @@ export default {
           login.longitude,
         ]);
 
-        // Role changes data
         const roleHeaders = ['Alterado Por', 'Data/Hora', 'Ação', 'Perfil'];
         const roleRows = this.filteredUserRoleChanges.map((change) => [
           change.changed_by,
@@ -1852,20 +1831,16 @@ export default {
           change.role,
         ]);
 
-        // Generate individual CSV contents
         const loginCsvContent = this.$downloader.convertToCSV(loginRows, loginHeaders);
         const roleCsvContent = this.$downloader.convertToCSV(roleRows, roleHeaders);
 
-        // Combine both sections
         const combinedCsvContent = `HISTÓRICO DE LOGIN\n${loginCsvContent}\n\nHISTÓRICO DE ALTERAÇÕES DE PAPÉIS\n${roleCsvContent}`;
 
-        // Generate filename
         const filename = this.$downloader.generateFileName('registro_acessos_usuario', 'csv', {
           includeTimestamp: true,
           dateFormat: 'iso',
         });
 
-        // Download the combined file
         this.$downloader.downloadCSV(combinedCsvContent, filename);
       } catch (error) {
         console.error('Erro ao gerar CSV de acessos:', error);

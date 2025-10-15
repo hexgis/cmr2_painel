@@ -828,7 +828,6 @@ export default {
           'Data Análise': card.ticket_status && card.ticket_status.analyzed_in_formatted || '',
         }));
 
-        // Generate and download CSV using the new unified function
         await this.$downloader.csv(csvData, headers, 'criticas_sugestoes', {
           delimiter: ',',
           dateFormat: 'iso',
