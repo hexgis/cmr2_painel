@@ -14,6 +14,8 @@ export default {
       currentView: false,
       cr: [],
       ti: [],
+      startCycle: null,
+      endCycle: null,
       startDate: '',
       endDate: '',
       bbox: null,
@@ -75,7 +77,9 @@ export default {
       const cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
       const ti = getters.getFormattedIndigenousLands('co_funai').join(',');
       const { stages } = state.stats;
-      const { startDate, endDate, bboxWkt } = state.filters;
+      const {
+        startDate, endDate, bboxWkt, startCycle, endCycle,
+      } = state.filters;
       const intersects = state.filters.currentView ? `INTERSECTS(geom, ${bboxWkt})` : '';
 
       const filters = [];
@@ -87,7 +91,8 @@ export default {
         filters.push(`co_funai IN (${ti})`);
       }
 
-      if (startDate && endDate) {
+      if (startCycle && endCycle) filters.push(`no_ciclo >= 'Ciclo ${startCycle}' AND no_ciclo <= 'Ciclo ${endCycle}'`);
+      else if (startDate && endDate) {
         filters.push(`dt_t_um BETWEEN '${state.filters.startDate}' AND '${state.filters.endDate}'`);
       }
 

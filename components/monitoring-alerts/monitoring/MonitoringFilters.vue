@@ -31,7 +31,7 @@
             item-text="ds_cr"
             hide-details
             :loading="loadingRegionalCoordinators"
-            :disabled="loadingRegionalCoordinators"
+            :disabled="loadingRegionalCoordinators || loadingSearchMonitoring"
             :rules="regionalCoordinationRules"
             clearable
             multiple
@@ -47,7 +47,7 @@
             item-text="no_ti"
             item-value="co_funai"
             :loading="loadingIndigenousLands"
-            :disabled="loadingIndigenousLands"
+            :disabled="loadingIndigenousLands || loadingSearchMonitoring"
             hide-details
             clearable
             multiple
@@ -55,30 +55,86 @@
             outlined
             @clear="currentIndigenousLand = []"
           />
-          <v-col
-            cols="6"
-            class="mt-5 pr-1"
-          >
-            <BaseDateField
-              v-model="currentStartDate"
-              :label="$t('start-date')"
-              :required="true"
+          <v-col cols="6">
+            <v-text-field
+              v-model="currentStartCycle"
+              type="number"
+              :label="$t('cycle')"
+              :loading="loadingIndigenousLands"
+              :disabled="loadingIndigenousLands || loadingSearchMonitoring"
+              class="mt-4 pr-1"
               outlined
-              :min-date="'2015-01-01'"
             />
           </v-col>
-          <v-col
-            cols="6"
-            class="mt-5 pl-1"
-          >
-            <BaseDateField
-              v-model="currentEndDate"
-              :label="$t('end-date')"
-              :required="true"
+
+          <v-col cols="6">
+            <v-text-field
+              v-model="currentEndCycle"
+              type="number"
+              :label="$t('cycle')"
+              :loading="loadingIndigenousLands"
+              :disabled="loadingIndigenousLands || loadingSearchMonitoring"
+              class="mt-4 pl-1"
               outlined
-              :min-date="'2015-01-01'"
             />
           </v-col>
+
+          <v-col
+            cols="6"
+            class="pr-1"
+          >
+            <v-tooltip
+              top
+              :disabled="!currentStartCycle || !currentEndCycle"
+              open-delay="1200"
+            >
+              <template #activator="{ on, attrs }">
+                <div
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <BaseDateField
+                    v-model="currentStartDate"
+                    :label="$t('start-date')"
+                    :required="true"
+                    :disabled="!!currentStartCycle || !!currentEndCycle"
+                    outlined
+                    :min-date="'2015-01-01'"
+                  />
+                </div>
+              </template>
+              <span>{{ $t('message-cycle-or-dates') }}</span>
+            </v-tooltip>
+          </v-col>
+
+          <v-col
+            cols="6"
+            class="pl-1"
+          >
+            <v-tooltip
+              top
+              :disabled="!currentStartCycle || !currentEndCycle"
+              open-delay="800"
+            >
+              <template #activator="{ on, attrs }">
+                <div
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <BaseDateField
+                    v-model="currentEndDate"
+                    :label="$t('end-date')"
+                    :required="true"
+                    :disabled="!!currentStartCycle || !!currentEndCycle"
+                    outlined
+                    :min-date="'2015-01-01'"
+                  />
+                </div>
+              </template>
+              <span>{{ $t('message-cycle-or-dates') }}</span>
+            </v-tooltip>
+          </v-col>
+
           <v-col
             cols="12"
             class="mt-4"
@@ -119,7 +175,8 @@
     "indigenous-land": "Indigenous Land (All)",
     "start-date": "Start Date",
     "end-date": "End Date",
-    "search-label": "Search"
+    "search-label": "Search",
+    "message-cycle-or-dates": "Disabled when filling in the Cycle field"
   },
   "pt-br": {
     "invalid-date": "Data inválida",
@@ -131,7 +188,8 @@
     "indigenous-land": "Terras Indígenas (Todas)",
     "start-date": "Data Inicial",
     "end-date": "Data Final",
-    "search-label": "Buscar"
+    "search-label": "Buscar",
+    "message-cycle-or-dates": "Desativado ao preencher o campo Ciclo"
   }
 }
 </i18n>
@@ -199,6 +257,24 @@ export default {
       },
       set(value) {
         this.$store.commit('monitoring/setFilters', { ti: value });
+      },
+    },
+
+    currentStartCycle: {
+      get() {
+        return this.filters.startCycle;
+      },
+      set(value) {
+        this.$store.commit('monitoring/setFilters', { startCycle: value });
+      },
+    },
+
+    currentEndCycle: {
+      get() {
+        return this.filters.endCycle;
+      },
+      set(value) {
+        this.$store.commit('monitoring/setFilters', { endCycle: value });
       },
     },
 
