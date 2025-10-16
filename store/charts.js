@@ -157,15 +157,15 @@ export const actions = {
       );
 
       if (response) {
-        // Filtrar os dados brutos por instituição
+        // Filtrar por is_internal
         const filteredData = {
           ...response,
           data: response.data.filter((item) => {
             if (!item.user_email) return false;
             if (state.institutionFilter === 'FUNAI') {
-              return item.user_email.toLowerCase().endsWith('@funai.gov.br');
+              return item.is_internal === true; // Usuários internos = FUNAI
             }
-            return !item.user_email.toLowerCase().endsWith('@funai.gov.br');
+            return item.is_internal === false; // Usuários externos = Agências
           }),
         };
 
