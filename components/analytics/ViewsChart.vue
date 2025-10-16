@@ -670,6 +670,7 @@ export default {
       const shareButtons = document.querySelectorAll('.chart--btn-wrapper, .chart--btn-wrapper-saves');
       const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
       const shadowBoxCards = document.querySelectorAll('.v-application , .elevation-2');
+      const chartHeader = document.querySelectorAll('.chart-header');
 
       shareButtons.forEach((button) => {
         // eslint-disable-next-line no-param-reassign
@@ -681,6 +682,9 @@ export default {
       });
       shadowBoxCards.forEach((card) => {
         card.setAttribute('style', 'box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12) !important;');
+      });
+      chartHeader.forEach((el)=>{
+        el.style.display = '';
       });
     },
 
@@ -724,6 +728,7 @@ export default {
       const shareButtons = document.querySelectorAll('.chart--btn-wrapper, .chart--btn-wrapper-saves');
       const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
       const shadowBoxCards = document.querySelectorAll('.v-application .elevation-2');
+      const chartHeader = document.querySelectorAll('.chart-header');
 
       shareButtons.forEach((button) => {
         // eslint-disable-next-line no-param-reassign
@@ -735,6 +740,9 @@ export default {
       });
       shadowBoxCards.forEach((card) => {
         card.setAttribute('style', 'box-shadow: none !important; border: 1px solid #EEEE;');
+      });
+      chartHeader.forEach((el)=>{
+        el.style.display = 'none';
       });
     },
     async downloadCSV() {
@@ -793,38 +801,60 @@ export default {
       }
     },
 
-    async downloadPDF() {
-      this.downloading = 'pdf';
-      this.prepareToExportData();
-      try {
-        const nameImageDownload = `${this.$t('viewsControl')}|${this.startDate ? this.startDate : ''}|${this.endDate ? this.endDate : ''}`;
-        const options = {
-          quality: 1,
-          bgcolor: 'white',
-        };
-        const node = document.getElementById('chart');
+  async downloadPDF() {
+  this.downloading = 'pdf';
+  this.prepareToExportData();
+  try {
+    const nameImageDownload = `${this.$t('viewsControl')}|${this.startDate || ''}|${this.endDate || ''}`;
+    const node = document.getElementById('chart');
 
-        const image = await domtoimage.toJpeg(node, options);
-        const doc = new jsPDF({
-          orientation: 'portrait',
-          format: 'A4',
-          compression: 'SLOW',
-        });
-        doc.addImage(image, 'JPEG', 0, 0, 210, 295);
-        doc.save(`${nameImageDownload}.pdf`);
+    // Render the node to an image
+    const image = await domtoimage.toPng(node, {
+      quality: 1,
+      bgcolor: '#ffffff',
+      style: {
+        transform: 'scale(1)',
+        transformOrigin: 'top left',
+        filter: 'none',
+      },
+    });
 
-        this.downloadSuccess = true;
-      } catch (error) {
-        this.$store.commit('alert/addAlert', {
-          message: this.$t('image-error'),
-        });
-        this.downloadSuccess = false;
-      } finally {
-        this.downloading = null;
-        this.showDownloadModal = true;
-      }
-    },
+    const pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const img = new Image();
+    img.src = image;
+
+    await new Promise(resolve => (img.onload = resolve));
+
+    // Keep image proporion
+    const ratio = Math.min(pageWidth / img.width, pageHeight / img.height);
+    const imgWidth = img.width * ratio;
+    const imgHeight = img.height * ratio;
+    const marginX = (pageWidth - imgWidth) / 2;
+    const marginY = (pageHeight - imgHeight) / 2;
+
+    pdf.addImage(img, 'PNG', marginX, marginY, imgWidth, imgHeight);
+    pdf.save(`${nameImageDownload}.pdf`);
+
+    this.downloadSuccess = true;
+  } catch (error) {
+    this.$store.commit('alert/addAlert', {
+      message: this.$t('image-error'),
+    });
+    this.downloadSuccess = false;
+  } finally {
+    this.downloading = null;
+    this.showDownloadModal = true;
+  }
   },
+},
 };
 </script>
 
