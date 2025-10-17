@@ -412,7 +412,7 @@
       <v-row class="charts-grid ma-0">
         <v-col
           cols="12"
-          md="3"
+          :md="institutionType === 'FUNAI' ? 'auto' : 3"
           class="pa-2"
         >
           <v-card
@@ -436,7 +436,7 @@
         </v-col>
         <v-col
           cols="12"
-          md="3"
+          :md="institutionType === 'FUNAI' ? 'auto' : 3"
           class="pa-2"
         >
           <v-card
@@ -459,8 +459,38 @@
           </v-card>
         </v-col>
         <v-col
+          v-if="institutionType === 'FUNAI'"
           cols="12"
-          md="3"
+          md="auto"
+          class="pa-2"
+        >
+          <v-card
+            class="chart-card compact-chart"
+            elevation="2"
+          >
+            <v-card-title class="chart-title compact-title">
+              <v-icon
+                left
+                small
+                color="info"
+              >
+                mdi-account-group
+              </v-icon>
+              Acessos por CR - FUNAI
+            </v-card-title>
+            <v-card-text class="chart-content compact-chart-content">
+              <DoughnutChartContainer
+                :custom-data="funaiChartData"
+                data-type="funai"
+                chart-label="Acessos por CR - FUNAI"
+              />
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <v-col
+          cols="12"
+          :md="institutionType === 'FUNAI' ? 'auto' : 3"
           class="pa-2"
         >
           <!-- Dados diários -->
@@ -488,7 +518,7 @@
         </v-col>
         <v-col
           cols="12"
-          md="3"
+          :md="institutionType === 'FUNAI' ? 'auto' : 3"
           class="pa-2"
         >
           <!-- Dados mensais -->
@@ -640,6 +670,20 @@ export default {
     },
     browserList() {
       return Object.keys(this.getBrowserCounts);
+    },
+    funaiChartData() {
+      if (!this.getDataChart.data || this.getDataChart.data.length === 0) {
+        return {};
+      }
+      const counts = {};
+      this.getDataChart.data.forEach(item => {
+        if (item && item.institution_acronym) {
+          const cr = item.institution_acronym;
+          counts[cr] = (counts[cr] || 0) + 1;
+        }
+      });
+
+      return counts;
     },
   },
 
@@ -1026,6 +1070,11 @@ export default {
         .v-data-table__wrapper
           max-height: 100px
           overflow-y: auto
+
+// Ajustes específicos para o layout de 5 colunas
+.charts-grid .pa-2
+  flex: 1 1 auto
+  min-width: 0
 
 // Responsive adjustments
 @media (max-width: 960px)

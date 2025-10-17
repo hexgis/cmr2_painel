@@ -1,11 +1,11 @@
 <template>
-  <v-container class="pa-2">
+  <v-container class="pa-2 text-center">
     <v-row class="justify-center">
       <v-col
         cols="12"
         class="d-flex justify-center"
       >
-        <div class="chart-wrapper">
+        <div class="chart-wrapper position-relative">
           <doughnut-chart
             v-if="chartData"
             :key="chartKey"
@@ -14,7 +14,7 @@
           />
           <div
             v-else
-            class="no-data-message"
+            class="mt-16"
           >
             <v-icon
               large
@@ -46,9 +46,24 @@ import DoughnutChart from './DoughnutChart.vue';
 import LegendList from './LegendList.vue';
 
 export default {
+  name: 'DoughnutChartContainer',
   components: {
     DoughnutChart,
     LegendList,
+  },
+  props: {
+    customData: {
+      type: Object,
+      default: null,
+    },
+    dataType: {
+      type: String,
+      default: 'devices',
+    },
+    chartLabel: {
+      type: String,
+      default: 'Modo de acesso ao CMR',
+    },
   },
   data() {
     return {
@@ -82,11 +97,28 @@ export default {
     ...mapGetters('charts', [
       'getTypeDeviceCounts',
     ]),
+    activeData() {
+      if (this.dataType === 'funai' && this.customData) {
+        return {
+          data: this.customData,
+          label: 'Acessos por CR - FUNAI',
+          colors: ['#D92B3F', '#F58A1F', '#FFCE03', '#A5D85E', '#36A2EB', '#9966FF'],
+        };
+      }
+      if (this.dataType === 'devices' && this.getTypeDeviceCounts) {
+        return {
+          data: this.getTypeDeviceCounts,
+          label: this.chartLabel,
+          colors: ['#D92B3F', '#F58A1F', '#FFCE03', '#A5D85E', '#36A2EB'],
+        };
+      }
+      return null;
+    },
   },
   watch: {
-    getTypeDeviceCounts: {
-      async handler() {
-        await this.prepareChartData();
+    activeData: {
+      async handler(newData) {
+        await this.prepareChartData(newData);
         this.chartKey += 1;
       },
       deep: true,
@@ -94,43 +126,45 @@ export default {
     },
   },
   methods: {
-    async prepareChartData() {
+    async prepareChartData(dataConfig) {
       try {
-        const rawCounts = this.getTypeDeviceCounts;
-
-        if (!rawCounts || Object.keys(rawCounts).length === 0) {
+        if (!dataConfig || !dataConfig.data || Object.keys(dataConfig.data).length === 0) {
           this.setEmptyState();
           return;
         }
 
-        const labels = Object.keys(rawCounts);
-        const data = Object.values(rawCounts).map(Number);
-        const backgroundColors = ['#D92B3F', '#F58A1F', '#FFCE03', '#A5D85E', '#36A2EB'];
+        const { data, label, colors } = dataConfig;
+        const labels = Object.keys(data);
+        const values = Object.values(data).map(Number);
 
-        // Calculate total and prepare legend items
-        const total = data.reduce((sum, value) => sum + value, 0);
-        this.legendItems = labels.map((label, index) => ({
-          label,
-          count: total ? Math.round((data[index] / total) * 100) : 0,
-          color: backgroundColors[index % backgroundColors.length],
-          value: data[index],
-        }));
-
-        // Prepare chart data
-        this.chartData = {
-          labels,
-          datasets: [{
-            label: 'Modo de acesso ao CMR',
-            backgroundColor: backgroundColors,
-            data,
-            borderWidth: 0,
-            hoverOffset: 10,
-          }],
-        };
+        this.prepareChart(labels, values, colors, label);
       } catch (error) {
         console.error('Erro ao preparar dados do gráfico:', error);
         this.setEmptyState();
       }
+    },
+
+    prepareChart(labels, data, backgroundColors, label) {
+      // Calculate total and prepare legend items
+      const total = data.reduce((sum, value) => sum + value, 0);
+      this.legendItems = labels.map((itemLabel, index) => ({
+        label: itemLabel,
+        count: total ? Math.round((data[index] / total) * 100) : 0,
+        color: backgroundColors[index % backgroundColors.length],
+        value: data[index],
+      }));
+
+      // Prepare chart data
+      this.chartData = {
+        labels,
+        datasets: [{
+          label,
+          backgroundColor: backgroundColors,
+          data,
+          borderWidth: 0,
+          hoverOffset: 10,
+        }],
+      };
     },
     setEmptyState() {
       this.chartData = null;
@@ -149,19 +183,5 @@ export default {
 .chart-wrapper
   width: 300px
   height: 300px
-  position: relative
 
-.no-data-message
-  position: absolute
-  top: 50%
-  left: 50%
-  transform: translate(-50%, -50%)
-  text-align: center
-  width: 100%
-
-.v-container
-  text-align: center
-
-.mt-2
-  margin-top: 8px !important
 </style>
