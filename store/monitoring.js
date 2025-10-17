@@ -117,6 +117,10 @@ export default {
       .filter((stage) => stage.visible)
       .map((stage) => ({ ...stage, label: stage.name })),
 
+    checkStageActive: (state) => (stage) => state.stats.stages.find(
+      (s) => s.name === stage.no_estagio && s.visible,
+    ),
+
   },
 
   mutations: {
@@ -174,6 +178,7 @@ export default {
         totalFeatures: stats.total_features,
         totalArea: stats.total_area,
         stages,
+        tiByStages: stats.tiByStages,
       };
     },
 
@@ -328,7 +333,24 @@ export default {
         if (isUpdate) {
           commit('setUpdateMonitoringStats', { totalFeatures: stats.total_features, totalArea: stats.total_area || 0 });
         } else {
-          commit('setMonitoringStats', stats);
+          const tiByStages = Object.values(
+            stats.ti_by_stages.reduce((acc, item) => {
+              if (!acc[item.no_ti]) {
+                acc[item.no_ti] = {
+                  no_ti: item.no_ti,
+                  stages: [],
+                  total_area: 0,
+                };
+              }
+              acc[item.no_ti].stages.push({
+                no_estagio: item.no_estagio,
+                area_ha: item.nu_area_ha,
+              });
+              acc[item.no_ti].total_area += item.nu_area_ha;
+              return acc;
+            }, {}),
+          );
+          commit('setMonitoringStats', { ...stats, tiByStages });
         }
       } catch (error) {
         console.error(error);
@@ -496,7 +518,7 @@ export default {
           {
             message: this.$i18n.t('default-error', {
               action: this.$i18n.t('retrieve'),
-              resource: this.$i18n.t('regional coordinators'),
+              resource: this.$i18n.t('monitoring'),
             }),
             type: 'error',
           },

@@ -40,34 +40,26 @@
               id="data-table"
               class="leaflet-bottom leaflet-right"
             >
-              <template
-                v-if="showFeaturesMonitoring
-                  && hasActiveMonitoringStages && selectedItemsCount >= 0 && selectedItemsCount <= 7"
-              >
-                <!-- Bloco para Monitoramento -->
+              <template v-if="showFeaturesMonitoring">
                 <div
-                  v-for="(item, index) in filteredMonitoringData"
+                  v-for="(item, index) in monitoringStatsTiByStages"
                   :key="'monitoring-' + index"
                   class="text-center bordered-red"
                 >
                   <p>
                     <strong>TI {{ item.no_ti }}</strong>
                   </p>
-                  <p v-if="parseFloat(item.nu_area_ha) > 0">
-                    Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                  <p v-if="parseFloat(item.total_area) > 0">
+                    Área da TI: {{ formatNumber(item.total_area) }} ha
                   </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_cr_ha) > 0">
-                    CR: {{ formatNumber(item.monitoring.nu_area_cr_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_dg_ha) > 0">
-                    DG: {{ formatNumber(item.monitoring.nu_area_dg_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_dr_ha) > 0">
-                    DR: {{ formatNumber(item.monitoring.nu_area_dr_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_ff_ha) > 0">
-                    FF: {{ formatNumber(item.monitoring.nu_area_ff_ha) }} ha
-                  </p>
+                  <template v-for="(stage, key) in item.stages">
+                    <p
+                      v-if="parseFloat(stage.area_ha) > 0 && checkStageActive(stage)"
+                      :key="key"
+                    >
+                      {{ stage.no_estagio }} {{ formatNumber(stage.area_ha) }} ha
+                    </p>
+                  </template>
                 </div>
               </template>
               <template
@@ -219,8 +211,7 @@
                           gap: 5px;"
                       >
                         <div
-                          v-if="showFeaturesMonitoring
-                            && hasActiveMonitoringStages && selectedItemsCount > 0"
+                          v-if="showFeaturesMonitoring"
                         >
                           <p>
                             <strong> Monitoramento Diário </strong>
@@ -231,7 +222,7 @@
                           <hr style="border: 1px solid red; margin: 0; margin-top: 0px;">
                           <CustomizedLegend
                             class="pt-1"
-                            :items="monitoringItems"
+                            :items="monitoringStatsByStages"
                           />
                         </div>
                         <div
@@ -547,7 +538,7 @@
 </i18n>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { mapState, mapActions, mapGetters } from 'vuex';
 import domtoimage from 'dom-to-image';
 import MapForPrint from './MapForPrint.vue';
 import MiniMap from './MiniMap.vue';
@@ -797,12 +788,22 @@ export default {
     alertsCount() {
       return this.filteredAlertsData.length;
     },
+
+    monitoringStatsTiByStages() {
+      if (!this.stats || !this.stats.tiByStages) return [];
+      if (this.stats.tiByStages.length > 7) return [];
+      return this.stats.tiByStages;
+    },
+
+    monitoringStatsByStages() {
+      return this.stats.stages.map((s) => s.visible && s);
+    },
+
     ...mapState({
       monitoringFilters: (state) => state.monitoring.filters,
       alertsFilters: (state) => state['urgent-alerts'].filters,
       prodesFilters: (state) => state.prodes.filters,
       deterFilters: (state) => state.deter.filters,
-      showFeaturesMonitoring: (state) => state.monitoring.showFeaturesMonitoring,
       monitoringFeatures: (state) => state.monitoring.features,
       showFeaturesAlerts: (state) => state['urgent-alerts'].showFeaturesAlerts,
       tableMonitoring: (state) => state.monitoring.stats.tableMonitoring,
@@ -826,6 +827,9 @@ export default {
       isLoadingFeatures: (state) => state.foco.isLoadingFeatures,
       bounds: (state) => state.map.bounds,
     }),
+
+    ...mapState('monitoring', ['stats', 'showFeaturesMonitoring']),
+    ...mapGetters('monitoring', ['checkStageActive']),
   },
 
   watch: {

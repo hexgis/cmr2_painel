@@ -176,6 +176,7 @@
     "start-date": "Start Date",
     "end-date": "End Date",
     "search-label": "Search",
+    "cycle": "Cycle",
     "message-cycle-or-dates": "Disabled when filling in the Cycle field"
   },
   "pt-br": {
@@ -189,6 +190,7 @@
     "start-date": "Data Inicial",
     "end-date": "Data Final",
     "search-label": "Buscar",
+    "cycle": "Ciclo",
     "message-cycle-or-dates": "Desativado ao preencher o campo Ciclo"
   }
 }
