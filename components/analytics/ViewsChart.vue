@@ -666,26 +666,34 @@ export default {
       this.showDownloadModal = false;
       this.resetButtonsVisibility();
     },
-    resetButtonsVisibility() {
-      const shareButtons = document.querySelectorAll('.chart--btn-wrapper, .chart--btn-wrapper-saves');
-      const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
-      const shadowBoxCards = document.querySelectorAll('.v-application , .elevation-2');
-      const chartHeader = document.querySelectorAll('.chart-header');
+    
+    toggleExportMode(hide = true) {
+      const sel = {
+        share: '.chart--btn-wrapper, .chart--btn-wrapper-saves',
+        map: '.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar',
+        card: '.v-application .elevation-2',
+        head: '.chart-header',
+      };
 
-      shareButtons.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = '';
-      });
-      mapZoomControlBtn.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = '';
-      });
-      shadowBoxCards.forEach((card) => {
-        card.setAttribute('style', 'box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12) !important;');
-      });
-      chartHeader.forEach((el)=>{
-        el.style.display = '';
-      });
+      const disp = hide ? 'none' : '';
+      const cardStyle = hide
+        ? 'box-shadow:none!important;border:1px solid #EEE;'
+        : 'box-shadow:0 3px 1px -2px rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 1px 5px 0 rgba(0,0,0,.12)!important;';
+
+      [sel.share, sel.map, sel.head].forEach(s =>
+        document.querySelectorAll(s).forEach(e => (e.style.display = disp))
+      );
+
+      document.querySelectorAll(sel.card)
+        .forEach(c => c.setAttribute('style', cardStyle));
+    },
+    
+    prepareToExportData() {
+      this.toggleExportMode(true);
+    },
+
+    resetButtonsVisibility() {
+      this.toggleExportMode(false);
     },
 
     formatStartDate() {
@@ -724,27 +732,7 @@ export default {
       this.endDateKey += 1;
       this.filter();
     },
-    prepareToExportData() {
-      const shareButtons = document.querySelectorAll('.chart--btn-wrapper, .chart--btn-wrapper-saves');
-      const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
-      const shadowBoxCards = document.querySelectorAll('.v-application .elevation-2');
-      const chartHeader = document.querySelectorAll('.chart-header');
-
-      shareButtons.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = 'none';
-      });
-      mapZoomControlBtn.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
-        button.style.display = 'none';
-      });
-      shadowBoxCards.forEach((card) => {
-        card.setAttribute('style', 'box-shadow: none !important; border: 1px solid #EEEE;');
-      });
-      chartHeader.forEach((el)=>{
-        el.style.display = 'none';
-      });
-    },
+    
     async downloadCSV() {
       this.downloading = 'csv';
       try {
@@ -801,60 +789,79 @@ export default {
       }
     },
 
-  async downloadPDF() {
-  this.downloading = 'pdf';
-  this.prepareToExportData();
-  try {
-    const nameImageDownload = `${this.$t('viewsControl')}|${this.startDate || ''}|${this.endDate || ''}`;
-    const node = document.getElementById('chart');
+    formatTitleForDocument() {
+      const title = this.$t('viewsControl');
+      let filename = title;
 
-    // Render the node to an image
-    const image = await domtoimage.toPng(node, {
-      quality: 1,
-      bgcolor: '#ffffff',
-      style: {
-        transform: 'scale(1)',
-        transformOrigin: 'top left',
-        filter: 'none',
-      },
-    });
+      if (this.startDate && this.endDate) {
+        filename += ` | ${this.startDate} → ${this.endDate}`;
+      } else if (this.startDate) {
+        filename += ` | ${this.startDate}`;
+      } else if (this.endDate) {
+        filename += ` | ${this.endDate}`;
+      }
 
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4',
-    });
+      return { title, filename };
+    },
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+    async downloadPDF() {
+      this.downloading = 'pdf';
+      this.prepareToExportData();
+      try {
+        const { title, filename } = this.formatTitleForDocument();
+        const node = document.getElementById('chart');
 
-    const img = new Image();
-    img.src = image;
+        // Render node to image
+        const image = await domtoimage.toPng(node, {
+          quality: 1,
+          bgcolor: '#ffffff',
+          style: {
+            transform: 'scale(1)',
+            transformOrigin: 'top left',
+            filter: 'none',
+          },
+        });
 
-    await new Promise(resolve => (img.onload = resolve));
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: 'a4',
+        });
 
-    // Keep image proporion
-    const ratio = Math.min(pageWidth / img.width, pageHeight / img.height);
-    const imgWidth = img.width * ratio;
-    const imgHeight = img.height * ratio;
-    const marginX = (pageWidth - imgWidth) / 2;
-    const marginY = (pageHeight - imgHeight) / 2;
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
 
-    pdf.addImage(img, 'PNG', marginX, marginY, imgWidth, imgHeight);
-    pdf.save(`${nameImageDownload}.pdf`);
+        // Title centered at the top
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(title, pageWidth / 2, 12, { align: 'center' });
 
-    this.downloadSuccess = true;
-  } catch (error) {
-    this.$store.commit('alert/addAlert', {
-      message: this.$t('image-error'),
-    });
-    this.downloadSuccess = false;
-  } finally {
-    this.downloading = null;
-    this.showDownloadModal = true;
+        const img = new Image();
+        img.src = image;
+        await new Promise(resolve => (img.onload = resolve));
+
+        // Keep image ratio and center it
+        const ratio = Math.min(pageWidth / img.width, (pageHeight - 20) / img.height);
+        const imgWidth = img.width * ratio;
+        const imgHeight = img.height * ratio;
+        const marginX = (pageWidth - imgWidth) / 2;
+        const marginY = (pageHeight - imgHeight) / 2 + 5;
+
+        pdf.addImage(img, 'PNG', marginX, marginY, imgWidth, imgHeight);
+        pdf.save(`${filename}.pdf`);
+
+        this.downloadSuccess = true;
+      } catch (error) {
+        this.$store.commit('alert/addAlert', {
+          message: this.$t('image-error'),
+        });
+        this.downloadSuccess = false;
+      } finally {
+        this.downloading = null;
+        this.showDownloadModal = true;
+      }
+    },
   }
-  },
-},
 };
 </script>
 
