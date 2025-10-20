@@ -123,7 +123,7 @@
                     :rules="[v => !!v || $t('institution-required')]"
                     required
                     outlined
-                    hint="Digite o nome completo da sua instituição"
+                    :hint="$t('institution-hint')"
                     persistent-hint
                     @input="validateStep1"
                   />
@@ -290,7 +290,8 @@
     "review-info": "Review Information",
     "confirm-download": "I confirm that I have downloaded or already have the required form",
     "confirm-download-required": "You must confirm that you have the form",
-    "text": "External users must complete a specific form. You can download it from the link below, fill it out, and scan it. If you already have the completed and scanned document, you can continue with the registration process."
+    "text": "External users must complete a specific form. You can download it from the link below, fill it out, and scan it. If you already have the completed and scanned document, you can continue with the registration process.",
+    "institution-hint": "Type the full name of your institution"
   },
   "pt-br": {
     "welcome": "Bem-vindo",
@@ -322,7 +323,8 @@
     "review-info": "Revisar Informações",
     "confirm-download": "Confirmo que baixei ou já possuo o formulário necessário",
     "confirm-download-required": "Você deve confirmar que possui o formulário",
-    "text": "Usuários externos devem preencher um formulário específico. Você pode baixá-lo no link abaixo, preenchê-lo e digitalizá-lo. Caso já possua o documento preenchido e digitalizado, poderá continuar o cadastro."
+    "text": "Usuários externos devem preencher um formulário específico. Você pode baixá-lo no link abaixo, preenchê-lo e digitalizá-lo. Caso já possua o documento preenchido e digitalizado, poderá continuar o cadastro.",
+    "institution-hint": "Digite o nome completo da sua instituição"
   }
 }
 </i18n>
