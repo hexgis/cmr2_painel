@@ -310,7 +310,7 @@
     </div>
   </v-row>
 </template>
-<i18n>
+<i18n lang="json">
   {
     "en": {
       "map-title": "Monitoring Remote Center - National Indian Foundation",
@@ -438,6 +438,14 @@ export default {
       'supportLayersCategoryAntropismo',
 
     ]),
+
+    todayDate() {
+      return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }).format(new Date());
+    },
   },
 
   mounted() {
@@ -447,16 +455,6 @@ export default {
   },
 
   methods: {
-    todayDate() {
-      const date = new Date();
-      const dd = date.getDate();
-      const mm = date.getMonth() + 1;
-      const yyyy = date.getFullYear();
-      return `${dd < 10 ? `0${dd}` : dd}/${
-        mm < 10 ? `0${mm}` : mm
-      }/${yyyy}`;
-    },
-
     createMap() {
       try {
         require('@/plugins/L.SimpleGraticule');

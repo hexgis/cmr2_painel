@@ -134,6 +134,14 @@ export default {
     ...mapState('map', ['bounds', 'tmsToPrint']),
     ...mapState('supportLayers', ['supportLayers']),
     ...mapState('land-use', ['showFeaturesLandUse', 'features']),
+
+    todayDate() {
+      return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }).format(new Date());
+    },
   },
 
   watch: {
@@ -167,16 +175,6 @@ export default {
   methods: {
     vectorImage(layer) {
       return layer.vector.thumbnail_blob || layer.vector.image;
-    },
-
-    todayDate() {
-      const date = new Date();
-      const dd = date.getDate();
-      const mm = date.getMonth() + 1;
-      const yyyy = date.getFullYear();
-      return `${dd < 10 ? `0${dd}` : dd}/${
-        mm < 10 ? `0${mm}` : mm
-      }/${yyyy}`;
     },
 
     onMapReady() {
