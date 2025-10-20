@@ -108,6 +108,7 @@
                     value="AGÊNCIAS"
                     @change="updateInstitution"
                   >
+
                   <label
                     class="toggle_button"
                     for="agencias"
@@ -150,69 +151,70 @@
                 {{ $t('filter') }}
               </v-btn>
 
-              <div class="download-buttons d-flex ga-2">
-                <v-tooltip bottom>
-                  <template #activator="{ on, attrs }">
-                    <v-btn
-                      icon
-                      small
-                      outlined
-                      color="grey"
-                      class="download-btn"
-                      :loading="downloading === 'csv'"
-                      v-bind="attrs"
-                      v-on="on"
-                      @click="downloadCSV"
-                    >
-                      <v-icon small>
-                        mdi-microsoft-excel
-                      </v-icon>
-                    </v-btn>
-                  </template>
-                  <span>Download Excel</span>
-                </v-tooltip>
+              <!-- Export buttons -->
+              <div class="d-flex align-center ml-3">
+                <div class="export-icons">
+                  <div class="export-label text-uppercase mr-2">
+                    Exportar
+                  </div>
 
-                <v-tooltip bottom>
-                  <template #activator="{ on, attrs }">
-                    <v-btn
-                      icon
-                      small
-                      outlined
-                      color="grey"
-                      class="download-btn"
-                      :loading="downloading === 'pdf'"
-                      v-bind="attrs"
-                      v-on="on"
-                      @click="downloadPDF"
-                    >
-                      <v-icon small>
-                        mdi-file-pdf-outline
-                      </v-icon>
-                    </v-btn>
-                  </template>
-                  <span>Download PDF</span>
-                </v-tooltip>
+                  <v-tooltip top>
+                    <template #activator="{ on, attrs }">
+                      <v-btn
+                        icon
+                        color="#D92B3F"
+                        v-bind="attrs"
+                        class="mr-2"
+                        :loading="downloading === 'pdf'"
+                        v-on="on"
+                        @click="downloadPDF"
+                      >
+                        <v-icon size="40">
+                          mdi-file-pdf-box
+                        </v-icon>
+                      </v-btn>
+                    </template>
+                    <span>PDF</span>
+                  </v-tooltip>
 
-                <v-tooltip bottom>
-                  <template #activator="{ on, attrs }">
-                    <v-btn
-                      icon
-                      small
-                      outlined
-                      color="grey"
-                      class="download-btn"
-                      :loading="downloading === 'img'"
-                      v-bind="attrs"
-                      v-on="on"
-                      @click="downloadImg"
-                    >
-                      <v-icon small>
-                        mdi-image-outline
-                      </v-icon>
-                    </v-btn>
-                  </template>
-                  <span>Download Imagem</span>
-                </v-tooltip>
+                  <v-tooltip top>
+                    <template #activator="{ on, attrs }">
+                      <v-btn
+                        icon
+                        color="#43A047"
+                        class="mr-2"
+                        v-bind="attrs"
+                        :loading="downloading === 'csv'"
+                        v-on="on"
+                        @click="downloadCSV"
+                      >
+                        <v-icon size="40">
+                          mdi-file-excel-box
+                        </v-icon>
+                      </v-btn>
+                    </template>
+                    <span>CSV</span>
+                  </v-tooltip>
+
+                  <v-tooltip top>
+                    <template #activator="{ on, attrs }">
+                      <v-btn
+                        icon
+                        color="#FF9800"
+                        class="mr-3"
+                        v-bind="attrs"
+                        :loading="downloading === 'img'"
+                        v-on="on"
+                        @click="downloadImg"
+                      >
+                        <v-icon size="40">
+                          mdi-image
+                        </v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Imagem</span>
+                  </v-tooltip>
+                </div>
               </div>
             </div>
           </v-col>
@@ -1061,4 +1063,16 @@ export default {
     .download-buttons
       flex-wrap: wrap
       justify-content: center
+
+// Export buttons styles
+.export-label
+  letter-spacing: 0.5px
+  font-size: 0.8rem
+  display: flex
+  align-items: center
+
+.export-icons
+  display: flex
+  align-items: center
+  gap: 0.25rem
 </style>

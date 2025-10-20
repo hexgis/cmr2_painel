@@ -226,16 +226,18 @@ export default {
   },
 
   async fetch() {
-    if (!Object.keys(this.supportCategoryGroupsProdes).length) {
-      await this.$store.dispatch('supportLayers/getCategoryGroupsProdes');
+    if (!this.supportCategoryGroupsBase || !Object.keys(this.supportCategoryGroupsBase).length) {
+      await this.$store.dispatch('supportLayers/getCategoryGroupsBase');
     }
   },
 
   computed: {
-    orderedSupportLayersGroups() {
-      return _.sortBy(this.supportCategoryGroupsProdes, 'order');
+    supportCategoryGroupsBase() {
+      return this.$store.state.supportLayers.supportCategoryGroupsBase || {};
     },
-
+    orderedSupportLayersGroups() {
+      return _.sortBy(this.supportCategoryGroupsBase, 'order');
+    },
   },
 };
 </script>

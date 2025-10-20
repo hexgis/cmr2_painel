@@ -93,23 +93,39 @@ export const actions = {
   },
 
   logout({ commit, dispatch }) {
-    commit('clearTokens');
-    this.$api.setHeader('Authorization', null);
+    try {
+      commit('clearTokens');
 
-    this.$cookies.remove('token');
-    this.$cookies.remove('refresh');
+      if (this.$api && this.$api.setHeader) {
+        this.$api.setHeader('Authorization', null);
+      }
 
-    commit(
-      'userProfile/setUser',
-      {
-        user: null,
-      },
-      { root: true },
-    );
+      if (this.$cookies && typeof this.$cookies.remove === 'function') {
+        this.$cookies.remove('token');
+        this.$cookies.remove('refresh');
+      }
 
-    dispatch('privacyAgreement/reset', null, { root: true });
+      commit(
+        'userProfile/setUser',
+        { user: null },
+        { root: true },
+      );
 
-    this.$router.replace(this.localePath('login'));
+      dispatch('privacyAgreement/reset', null, { root: true });
+
+      if (this.$router && typeof this.$router.replace === 'function') {
+        try {
+          this.$router.replace(this.localePath('login'));
+        } catch (e) {
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+        }
+      }
+    } catch (error) {
+      commit('clearTokens');
+      commit('userProfile/setUser', { user: null }, { root: true });
+    }
   },
 
   tryAutoLogin({ commit, dispatch }) {

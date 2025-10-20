@@ -213,7 +213,14 @@ export default {
         await this.checkPrivacyAgreement();
       }
     }
-    this.$vuetify.theme.dark = this.user.settings.dark_mode_active || false;
+
+    const darkMode = (
+      this.user
+       && this.user.settings
+       && this.user.settings.dark_mode_active
+    ) || false;
+
+    this.$vuetify.theme.dark = darkMode;
   },
 
   mounted() {
@@ -222,7 +229,12 @@ export default {
 
     this.$nextTick(() => {
       this.getLeafletControlRef();
-      if (window.innerWidth > 768 && this.user && this.user.settings.drawer_open_on_init) {
+      if (
+        window.innerWidth > 768
+       && this.user
+       && this.user.settings
+       && this.user.settings.drawer_open_on_init
+      ) {
         this.openDrawer();
       }
     });
