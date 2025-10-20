@@ -126,7 +126,7 @@
                     >
                       mdi-drag-horizontal
                     </v-icon>
-                    Arraste a barra vermelha para comparar
+                    {{ $t('drag-instruction') }}
                   </div>
                 </v-card-text>
               </v-card>
@@ -145,14 +145,14 @@
     "close": "Close dialog",
     "comparison-map": "Interactive map for layer comparison",
     "layer-information-panel": "Layer information and comparison controls",
-    "drag-instruction": "Drag the red bar to compare layers"
+    "drag-instruction": "Drag the bar to compare layers"
   },
   "pt-br": {
     "compare": "Comparar camadas",
     "close": "Fechar diálogo",
     "comparison-map": "Mapa interativo para comparação de camadas",
     "layer-information-panel": "Informações das camadas e controles de comparação",
-    "drag-instruction": "Arraste a barra vermelha para comparar camadas"
+    "drag-instruction": "Arraste a barra para comparar camadas"
   }
 }
 </i18n>
