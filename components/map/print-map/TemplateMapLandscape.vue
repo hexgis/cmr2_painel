@@ -1296,6 +1296,10 @@ img.layer-thumbnail {
   overflow: hidden !important;
 }
 
+::v-deep(.v-dialog:not(.v-dialog--fullscreen)) {
+  max-height: 100%;
+}
+
 .v-container.white {
   max-width: 100% !important;
   overflow: hidden !important;

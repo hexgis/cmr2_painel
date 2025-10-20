@@ -250,11 +250,18 @@ export default {
           throw new Error('Mapa não foi corretamente inicializado.');
         }
 
-        this.currentBouldMap = await this.map.getBounds();
-        this.$nextTick(() => {
-          this.$emit('updateBounds', this.currentBouldMap);
-        });
+        // Múltiplas invalidações para garantir renderização correta
         this.map.invalidateSize();
+
+        this.$nextTick(() => {
+          this.map.invalidateSize(true);
+
+          setTimeout(() => {
+            this.map.invalidateSize();
+            this.currentBouldMap = this.map.getBounds();
+            this.$emit('updateBounds', this.currentBouldMap);
+          }, 100);
+        });
         this.map.on('move', this.onMainMapMoving);
         this.map.on('moveend', this.onMainMapMoved);
         this.map.on('zoomend', this.onMainMapZoomed);
