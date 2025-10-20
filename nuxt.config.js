@@ -33,6 +33,7 @@ export default {
     '~/plugins/downloader.js',
     { src: '~/plugins/vue-chartjs.js', mode: 'client' },
     { src: '~/plugins/vue2-leaflet-markercluster.js', mode: 'client' },
+    { src: '~/plugins/L.BufferControl.js', mode: 'client' },
   ],
 
   buildModules: [
