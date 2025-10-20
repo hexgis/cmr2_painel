@@ -826,13 +826,6 @@ export default {
       totalFeatures: (state) => state.monitoring.totalFeatures,
     }),
 
-    todayDate() {
-      return new Intl.DateTimeFormat('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      }).format(new Date());
-    },
   },
 
   watch: {
@@ -880,6 +873,14 @@ export default {
   },
 
   methods: {
+    todayDate() {
+      const date = new Date();
+      const dd = date.getDate();
+      const mm = date.getMonth() + 1;
+      const yyyy = date.getFullYear();
+      return `${dd < 10 ? `0${dd}` : dd}/${mm < 10 ? `0${mm}` : mm}/${yyyy}`;
+    },
+
     formatNumber(value) {
       let number;
       if (typeof value === 'string') {
