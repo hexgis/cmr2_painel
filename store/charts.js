@@ -31,18 +31,15 @@ const normalizeObjectKeys = (obj) => {
  * @param {Object} response - API response containing user access data
  * @returns {Object} Processed data with dates, device types, browsers, and locations
  */
-const processResponseData = (response) => {
+const processChartData = (responseData) => {
   const datesSet = new Set();
   const dateCounts = {};
   const typeDeviceCounts = {};
   const browserCounts = {};
-  const geocodedLocations = response.data.map((item) => ({
-    city: item.location,
-    lat: item.latitude,
-    lng: item.longitude,
-  }));
+  const geocodedLocations = [];
+  const monthlyCounts = {};
 
-  response.data.forEach((item) => {
+  responseData.data.forEach((item) => {
     if (item.last_date_login) {
       datesSet.add(item.last_date_login);
       dateCounts[item.last_date_login] = (dateCounts[item.last_date_login] || 0) + 1;
@@ -56,6 +53,28 @@ const processResponseData = (response) => {
     if (item.browser) {
       const normalizedBrowser = item.browser.toUpperCase().trim();
       browserCounts[normalizedBrowser] = (browserCounts[normalizedBrowser] || 0) + 1;
+    }
+
+    if (item.location && item.latitude && item.longitude) {
+      geocodedLocations.push({
+        city: item.location,
+        lat: item.latitude,
+        lng: item.longitude,
+      });
+    }
+
+    if (item.last_date_login) {
+      const dateParts = item.last_date_login.split('/');
+      if (dateParts.length === 3) {
+        const [day, month, year] = dateParts.map(Number);
+        const date = new Date(year, month - 1, day);
+        if (!isNaN(date.getTime())) {
+          const monthKey = date.getMonth() + 1;
+          const yearKey = date.getFullYear();
+          const key = `${yearKey}-${monthKey}`;
+          monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
+        }
+      }
     }
   });
 
@@ -75,12 +94,36 @@ const processResponseData = (response) => {
     consolidatedBrowserCounts.OUTROS = otherCount;
   }
 
+  const sortedDates = Array.from(datesSet).sort((a, b) => {
+    const [dayA, monthA, yearA] = a.split('/').map(Number);
+    const [dayB, monthB, yearB] = b.split('/').map(Number);
+    return new Date(yearA, monthA - 1, dayA) - new Date(yearB, monthB - 1, dayB);
+  });
+
+  const processedMonthlyCounts = Object.entries(monthlyCounts).map(([key, count]) => {
+    const [year, month] = key.split('-').map(Number);
+    return { year, month, count };
+  }).filter((item) => !isNaN(item.month) && !isNaN(item.year));
+
+  const totalDevices = Object.values(typeDeviceCounts).reduce((acc, count) => acc + count, 0);
+  const percentageDeviceCounts = {};
+  Object.entries(typeDeviceCounts).forEach(([key, value]) => {
+    percentageDeviceCounts[key] = totalDevices ? Math.round((value / totalDevices) * 100) : 0;
+  });
+
+  const totalBrowsers = Object.values(consolidatedBrowserCounts).reduce((acc, count) => acc + count, 0);
+  const percentageBrowserCounts = {};
+  Object.entries(consolidatedBrowserCounts).forEach(([key, value]) => {
+    percentageBrowserCounts[key] = totalBrowsers ? Math.round((value / totalBrowsers) * 100) : 0;
+  });
+
   return {
-    datesSet,
+    dates: sortedDates,
     dateCounts,
-    typeDeviceCounts,
-    consolidatedBrowserCounts,
+    typeDeviceCounts: percentageDeviceCounts,
+    browserCounts: percentageBrowserCounts,
     geocodedLocations,
+    monthlyCounts: processedMonthlyCounts,
   };
 };
 
@@ -141,19 +184,25 @@ export const actions = {
    */
   async dataChart({ commit, state, dispatch }, data) {
     await dispatch('captureDates');
-    const [startDate, endDate, location, typeDevice, browser] = [
+    const [startDate, endDate, location, typeDevice, browser, institutionAcronym] = [
       data.startDate ? data.startDate : state.weekAgoDate || '',
       data.endDate || state.todayDate || '',
       data.location || '',
       data.typeDevice || '',
       data.browser || '',
+      data.institutionAcronym || '',
     ];
 
-    await dispatch('getTotalViewsPerYear', { startDate, endDate, institution: state.institutionFilter });
+    await dispatch('getTotalViewsPerYear', {
+      startDate,
+      endDate,
+      institution: state.institutionFilter,
+      institutionAcronym,
+    });
 
     try {
       const response = await this.$api.$get(
-        `dashboard/get-all/?startDate=${startDate}&endDate=${endDate}&location=${location}&type_device=${typeDevice}&browser=${browser}&institution=${state.institutionFilter}`,
+        `dashboard/get-all/?startDate=${startDate}&endDate=${endDate}&location=${location}&type_device=${typeDevice}&browser=${browser}&institution=${state.institutionFilter}&institution_acronym=${institutionAcronym}`,
       );
 
       if (response) {
@@ -168,76 +217,15 @@ export const actions = {
             return item.is_internal === false; // Usuários externos = Agências
           }),
         };
-
-        const monthlyCounts = {};
-        filteredData.data.forEach((item) => {
-          if (item.last_date_login) {
-            const dateParts = item.last_date_login.split('/');
-            let date;
-            if (dateParts.length === 3) {
-              const [day, month, year] = dateParts.map(Number);
-              date = new Date(year, month - 1, day);
-            } else {
-              date = new Date(item.last_date_login);
-            }
-
-            if (!isNaN(date.getTime())) {
-              const month = date.getMonth() + 1;
-              const year = date.getFullYear();
-              const key = `${year}-${month}`;
-              monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
-            } else {
-              console.warn('Invalid date format for last_date_login:', item.last_date_login);
-            }
-          }
-        });
-
-        const processedMonthlyCounts = Object.entries(monthlyCounts).map(([key, count]) => {
-          const [year, month] = key.split('-').map(Number);
-          return { year, month, count };
-        }).filter((item) => !isNaN(item.month) && !isNaN(item.year));
-
-        filteredData.monthly_counts = processedMonthlyCounts;
+        const processedData = processChartData(filteredData);
 
         commit('setDataChart', filteredData);
-        const processedData = processResponseData(filteredData);
-
         commit('setLocation', processedData.geocodedLocations);
-        commit(
-          'setDates',
-          Array.from(processedData.datesSet).sort((a, b) => {
-            const [dayA, monthA, yearA] = a.split('/').map(Number);
-            const [dayB, monthB, yearB] = b.split('/').map(Number);
-            return new Date(yearA, monthA - 1, dayA) - new Date(yearB, monthB - 1, dayB);
-          }),
-        );
+        commit('setDates', processedData.dates);
         commit('setDateCounts', processedData.dateCounts);
         commit('setTypeDeviceCounts', processedData.typeDeviceCounts);
-        commit('setBrowserCounts', processedData.consolidatedBrowserCounts);
-
-        const totalDevices = Object.values(processedData.typeDeviceCounts).reduce(
-          (acc, count) => acc + count,
-          0,
-        );
-        const percentageDeviceCounts = {};
-        for (const [key, value] of Object.entries(processedData.typeDeviceCounts)) {
-          percentageDeviceCounts[key] = totalDevices ? Math.round((value / totalDevices) * 100) : 0;
-        }
-        commit('setTypeDeviceCounts', percentageDeviceCounts);
-
-        const totalBrowsers = Object.values(processedData.consolidatedBrowserCounts).reduce(
-          (acc, count) => acc + count,
-          0,
-        );
-        const percentageBrowserCounts = {};
-        for (const [key, value] of Object.entries(
-          processedData.consolidatedBrowserCounts,
-        )) {
-          percentageBrowserCounts[key] = totalBrowsers ? Math.round((value / totalBrowsers) * 100) : 0;
-        }
-        commit('setBrowserCounts', percentageBrowserCounts);
-
-        commit('setMonthlyCounts', processedMonthlyCounts);
+        commit('setBrowserCounts', processedData.browserCounts);
+        commit('setMonthlyCounts', processedData.monthlyCounts);
       }
     } catch (error) {
       this.$store.commit('alert/addAlert', {
@@ -247,10 +235,10 @@ export const actions = {
     }
   },
 
-  async getTotalViewsPerYear({ commit, state }, { startDate, endDate, institution }) {
+  async getTotalViewsPerYear({ commit, state }, { startDate, endDate, institution, institutionAcronym }) {
     try {
       const response = await this.$api.$get(
-        `dashboard/get-year/?startDate=${startDate}&endDate=${endDate || ''}&institution=${institution || state.institutionFilter}`,
+        `dashboard/get-year/?startDate=${startDate}&endDate=${endDate || ''}&institution=${institution || state.institutionFilter}&institution_acronym=${institutionAcronym || ''}`,
       );
 
       const data = Array.isArray(response) ? response : response && response.yearly_totals ? response.yearly_totals : [];

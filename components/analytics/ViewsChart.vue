@@ -14,6 +14,7 @@
       "period": "Period",
       "visits": "Visits",
       "searchingPerCities": "Searching per Cities",
+      "searchingPerCR": "Searching per Regional Coordination",
       "searchingPerDevices" : "Searching per Devices",
       "searchingPerBrowsers" : "Searching per Browsers",
       "filterOptions": "Filter per views",
@@ -41,6 +42,7 @@
       "period": "Período",
       "visits": "Visitas",
       "searchingPerCities": "Busca por Município",
+      "searchingPerCR": "Busca por Coordenação Regional",
       "searchingPerDevices" : "Busca por modo de acesso",
       "searchingPerBrowsers" : "Busca por tipo de navegador",
       "filterOptions": "Filtrar acessos",
@@ -139,7 +141,7 @@
                 color="primary"
                 outlined
                 class="filter-btn"
-                @click="showModal = true"
+                @click="showFilterModal"
               >
                 <v-icon
                   left
@@ -283,6 +285,19 @@
                 </v-col>
               </v-row>
 
+              <!-- NOVO: Seletor de Coordenação Regional -->
+              <v-row>
+                <v-col cols="12">
+                  <v-select
+                    v-model="selectedCR"
+                    :label="$t('searchingPerCR')"
+                    :items="crList"
+                    outlined
+                    clearable
+                  />
+                </v-col>
+              </v-row>
+
               <v-row>
                 <v-col
                   cols="12"
@@ -374,8 +389,8 @@
             </v-card-title>
             <v-card-text class="chart-content">
               <LineChartViews
-                :start-date="formatStartDate()"
-                :end-date="formatEndDate()"
+                :start-date="formatDate(appliedFilters.startDate)"
+                :end-date="formatDate(appliedFilters.endDate)"
                 :height="350"
               />
             </v-card-text>
@@ -635,9 +650,18 @@ export default {
     logo_funai: process.env.DEFAULT_LOGO_IMAGE_CMR,
     activatorProps: false,
     viewLabelsTitle: ['Período', 'Visitas'],
+    appliedFilters: {
+      startDate: '',
+      endDate: '',
+      city: null,
+      cr: null,
+      device: null,
+      browser: null,
+    },
     startDate: '',
     endDate: '',
     selectedCity: null,
+    selectedCR: null,
     selectedDevice: null,
     selectedBrowser: null,
     startDateKey: 0,
@@ -647,6 +671,7 @@ export default {
     downloadSuccess: true,
     downloading: null,
     institutionType: 'AGÊNCIAS',
+    loading: false,
   }),
 
   computed: {
@@ -658,6 +683,19 @@ export default {
       'getLocations',
       'getInstitutionFilter',
     ]),
+
+    crList() {
+      const crSet = new Set();
+      const data = this.getDataChart.data || [];
+      data.forEach((item) => {
+        if (item.institution_acronym) {
+          crSet.add(item.institution_acronym);
+        }
+      });
+      const crList = Array.from(crSet).sort();
+      return crList;
+    },
+
     citiesList() {
       const citiesSet = new Set();
       this.getLocations.forEach((item) => {
@@ -672,33 +710,53 @@ export default {
       return Object.keys(this.getBrowserCounts);
     },
     funaiChartData() {
-      if (!this.getDataChart.data || this.getDataChart.data.length === 0) {
-        return {};
+      let filteredData = this.getDataChart.data || [];
+      if (this.appliedFilters.cr && filteredData.length > 0) {
+        filteredData = filteredData.filter(item =>
+          item.institution_acronym === this.appliedFilters.cr);
       }
       const counts = {};
-      this.getDataChart.data.forEach(item => {
+      filteredData.forEach(item => {
         if (item && item.institution_acronym) {
           const cr = item.institution_acronym;
           counts[cr] = (counts[cr] || 0) + 1;
         }
       });
-
       return counts;
     },
   },
 
   async created() {
     await this.dataChart({
-      startDate: this.startDate,
-      endDate: this.endDate,
-      location: this.selectedCity,
-      typeDevice: this.selectedDevice,
-      browser: this.selectedBrowser,
+      startDate: this.appliedFilters.startDate,
+      endDate: this.appliedFilters.endDate,
+      location: this.appliedFilters.city || '',
+      typeDevice: this.appliedFilters.device || '',
+      browser: this.appliedFilters.browser || '',
+      institutionAcronym: this.appliedFilters.cr || '',
     });
   },
 
   methods: {
     ...mapActions('charts', ['dataChart', 'setInstitutionFilter']),
+
+    formatDate(date) {
+      if (date) {
+        const [year, month, day] = date.split('-');
+        return `${day}/${month}/${year}`;
+      }
+      return '';
+    },
+
+    showFilterModal() {
+      this.startDate = this.appliedFilters.startDate;
+      this.endDate = this.appliedFilters.endDate;
+      this.selectedCity = this.appliedFilters.city;
+      this.selectedCR = this.appliedFilters.cr;
+      this.selectedDevice = this.appliedFilters.device;
+      this.selectedBrowser = this.appliedFilters.browser;
+      this.showModal = true;
+    },
 
     updateInstitution() {
       this.setInstitutionFilter(this.institutionType).then(() => {
@@ -728,38 +786,52 @@ export default {
       });
     },
 
-    formatStartDate() {
-      if (this.startDate) {
-        return formatDate(new Date(this.startDate));
-      }
-      return '';
-    },
-    formatEndDate() {
-      if (this.endDate) {
-        return formatDate(new Date(this.endDate));
-      }
-      return '';
-    },
     newSearch() {
-      this.filter();
+      this.appliedFilters.startDate = this.startDate;
+      this.appliedFilters.endDate = this.endDate;
+      this.appliedFilters.city = this.selectedCity;
+      this.appliedFilters.cr = this.selectedCR;
+      this.appliedFilters.device = this.selectedDevice;
+      this.appliedFilters.browser = this.selectedBrowser;
       this.showModal = false;
+      this.filter();
     },
-    filter() {
+
+    async filter() {
+      this.loading = true;
       const data = {
-        startDate: this.formatStartDate(),
-        endDate: this.formatEndDate(),
-        location: this.selectedCity || '',
-        typeDevice: this.selectedDevice || '',
-        browser: this.selectedBrowser || '',
+        startDate: this.appliedFilters.startDate || '',
+        endDate: this.appliedFilters.endDate || '',
+        location: this.appliedFilters.city || '',
+        typeDevice: this.appliedFilters.device || '',
+        browser: this.appliedFilters.browser || '',
+        institutionAcronym: this.appliedFilters.cr || '',
       };
-      this.$store.dispatch('charts/dataChart', data);
+
+      try {
+        await this.$store.dispatch('charts/dataChart', data);
+      } catch (error) {
+        console.error('Error filtering data:', error);
+      } finally {
+        this.loading = false;
+      }
     },
+
     clearFields() {
       this.startDate = '';
       this.endDate = '';
       this.selectedCity = null;
+      this.selectedCR = null;
       this.selectedDevice = null;
       this.selectedBrowser = null;
+
+      this.appliedFilters.startDate = '';
+      this.appliedFilters.endDate = '';
+      this.appliedFilters.city = null;
+      this.appliedFilters.cr = null;
+      this.appliedFilters.device = null;
+      this.appliedFilters.browser = null;
+
       this.startDateKey += 1;
       this.endDateKey += 1;
       this.filter();
@@ -785,11 +857,13 @@ export default {
       this.downloading = 'csv';
       try {
         const response = await this.$api.$get(
-          `/dashboard/download-csv/?startDate=${this.startDate || ''}&endDate=${
-            this.endDate || ''
-          }&location=${this.selectedCity || ''}&type_device=${
-            this.selectedDevice || ''
-          }&browser=${this.selectedBrowser || ''}`,
+          `/dashboard/download-csv/?startDate=${this.appliedFilters.startDate || ''}&endDate=${
+            this.appliedFilters.endDate || ''
+          }&location=${this.appliedFilters.city || ''}&type_device=${
+            this.appliedFilters.device || ''
+          }&browser=${this.appliedFilters.browser || ''}&institution_acronym=${
+            this.appliedFilters.cr || ''
+          }`,
           { responseType: 'blob' },
         );
 
@@ -841,7 +915,7 @@ export default {
       this.downloading = 'pdf';
       this.prepareToExportData();
       try {
-        const nameImageDownload = `${this.$t('viewsControl')}|${this.startDate ? this.startDate : ''}|${this.endDate ? this.endDate : ''}`;
+        const nameImageDownload = `${this.$t('viewsControl')}|${this.appliedFilters.startDate ? this.appliedFilters.startDate : ''}|${this.appliedFilters.endDate ? this.appliedFilters.endDate : ''}`;
         const options = {
           quality: 1,
           bgcolor: 'white',

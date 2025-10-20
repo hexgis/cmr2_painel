@@ -64,6 +64,12 @@ export default {
           },
           deep: true,
         },
+        chartOptions: {
+          handler(newOptions) {
+            this.renderChart(this.chartData, newOptions);
+          },
+          deep: true,
+        },
       },
     },
   },
@@ -72,7 +78,7 @@ export default {
       chartData: null,
       chartOptions: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
         legend: {
           display: false,
         },
@@ -107,10 +113,7 @@ export default {
     async prepareChartData() {
       try {
         const browserCounts = await this.getBrowserCounts;
-        console.log('Browser counts:', browserCounts); // Debug
         if (!browserCounts || Object.keys(browserCounts).length === 0) {
-          this.chartData = null;
-          this.legendItems = [];
           this.setEmptyState();
           return;
         }
@@ -138,8 +141,7 @@ export default {
         };
       } catch (error) {
         console.error('Error preparing chart data:', error);
-        this.chartData = null;
-        this.legendItems = [];
+        this.setEmptyState();
       }
     },
     setEmptyState() {
@@ -159,5 +161,5 @@ export default {
 .chart-wrapper
   width: 300px
   height: 300px
-  
+
 </style>
