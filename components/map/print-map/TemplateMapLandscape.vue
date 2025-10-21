@@ -796,7 +796,7 @@ export default {
     },
 
     monitoringStatsByStages() {
-      return this.stats.stages.map((s) => s.visible && s);
+      return this.stats.stages.filter((s) => s.visible);
     },
 
     ...mapState({

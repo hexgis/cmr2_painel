@@ -28,7 +28,7 @@
           }"
         />
         <p>
-          {{ isYear(item.label) ? item.label : $t(resolveLabel(item.label)) }}
+          {{ isYear(item.name) ? item.name : $t(resolveLabel(item.name)) }}
         </p>
       </v-row>
     </div>
@@ -62,6 +62,10 @@ export default {
         'Vilarejo (VI)': 'land-use-categories.village',
         'Desmatamento em Regeneração (DR)': 'monitoring-categories.recovery-deforestation',
         'Fogo em Floresta (FF)': 'monitoring-categories.forest-fire',
+        FF: 'monitoring-categories.forest-fire',
+        DR: 'monitoring-categories.recovery-deforestation',
+        DG: 'land-use-categories.degradation',
+        CR: 'land-use-categories.clear-cut',
         // Versões sem sufixo
         Agropecuária: 'land-use-categories.agriculture',
         'Corte Raso': 'land-use-categories.clear-cut',

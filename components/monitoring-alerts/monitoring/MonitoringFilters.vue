@@ -9,6 +9,7 @@
           class="ma-0 pa-0"
         />
         <v-tooltip
+          v-if="getUrlWmsMonitoring"
           bottom
           :text="$t('title-switch-disable-features')"
         >
@@ -349,6 +350,7 @@ export default {
       'getIndigenousLands',
       'getCycles',
       'getShowFeaturesMonitoring',
+      'getUrlWmsMonitoring',
     ]),
     ...mapState('monitoring', [
       'filters',
