@@ -1,64 +1,3 @@
-<i18n>
-  {
-    "en": {
-      "searchLabel": "Search",
-      "startDate": "Start Date",
-      "endDate": "End Date",
-      "lastAccesses": "Last Accesses",
-      "userAccessMap": "Map with user access location",
-      "cmrAccessMode": "Access mode to CMR",
-      "viewsControl": "Views Control",
-      "browserTypeUsed": "Browser type used",
-      "dailyAccessData": "Daily access data",
-      "monthlyAccessData": "Monthly access data",
-      "period": "Period",
-      "visits": "Visits",
-      "searchingPerCities": "Searching per Cities",
-      "searchingPerCR": "Searching per Regional Coordination",
-      "searchingPerDevices" : "Searching per Devices",
-      "searchingPerBrowsers" : "Searching per Browsers",
-      "filterOptions": "Filter per views",
-      "clearFieldsLabel": "Clear fields",
-      "filter": "Filter",
-      "downloadSuccess": "Download Completed",
-      "downloadError": "Download Failed",
-      "downloadSuccessMessage": "The download was completed successfully.",
-      "downloadErrorMessage": "An error occurred during the download. Please try again.",
-      "close": "Close",
-      "agencias": "Agencies",
-      "funai": "Funai"
-    },
-    "pt-br": {
-      "searchLabel": "Pesquisar",
-      "startDate": "Data de início",
-      "endDate": "Data de fim",
-      "lastAccesses": "Últimos Acessos",
-      "userAccessMap": "Mapa com a localização de acesso dos usuários",
-      "cmrAccessMode": "Modo de acesso ao CMR",
-      "viewsControl": "Controle de Acessos",
-      "browserTypeUsed": "Tipo de navegador utilizado",
-      "dailyAccessData": "Dados diários de acesso",
-      "monthlyAccessData": "Dados mensais de acesso",
-      "period": "Período",
-      "visits": "Visitas",
-      "searchingPerCities": "Busca por Município",
-      "searchingPerCR": "Busca por Coordenação Regional",
-      "searchingPerDevices" : "Busca por modo de acesso",
-      "searchingPerBrowsers" : "Busca por tipo de navegador",
-      "filterOptions": "Filtrar acessos",
-      "clearFieldsLabel": "Limpar filtros",
-      "filter": "Filtrar",
-      "downloadSuccess": "Download Concluído",
-      "downloadError": "Falha no Download",
-      "downloadSuccessMessage": "O download foi concluído com sucesso.",
-      "downloadErrorMessage": "Ocorreu um erro durante o download. Por favor, tente novamente.",
-      "close": "Fechar",
-      "agencias": "Agências",
-      "funai": "Funai"
-    }
-  }
-</i18n>
-
 <template>
   <div
     id="chart"
@@ -68,7 +7,6 @@
     <div class="chart-header">
       <v-container
         fluid
-        class="header-container"
       >
         <v-row
           align="center"
@@ -82,7 +20,9 @@
           >
             <v-btn
               icon
-              class="back-btn mr-3"
+              class="mr-3"
+              style="background-color: rgba(0,0,0,0.05)"
+              color="grey-darken-4"
               @click="$router.go(-1)"
             >
               <v-icon>mdi-arrow-left</v-icon>
@@ -91,7 +31,6 @@
               :src="logo_funai"
               max-width="140"
               contain
-              class="logo-img"
             />
           </v-col>
           <v-col
@@ -99,8 +38,8 @@
             md="6"
             class="d-flex align-center justify-end"
           >
-            <div class="header-actions d-flex align-center ga-3">
-              <div class="toggle_container d-flex align-center ga-4 mr-2">
+            <div class="d-flex align-center ga-3">
+              <div class="d-flex align-center ga-4 mr-2">
                 <div class="toggle_wrapper">
                   <input
                     id="agencias"
@@ -140,7 +79,8 @@
               <v-btn
                 color="primary"
                 outlined
-                class="filter-btn"
+                rounded
+                class="text-capitalize"
                 @click="showFilterModal"
               >
                 <v-icon
@@ -224,7 +164,7 @@
     <!-- Conteúdo principal -->
     <v-container
       fluid
-      class="content-section pa-0"
+      class="py-4 py-sm-2 px-2 px-sm-1"
     >
       <!-- Modal de filtros -->
       <v-dialog
@@ -246,7 +186,7 @@
 
           <v-card-text>
             <v-container>
-              <v-row>
+              <v-row dense>
                 <v-col
                   cols="12"
                   md="6"
@@ -271,9 +211,6 @@
                     outlined
                   />
                 </v-col>
-              </v-row>
-
-              <v-row>
                 <v-col cols="12">
                   <v-select
                     v-model="selectedCity"
@@ -283,10 +220,6 @@
                     clearable
                   />
                 </v-col>
-              </v-row>
-
-              <!-- NOVO: Seletor de Coordenação Regional -->
-              <v-row>
                 <v-col cols="12">
                   <v-select
                     v-model="selectedCR"
@@ -296,9 +229,6 @@
                     clearable
                   />
                 </v-col>
-              </v-row>
-
-              <v-row>
                 <v-col
                   cols="12"
                   md="6"
@@ -491,7 +421,7 @@
               >
                 mdi-account-group
               </v-icon>
-              Acessos por CR - FUNAI
+              {{ $t('accessByCR') }}
             </v-card-title>
             <v-card-text class="chart-content compact-chart-content">
               <DoughnutChartContainer
@@ -622,11 +552,73 @@
   </div>
 </template>
 
+<i18n>
+  {
+    "en": {
+      "searchLabel": "Search",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "lastAccesses": "Last Accesses",
+      "userAccessMap": "Map with user access location",
+      "cmrAccessMode": "Access mode to CMR",
+      "accessByCR": "Access by CR - FUNAI",
+      "viewsControl": "Views Control",
+      "browserTypeUsed": "Browser type used",
+      "dailyAccessData": "Daily access data",
+      "monthlyAccessData": "Monthly access data",
+      "period": "Period",
+      "visits": "Visits",
+      "searchingPerCities": "Searching per Cities",
+      "searchingPerCR": "Searching per Regional Coordination",
+      "searchingPerDevices" : "Searching per Devices",
+      "searchingPerBrowsers" : "Searching per Browsers",
+      "filterOptions": "Filter per views",
+      "clearFieldsLabel": "Clear fields",
+      "filter": "Filter",
+      "downloadSuccess": "Download Completed",
+      "downloadError": "Download Failed",
+      "downloadSuccessMessage": "The download was completed successfully.",
+      "downloadErrorMessage": "An error occurred during the download. Please try again.",
+      "close": "Close",
+      "agencias": "Agencies",
+      "funai": "Funai"
+    },
+    "pt-br": {
+      "searchLabel": "Pesquisar",
+      "startDate": "Data de início",
+      "endDate": "Data de fim",
+      "lastAccesses": "Últimos Acessos",
+      "userAccessMap": "Mapa com a localização de acesso dos usuários",
+      "cmrAccessMode": "Modo de acesso ao CMR",
+      "accessByCR": "Acessos por CR - FUNAI",
+      "viewsControl": "Controle de Acessos",
+      "browserTypeUsed": "Tipo de navegador utilizado",
+      "dailyAccessData": "Dados diários de acesso",
+      "monthlyAccessData": "Dados mensais de acesso",
+      "period": "Período",
+      "visits": "Visitas",
+      "searchingPerCities": "Busca por Município",
+      "searchingPerCR": "Busca por Coordenação Regional",
+      "searchingPerDevices" : "Busca por modo de acesso",
+      "searchingPerBrowsers" : "Busca por tipo de navegador",
+      "filterOptions": "Filtrar acessos",
+      "clearFieldsLabel": "Limpar filtros",
+      "filter": "Filtrar",
+      "downloadSuccess": "Download Concluído",
+      "downloadError": "Falha no Download",
+      "downloadSuccessMessage": "O download foi concluído com sucesso.",
+      "downloadErrorMessage": "Ocorreu um erro durante o download. Por favor, tente novamente.",
+      "close": "Fechar",
+      "agencias": "Agências",
+      "funai": "Funai"
+    }
+  }
+</i18n>
+
 <script>
 import domtoimage from 'dom-to-image';
 import { jsPDF } from 'jspdf';
 import { mapGetters, mapActions } from 'vuex';
-import { formatDate } from '@/store/charts';
 import DoughnutChartContainer from '@/components/graphics/dashboard/DoughnutChartContainer.vue';
 import LineChartViews from '@/components/graphics/dashboard/LineChartViews.vue';
 import PieChartView from '@/components/graphics/dashboard/PieChart.vue';
@@ -1003,14 +995,16 @@ export default {
 </style>
 
 <style scoped lang="sass">
-.position-relative
-  position: relative
+.download-buttons
+        .download-btn
+          border-color: #666
+          color: #666
+          transition: all 0.3s ease
 
-.position-absolute
-  position: absolute
-
-.left-btn
-  left: 1rem
+          &:hover
+            background-color: rgba(0,0,0,0.05)
+            transform: translateY(-2px)
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2)
 
 .chart
   background-color: #f5f5f5
@@ -1022,50 +1016,7 @@ export default {
     padding: 1rem 0
     box-shadow: 0 2px 12px rgba(0,0,0,0.1)
 
-    .back-btn
-      background-color: rgba(0,0,0,0.05)
-      color: #333 !important
 
-      &:hover
-        background-color: rgba(0,0,0,0.1)
-
-    .logo-img
-      filter: none
-
-    .header-actions
-      .filter-btn
-        border-color: #D92B3F
-        color: #D92B3F
-        border-radius: 25px
-        font-weight: 500
-        text-transform: none
-
-        &:hover
-          background-color: rgba(217, 43, 63, 0.1)
-
-      .download-buttons
-        .download-btn
-          border-color: #666
-          color: #666
-          transition: all 0.3s ease
-
-          &:hover
-            background-color: rgba(0,0,0,0.05)
-            transform: translateY(-2px)
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2)
-
-  .content-section
-    margin: 0
-    padding: 0
-
-  .charts-grid
-    margin: 0
-
-    .pa-2
-      padding: 8px
-
-    &:last-child
-      margin-bottom: 0
 
   .compact-table
     height: auto
@@ -1097,27 +1048,12 @@ export default {
       font-size: 1.1rem
       font-weight: 600
 
-    .chart-content, .table-content
-      padding: 1.5rem
-
     &.map-card
       min-height: 450px
 
       .map-content
         padding: 0
         height: 400px
-
-    &.table-card
-      .table-content
-        padding: 1rem
-
-  // Modal styling
-  .v-dialog .v-card
-    border-radius: 12px
-
-    .v-card-title
-      background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%)
-      border-bottom: 1px solid #dee2e6
 
   // Success/Error content
   .success-content, .error-content
@@ -1153,35 +1089,12 @@ export default {
 // Responsive adjustments
 @media (max-width: 960px)
   .chart
-    .chart-header
-      .page-title
-        font-size: 1.5rem
-        text-align: center
-        margin-top: 1rem
-
-    .toolbar-section
-      .py-3
-        flex-direction: column
-        gap: 1rem
-
-      .download-buttons
-        justify-content: center
-
-    .content-section
-      padding: 1rem 0.5rem
 
     .chart-card
       margin-bottom: 1rem
 
 @media (max-width: 600px)
-  .chart
-    .chart-header
-      padding: 1rem
-
-      .page-title
-        font-size: 1.25rem
-
-    .download-buttons
-      flex-wrap: wrap
-      justify-content: center
+  .download-buttons
+    flex-wrap: wrap
+    justify-content: center
 </style>
