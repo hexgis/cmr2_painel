@@ -226,6 +226,7 @@
                     :label="$t('searchingPerCR')"
                     :items="crList"
                     outlined
+                    multiple
                     clearable
                   />
                 </v-col>
@@ -425,9 +426,9 @@
             </v-card-title>
             <v-card-text class="chart-content compact-chart-content">
               <DoughnutChartContainer
-                :custom-data="funaiChartData"
-                data-type="funai"
-                chart-label="Acessos por CR - FUNAI"
+                data-type="institutions"
+                :dataset-label="'Instituições CR'"
+                :no-data-message="'Sem dados de instituições'"
               />
             </v-card-text>
           </v-card>
@@ -619,6 +620,7 @@
 import domtoimage from 'dom-to-image';
 import { jsPDF } from 'jspdf';
 import { mapGetters, mapActions } from 'vuex';
+import { formatDate } from '@/store/charts';
 import DoughnutChartContainer from '@/components/graphics/dashboard/DoughnutChartContainer.vue';
 import LineChartViews from '@/components/graphics/dashboard/LineChartViews.vue';
 import PieChartView from '@/components/graphics/dashboard/PieChart.vue';
@@ -640,7 +642,6 @@ export default {
 
   data: () => ({
     logo_funai: process.env.DEFAULT_LOGO_IMAGE_CMR,
-    activatorProps: false,
     viewLabelsTitle: ['Período', 'Visitas'],
     appliedFilters: {
       startDate: '',
@@ -653,9 +654,9 @@ export default {
     startDate: '',
     endDate: '',
     selectedCity: null,
-    selectedCR: null,
     selectedDevice: null,
     selectedBrowser: null,
+    selectedCR: null,
     startDateKey: 0,
     endDateKey: 0,
     showModal: false,
@@ -673,27 +674,19 @@ export default {
       'getTypeDeviceCounts',
       'getBrowserCounts',
       'getLocations',
-      'getInstitutionFilter',
+      'getInstitutionCrCounts',
     ]),
-
-    crList() {
-      const crSet = new Set();
-      const data = this.getDataChart.data || [];
-      data.forEach((item) => {
-        if (item.institution_acronym) {
-          crSet.add(item.institution_acronym);
-        }
-      });
-      const crList = Array.from(crSet).sort();
-      return crList;
-    },
-
     citiesList() {
       const citiesSet = new Set();
       this.getLocations.forEach((item) => {
-        citiesSet.add(item.city);
+        if (item.city) {
+          citiesSet.add(item.city);
+        }
       });
       return Array.from(citiesSet);
+    },
+    crList() {
+      return Object.keys(this.getInstitutionCrCounts || {});
     },
     devicesList() {
       return Object.keys(this.getTypeDeviceCounts);
@@ -701,31 +694,29 @@ export default {
     browserList() {
       return Object.keys(this.getBrowserCounts);
     },
-    funaiChartData() {
-      let filteredData = this.getDataChart.data || [];
-      if (this.appliedFilters.cr && filteredData.length > 0) {
-        filteredData = filteredData.filter(item =>
-          item.institution_acronym === this.appliedFilters.cr);
-      }
-      const counts = {};
-      filteredData.forEach(item => {
-        if (item && item.institution_acronym) {
-          const cr = item.institution_acronym;
-          counts[cr] = (counts[cr] || 0) + 1;
-        }
-      });
-      return counts;
-    },
   },
 
   async created() {
+    await this.initializeData();
+  },
+
+  async initializeData() {
+    let institutionCrParam = '';
+    if (this.appliedFilters.cr) {
+      if (Array.isArray(this.appliedFilters.cr)) {
+        institutionCrParam = this.appliedFilters.cr.join(',');
+      } else {
+        institutionCrParam = this.appliedFilters.cr;
+      }
+    }
+
     await this.dataChart({
       startDate: this.appliedFilters.startDate,
       endDate: this.appliedFilters.endDate,
       location: this.appliedFilters.city || '',
       typeDevice: this.appliedFilters.device || '',
       browser: this.appliedFilters.browser || '',
-      institutionAcronym: this.appliedFilters.cr || '',
+      institutionCr: institutionCrParam,
     });
   },
 
@@ -738,6 +729,17 @@ export default {
         return `${day}/${month}/${year}`;
       }
       return '';
+    },
+
+    async initializeData() {
+      await this.dataChart({
+        startDate: this.appliedFilters.startDate,
+        endDate: this.appliedFilters.endDate,
+        location: this.appliedFilters.city || '',
+        typeDevice: this.appliedFilters.device || '',
+        browser: this.appliedFilters.browser || '',
+        institutionAcronym: this.appliedFilters.cr || '',
+      });
     },
 
     showFilterModal() {
@@ -760,17 +762,16 @@ export default {
       this.showDownloadModal = false;
       this.resetButtonsVisibility();
     },
+
     resetButtonsVisibility() {
       const shareButtons = document.querySelectorAll('.chart--btn-wrapper, .chart--btn-wrapper-saves');
       const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
       const shadowBoxCards = document.querySelectorAll('.v-application , .elevation-2');
 
       shareButtons.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
         button.style.display = '';
       });
       mapZoomControlBtn.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
         button.style.display = '';
       });
       shadowBoxCards.forEach((card) => {
@@ -791,19 +792,31 @@ export default {
 
     async filter() {
       this.loading = true;
+      let institutionCrParam = '';
+      if (this.appliedFilters.cr) {
+        if (Array.isArray(this.appliedFilters.cr)) {
+          institutionCrParam = this.appliedFilters.cr.join(',');
+        } else {
+          institutionCrParam = this.appliedFilters.cr;
+        }
+      }
+
       const data = {
         startDate: this.appliedFilters.startDate || '',
         endDate: this.appliedFilters.endDate || '',
         location: this.appliedFilters.city || '',
         typeDevice: this.appliedFilters.device || '',
         browser: this.appliedFilters.browser || '',
-        institutionAcronym: this.appliedFilters.cr || '',
+        institutionCr: institutionCrParam,
       };
 
       try {
         await this.$store.dispatch('charts/dataChart', data);
+        await this.$nextTick();
       } catch (error) {
-        console.error('Error filtering data:', error);
+        this.$store.commit('alert/addAlert', {
+          message: this.$t('error'),
+        });
       } finally {
         this.loading = false;
       }
@@ -813,7 +826,7 @@ export default {
       this.startDate = '';
       this.endDate = '';
       this.selectedCity = null;
-      this.selectedCR = null;
+      this.selectedCR = null; // Isso limpará o select múltiplo
       this.selectedDevice = null;
       this.selectedBrowser = null;
 
@@ -828,25 +841,34 @@ export default {
       this.endDateKey += 1;
       this.filter();
     },
+
     prepareToExportData() {
       const shareButtons = document.querySelectorAll('.chart--btn-wrapper, .chart--btn-wrapper-saves');
       const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
       const shadowBoxCards = document.querySelectorAll('.v-application .elevation-2');
 
       shareButtons.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
         button.style.display = 'none';
       });
       mapZoomControlBtn.forEach((button) => {
-        // eslint-disable-next-line no-param-reassign
         button.style.display = 'none';
       });
       shadowBoxCards.forEach((card) => {
         card.setAttribute('style', 'box-shadow: none !important; border: 1px solid #EEEE;');
       });
     },
+
     async downloadCSV() {
       this.downloading = 'csv';
+      let institutionCrParam = '';
+      if (this.appliedFilters.cr) {
+        if (Array.isArray(this.appliedFilters.cr)) {
+          institutionCrParam = this.appliedFilters.cr.join(',');
+        } else {
+          institutionCrParam = this.appliedFilters.cr;
+        }
+      }
+
       try {
         const response = await this.$api.$get(
           `/dashboard/download-csv/?startDate=${this.appliedFilters.startDate || ''}&endDate=${
@@ -854,7 +876,7 @@ export default {
           }&location=${this.appliedFilters.city || ''}&type_device=${
             this.appliedFilters.device || ''
           }&browser=${this.appliedFilters.browser || ''}&institution_acronym=${
-            this.appliedFilters.cr || ''
+            institutionCrParam || ''
           }`,
           { responseType: 'blob' },
         );
@@ -868,14 +890,16 @@ export default {
         document.body.removeChild(link);
         this.downloadSuccess = true;
       } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Erro ao baixar o CSV:', error);
         this.downloadSuccess = false;
+        this.$store.commit('alert/addAlert', {
+          message: this.$t('downloadErrorMessage'),
+        });
       } finally {
         this.downloading = null;
         this.showDownloadModal = true;
       }
     },
+
     async downloadImg() {
       this.downloading = 'img';
       this.prepareToExportData();
@@ -894,12 +918,14 @@ export default {
 
         this.downloadSuccess = true;
       } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Erro ao gerar imagem:', error);
         this.downloadSuccess = false;
+        this.$store.commit('alert/addAlert', {
+          message: this.$t('downloadErrorMessage'),
+        });
       } finally {
         this.downloading = null;
         this.showDownloadModal = true;
+        this.resetButtonsVisibility();
       }
     },
 
@@ -918,20 +944,20 @@ export default {
         const doc = new jsPDF({
           orientation: 'portrait',
           format: 'A4',
-          compression: 'SLOW',
         });
         doc.addImage(image, 'JPEG', 0, 0, 210, 295);
         doc.save(`${nameImageDownload}.pdf`);
 
         this.downloadSuccess = true;
       } catch (error) {
-        this.$store.commit('alert/addAlert', {
-          message: this.$t('image-error'),
-        });
         this.downloadSuccess = false;
+        this.$store.commit('alert/addAlert', {
+          message: this.$t('downloadErrorMessage'),
+        });
       } finally {
         this.downloading = null;
         this.showDownloadModal = true;
+        this.resetButtonsVisibility();
       }
     },
   },
@@ -996,15 +1022,15 @@ export default {
 
 <style scoped lang="sass">
 .download-buttons
-        .download-btn
-          border-color: #666
-          color: #666
-          transition: all 0.3s ease
+  .download-btn
+    border-color: #666
+    color: #666
+    transition: all 0.3s ease
 
-          &:hover
-            background-color: rgba(0,0,0,0.05)
-            transform: translateY(-2px)
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2)
+    &:hover
+      background-color: rgba(0,0,0,0.05)
+      transform: translateY(-2px)
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2)
 
 .chart
   background-color: #f5f5f5
@@ -1015,21 +1041,6 @@ export default {
     color: #333
     padding: 1rem 0
     box-shadow: 0 2px 12px rgba(0,0,0,0.1)
-
-
-
-  .compact-table
-    height: auto
-    max-height: 180px
-
-    .compact-title
-      padding: 8px 16px !important
-      font-size: 0.9rem !important
-
-    .compact-content
-      padding: 8px 16px !important
-      max-height: 120px
-      overflow-y: auto
 
   .chart-card
     border-radius: 12px
@@ -1055,7 +1066,6 @@ export default {
         padding: 0
         height: 400px
 
-  // Success/Error content
   .success-content, .error-content
     display: flex
     flex-direction: column
@@ -1081,15 +1091,12 @@ export default {
           max-height: 100px
           overflow-y: auto
 
-// Ajustes específicos para o layout de 5 colunas
 .charts-grid .pa-2
   flex: 1 1 auto
   min-width: 0
 
-// Responsive adjustments
 @media (max-width: 960px)
   .chart
-
     .chart-card
       margin-bottom: 1rem
 

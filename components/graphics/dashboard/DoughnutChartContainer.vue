@@ -1,11 +1,11 @@
 <template>
-  <v-container class="pa-2 text-center">
+  <v-container class="pa-2">
     <v-row class="justify-center">
       <v-col
         cols="12"
         class="d-flex justify-center"
       >
-        <div class="chart-wrapper position-relative">
+        <div class="chart-wrapper">
           <doughnut-chart
             v-if="chartData"
             :key="chartKey"
@@ -14,7 +14,7 @@
           />
           <div
             v-else
-            class="mt-16"
+            class="no-data-message"
           >
             <v-icon
               large
@@ -23,7 +23,7 @@
               mdi-chart-donut
             </v-icon>
             <p class="grey--text text--lighten-1">
-              Dados não disponíveis
+              {{ noDataMessage }}
             </p>
           </div>
         </div>
@@ -52,23 +52,28 @@ export default {
     LegendList,
   },
   props: {
-    customData: {
-      type: Object,
-      default: null,
-    },
     dataType: {
       type: String,
       default: 'devices',
     },
-    chartLabel: {
+    datasetLabel: {
       type: String,
       default: 'Modo de acesso ao CMR',
+    },
+    noDataMessage: {
+      type: String,
+      default: 'Dados não disponíveis',
+    },
+    colors: {
+      type: Array,
+      default: () => ['#D92B3F', '#F58A1F', '#FFCE03', '#A5D85E', '#36A2EB', '#9966FF'],
     },
   },
   data() {
     return {
       chartData: null,
       chartKey: 0,
+      loading: false,
       chartOptions: {
         responsive: true,
         maintainAspectRatio: true,
@@ -96,84 +101,136 @@ export default {
   computed: {
     ...mapGetters('charts', [
       'getTypeDeviceCounts',
+      'getBrowserCounts',
+      'getInstitutionCrCounts',
     ]),
     activeData() {
-      if (this.dataType === 'funai' && this.customData) {
-        return {
-          data: this.customData,
-          label: 'Acessos por CR - FUNAI',
-          colors: ['#D92B3F', '#F58A1F', '#FFCE03', '#A5D85E', '#36A2EB', '#9966FF'],
-        };
+      let data;
+      let label;
+
+      switch (this.dataType) {
+        case 'devices':
+          data = this.getTypeDeviceCounts;
+          label = 'Modo de acesso ao CMR';
+          break;
+        case 'browsers':
+          data = this.getBrowserCounts;
+          label = 'Navegadores utilizados';
+          break;
+        case 'institutions':
+          data = this.getInstitutionCrCounts;
+          label = 'Instituições CR';
+          break;
+        default:
+          data = null;
+          label = this.datasetLabel;
       }
-      if (this.dataType === 'devices' && this.getTypeDeviceCounts) {
-        return {
-          data: this.getTypeDeviceCounts,
-          label: this.chartLabel,
-          colors: ['#D92B3F', '#F58A1F', '#FFCE03', '#A5D85E', '#36A2EB'],
-        };
-      }
-      return null;
+      return { data, label };
     },
   },
   watch: {
-    activeData: {
-      async handler(newData) {
-        await this.prepareChartData(newData);
-        this.chartKey += 1;
+    getTypeDeviceCounts: {
+      async handler() {
+        if (this.dataType === 'devices') {
+          this.loading = true;
+          await this.prepareChartData();
+          this.loading = false;
+        }
       },
       deep: true,
       immediate: true,
     },
+    getBrowserCounts: {
+      async handler() {
+        if (this.dataType === 'browsers') {
+          this.loading = true;
+          await this.prepareChartData();
+          this.loading = false;
+        }
+      },
+      deep: true,
+      immediate: true,
+    },
+    getInstitutionCrCounts: {
+      async handler() {
+        if (this.dataType === 'institutions') {
+          this.loading = true;
+          await this.prepareChartData();
+          this.loading = false;
+        }
+      },
+      deep: true,
+      immediate: true,
+    },
+    dataType: {
+      async handler() {
+        this.loading = true;
+        await this.prepareChartData();
+        this.loading = false;
+      },
+      immediate: true,
+    },
+  },
+  mounted() {
+    this.prepareChartData();
   },
   methods: {
-    async prepareChartData(dataConfig) {
+    async prepareChartData() {
       try {
-        if (!dataConfig || !dataConfig.data || Object.keys(dataConfig.data).length === 0) {
+        const { data: rawCounts, label: chartLabel } = this.activeData;
+
+        if (!rawCounts || typeof rawCounts !== 'object') {
           this.setEmptyState();
           return;
         }
 
-        const { data, label, colors } = dataConfig;
-        const labels = Object.keys(data);
-        const values = Object.values(data).map(Number);
+        const keys = Object.keys(rawCounts);
+        const values = Object.values(rawCounts);
 
-        this.prepareChart(labels, values, colors, label);
+        if (keys.length === 0) {
+          this.setEmptyState();
+          return;
+        }
+
+        const numericValues = values.map(val => Number(val));
+        const labels = keys;
+        const data = numericValues;
+        const backgroundColors = this.colors;
+
+        const total = data.reduce((sum, value) => sum + value, 0);
+
+        this.legendItems = labels.map((label, index) => ({
+          label,
+          count: total ? Math.round((data[index] / total) * 100) : 0,
+          color: backgroundColors[index % backgroundColors.length],
+          value: data[index],
+        }));
+
+        this.chartData = {
+          labels,
+          datasets: [{
+            label: chartLabel || this.datasetLabel,
+            backgroundColor: backgroundColors,
+            data,
+            borderWidth: 0,
+            hoverOffset: 10,
+          }],
+        };
+
+        this.chartKey += 1;
       } catch (error) {
-        console.error('Erro ao preparar dados do gráfico:', error);
         this.setEmptyState();
       }
-    },
-
-    prepareChart(labels, data, backgroundColors, label) {
-      // Calculate total and prepare legend items
-      const total = data.reduce((sum, value) => sum + value, 0);
-      this.legendItems = labels.map((itemLabel, index) => ({
-        label: itemLabel,
-        count: total ? Math.round((data[index] / total) * 100) : 0,
-        color: backgroundColors[index % backgroundColors.length],
-        value: data[index],
-      }));
-
-      // Prepare chart data
-      this.chartData = {
-        labels,
-        datasets: [{
-          label,
-          backgroundColor: backgroundColors,
-          data,
-          borderWidth: 0,
-          hoverOffset: 10,
-        }],
-      };
     },
     setEmptyState() {
       this.chartData = null;
       this.legendItems = [{
-        label: 'Sem dados disponíveis',
+        label: this.noDataMessage,
         count: 0,
         color: '#e0e0e0',
         value: 0,
       }];
+      this.chartKey += 1;
     },
   },
 };
@@ -183,5 +240,31 @@ export default {
 .chart-wrapper
   width: 300px
   height: 300px
+  position: relative
 
+.no-data-message
+  position: absolute
+  top: 50%
+  left: 50%
+  transform: translate(-50%, -50%)
+  text-align: center
+  width: 100%
+
+.loading-wrapper
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  height: 100%
+  text-align: center
+
+  p
+    margin-top: 16px
+    color: #666
+
+.v-container
+  text-align: center
+
+.mt-2
+  margin-top: 8px !important
 </style>
