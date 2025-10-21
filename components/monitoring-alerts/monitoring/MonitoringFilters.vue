@@ -55,85 +55,117 @@
             outlined
             @clear="currentIndigenousLand = []"
           />
-          <v-col cols="6">
-            <v-text-field
-              v-model="currentStartCycle"
-              type="number"
-              :label="$t('cycle')"
-              :loading="loadingIndigenousLands"
-              :disabled="loadingIndigenousLands || loadingSearchMonitoring"
-              class="mt-4 pr-1"
-              outlined
-            />
-          </v-col>
 
-          <v-col cols="6">
-            <v-text-field
-              v-model="currentEndCycle"
-              type="number"
-              :label="$t('cycle')"
-              :loading="loadingIndigenousLands"
-              :disabled="loadingIndigenousLands || loadingSearchMonitoring"
-              class="mt-4 pl-1"
-              outlined
-            />
-          </v-col>
-
-          <v-col
-            cols="6"
-            class="pr-1"
+          <v-tabs
+            v-model="currentTab"
+            fixed-tabs
+            color="primary"
+            class="mt-4"
           >
-            <v-tooltip
-              top
-              :disabled="!currentStartCycle || !currentEndCycle"
-              open-delay="1200"
-            >
-              <template #activator="{ on, attrs }">
-                <div
-                  v-bind="attrs"
-                  v-on="on"
-                >
-                  <BaseDateField
-                    v-model="currentStartDate"
-                    :label="$t('start-date')"
-                    :required="true"
-                    :disabled="!!currentStartCycle || !!currentEndCycle"
-                    outlined
-                    :min-date="'2015-01-01'"
-                  />
-                </div>
-              </template>
-              <span>{{ $t('message-cycle-or-dates') }}</span>
-            </v-tooltip>
-          </v-col>
+            <v-tab href="#data">
+              Data
+            </v-tab>
+            <v-tab href="#cycle">
+              Cycle
+            </v-tab>
+          </v-tabs>
 
-          <v-col
-            cols="6"
-            class="pl-1"
-          >
-            <v-tooltip
-              top
-              :disabled="!currentStartCycle || !currentEndCycle"
-              open-delay="800"
-            >
-              <template #activator="{ on, attrs }">
-                <div
-                  v-bind="attrs"
-                  v-on="on"
+          <v-tabs-items v-model="currentTab">
+            <v-tab-item value="data">
+              <v-row class="mt-2">
+                <v-col
+                  cols="6"
+                  class="pr-1"
                 >
-                  <BaseDateField
-                    v-model="currentEndDate"
-                    :label="$t('end-date')"
-                    :required="true"
-                    :disabled="!!currentStartCycle || !!currentEndCycle"
+                  <v-tooltip
+                    top
+                    :disabled="!currentStartCycle || !currentEndCycle"
+                    open-delay="1200"
+                  >
+                    <template #activator="{ on, attrs }">
+                      <div
+                        v-bind="attrs"
+                        v-on="on"
+                      >
+                        <BaseDateField
+                          v-model="currentStartDate"
+                          :label="$t('start-date')"
+                          :required="true"
+                          outlined
+                          :min-date="'2015-01-01'"
+                        />
+                      </div>
+                    </template>
+                    <span>{{ $t('message-cycle-or-dates') }}</span>
+                  </v-tooltip>
+                </v-col>
+
+                <v-col
+                  cols="6"
+                  class="pl-1"
+                >
+                  <v-tooltip
+                    top
+                    :disabled="!currentStartCycle || !currentEndCycle"
+                    open-delay="800"
+                  >
+                    <template #activator="{ on, attrs }">
+                      <div
+                        v-bind="attrs"
+                        v-on="on"
+                      >
+                        <BaseDateField
+                          v-model="currentEndDate"
+                          :label="$t('end-date')"
+                          :required="true"
+                          outlined
+                          :min-date="'2015-01-01'"
+                        />
+                      </div>
+                    </template>
+                    <span>{{ $t('message-cycle-or-dates') }}</span>
+                  </v-tooltip>
+                </v-col>
+              </v-row>
+            </v-tab-item>
+            <v-tab-item value="cycle">
+              <v-row class="mt-2">
+                <v-col cols="6">
+                  <v-combobox
+                    v-model="currentStartCycle"
+                    :label="$t('start_cycle')"
+                    :items="getCycles"
+                    item-text="no_ciclo"
+                    item-value="no_ciclo"
+                    :loading="loadingCycles"
+                    :disabled="loadingCycles || !getCycles.length"
+                    hide-details
+                    clearable
+                    class="mb-7"
                     outlined
-                    :min-date="'2015-01-01'"
+                    @clear="currentStartCycle = null"
                   />
-                </div>
-              </template>
-              <span>{{ $t('message-cycle-or-dates') }}</span>
-            </v-tooltip>
-          </v-col>
+                </v-col>
+
+                <v-col cols="6">
+                  <v-combobox
+                    v-model="currentEndCycle"
+                    :label="$t('end_cycle')"
+                    :items="getCycles"
+                    item-text="no_ciclo"
+                    item-value="no_ciclo"
+                    :loading="loadingCycles"
+                    :disabled="loadingCycles || !getCycles.length"
+                    hide-details
+                    clearable
+                    class="mb-7"
+                    outlined
+                    @clear="currentEndCycle = null"
+                  />
+                </v-col>
+              </v-row>
+            </v-tab-item>
+          </v-tabs-items>
 
           <v-col
             cols="12"
@@ -177,6 +209,8 @@
     "end-date": "End Date",
     "search-label": "Search",
     "cycle": "Cycle",
+    "start_cycle": "Start Cycle",
+    "end_cycle": "End Cycle",
     "message-cycle-or-dates": "Disabled when filling in the Cycle field"
   },
   "pt-br": {
@@ -191,6 +225,8 @@
     "end-date": "Data Final",
     "search-label": "Buscar",
     "cycle": "Ciclo",
+    "start_cycle": "Ciclo Inicial",
+    "end_cycle": "Ciclo Final",
     "message-cycle-or-dates": "Desativado ao preencher o campo Ciclo"
   }
 }
@@ -298,10 +334,20 @@ export default {
       },
     },
 
+    currentTab: {
+      get() {
+        return this.filters.currentTab;
+      },
+      set(value) {
+        this.$store.commit('monitoring/setFilters', { currentTab: value });
+      },
+    },
+
     ...mapGetters('monitoring', [
       'getRegionalCoordinators',
       'getFilters',
       'getIndigenousLands',
+      'getCycles',
       'getShowFeaturesMonitoring',
     ]),
     ...mapState('monitoring', [
@@ -309,6 +355,7 @@ export default {
       'loadingIndigenousLands',
       'loadingRegionalCoordinators',
       'loadingSearchMonitoring',
+      'loadingCycles',
     ]),
   },
 

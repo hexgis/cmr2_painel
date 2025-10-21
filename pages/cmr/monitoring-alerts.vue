@@ -168,6 +168,7 @@ export default {
 
   mounted() {
     this.$store.dispatch('monitoring/getFilterOptions');
+    this.$store.dispatch('monitoring/getCyclesOptions');
   },
 };
 </script>

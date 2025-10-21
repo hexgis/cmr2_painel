@@ -12,6 +12,7 @@ export default {
     downloadGeoserverMaxFeatures: process.env.DOWNLOAD_GEOSERVER_MAX_FEATURES,
     filters: {
       currentView: false,
+      currentTab: 'data',
       cr: [],
       ti: [],
       startCycle: null,
@@ -27,10 +28,11 @@ export default {
       stages: [],
       tableMonitoring: [],
       heatmapMonitoring: [],
+      tiByStages: [],
+      rangeCycles: null,
     },
     opacity: 100,
-    regionalCoordinators: [],
-    indigenousLands: [],
+    cycles: [],
     loadingSearchMonitoring: false,
     loadingRegionalCoordinators: false,
     loadingIndigenousLands: false,
@@ -40,6 +42,7 @@ export default {
     loadingStats: false,
     loadingDownloadCSV: false,
     loadingHeatmap: false,
+    loadingCycles: false,
   }),
 
   getters: {
@@ -47,6 +50,7 @@ export default {
     getFilters(state) { return state.filters; },
     getRegionalCoordinators(state) { return state.regionalCoordinators; },
     getIndigenousLands(state) { return state.indigenousLands; },
+    getCycles(state) { return state.cycles; },
     getLayerMonitoring(state) { return state.geoserverLayerMonitoring; },
     getLayerMonitoringHeatmap(state) { return state.geoserverLayerMonitoringHeatmap; },
     getUrlWmsMonitoring(state) { return state.urlWmsMonitoring; },
@@ -78,7 +82,7 @@ export default {
       const ti = getters.getFormattedIndigenousLands('co_funai').join(',');
       const { stages } = state.stats;
       const {
-        startDate, endDate, bboxWkt, startCycle, endCycle,
+        startDate, endDate, bboxWkt, startCycle, endCycle, currentTab,
       } = state.filters;
       const intersects = state.filters.currentView ? `INTERSECTS(geom, ${bboxWkt})` : '';
 
@@ -91,8 +95,9 @@ export default {
         filters.push(`co_funai IN (${ti})`);
       }
 
-      if (startCycle && endCycle) filters.push(`no_ciclo >= 'Ciclo ${startCycle}' AND no_ciclo <= 'Ciclo ${endCycle}'`);
-      else if (startDate && endDate) {
+      if (currentTab === 'cycle' && startCycle && endCycle) {
+        filters.push(`dt_t_um BETWEEN '${state.stats.rangeCycles.start_date}' AND '${state.stats.rangeCycles.end_date}'`);
+      } else if (startDate && endDate) {
         filters.push(`dt_t_um BETWEEN '${state.filters.startDate}' AND '${state.filters.endDate}'`);
       }
 
@@ -140,6 +145,9 @@ export default {
     clearAnalyticsData(state) { state.analyticsData = []; },
     setHeatMapMonitoring(state, value) { state.heatMapMonitoring = value; },
     setLoadingHeatmap(state, loading) { state.loadingHeatmap = loading; },
+    setLoadingCycles(state, loading) { state.loadingCycles = loading; },
+    setCycles(state, cycles) { state.cycles = cycles; },
+    setRangeCycles(state, range) { state.stats.rangeCycles = range; },
 
     setCurrentBbox(state, { bbox, bboxWkt }) {
       state.filters.bbox = bbox;
@@ -175,6 +183,7 @@ export default {
         color: colors[stage],
       }));
       state.stats = {
+        ...state.stats,
         totalFeatures: stats.total_features,
         totalArea: stats.total_area,
         stages,
@@ -315,13 +324,12 @@ export default {
     async generateMonitoringStats({ commit, state, getters }, isUpdate = false) {
       try {
         commit('setLoadingStats', true);
-        const params = {
-          start_date: state.filters.startDate,
-          end_date: state.filters.endDate,
-        };
+        const params = {};
+
         if (isUpdate && state.stats.stages && state.stats.stages.length) {
           params.stage = state.stats.stages.filter((stage) => stage.visible).map((stage) => stage.name).join(',') || 'NONE';
         }
+
         if (state.filters.currentView) {
           params.in_bbox = state.filters.bbox;
         } else {
@@ -329,7 +337,22 @@ export default {
           params.co_funai = getters.getFormattedIndigenousLands('co_funai').join(',');
         }
 
+        if (state.filters.currentTab === 'cycle' && state.filters.startCycle && state.filters.endCycle) {
+          const dateRange = await this.$api.$get('monitoring/consolidated/cycles/date-range/', {
+            params: {
+              cycles: `${state.filters.startCycle.no_ciclo},${state.filters.endCycle.no_ciclo}`,
+            },
+          });
+          params.start_date = dateRange.start_date;
+          params.end_date = dateRange.end_date;
+          commit('setRangeCycles', dateRange);
+        } else {
+          params.start_date = state.filters.startDate;
+          params.end_date = state.filters.endDate;
+        }
+
         const stats = await this.$api.$get('monitoring/consolidated/map-stats/', { params });
+
         if (isUpdate) {
           commit('setUpdateMonitoringStats', { totalFeatures: stats.total_features, totalArea: stats.total_area || 0 });
         } else {
@@ -551,6 +574,28 @@ export default {
         );
       } finally {
         commit('setLoadingIndigenousLands', false);
+      }
+    },
+
+    async getCyclesOptions({ commit }) {
+      try {
+        commit('setLoadingCycles', true);
+        const cycles = await this.$api.$get('monitoring/consolidated/cycles/options/');
+        commit('setCycles', cycles);
+      } catch (error) {
+        commit(
+          'alert/addAlert',
+          {
+            message: this.$i18n.t('default-error', {
+              action: this.$i18n.t('retrieve'),
+              resource: this.$i18n.t('cycle'),
+            }),
+            type: 'error',
+          },
+          { root: true },
+        );
+      } finally {
+        commit('setLoadingCycles', false);
       }
     },
 
