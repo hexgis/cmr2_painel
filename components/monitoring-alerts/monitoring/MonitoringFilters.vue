@@ -64,10 +64,10 @@
             class="mt-4"
           >
             <v-tab href="#data">
-              Data
+              {{ $t('data-label') }}
             </v-tab>
             <v-tab href="#cycle">
-              Cycle
+              {{ $t('cycle-label') }}
             </v-tab>
           </v-tabs>
 
@@ -181,7 +181,8 @@
     "start-date": "Start Date",
     "end-date": "End Date",
     "search-label": "Search",
-    "cycle": "Cycle",
+    "cycle-label": "Cycle",
+    "data-label": "Date",
     "start_cycle": "Start Cycle",
     "end_cycle": "End Cycle"
   },
@@ -196,7 +197,8 @@
     "start-date": "Data Inicial",
     "end-date": "Data Final",
     "search-label": "Buscar",
-    "cycle": "Ciclo",
+    "cycle-label": "Ciclo",
+    "data-label": "Data",
     "start_cycle": "Ciclo Inicial",
     "end_cycle": "Ciclo Final"
   }
