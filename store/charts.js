@@ -269,9 +269,9 @@ export const actions = {
         );
 
         commit('setDateCounts', processedData.dateCounts);
-        commit('setTypeDeviceCounts', calculatePercentages(processedData.typeDeviceCounts));
-        commit('setBrowserCounts', calculatePercentages(processedData.consolidatedBrowserCounts));
-        commit('setInstitutionCrCounts', calculatePercentages(processedData.consolidatedInstitutionCrCounts));
+       commit('setTypeDeviceCounts', processedData.typeDeviceCounts);
+commit('setBrowserCounts', processedData.consolidatedBrowserCounts);
+        commit('setInstitutionCrCounts', processedData.consolidatedInstitutionCrCounts);
         commit('setMonthlyCounts', processedMonthlyCounts);
       }
     } catch (error) {
