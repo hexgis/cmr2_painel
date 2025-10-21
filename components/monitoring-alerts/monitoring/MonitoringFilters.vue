@@ -183,8 +183,7 @@
     "search-label": "Search",
     "cycle": "Cycle",
     "start_cycle": "Start Cycle",
-    "end_cycle": "End Cycle",
-    "message-cycle-or-dates": "Disabled when filling in the Cycle field"
+    "end_cycle": "End Cycle"
   },
   "pt-br": {
     "invalid-date": "Data inválida",
@@ -199,8 +198,7 @@
     "search-label": "Buscar",
     "cycle": "Ciclo",
     "start_cycle": "Ciclo Inicial",
-    "end_cycle": "Ciclo Final",
-    "message-cycle-or-dates": "Desativado ao preencher o campo Ciclo"
+    "end_cycle": "Ciclo Final"
   }
 }
 </i18n>

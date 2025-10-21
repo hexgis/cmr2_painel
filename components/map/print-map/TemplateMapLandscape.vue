@@ -630,12 +630,6 @@ export default {
     hasActiveAlertsStages() {
       return Object.values(this.legendVisibilityalerts).some((visible) => visible);
     },
-    filteredMonitoringData() {
-      return this.combinedTableData.filter(
-        (item) => item.monitoring
-        && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0),
-      );
-    },
     filteredAlertsData() {
       return this.combinedTableData.filter(
         (item) => item.alerts
@@ -783,7 +777,8 @@ export default {
       return this.$store.getters['land-use/getActiveLegendItems'];
     },
     monitoringCount() {
-      return this.filteredMonitoringData.length;
+      if (this.stats.tiByStages) return this.stats.tiByStages.length;
+      return 0;
     },
     alertsCount() {
       return this.filteredAlertsData.length;
@@ -846,18 +841,20 @@ export default {
   },
 
   async mounted() {
-    if (this.showFeaturesMonitoring) {
-      await this.getDataTableMonitoring();
-    }
     if (this.showFeaturesLandUse) {
       await this.getDataTableLandUse();
     }
     if (this.showFeaturesAlerts) {
       await this.getDataTableAlerts();
     }
-    this.selectedItemsCount = this.combinedTableData.length;
-    this.showWarningMessage = (this.showFeaturesMonitoring
-     || this.showFeaturesLandUse) && this.selectedItemsCount > 7;
+
+    if (
+      this.showFeaturesMonitoring
+      && this.stats.tiByStages
+      && this.stats.tiByStages.length > 7
+    ) {
+      this.showWarningMessage = true;
+    }
 
     const visibleLayersCount = Object.values(this.supportLayers)
       .filter((l) => l.visible).length;
