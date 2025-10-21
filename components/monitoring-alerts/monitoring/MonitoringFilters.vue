@@ -78,54 +78,26 @@
                   cols="6"
                   class="pr-1"
                 >
-                  <v-tooltip
-                    top
-                    :disabled="!currentStartCycle || !currentEndCycle"
-                    open-delay="1200"
-                  >
-                    <template #activator="{ on, attrs }">
-                      <div
-                        v-bind="attrs"
-                        v-on="on"
-                      >
-                        <BaseDateField
-                          v-model="currentStartDate"
-                          :label="$t('start-date')"
-                          :required="true"
-                          outlined
-                          :min-date="'2015-01-01'"
-                        />
-                      </div>
-                    </template>
-                    <span>{{ $t('message-cycle-or-dates') }}</span>
-                  </v-tooltip>
+                  <BaseDateField
+                    v-model="currentStartDate"
+                    :label="$t('start-date')"
+                    :required="true"
+                    outlined
+                    :min-date="'2015-01-01'"
+                  />
                 </v-col>
 
                 <v-col
                   cols="6"
                   class="pl-1"
                 >
-                  <v-tooltip
-                    top
-                    :disabled="!currentStartCycle || !currentEndCycle"
-                    open-delay="800"
-                  >
-                    <template #activator="{ on, attrs }">
-                      <div
-                        v-bind="attrs"
-                        v-on="on"
-                      >
-                        <BaseDateField
-                          v-model="currentEndDate"
-                          :label="$t('end-date')"
-                          :required="true"
-                          outlined
-                          :min-date="'2015-01-01'"
-                        />
-                      </div>
-                    </template>
-                    <span>{{ $t('message-cycle-or-dates') }}</span>
-                  </v-tooltip>
+                  <BaseDateField
+                    v-model="currentEndDate"
+                    :label="$t('end-date')"
+                    :required="true"
+                    outlined
+                    :min-date="'2015-01-01'"
+                  />
                 </v-col>
               </v-row>
             </v-tab-item>
