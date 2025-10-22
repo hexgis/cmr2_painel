@@ -74,7 +74,7 @@ export default {
       typeName: heatmap ? getters.getLayerMonitoringHeatmap : getters.getLayerMonitoring,
       outputFormat: 'application/json',
       CQL_FILTER: getters.getGenerateCqlFilterMonitoring,
-      maxFeatures: state.downloadGeoserverMaxFeatures,
+      maxFeatures: !heatmap ? state.downloadGeoserverMaxFeatures : undefined,
     }),
 
     getGenerateCqlFilterMonitoring: (state, getters) => {
@@ -84,16 +84,11 @@ export default {
       const {
         startDate, endDate, bboxWkt, startCycle, endCycle, currentTab,
       } = state.filters;
-      const intersects = state.filters.currentView ? `INTERSECTS(geom, ${bboxWkt})` : '';
 
       const filters = [];
-      if (cr && cr.length) {
-        filters.push(`co_cr IN (${cr})`);
-      }
+      if (cr && cr.length) filters.push(`co_cr IN (${cr})`);
 
-      if (ti && ti.length) {
-        filters.push(`co_funai IN (${ti})`);
-      }
+      if (ti && ti.length) filters.push(`co_funai IN (${ti})`);
 
       if (currentTab === 'cycle' && startCycle && endCycle) {
         filters.push(`dt_t_um BETWEEN '${state.stats.rangeCycles.start_date}' AND '${state.stats.rangeCycles.end_date}'`);
@@ -101,9 +96,8 @@ export default {
         filters.push(`dt_t_um BETWEEN '${state.filters.startDate}' AND '${state.filters.endDate}'`);
       }
 
-      if (intersects) {
-        filters.push(intersects);
-      }
+      const intersects = state.filters.currentView ? `INTERSECTS(geom, ${bboxWkt})` : '';
+      if (intersects) filters.push(intersects);
 
       if (stages && stages.length) {
         const stagesVisible = stages.filter((stage) => stage.visible);
@@ -515,7 +509,8 @@ export default {
         commit('setLoadingHeatmap', true);
         const params = {
           ...getters.getParamsMonitoringGeoserver(true),
-          CQL_FILTER: getters.getGenerateCqlFilterMonitoring,
+          // remove INTERSECTS for heatmap
+          CQL_FILTER: getters.getGenerateCqlFilterMonitoring.split(' AND ').filter((f) => !f.startsWith('INTERSECTS(')).join(' AND '),
         };
         const response = await this.$api.$get(rootState.map.geoserverUrl, { params });
         commit('setResultsHeatmap', response);
