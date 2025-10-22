@@ -56,6 +56,7 @@ export default {
     getUrlWmsMonitoring(state) { return state.urlWmsMonitoring; },
     getOpacity(state) { return state.opacity / 100; },
     getStats: (state) => state.stats,
+    getStagesVisible: (state) => state.stats.stages.filter((stage) => stage.visible),
 
     getFormattedRegionalCoordinates: (state) => (key = 'co_cr') => {
       if (!Array.isArray(state.filters.cr)) return [];
@@ -396,6 +397,14 @@ export default {
     }) {
       try {
         commit('setLoadingDownloadGeojson', true);
+        if (state.stats.totalFeatures === 0 || !getters.getStagesVisible.length) {
+          commit('alert/addAlert', {
+            message: this.$i18n.t('monitoring-no-stages-visible'),
+            type: 'info',
+          }, { root: true });
+          return;
+        }
+
         if (state.stats.totalFeatures > state.downloadGeoserverMaxFeatures) {
           const confirmed = await this.$confirm({
             typeDescription: 'detailed',
