@@ -324,7 +324,7 @@ export default {
         const params = {};
 
         if (isUpdate && state.stats.stages && state.stats.stages.length) {
-          params.stage = state.stats.stages.filter((stage) => stage.visible).map((stage) => stage.name).join(',') || 'NONE';
+          params.stage = getters.getStagesVisible.map((stage) => stage.name).join(',') || 'NONE';
         }
 
         if (state.filters.currentView) {
