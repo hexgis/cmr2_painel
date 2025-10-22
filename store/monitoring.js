@@ -110,6 +110,8 @@ export default {
         if (stagesVisible.length) {
           // no_estagio IN ('DR','CR')
           filters.push(`no_estagio IN (${stagesVisible.map((stage) => `'${stage.name}'`).join(',')})`);
+        } else {
+          filters.push('no_estagio IN (\'\')');
         }
       }
 
