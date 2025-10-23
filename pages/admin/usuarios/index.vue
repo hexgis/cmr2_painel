@@ -123,7 +123,7 @@
               Dados Cadastrais
             </v-tab>
             <v-tab class="text-capitalize">
-              Registro de Acessos do Usuário e seus Papéis de Acesso
+              Registro de Acessos do Usuário e seus perfis de Acesso
             </v-tab>
           </v-tabs>
 
@@ -307,7 +307,7 @@
 
                 <!-- Role Changes Table -->
                 <h3 class="mb-3">
-                  Histórico de Alterações de Papéis de Acesso
+                  Histórico de Alterações de Perfis de Acesso
                 </h3>
                 <v-data-table
                   :headers="roleChangesHeaders"
@@ -756,6 +756,67 @@
         </v-menu>
       </template>
 
+      <!-- Roles Filter -->
+      <template #header.roles="{ header }">
+        <v-menu
+          v-model="rolesMenu"
+          offset-y
+          :close-on-content-click="false"
+        >
+          <template #activator="{ on, attrs }">
+            <v-btn
+              text
+              small
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ header.text }}<v-icon small>
+                mdi-filter-variant
+              </v-icon>
+            </v-btn>
+          </template>
+          <v-card style="width:250px">
+            <v-text-field
+              v-model="searchRoles"
+              placeholder="Pesquisar..."
+              outlined
+              dense
+              hide-details
+              clearable
+              class="mx-3 mt-3"
+              @click.stop
+            />
+            <v-divider />
+            <v-list
+              dense
+              class="filter-list"
+            >
+              <v-list-item
+                v-for="role in filteredRolesList"
+                :key="role"
+              >
+                <v-checkbox
+                  v-model="columnFilters.roles"
+                  :value="role"
+                  :label="role"
+                  dense
+                  @change="rolesMenu = false"
+                />
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </template>
+
+      <template #item.roles="{ item }">
+        <div>
+          <span v-if="item.roles && item.roles.length > 0">
+            {{ item.roles.map(role => role.name).join(', ') }}
+          </span>
+          <span v-else>Nenhum perfil associado</span>
+        </div>
+      </template>
+
       <!-- Administrator Filter -->
       <template #header.is_admin="{ header }">
         <v-menu offset-y>
@@ -1004,8 +1065,6 @@
 
 <script>
 import { mapState, mapActions } from 'vuex';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import GraphicBar from '/components/admin/GraphicBar.vue';
 import SearchFiltersUser from '/components/admin/SearchFiltersUser.vue';
 import CustomDialog from '/components/admin/CustomDialog.vue';
@@ -1034,15 +1093,13 @@ export default {
       selectedInstitution: null,
       users: [],
       filteredUsers: [],
-      showLogsModal: false,
-      userLogs: [],
-      selectedUserLogs: null,
       headers: [
         { text: 'Usuário', value: 'username' },
         { text: 'Primeiro Nome', value: 'first_name' },
         { text: 'Último Nome', value: 'last_name' },
         { text: 'Email', value: 'email' },
         { text: 'Administrador', value: 'is_admin' },
+        { text: 'Perfil', value: 'roles' },
         { text: 'Acesso Permitido', value: 'is_active' },
         { text: 'Vínculo Institucional', value: 'institution' },
         { text: 'Ações', value: 'actions', align: 'center' },
@@ -1073,6 +1130,8 @@ export default {
         last_name: '',
         email: '',
         institution_id: null,
+        is_inactive: false,
+        roles: [],
       },
       storeCategories: [
         { label: 'usuários ativos', total: 0, color: '#12A844' },
@@ -1082,7 +1141,7 @@ export default {
       requiredRule: (v) => !!v || 'Campo obrigatório',
       emailRule: (v) => /.+@.+\..+/.test(v) || 'E-mail inválido',
       userRoleChanges: [],
-      visibleColumns: ['username', 'email', 'is_admin', 'is_active', 'institution', 'actions'],
+      visibleColumns: ['username', 'email', 'roles', 'is_admin', 'is_active', 'institution', 'actions'],
       columnFilters: {
         is_admin: [], // [true, false]
         is_active: [], // [true, false]
@@ -1091,6 +1150,7 @@ export default {
         first_name: [],
         last_name: [],
         email: [],
+        roles: [],
       },
       searchInstitution: '',
       institutionMenu: false,
@@ -1098,10 +1158,12 @@ export default {
       firstNameMenu: false,
       lastNameMenu: false,
       emailMenu: false,
+      rolesMenu: false,
       searchUsername: '',
       searchFirstName: '',
       searchLastName: '',
       searchEmail: '',
+      searchRoles: '',
       searchAll: '',
       isButtonCollapsed: true,
       buttonCollapseTimeout: null,
@@ -1132,16 +1194,11 @@ export default {
         { text: 'Alterado Por', value: 'changed_by' },
         { text: 'Data/Hora', value: 'changed_at' },
         { text: 'Ação', value: 'action' },
-        { text: 'Papel', value: 'role' },
+        { text: 'Perfil', value: 'role' },
       ],
     };
   },
 
-  watch: {
-    searchAll(val) {
-      this.search = val;
-    },
-  },
   computed: {
     totalValue() {
       return this.storeCategories.reduce(
@@ -1155,12 +1212,21 @@ export default {
     },
 
     filteredByColumns() {
-      return this.filteredUsers.filter((user) => Object.entries(this.columnFilters).every(([col, vals]) => {
+      return this.filteredUsers.filter((user) => Object.entries(
+        this.columnFilters,
+      ).every(([col, vals]) => {
         if (!vals.length) return true;
 
         if (col === 'institution') {
-          const userInstitutionAcronym = user.institution && user.institution.acronym ? user.institution.acronym : 'N/A';
+          const userInstitutionAcronym = user.institution && user.institution.acronym
+            ? user.institution.acronym
+            : 'N/A';
           return vals.includes(userInstitutionAcronym);
+        }
+
+        if (col === 'roles') {
+          const userRoleNames = (user.roles || []).map((role) => role.name);
+          return vals.some((role) => userRoleNames.includes(role));
         }
 
         return vals.includes(user[col]);
@@ -1199,6 +1265,17 @@ export default {
         .filter((v) => v.toLowerCase().includes(term));
     },
 
+    filteredRolesList() {
+      const term = (this.searchRoles || '').toLowerCase();
+      const allRoles = [...new Set(
+        this.filteredUsers
+          .flatMap((u) => u.roles || [])
+          .map((role) => role.name)
+          .filter((name) => name),
+      )];
+      return allRoles.filter((name) => name.toLowerCase().includes(term));
+    },
+
     filteredUserLogs() {
       return this.userLogs || [];
     },
@@ -1212,6 +1289,12 @@ export default {
     },
 
     ...mapState('admin', ['institutionList', 'rolesList']),
+  },
+
+  watch: {
+    searchAll(val) {
+      this.search = val;
+    },
   },
 
   async mounted() {
@@ -1267,7 +1350,7 @@ export default {
         console.error('Erro ao carregar roles:', error);
         this.$store.commit('alert/addAlert', {
           timeout: 5000,
-          message: 'Erro ao carregar papéis',
+          message: 'Erro ao carregar perfis',
         });
       } finally {
         this.loadingRoles = false;
@@ -1375,7 +1458,7 @@ export default {
           // Notificação de sucesso detalhada
           this.$store.commit('alert/addAlert', {
             timeout: 5000,
-            message: `Usuário "${this.newUser.username}" foi criado com sucesso! ${this.newUser.roles.length > 0 ? `Papéis atribuídos: ${this.newUser.roles.map((r) => r.name).join(', ')}.` : ''}`,
+            message: `Usuário "${this.newUser.username}" foi criado com sucesso! ${this.newUser.roles.length > 0 ? `Perfis atribuídos: ${this.newUser.roles.map((r) => r.name).join(', ')}.` : ''}`,
           });
         }
       } catch (error) {
@@ -1450,7 +1533,7 @@ export default {
 
           this.$store.commit('alert/addAlert', {
             timeout: 5000,
-            message: `Usuário "${this.editUserData.username}" foi atualizado com sucesso! ${this.editUserData.roles.length > 0 ? `Papéis: ${this.editUserData.roles.map((r) => r.name).join(', ')}.` : 'Nenhum papel atribuído.'}`,
+            message: `Usuário "${this.editUserData.username}" foi atualizado com sucesso! ${this.editUserData.roles.length > 0 ? `Perfis: ${this.editUserData.roles.map((r) => r.name).join(', ')}.` : 'Nenhum perfil atribuído.'}`,
           });
         } else {
           throw new Error('Resposta inesperada da API.');
@@ -1478,7 +1561,6 @@ export default {
 
     async openEditDialog(user) {
       try {
-      // Busca os dados do usuário e as roles disponíveis simultaneamente
         const [userResponse, rolesResponse] = await Promise.all([
           this.$api.get(`/user/${user.id}/`),
           this.$api.get('/user/role/'),
@@ -1498,7 +1580,6 @@ export default {
           roles: userData.roles || [],
         };
 
-        // Atualiza a lista de roles disponíveis no store
         this.$store.commit('admin/setRolesList', rolesList);
 
         this.showModalEdit = true;
@@ -1519,25 +1600,86 @@ export default {
       }
     },
 
-    generateCSV() {
-      // Cabeçalho do CSV
-      const headers = ['Usuário', 'Primeiro Nome', 'Último Nome', 'Email', 'Administrador', 'Acesso Permitido', 'Vínculo Institucional'];
-      const rows = this.filteredByColumns.map((user) => [
-        user.username,
-        user.first_name || '',
-        user.last_name || '',
-        user.email,
-        user.is_admin ? 'Sim' : 'Não',
-        user.is_active ? 'Ativo' : 'Inativo',
-        user.institution && user.institution.acronym ? user.institution.acronym : user.institution || '',
-      ]);
-      const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'usuarios.csv';
-      link.click();
-      URL.revokeObjectURL(link.href);
+    async generateCSV() {
+      try {
+        this.loadingUsers = true;
+
+        const headers = [
+          'Usuário',
+          'Primeiro Nome',
+          'Último Nome',
+          'Email',
+          'Administrador',
+          'Acesso Permitido',
+          'Vínculo Institucional',
+          'Data de Criação',
+          'Último Login',
+        ];
+
+        const rows = this.filteredByColumns.map((user) => [
+          user.username || '',
+          user.first_name || '',
+          user.last_name || '',
+          user.email || '',
+          user.is_admin ? 'Sim' : 'Não',
+          user.is_active ? 'Ativo' : 'Inativo',
+          this.getInstitutionDisplay(user),
+          this.formatDate(user.date_joined),
+          this.formatDate(user.last_login),
+        ]);
+
+        const result = await this.$downloader.csv(rows, headers, 'usuarios', {
+          delimiter: ',',
+          dateFormat: 'iso',
+          includeTimestamp: true,
+        });
+
+        this.$store.commit('alert/addAlert', {
+          timeout: 3000,
+          message: `✅ Arquivo CSV exportado com sucesso! (${result.recordCount} usuários)`,
+          type: 'success',
+        });
+      } catch (error) {
+        console.error('Erro ao gerar CSV:', error);
+
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: `❌ ${error.message || 'Erro ao exportar arquivo CSV. Tente novamente.'}`,
+          type: 'error',
+        });
+      } finally {
+        this.loadingUsers = false;
+      }
+    },
+
+    getInstitutionDisplay(user) {
+      if (user.institution) {
+        if (user.institution.acronym) {
+          return user.institution.acronym;
+        }
+        if (user.institution.name) {
+          return user.institution.name;
+        }
+        if (typeof user.institution === 'string') {
+          return user.institution;
+        }
+      }
+      return 'N/A';
+    },
+
+    formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      try {
+        return new Date(dateString).toLocaleString('pt-BR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      } catch (error) {
+        return 'Data inválida';
+      }
     },
 
     expandButton() {
@@ -1554,140 +1696,160 @@ export default {
       }, 500);
     },
 
-    generateLogsPDF() {
-      const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4',
-      });
+    async generateLogsPDF() {
+      try {
+        if (!this.filteredUserLogs || this.filteredUserLogs.length === 0) {
+          this.$store.commit('alert/addAlert', {
+            timeout: 3000,
+            message: 'Nenhum log encontrado para exportar.',
+            type: 'warning',
+          });
+          return;
+        }
 
-      doc.setFontSize(12);
-      doc.text('Dados Cadastrais do Usuário', 15, 20);
+        const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status'];
+        const data = this.filteredUserLogs.map((log) => ({
+          'Alterado por': log.alterado_por || 'N/A',
+          'Alterado em': this.formatDate(log.action_time),
+          Nome: log.username || 'N/A',
+          Email: log.email || 'N/A',
+          'Vínculo Institucional': log.institution || 'N/A',
+          Status: log.is_active ? 'Ativo' : 'Inativo',
+        }));
 
-      autoTable(doc, {
-        startY: 30,
-        head: [['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status']],
-        body: this.filteredUserLogs.map((log) => [
-          log.alterado_por,
-          new Date(log.action_time).toLocaleString('pt-BR'),
-          log.username,
-          log.email,
-          log.institution,
+        const username = (this.selectedUserLogs && this.selectedUserLogs.username) || 'usuario';
+        const filename = this.$downloader.generateFileName(`dados_cadastrais_${username}`, 'pdf', {
+          includeTimestamp: true,
+          dateFormat: 'iso',
+        });
+
+        await this.$downloader.downloadPDF(
+          data,
+          headers,
+          `Dados Cadastrais do Usuário: ${(this.selectedUserLogs && this.selectedUserLogs.username) || 'N/A'}`,
+          filename,
+        );
+      } catch (error) {
+        console.error('Erro ao gerar PDF dos logs:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: 'Erro ao exportar PDF. Tente novamente.',
+          type: 'error',
+        });
+      }
+    },
+
+    async generateLogsCSV() {
+      try {
+        const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status'];
+        const rows = this.filteredUserLogs.map((log) => [
+          log.alterado_por || 'N/A',
+          this.formatDate(log.action_time),
+          log.username || 'N/A',
+          log.email || 'N/A',
+          log.institution || 'N/A',
           log.is_active ? 'Ativo' : 'Inativo',
-        ]),
-        headStyles: {
-          fillColor: '#D92B3F',
-          textColor: [255, 255, 255],
-        },
-      });
+        ]);
 
-      doc.save('dados_cadastrais_usuario.pdf');
+        const username = (this.selectedUserLogs && this.selectedUserLogs.username) || 'usuario';
+        const baseName = `dados_cadastrais_${username}`;
+
+        const result = await this.$downloader.csv(rows, headers, baseName, {
+          delimiter: ',',
+          dateFormat: 'iso',
+          includeTimestamp: true,
+        });
+
+        this.$store.commit('alert/addAlert', {
+          timeout: 3000,
+          message: `✅ CSV dos dados cadastrais exportado com sucesso! (${result.recordCount} registros)`,
+          type: 'success',
+        });
+      } catch (error) {
+        console.error('Erro ao gerar CSV dos logs:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: `❌ ${error.message || 'Erro ao exportar CSV. Tente novamente.'}`,
+          type: 'error',
+        });
+      }
     },
 
-    generateLogsCSV() {
-      const headers = ['Alterado por', 'Alterado em', 'Nome', 'Email', 'Vínculo Institucional', 'Status'];
-      const rows = this.filteredUserLogs.map((log) => [
-        log.alterado_por,
-        new Date(log.action_time).toLocaleString('pt-BR'),
-        log.username,
-        log.email,
-        log.institution,
-        log.is_active ? 'Ativo' : 'Inativo',
-      ]);
-      const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'dados_cadastrais_usuario.csv';
-      link.click();
-      URL.revokeObjectURL(link.href);
+    async generateAccessPDF() {
+      try {
+        const loginData = this.filteredUserLoginHistory.map((login) => ({
+          'Data de Login': login.last_date_login,
+          IP: login.ip,
+          Localização: login.location,
+          Dispositivo: login.type_device,
+          Navegador: login.browser,
+        }));
+
+        const roleData = this.filteredUserRoleChanges.map((change) => ({
+          'Alterado Por': change.changed_by,
+          'Data/Hora': change.changed_at,
+          Ação: change.action,
+          Perfil: change.role,
+        }));
+
+        const combinedData = [
+          ...loginData.map((item) => ({ ...item, _section: 'login' })),
+          ...roleData.map((item) => ({ ...item, _section: 'roles' })),
+        ];
+
+        const allHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Alterado Por', 'Data/Hora', 'Ação', 'Perfil'];
+
+        const filename = this.$downloader.generateFileName('registro_acessos_usuario', 'pdf', {
+          includeTimestamp: true,
+          dateFormat: 'iso',
+        });
+
+        await this.$downloader.downloadPDF(combinedData, allHeaders, 'Registro de Acessos do Usuário', filename);
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+      }
     },
 
-    generateAccessPDF() {
-      const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      doc.setFontSize(12);
-      doc.text('Registro de Acessos do Usuário', 15, 20);
-
-      // Login History
-      autoTable(doc, {
-        startY: 30,
-        head: [['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador']],
-        body: this.filteredUserLoginHistory.map((login) => [
+    async generateAccessCSV() {
+      try {
+        const loginHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Latitude', 'Longitude'];
+        const loginRows = this.filteredUserLoginHistory.map((login) => [
           login.last_date_login,
           login.ip,
           login.location,
           login.type_device,
           login.browser,
-        ]),
-        headStyles: {
-          fillColor: '#D92B3F',
-          textColor: [255, 255, 255],
-        },
-      });
+          login.latitude,
+          login.longitude,
+        ]);
 
-      // Role Changes
-      const finalY = doc.lastAutoTable.finalY + 20;
-      doc.text('Histórico de Alterações de Papéis', 15, finalY);
-
-      autoTable(doc, {
-        startY: finalY + 10,
-        head: [['Alterado Por', 'Data/Hora', 'Ação', 'Papel']],
-        body: this.filteredUserRoleChanges.map((change) => [
+        const roleHeaders = ['Alterado Por', 'Data/Hora', 'Ação', 'Perfil'];
+        const roleRows = this.filteredUserRoleChanges.map((change) => [
           change.changed_by,
           change.changed_at,
           change.action,
           change.role,
-        ]),
-        headStyles: {
-          fillColor: '#D92B3F',
-          textColor: [255, 255, 255],
-        },
-      });
+        ]);
 
-      doc.save('registro_acessos_usuario.pdf');
-    },
+        const loginCsvContent = this.$downloader.convertToCSV(loginRows, loginHeaders);
+        const roleCsvContent = this.$downloader.convertToCSV(roleRows, roleHeaders);
 
-    generateAccessCSV() {
-      const loginHeaders = ['Data de Login', 'IP', 'Localização', 'Dispositivo', 'Navegador', 'Latitude', 'Longitude'];
-      const loginRows = this.filteredUserLoginHistory.map((login) => [
-        login.last_date_login,
-        login.ip,
-        login.location,
-        login.type_device,
-        login.browser,
-        login.latitude,
-        login.longitude,
-      ]);
+        const combinedCsvContent = `HISTÓRICO DE LOGIN\n${loginCsvContent}\n\nHISTÓRICO DE ALTERAÇÕES DE PAPÉIS\n${roleCsvContent}`;
 
-      const roleHeaders = ['Alterado Por', 'Data/Hora', 'Ação', 'Papel'];
-      const roleRows = this.filteredUserRoleChanges.map((change) => [
-        change.changed_by,
-        change.changed_at,
-        change.action,
-        change.role,
-      ]);
+        const filename = this.$downloader.generateFileName('registro_acessos_usuario', 'csv', {
+          includeTimestamp: true,
+          dateFormat: 'iso',
+        });
 
-      const csvContent = [
-        'HISTÓRICO DE LOGIN',
-        loginHeaders.join(','),
-        ...loginRows.map((row) => row.join(',')),
-        '',
-        'HISTÓRICO DE ALTERAÇÕES DE PAPÉIS',
-        roleHeaders.join(','),
-        ...roleRows.map((row) => row.join(',')),
-      ].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'registro_acessos_usuario.csv';
-      link.click();
-      URL.revokeObjectURL(link.href);
+        this.$downloader.downloadCSV(combinedCsvContent, filename);
+      } catch (error) {
+        console.error('Erro ao gerar CSV de acessos:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: 'Erro ao exportar CSV de acessos. Tente novamente.',
+          type: 'error',
+        });
+      }
     },
 
     ...mapActions('admin', ['fetchInstitutionList']),

@@ -20,7 +20,7 @@
       </v-list-item-action>
     </template>
     <v-container
-      v-if="layer.visible "
+      v-if="layer.visible"
       class="py-0"
     >
       <v-row
@@ -193,13 +193,16 @@
         <v-card-actions class="justify-end">
           <v-btn
             color="accent"
-            @click="handleSave"
+            :loading="loadingUpdateLayerUser"
+            :disabled="loadingUpdateLayerUser"
+            @click="handleUpdateUserLayerProperties"
           >
             {{ $t('button-label') }}
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+
     <v-dialog
       v-model="remove"
       width="300"
@@ -260,7 +263,7 @@
         "info-text": "Cor da camada",
         "field-label": "Nome da camada",
         "button-label": "Salvar",
-        "api-error-update": "Não foi possível atualizar o camada, entre em contato com um administrador caso persista.",
+        "api-error-update": "Não foi possível atualizar a camada, entre em contato com um administrador caso persista.",
         "api-error-delete": "Não foi possível remover a camada, entre em contato com um administrador caso persista",
          "remove-title": "Remover camada?",
         "remove-text": "Essa ação não pode ser desfeita",
@@ -297,6 +300,12 @@ export default {
     isPointType: false,
   }),
 
+  computed: {
+    ...mapState('supportLayersUser', ['supportLayerUser', 'loadingUpdateLayerUser']),
+    ...mapState('map', ['hasAddLayer']),
+    ...mapGetters('auth', ['isLoggedIn']),
+  },
+
   mounted() {
     if (this.isLoggedIn) {
       this.getLayersUser();
@@ -304,12 +313,6 @@ export default {
         this.toggleLayer();
       }
     }
-  },
-
-  computed: {
-    ...mapState('supportLayersUser', ['supportLayerUser']),
-    ...mapState('map', ['hasAddLayer']),
-    ...mapGetters('auth', ['isLoggedIn']),
   },
 
   methods: {
@@ -335,48 +338,28 @@ export default {
       this.setLayerOpacity({ id: this.layer.id, opacity });
     },
 
-    async handleSave() {
-      try {
-        if (this.rename) {
-          await this.updateLayer();
-        }
-        await this.saveColor();
-      } catch (error) {
-        console.error('Error in handleSave:', error);
-      }
-    },
-
     async updateColor(color) {
       this.layerStyle = color;
       this.SET_COLOR(color);
       this.updateMarkerColor(this.layer.id, color);
     },
 
-    async saveColor() {
-      try {
-        await this.$api.patch(
-          `user/upload-file/geo/${this.layer.id}/update-properties/`,
-          {
-            color: this.layerStyle,
-            name: this.name,
-          },
-        );
-        await this.getLayersUser();
-      } catch (exc) {
-        console.error('Error:', exc);
-        this.$store.commit('alert/addAlert', {
-          message: this.$t('api-error-update'),
-        });
-      }
+    async handleUpdateUserLayerProperties() {
+      await this.updateUserLayerProperties({
+        id: this.layer.id,
+        color: this.layerStyle,
+        name: this.name,
+        message: this.$t('api-error-update'),
+      });
+      this.rename = false;
     },
 
     updateMarkerColor(layerId, color) {
       const layer = this.$L.geoJSON(this.layer.geometry);
       layer.eachLayer((marker) => {
         if (marker.options.layerId === layerId) {
-          marker.setStyle({ color });
+          marker.setStyle({ color, fillColor: color });
         }
-        marker.options.fillColor = color;
       });
     },
 
@@ -384,17 +367,6 @@ export default {
       const bounds = this.$L.geoJSON(this.layer.geometry).getBounds();
       if (bounds.getNorthEast() && bounds.getSouthWest()) {
         this.zoomToBounds(bounds);
-      }
-    },
-
-    async updateLayer() {
-      this.rename = false;
-      try {
-        await this.getLayersUser();
-      } catch (exc) {
-        this.$store.commit('alert/addAlert', {
-          message: this.$t('api-error-update'),
-        });
       }
     },
 
@@ -428,6 +400,7 @@ export default {
       'toggleLayerVisibility',
       'setLayerOpacity',
       'setLayerColor',
+      'setLayerName',
       'setZoomTo',
       'SET_COLOR',
     ]),
@@ -435,6 +408,7 @@ export default {
     ...mapActions('supportLayersUser', [
       'getLayersUserGeoJson',
       'getLayersUser',
+      'updateUserLayerProperties',
     ]),
     ...mapActions('map', ['zoomToBounds', 'saveDrawToDatabase']),
   },

@@ -12,7 +12,7 @@
         :max-bounds-viscosity="1"
         :options="mapOptions"
         @update:bounds="updateBounds"
-        @ready="mapReady = true"
+        @ready="onMapReady"
       >
         <l-control position="topleft">
           <div class="pa-1 map-action-buttons">
@@ -294,6 +294,7 @@ import Highlighter from '@/components/map/Highlighter.vue';
 import MapIndigenousLand from '@/components/map/MapIndigenousLand';
 import ProdesLayers from '@/components/inpe/prodes/ProdesLayers.vue';
 import FocoLayers from '../inpe/foco/FocoLayers.vue';
+import BufferPopup from './BufferPopup.vue';
 
 if (typeof window !== 'undefined') {
   require('leaflet-basemaps');
@@ -663,6 +664,29 @@ export default {
       } else {
         this.localBounds = this.initialBounds;
       }
+    },
+
+    onMapReady() {
+      window.controlBuffer = this.$bufferControl({
+        onCreatePopupContent: (layer, bufferOutlineLayer, bufferDistance) => {
+          const BufferPopupComponent = Vue.extend(BufferPopup);
+          const popupContent = new BufferPopupComponent({
+            propsData: {
+              layer,
+              bufferDistance,
+            },
+            parent: this,
+          });
+          popupContent.$mount();
+          popupContent.$on('remove-buffer', (l) => {
+            window.controlBuffer.removeBuffer(l);
+            bufferOutlineLayer.closePopup();
+          });
+          return popupContent.$el;
+        },
+      });
+      window.controlBuffer.addTo(this.map);
+      this.mapReady = true;
     },
 
     createMapLayers() {

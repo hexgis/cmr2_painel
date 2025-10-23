@@ -202,25 +202,6 @@ export const actions = {
 
  async downloadCSV({ commit, state, rootGetters }, { grouping, defaultFileName }) {
       commit('setLoadingCSV', true);
-      function convertToCSV(data) {
-        if (!data || !data.length) return '';
-        const headers = Object.keys(data[0]);
-        const csvRows = [headers.join(';')];
-        data.forEach(row => {
-          const values = headers.map(header => `"${('' + row[header]).replace(/"/g, '\\"')}"`);
-          csvRows.push(values.join(';'));
-        });
-        return csvRows.join('\n');
-      }
-
-      function saveData(data, filename) {
-        const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        URL.revokeObjectURL(link.href);
-      }
 
       try {
         const params = {
@@ -228,6 +209,7 @@ export const actions = {
           end_date: state.filters.endDate,
           grouping
         };
+
         const analyticsMonitoringcsv = await this.$api.$get(
           'monitoring/consolidated/table-stats/',
           { params },
@@ -237,31 +219,30 @@ export const actions = {
           throw new Error('Nenhum dado disponível para exportação');
         }
 
-        const csvString = convertToCSV(analyticsMonitoringcsv);
-        saveData(csvString, defaultFileName);
+        const csvContent = this.$downloader.convertToCSV(analyticsMonitoringcsv, null, ';');
+        this.$downloader.downloadCSV(csvContent, defaultFileName);
       } catch (error) {
-      commit(
-        'alert/addAlert',
-        {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('download'),
-            resource: this.$i18n.t('prodes'),
-          }),
-        },
-        { root: true },
-      );
+        commit(
+          'alert/addAlert',
+          {
+            message: this.$i18n.t('default-error', {
+              action: this.$i18n.t('download'),
+              resource: this.$i18n.t('prodes'),
+            }),
+          },
+          { root: true },
+        );
       } finally {
         commit('setLoadingCSV', false);
       }
     },
 
 
-   async downloadTableProdes() {
-      try {
-        // Usando a mutação do Vuex
-        this.$store.commit('prodes/setLoadingCSV', true);
+   async downloadTableProdes({ commit, state }) {
+      commit('setLoadingCSV', true);
 
-        if (!this.tableProdes?.length) {
+      try {
+        if (!state.tableProdes || !state.tableProdes.length) {
           throw new Error('Nenhum dado disponível para exportação');
         }
 
@@ -271,48 +252,33 @@ export const actions = {
           'Latitude', 'Longitude'
         ];
 
-        const csvContent = [
-          headers.join(';'),
-          ...this.tableProdes.map(item => [
-            item.origin_id || '',
-            item.co_funai || '',
-            `"${(item.no_ti || '').replace(/"/g, '""')}"`,
-            `"${(item.ds_cr || '').replace(/"/g, '""')}"`,
-            item.nu_ano || '',
-            this.formatFieldValue(item.nu_area_ha, 'nu_area_ha'),
-            item.nu_latitude || '',
-            item.nu_longitude || ''
-          ].join(';'))
-        ].join('\r\n');
+        const data = state.tableProdes.map(item => [
+          item.origin_id || '',
+          item.co_funai || '',
+          item.no_ti || '',
+          item.ds_cr || '',
+          item.nu_ano || '',
+          parseFloat(item.nu_area_ha) || 0,
+          item.nu_latitude || '',
+          item.nu_longitude || ''
+        ]);
 
-        const blob = new Blob(["\uFEFF" + csvContent], {
-          type: 'text/csv;charset=utf-8;'
-        });
-
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `dados_prodes_${new Date().toISOString().slice(0, 10)}.csv`;
-        document.body.appendChild(link);
-        link.click();
-
-        setTimeout(() => {
-          document.body.removeChild(link);
-          URL.revokeObjectURL(link.href);
-        }, 100);
-
+        const csvContent = this.$downloader.convertToCSV(data, headers, ';');
+        const fileName = `dados_prodes_${new Date().toISOString().slice(0, 10)}.csv`;
+        this.$downloader.downloadCSV(csvContent, fileName);
       } catch (error) {
-      commit(
-        'alert/addAlert',
-        {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('download'),
-            resource: this.$i18n.t('prodes'),
-          }),
-        },
-        { root: true },
-      );
+        commit(
+          'alert/addAlert',
+          {
+            message: this.$i18n.t('default-error', {
+              action: this.$i18n.t('download'),
+              resource: this.$i18n.t('prodes'),
+            }),
+          },
+          { root: true },
+        );
       } finally {
-        this.$store.commit('prodes/setLoadingCSV', false);
+        commit('setLoadingCSV', false);
       }
     },
 
