@@ -2,7 +2,7 @@
   <div class="d-flex justify-space-between mt-2">
     <div class="flex-grow-1 mr-2">
       <h5 class="text-subtitle-2 font-weight-small mb-2">
-        {{ title }}
+        {{ $t(title) }}
       </h5>
       <v-sheet
         outlined
@@ -47,7 +47,7 @@
       <h5
         class="text-subtitle-2 font-weight-small mb-2"
       >
-        Perfil(s) escolhido(s)
+        {{ $t('selectedProfiles') }}
       </h5>
       <v-sheet
         outlined
@@ -79,6 +79,21 @@
   </div>
 </template>
 
+<i18n>
+  {
+      "en": {
+          "availableProfiles": "Available Profiles",
+          "selectProfiles": "Select profiles",
+          "selectedProfiles": "Selected profile(s)"
+      },
+      "pt-br": {
+          "availableProfiles": "Perfis disponíveis",
+          "selectProfiles": "Selecione os perfis",
+          "selectedProfiles": "Perfil(s) escolhido(s)"
+      }
+  }
+</i18n>
+
 <script>
 export default {
   props: {
@@ -102,7 +117,7 @@ export default {
   },
   computed: {
     title() {
-      return this.mode === 'edit' ? 'Perfis disponíveis' : 'Selecione os perfis';
+      return this.mode === 'edit' ? 'availableProfiles' : 'selectProfiles';
     },
 
     filteredAvailableRoles() {
