@@ -10,6 +10,7 @@ export const state = () => ({
     allReadChecked: false,
     showAllNews: false,
   },
+  loadingUpdateTheme: false,
   newsOpened: false,
 });
 
@@ -17,11 +18,17 @@ export const mutations = {
   setUser(state, { user }) {
     state.user = user;
   },
+
   closeDrawer(state) {
     state.showDrawer = false;
   },
+
   openDrawer(state) {
     state.showDrawer = true;
+  },
+
+  setLoadingUpdateTheme(state, isLoading) {
+    state.loadingUpdateTheme = isLoading;
   },
 
   setNews(state, news) {
@@ -81,6 +88,12 @@ export const mutations = {
       .filter((news) => !state.news.readNews.includes(news.id))
       .map((news) => news.id);
     state.news.readNews = [...state.news.readNews, ...unreadIds];
+  },
+
+  setUserSettingsDarkMode(state, isDarkMode) {
+    if (state.user && state.user.settings) {
+      state.user.settings.dark_mode_active = isDarkMode;
+    }
   },
 };
 
@@ -149,6 +162,29 @@ export const actions = {
       const unreadNews = state.news.allNews.filter((n) => !state.news.readNews.includes(n.id));
 
       if (!state.news.showAllNews && unreadNews.length === 0) commit('setNewsDialog', false);
+    }
+  },
+
+  async updateThemeSettings({ commit }, isDark) {
+    try {
+      commit('setLoadingUpdateTheme', true);
+      await this.$api.patch('/user/update-settings/', { theme_mode: isDark });
+      commit('setUserSettingsDarkMode', isDark);
+      return true;
+    } catch (error) {
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('save'),
+            resource: this.$i18n.tc('theme', 2),
+          }),
+        },
+        { root: true },
+      );
+      return false;
+    } finally {
+      commit('setLoadingUpdateTheme', false);
     }
   },
 
