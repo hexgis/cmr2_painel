@@ -97,6 +97,7 @@ export default {
   },
 
   build: {
+    transpile: ['@turf/turf', 'circle-to-polygon'],
     extend(config, ctx) {
       if (ctx.isDev) {
         config.devtool = ctx.isClient ? 'source-map' : 'inline-source-map';
