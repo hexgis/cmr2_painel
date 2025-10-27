@@ -40,7 +40,7 @@
               id="data-table"
               class="leaflet-bottom leaflet-right"
             >
-              <template v-if="showFeaturesMonitoring">
+              <template v-if="getMonitoringShowFeatures">
                 <div
                   v-for="(item, index) in monitoringStatsTiByStages"
                   :key="'monitoring-' + index"
@@ -54,7 +54,7 @@
                   </p>
                   <template v-for="(stage, key) in item.stages">
                     <p
-                      v-if="parseFloat(stage.area_ha) > 0 && checkStageActive(stage)"
+                      v-if="parseFloat(stage.area_ha) > 0 && getMonitoringCheckStageActives(stage)"
                       :key="key"
                     >
                       {{ stage.no_estagio }} {{ formatNumber(stage.area_ha) }} ha
@@ -112,8 +112,8 @@
               </template>
             </div>
             <v-card
-              v-if="showWarningMessage && !(showFeaturesAlerts
-                && !showFeaturesMonitoring && !showFeaturesLandUse)"
+              v-if="showWarningMessage && !(getUrgentAlertsShowFeatures
+                && !getMonitoringShowFeatures && !showFeaturesLandUse)"
               class="warning-message"
               elevated
             >
@@ -210,9 +210,7 @@
                           align-items: flex-start;
                           gap: 5px;"
                       >
-                        <div
-                          v-if="showFeaturesMonitoring"
-                        >
+                        <div v-if="getMonitoringShowFeatures">
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>
@@ -225,20 +223,17 @@
                             :items="monitoringStatsByStages"
                           />
                         </div>
-                        <div
-                          v-if="showFeaturesAlerts
-                            && hasActiveAlertsStages && selectedItemsCount > 0"
-                        >
+                        <div v-if="getUrgentAlertsShowFeatures">
                           <p>
                             <strong>Alerta Urgente</strong>
                             <v-chip x-small>
-                              {{ alertsCount }}
+                              {{ urgentAlertsCount }}
                             </v-chip>
                           </p>
                           <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
                           <CustomizedLegend
                             class="pt-1"
-                            :items="alertsItems"
+                            :items="urgentAlertsStatsByStages"
                           />
                         </div>
                         <div
@@ -346,7 +341,7 @@
                       </div>
                     </div>
                   </div>
-                  <div v-if="showFeaturesMonitoring">
+                  <div v-if="getMonitoringShowFeatures">
                     <p class="ml-1">
                       {{ $t('monitoring-print-label') }}
                       {{ handleData(monitoringFilters.startDate) }}
@@ -354,7 +349,7 @@
                       {{ handleData(monitoringFilters.endDate) }}
                     </p>
                   </div>
-                  <div v-if="showFeaturesAlerts">
+                  <div v-if="getUrgentAlertsShowFeatures">
                     <p class="ml-1">
                       {{ $t('alerts-print-label') }}
                       {{ handleData(alertsFilters.startDate) }}
@@ -644,13 +639,13 @@ export default {
     },
     filteredCombinedTableData() {
       return this.combinedTableData.filter((item) => {
-        const hasMonitoring = this.showFeaturesMonitoring
+        const hasMonitoring = this.getMonitoringShowFeatures
                            && item.monitoring
                            && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0);
         const hasLandUse = this.showFeaturesLandUse
                          && item.landUse
                          && Object.keys(item.landUse).some((key) => item.landUse[key] > 0);
-        const hasAlerts = this.showFeaturesAlerts
+        const hasAlerts = this.getUrgentAlertsShowFeatures
                          && item.alerts
                          && Object.keys(item.alerts).some((key) => item.alerts[key] > 0);
         return hasMonitoring || hasLandUse || hasAlerts;
@@ -777,7 +772,11 @@ export default {
       return this.$store.getters['land-use/getActiveLegendItems'];
     },
     monitoringCount() {
-      if (this.stats.tiByStages) return this.stats.tiByStages.length;
+      if (this.getMonitoringStats.tiByStages) return this.getMonitoringStats.tiByStages.length;
+      return 0;
+    },
+    urgentAlertsCount() {
+      if (this.getUrgentAlertsStats.tiByStages) return this.getUrgentAlertsStats.tiByStages.length;
       return 0;
     },
     alertsCount() {
@@ -785,13 +784,23 @@ export default {
     },
 
     monitoringStatsTiByStages() {
-      if (!this.stats || !this.stats.tiByStages) return [];
-      if (this.stats.tiByStages.length > 7) return [];
-      return this.stats.tiByStages;
+      if (!this.getMonitoringStats || !this.getMonitoringStats.tiByStages) return [];
+      if (this.getMonitoringStats.tiByStages.length > 7) return [];
+      return this.getMonitoringStats.tiByStages;
     },
 
     monitoringStatsByStages() {
-      return this.stats.stages.filter((s) => s.visible);
+      return this.getMonitoringStats.stages.filter((s) => s.visible);
+    },
+
+    urgentAlertsStatsTiByStages() {
+      if (!this.getUrgentAlertsStats || !this.getUrgentAlertsStats.tiByStages) return [];
+      if (this.getUrgentAlertsStats.tiByStages.length > 7) return [];
+      return this.getUrgentAlertsStats.tiByStages;
+    },
+
+    urgentAlertsStatsByStages() {
+      return this.getUrgentAlertsStats.stages.filter((s) => s.visible);
     },
 
     ...mapState({
@@ -800,7 +809,6 @@ export default {
       prodesFilters: (state) => state.prodes.filters,
       deterFilters: (state) => state.deter.filters,
       monitoringFeatures: (state) => state.monitoring.features,
-      showFeaturesAlerts: (state) => state['urgent-alerts'].showFeaturesAlerts,
       tableMonitoring: (state) => state.monitoring.stats.tableMonitoring,
       tableAlerts: (state) => state['urgent-alerts'].tableAlerts,
       legendVisibility: (state) => state.monitoring.stats.stages,
@@ -821,10 +829,21 @@ export default {
       filterOptions: (state) => state.foco.filterOptions,
       isLoadingFeatures: (state) => state.foco.isLoadingFeatures,
       bounds: (state) => state.map.bounds,
+
+      // monitoring
+      getMonitoringStats: (state) => state.monitoring.stats,
+      getMonitoringShowFeatures: (state) => state.monitoring.showFeaturesMonitoring,
+
+      // urgent alerts
+      getUrgentAlertsStats: (state) => state['urgent-alerts'].stats,
+      getUrgentAlertsShowFeatures: (state) => state['urgent-alerts'].showFeaturesUrgentAlert,
     }),
 
-    ...mapState('monitoring', ['stats', 'showFeaturesMonitoring']),
-    ...mapGetters('monitoring', ['checkStageActive']),
+    // ...mapGetters('monitoring', ['checkStageActive']),
+    ...mapGetters({
+      getMonitoringCheckStageActives: 'monitoring/checkStageActive',
+      getUrgentAlertsCheckStageActives: 'urgent-alerts/checkStageActive',
+    }),
   },
 
   watch: {
@@ -835,7 +854,7 @@ export default {
     },
     combinedTableData(newVal) {
       this.selectedItemsCount = newVal.length;
-      this.showWarningMessage = (this.showFeaturesMonitoring
+      this.showWarningMessage = (this.getMonitoringShowFeatures
        || this.showFeaturesLandUse) && newVal.length > 7;
     },
   },
@@ -844,14 +863,12 @@ export default {
     if (this.showFeaturesLandUse) {
       await this.getDataTableLandUse();
     }
-    if (this.showFeaturesAlerts) {
-      await this.getDataTableAlerts();
-    }
 
     if (
-      this.showFeaturesMonitoring
-      && this.stats.tiByStages
-      && this.stats.tiByStages.length > 7
+      // Monitoring TI count check
+      this.getMonitoringShowFeatures
+      && this.getMonitoringStats.tiByStages
+      && this.getMonitoringStats.tiByStages.length > 7
     ) {
       this.showWarningMessage = true;
     }
