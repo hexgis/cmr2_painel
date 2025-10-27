@@ -169,7 +169,7 @@ import {
   validateTmsLayer,
   createWmsOptions,
   createTmsOptions,
-} from './layerUtils';
+} from '~/utils/layer';
 
 export default {
   name: 'RasterCompare',

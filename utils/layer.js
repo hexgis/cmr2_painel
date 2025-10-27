@@ -1,5 +1,5 @@
 /**
- * Layer utilities for RasterCompare component
+ * Layer utilities for map components
  * This file contains helper functions for validation, creation and configuration of map layers
  */
 
