@@ -25,108 +25,107 @@
       <v-container fluid>
         <v-container grid-list-xs>
           <v-row>
-            <v-col cols="12">
-              <div>
-                <span class="text-uppercase">{{ $t('groupBy') }}:</span>
-                <a class="d-flex justify-end">
-                  <v-btn
-                    small
-                    :loading="isLoadingCSVMonitoring"
-                    fab
-                    color="secondary"
-                    @click="downloadCSV()"
-                  >
-                    <v-icon> mdi-download </v-icon>
-                  </v-btn>
-                </a>
-              </div>
-              <div class="mb-2">
-                <v-btn
-                  class="mx-1 my-2"
-                  :class="btn_ti ? 'button-pressed' : ''"
-                  :disabled="isLoadingFeatures"
-                  @click="groupByFunai()"
-                >
-                  {{ $t('indigenousLand') }}
-                </v-btn>
-                <v-btn
-                  class="mx-1 my-2"
-                  :class="btn_ti_month_year ? 'button-pressed' : ''"
-                  :disabled="isLoadingFeatures"
-                  @click="groupByFunaiMonthYear()"
-                >
-                  {{ $t('indigenousLandMonthYear') }}
-                </v-btn>
-                <v-btn
-                  class="mx-1 my-2"
-                  :class="btn_month_year ? 'button-pressed' : ''"
-                  :disabled="isLoadingFeatures"
-                  @click="groupByMonthYear()"
-                >
-                  {{ $t('monthYear') }}
-                </v-btn>
-                <v-btn
-                  class="mx-1 my-2"
-                  :class="btn_year ? 'button-pressed' : ''"
-                  :disabled="isLoadingFeatures"
-                  @click="groupByYear()"
-                >
-                  {{ $t('year') }}
-                </v-btn>
-                <v-btn
-                  class="mx-1 my-2"
-                  :class="btn_day ? 'button-pressed' : ''"
-                  :disabled="isLoadingFeatures"
-                  @click="groupByDay()"
-                >
-                  {{ $t('day') }}
-                </v-btn>
-                <v-btn
-                  class="mx-1 my-2"
-                  :class="btn_ti_year ? 'button-pressed' : ''"
-                  :disabled="isLoadingFeatures"
-                  @click="groupByFunaiYear()"
-                >
-                  {{ $t('indigenousLandYear') }}
-                </v-btn>
-              </div>
-            </v-col>
-
-            <v-spacer />
-
             <v-col>
-              <div>
-                <v-select
-                  v-model="selectedHeaders"
-                  :items="headers"
-                  :disabled="isLoadingFeatures"
-                  :label="$t('selectColumns')"
-                  multiple
-                  outlined
-                  return-object
-                >
-                  <template #selection="{ item, index }">
-                    <v-chip v-if="index < 8">
-                      <span>{{ item.text }}</span>
-                    </v-chip>
-                    <span
-                      v-if="index === 8"
-                      class="grey--text caption"
-                    >(+{{ selectedHeaders.length - 8 }} {{ $t('columns') }})</span>
-                  </template>
-                </v-select>
-              </div>
+              <span class="text-uppercase">{{ $t('groupBy') }}:</span>
+            </v-col>
+            <v-col class="d-flex justify-end">
+              <v-btn
+                class="mt-n2"
+                small
+                :loading="isLoadingCSVMonitoring"
+                fab
+                color="secondary"
+                @click="downloadCSV()"
+              >
+                <v-icon> mdi-download </v-icon>
+              </v-btn>
+            </v-col>
+            <v-col cols="12">
+              <v-btn
+                class="mx-1 my-2"
+                :class="btn_ti ? 'button-pressed' : ''"
+                :disabled="isLoadingFeatures"
+                @click="groupByFunai()"
+              >
+                {{ $t('indigenousLand') }}
+              </v-btn>
+              <v-btn
+                class="mx-1 my-2"
+                :class="btn_ti_month_year ? 'button-pressed' : ''"
+                :disabled="isLoadingFeatures"
+                @click="groupByFunaiMonthYear()"
+              >
+                {{ $t('indigenousLandMonthYear') }}
+              </v-btn>
+              <v-btn
+                class="mx-1 my-2"
+                :class="btn_month_year ? 'button-pressed' : ''"
+                :disabled="isLoadingFeatures"
+                @click="groupByMonthYear()"
+              >
+                {{ $t('monthYear') }}
+              </v-btn>
+              <v-btn
+                class="mx-1 my-2"
+                :class="btn_year ? 'button-pressed' : ''"
+                :disabled="isLoadingFeatures"
+                @click="groupByYear()"
+              >
+                {{ $t('year') }}
+              </v-btn>
+              <v-btn
+                class="mx-1 my-2"
+                :class="btn_day ? 'button-pressed' : ''"
+                :disabled="isLoadingFeatures"
+                @click="groupByDay()"
+              >
+                {{ $t('day') }}
+              </v-btn>
+              <v-btn
+                class="mx-1 my-2"
+                :class="btn_ti_year ? 'button-pressed' : ''"
+                :disabled="isLoadingFeatures"
+                @click="groupByFunaiYear()"
+              >
+                {{ $t('indigenousLandYear') }}
+              </v-btn>
+            </v-col>
+            <v-col>
+              <v-select
+                v-model="selectedHeaders"
+                :items="headers"
+                :disabled="isLoadingFeatures"
+                :label="$t('selectColumns')"
+                multiple
+                outlined
+                return-object
+                height="64px"
+                hide-details
+              >
+                <template #selection="{ item, index }">
+                  <v-chip v-if="index < 8">
+                    <span>{{ item.text }}</span>
+                  </v-chip>
+                  <span
+                    v-if="index === 8"
+                    class="grey--text caption"
+                  >(+{{ selectedHeaders.length - 8 }} {{ $t('columns') }})</span>
+                </template>
+              </v-select>
             </v-col>
           </v-row>
-          <v-divider class="my-2" />
+          <v-divider class="my-4" />
           <v-data-table
             :headers="showHeaders"
             :items="analyticsMonitoring"
             :items-per-page="-1"
             :loading="isLoadingStatistic"
-            class="elevation-1"
             multi-sort
             mobile-breakpoint="0"
+            :custom-sort="customSort"
+            fixed-header
+            fixed-footer
+            height="350"
           />
         </v-container>
       </v-container>
@@ -240,6 +239,41 @@ export default {
   },
 
   methods: {
+    customSort(items, sortBy, sortDesc, locale) {
+      if (sortBy.length === 0 || items.length === 0) return items;
+
+      const sortedItems = [...items];
+
+      sortedItems.sort((a, b) => {
+        for (let i = 0; i < sortBy.length; i++) {
+          const sortKey = sortBy[i];
+          const sortOrder = sortDesc[i] ? -1 : 1;
+
+          let aValue = a[sortKey];
+          let bValue = b[sortKey];
+
+          if (sortKey.includes('_area_') && a[`${sortKey}_numeric`] !== undefined) {
+            aValue = a[`${sortKey}_numeric`];
+            bValue = b[`${sortKey}_numeric`];
+          }
+          if (typeof aValue === 'number' && typeof bValue === 'number') {
+            if (aValue !== bValue) {
+              return (aValue - bValue) * sortOrder;
+            }
+          } else {
+            aValue = String(aValue || '');
+            bValue = String(bValue || '');
+            const compareResult = aValue.localeCompare(bValue, locale);
+            if (compareResult !== 0) {
+              return compareResult * sortOrder;
+            }
+          }
+        }
+        return 0;
+      });
+      return sortedItems;
+    },
+
     pressedButton(btn) {
       const buttons = ['btn_ti_year', 'btn_ti_month_year', 'btn_day', 'btn_ti', 'btn_year', 'btn_month_year'];
       buttons.forEach((button) => {
