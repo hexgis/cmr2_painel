@@ -594,7 +594,7 @@ export default {
           params.end_date = state.filters.endDate;
         }
 
-        const stats = await this.$api.$get('alert/consolidated/map-stats/', { params });
+        const stats = await this.$api.$get('alerts/map-stats/', { params });
 
         if (isUpdate) {
           commit('setUpdateUrgentAlertStats', { totalFeatures: stats.total_features, totalArea: stats.total_area || 0 });
@@ -726,7 +726,7 @@ export default {
         if (state.filters.currentView) {
           params.in_bbox = rootGetters['map/bbox'];
         }
-        const analyticsUrgentAlert = await this.$api.$get('alerts/consolidated/table-stats/', { params });
+        const analyticsUrgentAlert = await this.$api.$get('alerts/table/', { params });
         commit('setAnalyticsData', analyticsUrgentAlert);
       } catch (error) {
         commit('alert/addAlert', {

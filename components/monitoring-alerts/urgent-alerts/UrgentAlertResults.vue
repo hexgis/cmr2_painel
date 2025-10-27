@@ -10,7 +10,7 @@
           small
           color="accent"
           icon
-          @click="downloadMonitoringGeojson(true)"
+          @click="downloadUrgentAlertGeojson(true)"
         >
           <v-tooltip bottom>
             <template #activator="{ on }">
@@ -140,7 +140,7 @@
         cols="2"
       >
         <v-switch
-          :input-value="getHeatMapMonitoring"
+          :input-value="getHeatMapUrgentAlert"
           class="ma-0 pa-0"
           :loading="isLoadingHeatmap"
           :disabled="isLoadingHeatmap || getActiveLegendItems"
@@ -154,7 +154,7 @@
 
     <v-row no-gutters>
       <v-col
-        v-if="isLoadingSearchMonitoring"
+        v-if="isLoadingSearchUrgentAlert"
         cols="12"
       >
         <v-skeleton-loader
@@ -211,7 +211,7 @@
       v-if="tableDialog"
       :value="tableDialog"
       :headers="headers"
-      :table="formattedTableMonitoring()"
+      :table="formattedTableUrgentAlert()"
       :loading-table="isLoadingTable"
       :table-name="$t('table-name')"
       :f-close-table="closeTableDialog"
@@ -240,7 +240,7 @@
     "opacity-label": "Opacity",
     "heat-map-label": "Heat Map",
     "legend": "Legend:",
-    "table-name": "Table Daily Monitoring"
+    "table-name": "Table Daily UrgentAlert"
   },
   "pt-br": {
     "download-label": "Baixar",
@@ -262,7 +262,7 @@ import TableDialog from '../../base/TableDialog.vue';
 import AnalyticalDialog from '../../base/AnalyticalDialog.vue';
 
 export default {
-  name: 'MonitoringResults',
+  name: 'UrgentAlertResults',
 
   components: {
     TableDialog,
@@ -291,69 +291,69 @@ export default {
 
   computed: {
     currentOpacity() {
-      return this.$store.state.monitoring.opacity;
+      return this.$store.state['urgent-alerts'].opacity;
     },
 
-    isLoadingSearchMonitoring() {
-      return this.$store.state.monitoring.loadingSearchMonitoring;
+    isLoadingSearchUrgentAlert() {
+      return this.$store.state['urgent-alerts'].loadingSearchUrgentAlert;
     },
 
     isLoadingDownloadGeojson() {
-      return this.$store.state.monitoring.loadingDownloadGeojson;
+      return this.$store.state['urgent-alerts'].loadingDownloadGeojson;
     },
 
     isLoadingStatistic() {
-      return this.$store.state.monitoring.loadingStatistic;
+      return this.$store.state['urgent-alerts'].loadingStatistic;
     },
 
     isLoadingTable() {
-      return this.$store.state.monitoring.loadingTable;
+      return this.$store.state['urgent-alerts'].loadingTable;
     },
 
     isLoadingStats() {
-      return this.$store.state.monitoring.loadingStats;
+      return this.$store.state['urgent-alerts'].loadingStats;
     },
 
     isLoadingHeatmap() {
-      return this.$store.state.monitoring.loadingHeatmap;
+      return this.$store.state['urgent-alerts'].loadingHeatmap;
     },
 
     getActiveLegendItems() {
-      return !this.$store.getters['monitoring/getActiveLegendItems'].length;
+      return !this.$store.getters['urgent-alerts/getActiveLegendItems'].length;
     },
 
-    statsTableMonitoring() {
-      return this.$store.state.monitoring.stats.tableMonitoring;
+    statsTableUrgentAlert() {
+      return this.$store.state['urgent-alerts'].stats.tableUrgentAlert;
     },
 
     formattedAnalyticData() {
-      return this.$store.state.monitoring.analyticsData;
+      return this.$store.state['urgent-alerts'].analyticsData;
     },
 
-    getHeatMapMonitoring() {
-      return this.$store.state.monitoring.heatMapMonitoring;
+    getHeatMapUrgentAlert() {
+      return this.$store.state['urgent-alerts'].heatMapUrgentAlert;
     },
 
-    ...mapGetters('monitoring', ['getStats']),
+    ...mapGetters('urgent-alerts', ['getStats']),
   },
 
   methods: {
-    async downloadMonitoringGeojson() {
-      this.$store.dispatch('monitoring/downloadMonitoringGeojson');
+    async downloadUrgentAlertGeojson() {
+      this.$store.dispatch('urgent-alerts/downloadUrgentAlertGeojson');
     },
 
     async showTableDialogAnalytics() {
       this.analyticDialog = true;
-      this.$store.dispatch('monitoring/getDataAnalyticsMonitoring');
+      this.$store.dispatch('urgent-alerts/getDataAnalyticsUrgentAlert');
     },
 
     async showTableDialog() {
       this.tableDialog = true;
-      await this.$store.dispatch('monitoring/getDataTableMonitoring');
+      await this.$store.dispatch('urgent-alerts/getDataTableUrgentAlert');
     },
 
     async updateAnalyticDialog(type) {
-      await this.$store.dispatch('monitoring/getDataAnalyticsMonitoring', `monitoring_by_${type}`);
+      await this.$store.dispatch('urgent-alerts/getDataAnalyticsUrgentAlert', `urgent_alerts_by_${type}`);
     },
 
     async downloadAnalytics(type) {
@@ -381,12 +381,12 @@ export default {
           defaultFileName = 'monitoramento_diario_estatisticas.csv';
           break;
       }
-      this.$store.dispatch('monitoring/downloadAnalyticCSV', defaultFileName);
+      this.$store.dispatch('urgent-alerts/downloadAnalyticCSV', defaultFileName);
     },
 
-    formattedTableMonitoring() {
-      const tableMonitoring = this.$store.state.monitoring.stats.tableMonitoring || [];
-      return tableMonitoring.map((item) => {
+    formattedTableUrgentAlert() {
+      const tableUrgentAlert = this.$store.state['urgent-alerts'].stats.tableUrgentAlert || [];
+      return tableUrgentAlert.map((item) => {
         const formattedItem = { ...item };
         this.headers.forEach((header) => {
           const field = header.value;
@@ -398,29 +398,29 @@ export default {
 
     closeTableDialog() {
       this.tableDialog = false;
-      this.$store.commit('monitoring/clearTableMonitoring');
+      this.$store.commit('urgent-alerts/clearTableUrgentAlert');
     },
 
     closeAnalyticalDialog() {
       this.analyticDialog = false;
-      this.$store.commit('monitoring/clearAnalyticsData');
+      this.$store.commit('urgent-alerts/clearAnalyticsData');
     },
 
     async updateOpacity(value) {
-      this.$store.commit('monitoring/setOpacity', value);
+      this.$store.commit('urgent-alerts/setOpacity', value);
     },
 
     async toggleStages(key, value) {
-      this.$store.commit('monitoring/toggleStatsStages', { key, value });
-      this.$store.dispatch('monitoring/updateWmsMonitoring');
-      this.$store.dispatch('monitoring/generateMonitoringStats', true);
+      this.$store.commit('urgent-alerts/toggleStatsStages', { key, value });
+      this.$store.dispatch('urgent-alerts/updateWmsUrgentAlert');
+      this.$store.dispatch('urgent-alerts/generateUrgentAlertStats', true);
     },
 
     async toggleHeatMapLayer(value) {
       if (value) {
-        await this.$store.dispatch('monitoring/generateHeatmapMonitoring');
+        await this.$store.dispatch('urgent-alerts/generateHeatmapUrgentAlert');
       }
-      this.$store.commit('monitoring/setHeatMapMonitoring', value);
+      this.$store.commit('urgent-alerts/setHeatMapUrgentAlert', value);
     },
 
     nameLegends(name) {
