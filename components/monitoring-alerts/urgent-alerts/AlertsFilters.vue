@@ -38,7 +38,7 @@
             multiple
             class="pa-0"
             outlined
-            @clear="currentRegionalCoordinates = []"
+            @clear="currentRegionalCoordinates = [], currentIndigenousLand = []"
           />
           <v-combobox
             v-show="currentRegionalCoordinates.length"
