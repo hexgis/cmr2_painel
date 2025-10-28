@@ -9,12 +9,7 @@
   >
     <v-card>
       <v-toolbar color="secondary">
-        <v-toolbar-title
-          id="dialog-title"
-          class="white--text"
-        >
-          {{ $t('compare') }}
-        </v-toolbar-title>
+        <v-toolbar-title>{{ $t('compare') }}</v-toolbar-title>
 
         <v-spacer />
 
@@ -47,7 +42,7 @@
               >
                 <LoadingState
                   v-if="!mapsInitialized"
-                  message="Carregando mapas de comparação..."
+                  :message="$t('loading-maps')"
                 />
               </div>
             </v-col>
@@ -68,7 +63,7 @@
                   <v-icon left>
                     mdi-layers
                   </v-icon>
-                  Camadas em Comparação
+                  {{ $t('layers-in-comparison') }}
                 </v-card-title>
 
                 <v-divider />
@@ -112,7 +107,7 @@
                   <!-- Empty State -->
                   <EmptyState
                     v-if="!layersToCompare.left && !layersToCompare.right"
-                    message="Nenhuma camada selecionada para comparação"
+                    :message="$t('no-layers-selected')"
                   />
                 </div>
 
@@ -145,14 +140,32 @@
     "close": "Close dialog",
     "comparison-map": "Interactive map for layer comparison",
     "layer-information-panel": "Layer information and comparison controls",
-    "drag-instruction": "Drag the bar to compare layers"
+    "drag-instruction": "Drag the bar to compare layers",
+    "loading-maps": "Loading comparison maps...",
+    "layers-in-comparison": "Layers in Comparison",
+    "no-layers-selected": "No layers selected for comparison",
+    "unknown": "Unknown",
+    "deter-alerts": "DETER - Deforestation Alerts",
+    "hotspots": "Hotspots",
+    "daily-monitoring": "Daily Monitoring",
+    "urgent-alerts": "Urgent Alerts",
+    "prodes-deforestation": "PRODES - Annual Deforestation"
   },
   "pt-br": {
     "compare": "Comparar camadas",
     "close": "Fechar diálogo",
     "comparison-map": "Mapa interativo para comparação de camadas",
     "layer-information-panel": "Informações das camadas e controles de comparação",
-    "drag-instruction": "Arraste a barra para comparar camadas"
+    "drag-instruction": "Arraste a barra para comparar camadas",
+    "loading-maps": "Carregando mapas de comparação...",
+    "layers-in-comparison": "Camadas em Comparação",
+    "no-layers-selected": "Nenhuma camada selecionada para comparação",
+    "unknown": "Desconhecido",
+    "deter-alerts": "DETER - Alertas de Desmatamento",
+    "hotspots": "Focos de Calor",
+    "daily-monitoring": "Monitoramento Diário",
+    "urgent-alerts": "Alertas Urgentes",
+    "prodes-deforestation": "PRODES - Desmatamento Anual"
   }
 }
 </i18n>
@@ -169,6 +182,7 @@ import {
   validateTmsLayer,
   createWmsOptions,
   createTmsOptions,
+  createSpecializedStoreLayer,
 } from '~/utils/layer';
 
 export default {
@@ -296,7 +310,7 @@ export default {
         this.addComparisonLayers();
         this.initializeSideBySideControl();
       } catch (error) {
-        console.error('[RasterCompare] Erro de inicialização:', error);
+        console.error(error);
       }
     },
     closeDialog() {
@@ -313,19 +327,16 @@ export default {
 
         // Check if Leaflet is available
         if (typeof this.$L === 'undefined') {
-          console.error('[RasterCompare] Leaflet não encontrado');
           return;
         }
 
         // Check if Leaflet WMS plugin is available
         if (typeof this.$L.tileLayer.wms === 'undefined') {
-          console.error('[RasterCompare] Plugin WMS do Leaflet não encontrado');
           return;
         }
 
         const mapElement = document.getElementById('mapContainer');
         if (!mapElement) {
-          console.error('[RasterCompare] Container do mapa não encontrado');
           return;
         }
 
@@ -351,7 +362,7 @@ export default {
 
         this.mapsInitialized = true;
       } catch (error) {
-        console.error('[RasterCompare] Erro na inicialização do mapa:', error);
+        console.error(error);
       }
     },
 
@@ -401,7 +412,7 @@ export default {
           this.sideBySideControl = this.$L.control.sideBySide(this.leftLayer, this.rightLayer);
           this.sideBySideControl.addTo(this.map);
         } catch (error) {
-          console.error('[RasterCompare] Erro no controle side-by-side:', error);
+          console.error(error);
         }
       }
     },
@@ -410,6 +421,7 @@ export default {
       try {
         const allVisibleLayers = [];
 
+        // Support Layers
         const supportLayers = this.$store.state.supportLayers.supportLayers || {};
         Object.values(supportLayers).forEach((layer) => {
           if (layer.visible) {
@@ -427,6 +439,7 @@ export default {
           }
         });
 
+        // Raster Layers
         const rasterLayers = this.$store.state.raster.supportLayersCategoryRaster || {};
         Object.values(rasterLayers).forEach((layer) => {
           if (layer.visible) {
@@ -444,6 +457,10 @@ export default {
           }
         });
 
+        this.addInpeLayers(allVisibleLayers);
+        this.addMonitoringLayers(allVisibleLayers);
+        this.addDeterProdesLayers(allVisibleLayers);
+
         allVisibleLayers.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
 
         allVisibleLayers.forEach((layer) => {
@@ -452,20 +469,38 @@ export default {
           const isRightCompareLayer = this.layersToCompare.right
             && layer.id === this.layersToCompare.right.id;
 
-          if (isLeftCompareLayer || isRightCompareLayer) return;
+          if (isLeftCompareLayer || isRightCompareLayer) {
+            return;
+          }
 
           const mapLayer = this.createLayer(layer, layer.zIndex);
           if (mapLayer) {
             mapLayer.addTo(this.map);
+
+            if (mapLayer.options && mapLayer.options.opacity && mapLayer.options.opacity < 0.3) {
+              mapLayer.setOpacity(0.8);
+            }
+
+            if (layer.name && (layer.name.includes('DETER') || layer.name.includes('PRODES') || layer.name.includes('Focos') || layer.name.includes('Monitoramento') || layer.name.includes('Alertas'))) {
+              mapLayer.setZIndex(1000);
+            }
           }
         });
       } catch (error) {
-        console.warn('Error adding visible layers from main map:', error);
+        console.warn(error);
       }
     },
 
     createLayer(layer, customZIndex = null) {
       try {
+        if (layer.source && ['foco', 'monitoring', 'deter', 'prodes', 'urgent-alerts'].includes(layer.source)) {
+          const specializedLayer = createSpecializedStoreLayer(layer, this.$L, customZIndex);
+          if (specializedLayer) {
+            this.setupLayerEventHandlers(specializedLayer);
+          }
+          return specializedLayer;
+        }
+
         if (layer.layer_type === 'wms' && layer.wms) {
           return this.createWmsLayer(layer, customZIndex);
         } if (layer.layer_type === 'tms' && layer.tms) {
@@ -482,7 +517,6 @@ export default {
     createWmsLayer(layer, customZIndex = null) {
       try {
         if (!validateWmsLayer(layer)) {
-          console.error('[RasterCompare] Dados inválidos da camada WMS:', layer);
           return null;
         }
 
@@ -493,7 +527,6 @@ export default {
         this.setupLayerEventHandlers(wmsLayer);
         return wmsLayer;
       } catch (error) {
-        console.error('[RasterCompare] Erro na criação da camada WMS:', error, layer);
         return null;
       }
     },
@@ -501,7 +534,6 @@ export default {
     createTmsLayer(layer, customZIndex = null) {
       try {
         if (!validateTmsLayer(layer)) {
-          console.error('[RasterCompare] Dados inválidos da camada TMS:', layer);
           return null;
         }
 
@@ -511,7 +543,6 @@ export default {
         this.setupLayerEventHandlers(tmsLayer);
         return tmsLayer;
       } catch (error) {
-        console.error('[RasterCompare] Erro na criação da camada TMS:', error, layer);
         return null;
       }
     },
@@ -633,7 +664,7 @@ export default {
     },
 
     getLayerTypeShort(layer) {
-      if (!layer) return 'Desconhecido';
+      if (!layer) return this.$t('unknown');
 
       switch (layer.layer_type) {
         case 'wms':
@@ -651,6 +682,146 @@ export default {
       if (!text) return '';
       if (text.length <= maxLength) return text;
       return `${text.substring(0, maxLength)}...`;
+    },
+
+    // INPE (DETER, PRODES)
+    addInpeLayers(layersToAdd) {
+      // DETER
+      try {
+        const deterState = this.$store.state.deter;
+
+        if (deterState.showFeaturesDeter && deterState.currentUrlWmsDeter) {
+          layersToAdd.push({
+            name: this.$t('deter-alerts'),
+            layer_type: 'wms',
+            url: deterState.currentUrlWmsDeter,
+            geoserverLayerDeter: deterState.geoserverLayerDeter,
+            opacity: deterState.opacity || 100,
+            visible: true,
+            source: 'deter',
+            zIndex: 930,
+            id: 'deter_alerts',
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+
+      // Foco de Calor
+      try {
+        const focoState = this.$store.state.foco;
+
+        if (focoState && focoState.layers) {
+          Object.keys(focoState.layers).forEach((layerKey) => {
+            const layer = focoState.layers[layerKey];
+
+            if (layer.showFeatures && layer.currentUrlWms) {
+              layersToAdd.push({
+                name: `${this.$t('hotspots')} - ${layerKey.toUpperCase()}`,
+                layer_type: 'wms',
+                url: layer.currentUrlWms,
+                geoserverLayer: layer.geoserverLayer,
+                opacity: layer.opacity || 100,
+                visible: true,
+                source: 'foco',
+                zIndex: 950,
+                id: `foco_${layerKey}`,
+              });
+            }
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    },
+
+    // Monitoring
+    addMonitoringLayers(layersToAdd) {
+      try {
+        const monitoringState = this.$store.state.monitoring;
+
+        if (monitoringState.showFeaturesMonitoring && monitoringState.currentUrlWmsMonitoring) {
+          layersToAdd.push({
+            name: this.$t('daily-monitoring'),
+            layer_type: 'wms',
+            url: monitoringState.currentUrlWmsMonitoring,
+            geoserverLayerMonitoring: monitoringState.geoserverLayerMonitoring,
+            opacity: monitoringState.opacity || 100,
+            visible: true,
+            source: 'monitoring',
+            zIndex: 920,
+            id: 'monitoring_daily',
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+
+      // Urgent alerts
+      try {
+        const urgentAlertsState = this.$store.state['urgent-alerts'];
+
+        if (urgentAlertsState.showFeaturesAlerts && urgentAlertsState.currentUrlWmsAlerts) {
+          layersToAdd.push({
+            name: this.$t('urgent-alerts'),
+            layer_type: 'wms',
+            url: urgentAlertsState.currentUrlWmsAlerts,
+            geoserverLayerAlerts: urgentAlertsState.geoserverLayerAlerts,
+            opacity: urgentAlertsState.opacity || 100,
+            visible: true,
+            source: 'urgent-alerts',
+            zIndex: 910,
+            id: 'urgent_alerts',
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    },
+
+    // INPE
+    addDeterProdesLayers(layersToAdd) {
+      // DETER
+      try {
+        const deterState = this.$store.state.deter;
+
+        if (deterState.showFeaturesDeter && deterState.currentUrlWmsDeter) {
+          layersToAdd.push({
+            name: this.$t('deter-alerts'),
+            layer_type: 'wms',
+            url: deterState.currentUrlWmsDeter,
+            geoserverLayerDeter: deterState.geoserverLayerDeter,
+            opacity: deterState.opacity || 100,
+            visible: true,
+            source: 'deter',
+            zIndex: 930,
+            id: 'deter_alerts',
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+
+      // PRODES
+      try {
+        const prodesState = this.$store.state.prodes;
+
+        if (prodesState.showFeaturesProdes && prodesState.currentUrlWmsProdes) {
+          layersToAdd.push({
+            name: this.$t('prodes-deforestation'),
+            layer_type: 'wms',
+            url: prodesState.currentUrlWmsProdes,
+            geoserverLayerProdes: prodesState.geoserverLayerProdes,
+            opacity: prodesState.opacity || 100,
+            visible: true,
+            source: 'prodes',
+            zIndex: 940,
+            id: 'prodes_deforestation',
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
     },
   },
 };

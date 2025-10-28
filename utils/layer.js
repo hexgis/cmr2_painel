@@ -6,6 +6,7 @@
 /**
  * Layer types supported by the system
  */
+
 export const LAYER_TYPES = {
   WMS: 'wms',
   TMS: 'tms',
@@ -101,19 +102,40 @@ export const getDefaultZIndex = (layer) => {
 /**
  * Creates base options for any layer type
  * Includes common settings like opacity, z-index and error URL
+ *
+ * Note: Opacity is normalized from 0-100 range (used in the store)
+ * to 0-1 range (required by Leaflet). This ensures consistency
+ * between the main map and comparison panel.
+ *
  * @param {Object} layer - Layer object
  * @param {number|null} customZIndex - Custom z-index (optional)
  * @returns {Object} Base layer options
  */
 export const createLayerOptions = (layer, customZIndex = null) => {
+  // Convert opacity from 0-100 range to 0-1 range (same as main map)
+  // Example: layer.opacity = 50 becomes normalizedOpacity = 0.5
+  const normalizedOpacity = layer.opacity ? Math.max(0.01, Math.min(1, layer.opacity / 100)) : 1;
+
   const baseOptions = {
     attribution: '',
-    opacity: layer.opacity || 1,
+    opacity: normalizedOpacity,
     errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
     zIndex: customZIndex || getDefaultZIndex(layer),
   };
 
   return baseOptions;
+};
+
+/**
+ * Creates a WMS URL with opacity parameter
+ * @param {Object} layer - WMS layer object
+ * @returns {string} WMS URL with opacity parameter
+ */
+export const createWmsUrl = (layer) => {
+  const opacity = Math.max(0.01, Math.min(1, layer.opacity / 100));
+  // Remove trailing slash to prevent double slashes in URL
+  const baseUrl = layer.wms.geoserver.geoserver_url.replace(/\/$/, '');
+  return `${baseUrl}/wms?env=percentage:${opacity}`;
 };
 
 /**
@@ -162,4 +184,78 @@ export const createTmsOptions = (layer, customZIndex = null) => {
   tmsOptions.tms = !isPlanetLayer(layer.tms.url);
 
   return tmsOptions;
+};
+
+/**
+ * Creates specific options for specialized store layers
+ * (foco, monitoring, deter, prodes, urgent-alerts)
+ * These layers have different structure than regular support/raster layers
+ * @param {Object} layer - Specialized layer object
+ * @param {Object} L - Leaflet instance
+ * @param {number|null} customZIndex - Custom z-index (optional)
+ * @returns {Object|null} Complete WMS layer or null if creation fails
+ */
+export const createSpecializedStoreLayer = (layer, L, customZIndex = null) => {
+  try {
+    if (!layer.url || !L) {
+      return null;
+    }
+
+    const url = new URL(layer.url);
+    const baseUrl = `${url.protocol}//${url.host}${url.pathname}`;
+    const params = Object.fromEntries(url.searchParams);
+
+    if (layer.layer_type === 'wms') {
+      let layerName = params.layers || '';
+
+      // Map source-specific layer properties to layer name
+      if (layer.source === 'foco' && layer.geoserverLayer) {
+        layerName = layer.geoserverLayer;
+      } else if (layer.source === 'monitoring' && layer.geoserverLayerMonitoring) {
+        layerName = layer.geoserverLayerMonitoring;
+      } else if (layer.source === 'deter' && layer.geoserverLayerDeter) {
+        layerName = layer.geoserverLayerDeter;
+      } else if (layer.source === 'prodes' && layer.geoserverLayerProdes) {
+        layerName = layer.geoserverLayerProdes;
+      } else if (layer.source === 'urgent-alerts' && layer.geoserverLayerAlerts) {
+        layerName = layer.geoserverLayerAlerts;
+      } else if (!layerName && layer.id) {
+        if (layer.id.includes(':')) {
+          layerName = layer.id;
+        }
+      }
+
+      if (!layerName) {
+        return null;
+      }
+
+      const wmsOptions = {
+        layers: layerName,
+        format: params.format || 'image/png',
+        transparent: params.transparent !== 'false',
+        version: params.version || '1.1.0',
+        opacity: (layer.opacity || 100) / 100,
+        zIndex: customZIndex || layer.zIndex || 400,
+        attribution: `${layer.name} - CMR2`,
+        crs: L.CRS.EPSG3857,
+      };
+
+      // Add CQL_FILTER if present
+      if (params.CQL_FILTER) {
+        wmsOptions.cql_filter = params.CQL_FILTER;
+      }
+
+      // Add authkey if present
+      if (params.authkey) {
+        wmsOptions.authkey = params.authkey;
+      }
+
+      return L.tileLayer.wms(baseUrl, wmsOptions);
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error creating specialized store layer:', error);
+    return null;
+  }
 };
