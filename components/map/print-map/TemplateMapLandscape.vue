@@ -41,7 +41,7 @@
               id="data-table"
               class="leaflet-bottom leaflet-right"
             >
-              <template v-if="getMonitoringShowFeatures">
+              <template v-if="getMonitoringShowFeatures && monitoringStatsByStages.length">
                 <div
                   v-for="(item, index) in monitoringStatsTiByStages"
                   :key="'monitoring-' + index"
@@ -63,7 +63,7 @@
                   </template>
                 </div>
               </template>
-              <template v-if="showFeaturesLandUse">
+              <template v-if="showFeaturesLandUse && landUseStatsByStages.length">
                 <!-- Bloco para Uso e Ocupação do Solo -->
                 <div
                   v-for="(item, index) in landUseStatsTiByStages"
@@ -72,6 +72,9 @@
                 >
                   <p>
                     <strong>TI {{ item.no_ti }}</strong>
+                  </p>
+                  <p v-if="parseFloat(item.total_area) > 0">
+                    Área da TI: {{ formatNumber(item.total_area) }} ha
                   </p>
                   <template v-for="(stage, key) in item.stages">
                     <p
@@ -183,7 +186,7 @@
                           align-items: flex-start;
                           gap: 5px;"
                       >
-                        <div v-if="getMonitoringShowFeatures">
+                        <div v-if="getMonitoringShowFeatures && monitoringStatsByStages.length">
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>
@@ -196,7 +199,7 @@
                             :items="monitoringStatsByStages"
                           />
                         </div>
-                        <div v-if="getUrgentAlertsShowFeatures">
+                        <div v-if="getUrgentAlertsShowFeatures && urgentAlertsStatsByStages.length">
                           <p>
                             <strong>Alerta Urgente</strong>
                             <v-chip x-small>
@@ -230,7 +233,7 @@
                           />
                         </div>
 
-                        <div v-if="showFeaturesLandUse">
+                        <div v-if="showFeaturesLandUse && landUseStatsByStages.length">
                           <p>
                             <strong>Uso e Ocupação do Solo</strong>
                             <v-chip x-small>
@@ -240,7 +243,7 @@
                           <hr style="border: 1px solid blue; margin: 0; margin-top: 0px;">
                           <CustomizedLegend
                             class="pt-1"
-                            :items="landUseItems"
+                            :items="landUseStatsByStages"
                           />
                         </div>
 
@@ -729,15 +732,6 @@ export default {
     prodesItems() {
       return this.$store.getters['prodes/getLegendItems'];
     },
-    monitoringItems() {
-      return this.$store.getters['monitoring/getActiveLegendItems'];
-    },
-    alertsItems() {
-      return this.$store.getters['urgent-alerts/getLegendItems'];
-    },
-    landUseItems() {
-      return this.$store.getters['land-use/getActiveLegendItems'];
-    },
     monitoringCount() {
       if (this.getMonitoringStats.tiByStages) return this.getMonitoringStats.tiByStages.length;
       return 0;
@@ -848,12 +842,17 @@ export default {
   async mounted() {
     let count = 0;
     // Check monitoring TI count
-    if (this.getMonitoringShowFeatures && this.getMonitoringStats.tiByStages) {
+    if (
+      this.getMonitoringShowFeatures
+      && this.getMonitoringStats.tiByStages
+      && this.monitoringStatsByStages.length) {
       count += this.getMonitoringStats.tiByStages.length;
     }
 
     // Check land use TI count
-    if (this.showFeaturesLandUse && this.getLandUseStats.tiByStages) {
+    if (this.showFeaturesLandUse
+    && this.getLandUseStats.tiByStages
+    && this.landUseStatsByStages.length) {
       count += this.getLandUseStats.tiByStages.length;
     }
 
