@@ -187,7 +187,17 @@ export default {
       return stringValue;
     },
 
-    handleDownloadCSV() {
+    async handleDownloadCSV() {
+      const confirmed = await this.$confirm({
+        typeDescription: 'detailed',
+        descriptionFirst: this.$i18n.t('monitoring-description-label-1'),
+        descriptionSecond: this.$i18n.t('monitoring-description-label-2'),
+        confirm: this.$i18n.t('download'),
+        iconConfirm: 'mdi-download',
+        iconCancel: 'mdi-close',
+      });
+      if (!confirmed) return;
+
       const headers = this.headers.map((header) => this.escapeCSVValue(header.text));
       const headerRow = headers.join(',');
 

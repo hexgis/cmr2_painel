@@ -348,8 +348,24 @@ export default {
     },
 
     async showTableDialog() {
-      this.tableDialog = true;
-      await this.$store.dispatch('urgent-alerts/getDataTableUrgentAlert');
+      if (this.getStats.totalFeatures > process.env.DOWNLOAD_GEOSERVER_MAX_FEATURES) {
+        const confirmed = await this.$confirm({
+          typeDescription: 'detailed',
+          descriptionFirst: this.$i18n.t('monitoring-description-label-3'),
+          descriptionSecond: this.$i18n.t('monitoring-description-label-4'),
+          confirm: this.$i18n.t('ciente'),
+          cancel: this.$i18n.t('close'),
+          iconConfirm: 'mdi-check',
+        });
+
+        if (!confirmed) return;
+
+        this.tableDialog = true;
+        await this.$store.dispatch('urgent-alerts/getDataTableUrgentAlert');
+      } else {
+        this.tableDialog = true;
+        await this.$store.dispatch('urgent-alerts/getDataTableUrgentAlert');
+      }
     },
 
     async updateAnalyticDialog(type) {

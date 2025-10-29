@@ -654,8 +654,8 @@ export default {
         if (state.stats.totalFeatures > state.downloadGeoserverMaxFeatures) {
           const confirmed = await this.$confirm({
             typeDescription: 'detailed',
-            descriptionFirst: this.$i18n.t('UrgentAlert-description-label-1'),
-            descriptionSecond: this.$i18n.t('UrgentAlert-description-label-2'),
+            descriptionFirst: this.$i18n.t('monitoring-description-label-1'),
+            descriptionSecond: this.$i18n.t('monitoring-description-label-2'),
             confirm: this.$i18n.t('download'),
             iconConfirm: 'mdi-download',
             iconCancel: 'mdi-close',
