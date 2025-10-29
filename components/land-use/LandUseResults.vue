@@ -425,14 +425,26 @@ export default {
 
     nameLegends(name) {
       switch (name) {
+        case 'AG':
+          return 'Agricultura';
         case 'CR':
-          return 'Corte Raso (CR)';
+          return 'Corte Raso';
         case 'DG':
-          return 'Degradação (DG)';
-        case 'DR':
-          return 'Desmatamento em Regeneração (DR)';
-        case 'FF':
-          return 'Fogo em Floresta (FF)';
+          return 'Degradação';
+        case 'MA':
+          return 'Mineração';
+        case 'MI':
+          return 'Mata';
+        case 'RV':
+          return 'Revegetação';
+        case 'SV':
+          return 'Silvicultura';
+        case 'VN':
+          return 'Vegetação Nativa';
+        case 'VI':
+          return 'Vegetação Indígena';
+        case 'NO':
+          return 'Não Observado';
         default:
           return name;
       }
