@@ -115,7 +115,7 @@
         </span>
       </v-col>
       <v-col
-        class="grey--text text--darken-2 text-right pa-0 pt-1"
+        class="grey--text text--darken-2 text-right pa-0 pt-1 pb-4 pr-4"
         cols="8"
       >
         <v-slider
@@ -127,7 +127,7 @@
           @end="updateOpacity"
         />
       </v-col>
-      <v-col
+      <!-- <v-col
         class="grey--text text--darken-2 mt-1 pt-0"
         cols="10"
       >
@@ -147,7 +147,7 @@
           hide-details
           @change="toggleHeatMapLayer($event)"
         />
-      </v-col>
+      </v-col> -->
     </v-row>
 
     <v-divider class="mt-1" />
@@ -259,14 +259,14 @@
 <script>
 import { mapGetters } from 'vuex';
 import TableDialog from '../base/TableDialog.vue';
-import AnalyticalDialog from '../base/AnalyticalDialog.vue';
+// import AnalyticalDialog from '../base/AnalyticalDialog.vue';
 
 export default {
   name: 'LandUseResults',
 
   components: {
     TableDialog,
-    AnalyticalDialog,
+    // AnalyticalDialog,
   },
 
   data() {
@@ -424,27 +424,37 @@ export default {
     },
 
     nameLegends(name) {
+      // AG: { name: 'Agropecuária', acronym: 'AG' },
+      // CR: { name: 'Corte Raso', acronym: 'CR' },
+      // DG: { name: 'Degradação', acronym: 'DG' },
+      // MA: { name: 'Massa de Água', acronym: 'MA' },
+      // MI: { name: 'Mineração', acronym: 'MI' },
+      // NO: { name: 'Não Observado', acronym: '' },
+      // RV: { name: 'Rodovia', acronym: 'RV' },
+      // SV: { name: 'Silvicultura', acronym: 'SV' },
+      // VN: { name: 'Vegetação Natural', acronym: 'VN' },
+      // VI: { name: 'Vilarejo', acronym: 'VI' },
       switch (name) {
         case 'AG':
-          return 'Agricultura';
+          return 'Agropecuária (AG)';
         case 'CR':
-          return 'Corte Raso';
+          return 'Corte Raso (CR)';
         case 'DG':
-          return 'Degradação';
+          return 'Degradação (DG)';
         case 'MA':
-          return 'Mineração';
+          return 'Massa de Água (MA)';
         case 'MI':
-          return 'Mata';
+          return 'Mineração (MI)';
         case 'RV':
-          return 'Revegetação';
+          return 'Revegetação (RV)';
         case 'SV':
-          return 'Silvicultura';
+          return 'Silvicultura (SV)';
         case 'VN':
-          return 'Vegetação Nativa';
+          return 'Vegetação Nativa (VN)';
         case 'VI':
-          return 'Vegetação Indígena';
+          return 'Vegetação Indígena (VI)';
         case 'NO':
-          return 'Não Observado';
+          return 'Não Observado (NO)';
         default:
           return name;
       }

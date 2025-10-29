@@ -191,7 +191,7 @@ export default {
       const headers = this.headers.map((header) => this.escapeCSVValue(header.text));
       const headerRow = headers.join(',');
 
-      const dataRows = this.value.map((item) => this.headers.map((header) => this.escapeCSVValue(item[header.value])).join(','));
+      const dataRows = this.table.map((item) => this.headers.map((header) => this.escapeCSVValue(item[header.value])).join(','));
 
       const csvContent = [headerRow, ...dataRows].join('\n');
 

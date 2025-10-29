@@ -162,7 +162,6 @@ export default {
   data() {
     return {
       tab: 'tab-1',
-      dialog: false,
     };
   },
 

@@ -233,64 +233,136 @@ export default {
     ],
     indigenousLands: [
       {
-        co_funai: 3002,
-        no_ti: 'Apyterewa',
+        co_funai: 71701,
+        no_ti: 'Amba Porã',
       },
       {
-        co_funai: 3201,
-        no_ti: 'Arara',
+        co_funai: 3501,
+        no_ti: 'Araribá',
       },
       {
-        co_funai: 60001,
-        no_ti: 'Arara da Volta Grande do Xingu',
+        co_funai: 6301,
+        no_ti: 'Boa Vista Sertão do Promirim',
       },
       {
-        co_funai: 3801,
-        no_ti: 'Araweté Igarapé Ipixuna',
+        co_funai: 6302,
+        no_ti: 'Boa Vista Sertão do Promirim',
       },
       {
-        co_funai: 7601,
-        no_ti: 'Cachoeira Seca',
+        co_funai: 71601,
+        no_ti: 'Djaiko-Aty',
       },
       {
-        co_funai: 72601,
-        no_ti: 'Ituna/Itatá (restrição de uso)',
+        co_funai: 14001,
+        no_ti: 'Guarani Araponga',
       },
       {
-        co_funai: 62001,
-        no_ti: 'Juruna do Km 17',
+        co_funai: 14201,
+        no_ti: 'Guarani da Barragem',
       },
       {
-        co_funai: 21501,
-        no_ti: 'Kararaô',
+        co_funai: 14401,
+        no_ti: 'Guarani de Bracui',
       },
       {
-        co_funai: 23201,
-        no_ti: 'Koatinemo',
+        co_funai: 14501,
+        no_ti: 'Guarani do Aguapeu',
       },
       {
-        co_funai: 38902,
-        no_ti: 'Kuruáya',
+        co_funai: 38101,
+        no_ti: 'Guarani do Ribeirão Silveira',
       },
       {
-        co_funai: 32602,
-        no_ti: 'Paquiçamba',
+        co_funai: 71401,
+        no_ti: 'Guaviraty',
       },
       {
-        co_funai: 32601,
-        no_ti: 'Paquiçamba',
+        co_funai: 15501,
+        no_ti: 'Icatu',
       },
       {
-        co_funai: 46201,
-        no_ti: 'Trincheira Bacaja',
+        co_funai: 17601,
+        no_ti: 'Itaóca',
       },
       {
-        co_funai: 50601,
-        no_ti: 'Xipaya',
+        co_funai: 18802,
+        no_ti: 'Jaraguá',
       },
       {
-        co_funai: 51001,
-        no_ti: 'Zoe',
+        co_funai: 18801,
+        no_ti: 'Jaraguá',
+      },
+      {
+        co_funai: 72001,
+        no_ti: 'Ka´aguy Hovy',
+      },
+      {
+        co_funai: 71501,
+        no_ti: 'Ka´aguy Mirim',
+      },
+      {
+        co_funai: 23601,
+        no_ti: 'Krukutu',
+      },
+      {
+        co_funai: 71901,
+        no_ti: 'Pakurity',
+      },
+      {
+        co_funai: 33301,
+        no_ti: 'Parati-Mirim',
+      },
+      {
+        co_funai: 71801,
+        no_ti: 'Peguaoty',
+      },
+      {
+        co_funai: 35001,
+        no_ti: 'Peruíbe',
+      },
+      {
+        co_funai: 35101,
+        no_ti: 'Piaçaguera',
+      },
+      {
+        co_funai: 71201,
+        no_ti: 'Pindoty/Araçá-Mirim',
+      },
+      {
+        co_funai: 38102,
+        no_ti: 'Ribeirão Silveira',
+      },
+      {
+        co_funai: 38701,
+        no_ti: 'Rio Branco Itanhaém',
+      },
+      {
+        co_funai: 42501,
+        no_ti: 'Serra do Itatins',
+      },
+      {
+        co_funai: 73720,
+        no_ti: 'Takuari',
+      },
+      {
+        co_funai: 71301,
+        no_ti: 'Tapyi/Rio Branquinho',
+      },
+      {
+        co_funai: 73755,
+        no_ti: 'Tekoa Gwyra Pepo',
+      },
+      {
+        co_funai: 66101,
+        no_ti: 'Tekoha Jevy (Rio Pequeno)',
+      },
+      {
+        co_funai: 23602,
+        no_ti: 'Tenondé Porã',
+      },
+      {
+        co_funai: 48801,
+        no_ti: 'Vanuire',
       },
     ],
     yearItems: [{ text: '2015', value: 2015 }, { text: '2019', value: 2019 }],
@@ -664,8 +736,8 @@ export default {
         if (state.stats.totalFeatures > state.downloadGeoserverMaxFeatures) {
           const confirmed = await this.$confirm({
             typeDescription: 'detailed',
-            descriptionFirst: this.$i18n.t('LandUse-description-label-1'),
-            descriptionSecond: this.$i18n.t('LandUse-description-label-2'),
+            descriptionFirst: this.$i18n.t('monitoring-description-label-1'),
+            descriptionSecond: this.$i18n.t('monitoring-description-label-2'),
             confirm: this.$i18n.t('download'),
             iconConfirm: 'mdi-download',
             iconCancel: 'mdi-close',
