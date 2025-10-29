@@ -534,12 +534,6 @@ export default {
     localBounds: [],
   }),
 
-  mounted() {
-    window.mapMain.on('click', (e) => {
-      this.$store.dispatch('getWmsFeatureInfo', e.latlng);
-    });
-  },
-
   computed: {
     initialExtentCoords() {
       return this.user && this.user.settings.initial_extent.coordinates
@@ -563,14 +557,26 @@ export default {
 
   watch: {
     boundsZoomed() {
-      this.map.flyToBounds(this.bounds);
+      if (this.map && this.bounds) {
+        this.map.flyToBounds(this.bounds);
+      }
     },
   },
 
   mounted() {
     this.$nextTick(() => {
       this.createMap();
+      if (this.map) {
+        this.map.invalidateSize();
+      }
     });
+  },
+
+  beforeUnmount() {
+    if (this.map) {
+      this.map.off();
+      this.map.remove();
+    }
   },
 
   methods: {
@@ -616,6 +622,11 @@ export default {
     },
 
     createMap() {
+      if (!this.$refs.map || !this.$refs.map.mapObject) {
+        console.error('Map reference not available');
+        return;
+      }
+
       this.map = this.$refs.map.mapObject;
       window.mapMain = this.map;
       Vue.prototype.$mainMap = this.map;
@@ -623,6 +634,10 @@ export default {
       this.map.on('zoomend', this.onZoomEnd);
       this.map.addEventListener('mousemove', this.refreshCoordinates);
       this.map.on('baselayerchange', this.changeBaseMap);
+      this.map.on('click', (e) => {
+        this.$store.dispatch('getWmsFeatureInfo', e.latlng);
+      });
+
       this.createMapLayers();
       this.createCssRefs();
       this.createMiniMap();

@@ -3,6 +3,7 @@
     <l-map
       id="miniPrintMap"
       ref="miniPrintMap"
+      class="minimap-for-print"
       :zoom="zoomMiniMap"
       :options="optionsMiniMap"
     >
@@ -46,7 +47,7 @@ export default {
   data: () => ({
     map: null,
     miniMap: null,
-    zoomMiniMap: 4,
+    zoomMiniMap: 0,
     zoomOffset: 4,
     attribution:
             '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors | <span style="color: red; font-weight: bold; width: 100%">Mapa não oficial</span>',
@@ -141,3 +142,19 @@ export default {
   },
 };
 </script>
+<style lang="css" scoped>
+.minimap-for-print{
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#printMap{
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.leaflet-container{
+    width: 100% !important;
+    height: 100% !important;
+}
+</style>

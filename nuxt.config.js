@@ -97,9 +97,27 @@ export default {
   },
 
   build: {
+    transpile: ['@turf/turf', 'circle-to-polygon'],
+    postcss: false,
     extend(config, ctx) {
       if (ctx.isDev) {
         config.devtool = ctx.isClient ? 'source-map' : 'inline-source-map';
+      }
+      
+      // Configurar regras CSS para ignorar PostCSS em node_modules
+      const cssRule = config.module.rules.find(rule => rule.test && rule.test.toString().includes('css'));
+      if (cssRule && cssRule.oneOf) {
+        cssRule.oneOf.forEach(rule => {
+          if (rule.use && Array.isArray(rule.use)) {
+            const postcssIndex = rule.use.findIndex(loader => 
+              loader.loader && loader.loader.includes('postcss-loader')
+            );
+            if (postcssIndex !== -1) {
+              // Remover postcss-loader para arquivos em node_modules
+              rule.exclude = /node_modules/;
+            }
+          }
+        });
       }
     },
   },
