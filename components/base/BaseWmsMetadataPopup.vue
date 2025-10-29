@@ -640,16 +640,15 @@ export default {
     },
 
     async getFeatureInfo(evt) {
+      if (this.isDrawing) return;
+
       this.hasPopup = false;
       this.data = {};
-      this.layerDownloadMap = {}; // Limpar mapa de download
+      this.layerDownloadMap = {};
       this.currentLatLng = evt.latlng;
-
-      console.log('Iniciando busca por informações no ponto:', this.currentLatLng);
 
       await this.map.eachLayer(async (layer) => {
         if (Object.prototype.hasOwnProperty.call(layer, 'wmsParams')) {
-          console.log('Processando camada WMS:', layer.wmsParams.name, layer.wmsParams.layers);
           this.hasPopup = true;
           const layerName = layer.wmsParams.name;
 

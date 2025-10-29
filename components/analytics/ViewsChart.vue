@@ -49,6 +49,7 @@
                     value="AGÊNCIAS"
                     @change="updateInstitution"
                   >
+
                   <label
                     class="toggle_button"
                     for="agencias"
@@ -92,69 +93,71 @@
                 {{ $t('filter') }}
               </v-btn>
 
-              <div class="download-buttons d-flex ga-2">
-                <v-tooltip bottom>
-                  <template #activator="{ on, attrs }">
-                    <v-btn
-                      icon
-                      small
-                      outlined
-                      color="grey"
-                      class="download-btn"
-                      :loading="downloading === 'csv'"
-                      v-bind="attrs"
-                      v-on="on"
-                      @click="downloadCSV"
-                    >
-                      <v-icon small>
-                        mdi-microsoft-excel
-                      </v-icon>
-                    </v-btn>
-                  </template>
-                  <span>Download Excel</span>
-                </v-tooltip>
+              <!-- Export buttons -->
+              <div class="d-flex align-center ml-3">
+                <div class="export-icons">
+                  <div class="export-label text-uppercase mr-2">
+                    Exportar
+                  </div>
 
-                <v-tooltip bottom>
-                  <template #activator="{ on, attrs }">
-                    <v-btn
-                      icon
-                      small
-                      outlined
-                      color="grey"
-                      class="download-btn"
-                      :loading="downloading === 'pdf'"
-                      v-bind="attrs"
-                      v-on="on"
-                      @click="downloadPDF"
-                    >
-                      <v-icon small>
-                        mdi-file-pdf-outline
-                      </v-icon>
-                    </v-btn>
-                  </template>
-                  <span>Download PDF</span>
-                </v-tooltip>
+                  <v-tooltip top>
+                    <template #activator="{ on, attrs }">
+                      <v-btn
+                        icon
+                        color="#D92B3F"
+                        v-bind="attrs"
+                        class="mr-2"
+                        :loading="downloading === 'pdf'"
+                        v-on="on"
+                        @click="downloadPDF"
+                      >
+                        <v-icon size="40">
+                          mdi-file-pdf-box
+                        </v-icon>
+                      </v-btn>
+                    </template>
+                    <span>PDF</span>
+                  </v-tooltip>
 
-                <v-tooltip bottom>
-                  <template #activator="{ on, attrs }">
-                    <v-btn
-                      icon
-                      small
-                      outlined
-                      color="grey"
-                      class="download-btn"
-                      :loading="downloading === 'img'"
-                      v-bind="attrs"
-                      v-on="on"
-                      @click="downloadImg"
-                    >
-                      <v-icon small>
-                        mdi-image-outline
-                      </v-icon>
-                    </v-btn>
-                  </template>
-                  <span>Download Imagem</span>
-                </v-tooltip>
+                  <v-tooltip top>
+                    <template #activator="{ on, attrs }">
+                      <v-btn
+                        icon
+                        disabled
+                        color="#43A047"
+                        class="mr-2"
+                        v-bind="attrs"
+                        :loading="downloading === 'csv'"
+                        v-on="on"
+                        @click="downloadCSV"
+                      >
+                        <v-icon size="40">
+                          mdi-file-excel-box
+                        </v-icon>
+                      </v-btn>
+                    </template>
+                    <span>CSV</span>
+                  </v-tooltip>
+
+                  <v-tooltip top>
+                    <template #activator="{ on, attrs }">
+                      <v-btn
+                        icon
+                        color="#FF9800"
+                        class="mr-3"
+                        v-bind="attrs"
+                        :loading="downloading === 'img'"
+                        v-on="on"
+                        @click="downloadImg"
+                      >
+                        <v-icon size="40">
+                          mdi-image
+                        </v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Imagem</span>
+                  </v-tooltip>
+                </div>
               </div>
             </div>
           </v-col>
@@ -763,20 +766,31 @@ export default {
       this.resetButtonsVisibility();
     },
 
-    resetButtonsVisibility() {
-      const shareButtons = document.querySelectorAll('.chart--btn-wrapper, .chart--btn-wrapper-saves');
-      const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
-      const shadowBoxCards = document.querySelectorAll('.v-application , .elevation-2');
+    toggleExportMode(hide = true) {
+      const sel = {
+        share: '.chart--btn-wrapper, .chart--btn-wrapper-saves',
+        map: '.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar',
+        card: '.v-application .elevation-2',
+        head: '.chart-header',
+      };
 
-      shareButtons.forEach((button) => {
-        button.style.display = '';
-      });
-      mapZoomControlBtn.forEach((button) => {
-        button.style.display = '';
-      });
-      shadowBoxCards.forEach((card) => {
-        card.setAttribute('style', 'box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12) !important;');
-      });
+      const disp = hide ? 'none' : '';
+      const cardStyle = hide
+        ? 'box-shadow:none!important;border:1px solid #EEE;'
+        : 'box-shadow:0 3px 1px -2px rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 1px 5px 0 rgba(0,0,0,.12)!important;';
+
+      [sel.share, sel.map, sel.head].forEach((s) => document.querySelectorAll(s).forEach((e) => (e.style.display = disp)));
+
+      document.querySelectorAll(sel.card)
+        .forEach((c) => c.setAttribute('style', cardStyle));
+    },
+
+    prepareToExportData() {
+      this.toggleExportMode(true);
+    },
+
+    resetButtonsVisibility() {
+      this.toggleExportMode(false);
     },
 
     newSearch() {
@@ -840,22 +854,6 @@ export default {
       this.startDateKey += 1;
       this.endDateKey += 1;
       this.filter();
-    },
-
-    prepareToExportData() {
-      const shareButtons = document.querySelectorAll('.chart--btn-wrapper, .chart--btn-wrapper-saves');
-      const mapZoomControlBtn = document.querySelectorAll('.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar');
-      const shadowBoxCards = document.querySelectorAll('.v-application .elevation-2');
-
-      shareButtons.forEach((button) => {
-        button.style.display = 'none';
-      });
-      mapZoomControlBtn.forEach((button) => {
-        button.style.display = 'none';
-      });
-      shadowBoxCards.forEach((card) => {
-        card.setAttribute('style', 'box-shadow: none !important; border: 1px solid #EEEE;');
-      });
     },
 
     async downloadCSV() {
@@ -929,24 +927,66 @@ export default {
       }
     },
 
+    formatTitleForDocument() {
+      const title = this.$t('viewsControl');
+      let filename = title;
+
+      if (this.startDate && this.endDate) {
+        filename += ` | ${this.startDate} → ${this.endDate}`;
+      } else if (this.startDate) {
+        filename += ` | ${this.startDate}`;
+      } else if (this.endDate) {
+        filename += ` | ${this.endDate}`;
+      }
+
+      return { title, filename };
+    },
+
     async downloadPDF() {
       this.downloading = 'pdf';
       this.prepareToExportData();
       try {
-        const nameImageDownload = `${this.$t('viewsControl')}|${this.appliedFilters.startDate ? this.appliedFilters.startDate : ''}|${this.appliedFilters.endDate ? this.appliedFilters.endDate : ''}`;
-        const options = {
-          quality: 1,
-          bgcolor: 'white',
-        };
+        const { title, filename } = this.formatTitleForDocument();
         const node = document.getElementById('chart');
 
-        const image = await domtoimage.toJpeg(node, options);
-        const doc = new jsPDF({
-          orientation: 'portrait',
-          format: 'A4',
+        // Render node to image
+        const image = await domtoimage.toPng(node, {
+          quality: 1,
+          bgcolor: '#ffffff',
+          style: {
+            transform: 'scale(1)',
+            transformOrigin: 'top left',
+            filter: 'none',
+          },
         });
-        doc.addImage(image, 'JPEG', 0, 0, 210, 295);
-        doc.save(`${nameImageDownload}.pdf`);
+
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: 'a4',
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        // Title centered at the top
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(title, pageWidth / 2, 12, { align: 'center' });
+
+        const img = new Image();
+        img.src = image;
+        await new Promise((resolve) => (img.onload = resolve));
+
+        // Keep image ratio and center it
+        const ratio = Math.min(pageWidth / img.width, (pageHeight - 20) / img.height);
+        const imgWidth = img.width * ratio;
+        const imgHeight = img.height * ratio;
+        const marginX = (pageWidth - imgWidth) / 2;
+        const marginY = (pageHeight - imgHeight) / 2 + 5;
+
+        pdf.addImage(img, 'PNG', marginX, marginY, imgWidth, imgHeight);
+        pdf.save(`${filename}.pdf`);
 
         this.downloadSuccess = true;
       } catch (error) {
@@ -1101,7 +1141,26 @@ export default {
       margin-bottom: 1rem
 
 @media (max-width: 600px)
-  .download-buttons
-    flex-wrap: wrap
-    justify-content: center
+  .chart
+    .chart-header
+      padding: 1rem
+
+      .page-title
+        font-size: 1.25rem
+
+    .download-buttons
+      flex-wrap: wrap
+      justify-content: center
+
+// Export buttons styles
+.export-label
+  letter-spacing: 0.5px
+  font-size: 0.8rem
+  display: flex
+  align-items: center
+
+.export-icons
+  display: flex
+  align-items: center
+  gap: 0.25rem
 </style>

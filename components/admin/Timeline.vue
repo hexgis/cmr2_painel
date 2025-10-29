@@ -76,11 +76,7 @@
                     icon
                     small
                     color="primary"
-                    :href="getDownloadLink(attachment)"
-                    target="_blank"
-                    @click.stop
                   >
-                    >
                     <v-icon small>
                       mdi-download
                     </v-icon>
@@ -120,6 +116,8 @@
   }
 </i18n>
 <script>
+import { mapActions } from 'vuex';
+
 export default {
   name: 'TicketTimeline',
   props: {
@@ -129,17 +127,9 @@ export default {
     },
   },
   methods: {
-    getDownloadLink(attachment) {
-      if (!attachment || !attachment.id) return '#';
-      const baseUrl = this.$api.defaults.baseURL;
-      const attachmentId = attachment.id;
-      const attachmentType = 'answer';
-      return `${baseUrl}adm-panel/tickets/download/${attachmentId}/${attachmentType}/`;
-    },
-
-    downloadAttachment(attachment) {
-      const link = this.getDownloadLink(attachment);
-      window.open(link, '_blank');
+    async downloadAttachment(file) {
+      if (!file || !file.id) return;
+      await this.downloadFileTicketDetails({ file, downloadType: 'answer' });
     },
 
     getFileIcon(fileName) {
@@ -250,6 +240,8 @@ export default {
           return 'grey';
       }
     },
+
+    ...mapActions('admin', ['downloadFileTicketDetails']),
   },
 };
 </script>

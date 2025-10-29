@@ -242,6 +242,27 @@ export const actions = {
       commit('setPendingRequestsCount', 0);
     }
   },
+
+  async downloadFileTicketDetails({ commit }, { file, downloadType }) {
+    try {
+      if (!file || !file.id) return;
+
+      const url = `/adm-panel/tickets/download/${file.id}/${downloadType}/`;
+
+      const response = await this.$api.get(url, { responseType: 'blob' });
+      const contentType = response.headers['content-type'] || 'application/octet-stream';
+      const blob = new Blob([response.data], { type: contentType });
+      await this.$downloader.file(blob, response.headers['content-disposition'], file.name);
+    } catch (error) {
+      commit('alert/addAlert', {
+        message: this.$i18n.t('default-error', {
+          action: this.$i18n.t('retrieve'),
+          resource: this.$i18n.t('file'),
+        }),
+        type: 'error',
+      }, { root: true });
+    }
+  },
 };
 
 export const getters = {

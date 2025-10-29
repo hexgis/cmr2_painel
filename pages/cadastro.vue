@@ -399,9 +399,11 @@ export default {
           data.append('coordinator_institution_acronym', coordinatorInstitution.acronym || '');
         }
       } else {
-        if (this.formData.institution && this.formData.institution.text) {
-          data.append('institution', this.formData.institution.text);
-        }
+        data.append('organization', this.formData.organization);
+        data.append('position', this.formData.position);
+        data.append('justification', this.formData.justification);
+        data.append('external_institution_name', this.formData.institution);
+
         if (this.formData.attachment) {
           data.append('attachment', this.formData.attachment);
         }

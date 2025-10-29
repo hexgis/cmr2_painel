@@ -54,6 +54,7 @@
                 :key="btn.icon"
                 icon
                 class="btn-tools"
+                :disabled="isDrawing"
                 small
                 :class="{ 'active-button': btn.icon === activeButton }"
                 @click="createDrawControl(btn.type, btn.icon)"
@@ -97,6 +98,7 @@
                 v-for="btn in buttonsEdit"
                 :key="btn.icon"
                 icon
+                :disabled="isDrawing"
                 class="btn-tools"
                 x-small
                 @click="handleButtonEditClick(btn.type)"
@@ -158,7 +160,6 @@
           :ref="'componentPopupContent' + layer._leaflet_id"
           :layer="layer"
           :value-content="contentPopupDraw"
-          :relationship="searchLayersRelationship"
           :loading-relationship="loadingRelationship"
         />
       </div>
@@ -231,7 +232,9 @@
 /* eslint-disable no-underscore-dangle --
  * Underscore attributes defined by "Leafleat" plugin
  */
-import { mapState, mapMutations, mapActions, mapGetters } from 'vuex';
+import {
+  mapState, mapMutations, mapActions, mapGetters,
+} from 'vuex';
 import DrawPopup from '../DrawPopup.vue';
 import BaseDialog from './BaseDialog.vue';
 import getGeometryArea from '~/plugins/getGeometryArea';
@@ -268,7 +271,7 @@ export default {
       { icon: 'mdi-panorama-fisheye', type: 'CircleMarker' },
       { icon: 'mdi-format-text', type: 'TextBox' },
     ],
-    
+
     createdControl: false,
     activeButton: null,
     drawingFinished: false,
@@ -292,9 +295,8 @@ export default {
       ];
     },
 
-    ...mapState('map', ['buttonPopup', 'activeMenu']),
+    ...mapState('map', ['buttonPopup', 'activeMenu', 'isDrawing']),
     ...mapState('supportLayers', ['supportLayers', 'showFeaturesSupportLayers']),
-    ...mapState('searchInArea', ['layersGroups']),
     ...mapGetters('auth', ['isLoggedIn']),
   },
 
@@ -355,6 +357,7 @@ export default {
       if (this.drawInstance) {
         this.drawInstance.disable();
       }
+      this.setIsDrawing(false);
     },
 
     /**
@@ -379,14 +382,16 @@ export default {
     createDrawControl(type, icon) {
       // Set the active button with the specified icon.
       this.activeButton = icon;
+
+      // Enable drawing functionality.
+      this.setIsDrawing(true);
+
       // Check if the type is not 'TextBox'.
       if (type !== 'TextBox') {
         // Disable the current drawing instance if it exists.
         if (this.drawInstance) {
           this.drawInstance.disable();
         }
-        // Enable drawing functionality.
-        this.setIsDrawing(true);
 
         // If the control has not been created yet, set up events and the drawn items layer.
         if (!this.createdControl) {
@@ -396,6 +401,7 @@ export default {
           this.map.addLayer(this.drawnItems);
           this.createdControl = true;
         }
+
         // Create a new drawing instance based on the specified type and enable it.
         this.drawInstance = new this.$L.Draw[type](this.map);
         this.drawInstance.enable();
@@ -425,6 +431,7 @@ export default {
         this.isDeleteButtonActive = false;
       }
       if (type === 'Edit' || type === 'Delete' || type === 'Buffer') {
+        this.setIsDrawing(true);
         // Create a new drawing instance based on the button type.
         this.drawInstance = new this.$L.EditToolbar[type](this.map, {
           featureGroup: this.drawnItems,
@@ -489,6 +496,7 @@ export default {
       this.isButtonEditClicked = false;
       // Disable the drawing functionality.
       this.drawInstance.disable();
+      this.isDeleteButtonActive = false;
     },
 
     /**
@@ -508,6 +516,7 @@ export default {
         });
         // Clear the textBoxId array
         this.textBoxId = [];
+        this.setIsDrawing(false);
       }
     },
 
@@ -555,7 +564,10 @@ export default {
      */
     generateJson(obj) {
       // Create an array to store circle geometries.
-      const circles = [];
+      const geojson = {
+        type: 'FeatureCollection',
+        features: [],
+      };
       // Iterate through the layers in drawnItems.
       Object.values(this.drawnItems._layers).forEach((layer) => {
         // Check if the layer has a radius (is a circle).
@@ -563,24 +575,19 @@ export default {
           // Extract coordinates and create a polygon representing the circle.
           const coordinates = [layer._latlng.lng, layer._latlng.lat];
           const circle = circleToPolygon(coordinates, layer._mRadius, 512);
-          circles.push(circle);
+          geojson.features.push({
+            type: 'Feature',
+            geometry: circle,
+            properties: {},
+          });
+          return;
         }
-      });
-      // Convert drawnItems to GeoJSON format.
-      const geometry = this.drawnItems.toGeoJSON();
-      // Iterate through the circle geometries and add them to the GeoJSON.
-      circles.forEach((circle) => {
-        const circleGeojson = {
-          type: 'Feature',
-          geometry: { coordinates: circle.coordinates, type: circle.type },
-          properties: {},
-        };
-        geometry.features.push(circleGeojson);
+        geojson.features.push(layer.toGeoJSON());
       });
       // Define available actions for the drawing.
       const actions = {
-        Download: () => this.downloadDraw(geometry, obj.name),
-        Save: () => this.saveIntoDb(geometry, obj.name),
+        Download: () => this.downloadDraw(geojson, obj.name),
+        Save: () => this.saveIntoDb(geojson, obj.name),
       };
       // Get the specified action based on obj.type and execute it.
       const action = actions[obj.type];
@@ -615,7 +622,12 @@ export default {
           className: 'draw-popup card-popup',
         });
       });
-      this.setIsDrawing(false);
+      // Delay setting isDrawing to false to prevent the global map click handler
+      // from immediately opening the feature info popup on the residual click event
+      // that finishes the drawing.
+      setTimeout(() => {
+        this.setIsDrawing(false);
+      }, 100);
     },
 
     /**
@@ -627,36 +639,35 @@ export default {
     activePopup(type, layerId) {
       // If the action is 'Delete', remove the specified layer from the map.
       if (type === 'Delete') {
-        this.map.removeLayer(this.drawnItems._layers[layerId]);
+        const layer = this.drawnItems._layers[layerId];
+        window.controlBuffer.removeBuffer(layer);
+        this.map.removeLayer(layer);
         delete this.drawnItems._layers[layerId];
         this.hasDraw = Object.keys(this.drawnItems._layers).length > 0;
       }
       // If the action is 'Edit' or 'Buffer'.
       if (type === 'Edit' || type === 'Buffer') {
         // Disable the current drawing instance, if it exists.
-        if (this.drawInstance) {
-          this.drawInstance.disable();
-        }
-        // Set the 'isButtonEditClicked' flag to true.
-        this.isButtonEditClicked = true;
+        if (this.drawInstance) this.drawInstance.disable();
+        // Set the 'isButtonEditClicked' flag to true only for Edit.
+        this.isButtonEditClicked = type === 'Edit';
         // Get all layers in drawnItems and filter the selected layer by its ID.
         const allLayers = Object.values(this.drawnItems._layers);
-        const selectedLayer = allLayers.filter(
-          (layer) => layer._leaflet_id === layerId,
-        );
-        // Close the popup of the selected layer.
-        selectedLayer[0].closePopup();
+        const selectedLayer = allLayers.find((layer) => layer._leaflet_id === layerId);
+        selectedLayer.closePopup();
         // Create a FeatureGroup containing the selected layer.
         const editingLayer = new this.$L.FeatureGroup();
-        editingLayer._layers = selectedLayer;
+        editingLayer.addLayer(selectedLayer);
         editingLayer._map = this.drawnItems._map;
         editingLayer._mapToAdd = this.drawnItems._mapToAdd;
-        // Create a new drawing instance based on the specified action ('Edit' or 'Buffer').
-        this.drawInstance = new this.$L.EditToolbar[type](this.map, {
-          featureGroup: editingLayer,
-        });
-        // Enable the new drawing instance.
-        this.drawInstance.enable();
+        if (type === 'Buffer' && window.controlBuffer) window.controlBuffer.createBuffer(selectedLayer);
+        else {
+          this.drawInstance = new this.$L.EditToolbar.Edit(this.map, {
+            featureGroup: editingLayer,
+          });
+          // Enable the new drawing instance.
+          this.drawInstance.enable();
+        }
       }
     },
 
@@ -699,78 +710,10 @@ export default {
           }
         }
       });
+      this.setIsDrawing(false);
     },
 
-    /**
-     * Searches related layers based on an input geometry.
-     *
-     * @param {Layer} layer - The input layer for the search.
-     * @param {string} type - The geometry type, can be 'Circle' or another value.
-     * @returns {Promise<void>} A promise that resolves when the search is completed.
-     */
-    async searchLayersRelationship(layer) {
-      // Set a variable to indicate that the search is in progress.
-      this.loadingRelationship = true;
-      try {
-        // Set the request tool to 'Draw'.
-        this.setRequestTool('Draw');
-        // Filter and map active layers to get their names and IDs.
-        const layersActives = Object.values(this.supportLayers).filter((item) => item.visible)
-          .map((item) => `${item.name}_${item.id}`);
-        // Check if there are selected active layers.
-        if (layersActives.length) {
-          // Set the drawing action to 'relationship'.
-          this.setStartDraw('relationship');
-          // If there is no information about layer groups, asynchronously fetch them.
-          if (!this.layersGroups) { await this.getGeoserverLayers(); }
-          // Navigate to the drawing search page.
-          this.$router.push(this.localePath('/spatial-analysis'));
-          this.setCurrentStage('SearchInArea');
-          let wkt;
-          const polygon = layer.toGeoJSON();
-          // Convert the geometry to WKT format, depending on the input type ('Circle' or other).
-          if (layer instanceof this.$L.Circle) {
-            const coordinates = [polygon.geometry.coordinates[0], polygon.geometry.coordinates[1]];
-            const raio = layer._mRadius;
-            const circle = circleToPolygon(coordinates, raio, 32);
-            wkt = stringify(circle);
-          } else {
-            wkt = stringify(polygon.geometry);
-          }
-          // Create a spatial query (CQL) based on the geometry.
-          const cqlFilter = `INTERSECTS(geom,${wkt})`;
-          // Set the drawing action to true.
-          this.setDraw(true);
-          // Set the CQL filter.
-          this.setCqlFilter(cqlFilter);
-          // Set result groups to false.
-          this.setResultGroups(false);
-          // Start the search on the specified layers.
-          this.setSearch(layersActives);
-        } else {
-          // If there are no active layers, display an alert message.
-          this.$store.commit('alert/addAlert', {
-            message: this.$t('layers-active-label'),
-          });
-        }
-      } catch (error) {
-        // Log errors to the console, if any.
-        console.error('An error occurred:', error);
-      } finally {
-        // Set the loading variable to false, indicating that the search is completed.
-        this.loadingRelationship = false;
-      }
-    },
     ...mapMutations('map', ['setIsDrawing', 'setStartDraw']),
-    ...mapMutations('searchInArea', [
-      'setSearch',
-      'setResultGroups',
-      'setCqlFilter',
-      'setDraw',
-      'setRequestTool',
-      'setCurrentStage',
-    ]),
-    ...mapActions('searchInArea', ['getGeoserverLayers']),
     ...mapActions('map', ['saveDrawToDatabase']),
   },
 };
