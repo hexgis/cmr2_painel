@@ -1,688 +1,880 @@
-  const { stringify } = require('wkt');
-  import Vue from 'vue';
- 
-  export const state = () => ({
-    features: null,
-    urlWmsLandUse: 'https://cmrhomolog.funai.gov.br/geoserver/ows?',
-    geoserverLayerLandUse: 'CMR-PUBLICO:img_analise_consolidado_oneatlas_dissolvido_por_estagio_a',
-    currentUrlWmsLandUse: '',
+import centroid from '@turf/centroid';
+import { convertToCSV, saveData } from '@/utils/csv';
+
+export default {
+  state: () => ({
     showFeaturesLandUse: false,
-    LandUseWmsOptions: {
-      name: 'landUse',
-      maxZoom: 21,
-      maxNativeZoom: 19,
-      queryable: true,
-    },
-    loadingLandUse: false,
-    isLoadingFeatures: false,
-    filterOptions: {
-      regionalFilters: [],
-      tiFilters: [],
-    },
+    heatMapLandUse: false,
+    urlWmsLandUse: '',
+    // analyticsData: [],
+    geoserverLayerLandUse: process.env.GEOSERVER_LAND_USE,
+    geoserverLayerLandUseHeatmap: process.env.GEOSERVER_LAND_USE_HEATMAP,
+    downloadGeoserverMaxFeatures: process.env.DOWNLOAD_GEOSERVER_MAX_FEATURES,
     filters: {
-      year: new Date().getFullYear(),
       currentView: false,
+      currentTab: 'data',
+      cr: [],
+      ti: [],
+      startCycle: null,
+      endCycle: null,
+      startDate: '',
+      endDate: '',
+      year: null,
+      bbox: null,
+      bboxWkt: null,
+    },
+    stats: {
+      totalFeatures: 0,
+      totalArea: 0,
+      stages: [],
+      tableLandUse: [],
+      heatmapLandUse: [],
+      tiByStages: [],
+      // rangeCycles: null,
     },
     opacity: 100,
-    intersectsWmsLandUse: '',
-    landUseStyles: {},
-    tableLandUse: [],
-    isLoadingTable: false,
-    isLoadingCSV: false,
-    legendVisibility: {},
-    availableEstagios: [],
-  });
+    // cycles: [],
+    regionalCoordinators: [
+      {
+        co_cr: 30202001845,
+        ds_cr: 'Alto Purus',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202001857,
+        ds_cr: 'Alto Solimoes',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202001899,
+        ds_cr: 'Amapá E Norte Do Pará',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202001962,
+        ds_cr: 'Araguaia Tocantins',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202001983,
+        ds_cr: 'Baixo São Francisco',
+        no_regiao: 'Nordeste',
+      },
+      {
+        co_cr: 30202001906,
+        ds_cr: 'Baixo Tocantins',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202001934,
+        ds_cr: 'Cacoal',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202002004,
+        ds_cr: 'Campo Grande',
+        no_regiao: 'Centro-Oeste',
+      },
+      {
+        co_cr: 30202001913,
+        ds_cr: 'Centro-Leste Do Pará',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202002025,
+        ds_cr: 'Cuiaba',
+        no_regiao: 'Centro-Oeste',
+      },
+      {
+        co_cr: 30202002011,
+        ds_cr: 'Dourados',
+        no_regiao: 'Centro-Oeste',
+      },
+      {
+        co_cr: 30202001941,
+        ds_cr: 'Guajara Mirim',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202002408,
+        ds_cr: 'Guarapuava',
+        no_regiao: 'Sul',
+      },
+      {
+        co_cr: 30202002088,
+        ds_cr: 'Interior Sul',
+        no_regiao: 'Sul',
+      },
+      {
+        co_cr: 30202001948,
+        ds_cr: 'Ji Parana',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202002287,
+        ds_cr: 'Joao Pessoa',
+        no_regiao: 'Nordeste',
+      },
+      {
+        co_cr: 30202001852,
+        ds_cr: 'Juruá',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202001920,
+        ds_cr: 'Kayapó Sul Do Pará',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202002074,
+        ds_cr: 'Litoral Sudeste',
+        no_regiao: 'Sudeste',
+      },
+      {
+        co_cr: 30202002095,
+        ds_cr: 'Litoral Sul',
+        no_regiao: 'Sul',
+      },
+      {
+        co_cr: 30202001864,
+        ds_cr: 'Madeira',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202001871,
+        ds_cr: 'Manaus',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202001997,
+        ds_cr: 'Maranhão',
+        no_regiao: 'Nordeste',
+      },
+      {
+        co_cr: 30202001878,
+        ds_cr: 'Médio Purus',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202002067,
+        ds_cr: 'Minas Gerais E Espirito Santo',
+        no_regiao: 'Sudeste',
+      },
+      {
+        co_cr: 30202001969,
+        ds_cr: 'Nordeste I',
+        no_regiao: 'Nordeste',
+      },
+      {
+        co_cr: 30202001976,
+        ds_cr: 'Nordeste Ii',
+        no_regiao: 'Nordeste',
+      },
+      {
+        co_cr: 30202002032,
+        ds_cr: 'Noroeste Do Mato Grosso',
+        no_regiao: 'Centro-Oeste',
+      },
+      {
+        co_cr: 30202002039,
+        ds_cr: 'Norte Do Mato Grosso',
+        no_regiao: 'Centro-Oeste',
+      },
+      {
+        co_cr: 30202002081,
+        ds_cr: 'Passo Fundo',
+        no_regiao: 'Sul',
+      },
+      {
+        co_cr: 30202002018,
+        ds_cr: 'Ponta Pora',
+        no_regiao: 'Centro-Oeste',
+      },
+      {
+        co_cr: 30202002046,
+        ds_cr: 'Ribeirao Cascalheira',
+        no_regiao: 'Centro-Oeste',
+      },
+      {
+        co_cr: 30202001885,
+        ds_cr: 'Rio Negro',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202001955,
+        ds_cr: 'Roraima',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202001990,
+        ds_cr: 'Sul Da Bahia',
+        no_regiao: 'Nordeste',
+      },
+      {
+        co_cr: 30202001927,
+        ds_cr: 'Tapajos',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202001892,
+        ds_cr: 'Vale Do Javari',
+        no_regiao: 'Norte',
+      },
+      {
+        co_cr: 30202002053,
+        ds_cr: 'Xavante',
+        no_regiao: 'Centro-Oeste',
+      },
+      {
+        co_cr: 30202002060,
+        ds_cr: 'Xingu',
+        no_regiao: 'Centro-Oeste',
+      },
+    ],
+    indigenousLands: [
+      {
+        co_funai: 3002,
+        no_ti: 'Apyterewa',
+      },
+      {
+        co_funai: 3201,
+        no_ti: 'Arara',
+      },
+      {
+        co_funai: 60001,
+        no_ti: 'Arara da Volta Grande do Xingu',
+      },
+      {
+        co_funai: 3801,
+        no_ti: 'Araweté Igarapé Ipixuna',
+      },
+      {
+        co_funai: 7601,
+        no_ti: 'Cachoeira Seca',
+      },
+      {
+        co_funai: 72601,
+        no_ti: 'Ituna/Itatá (restrição de uso)',
+      },
+      {
+        co_funai: 62001,
+        no_ti: 'Juruna do Km 17',
+      },
+      {
+        co_funai: 21501,
+        no_ti: 'Kararaô',
+      },
+      {
+        co_funai: 23201,
+        no_ti: 'Koatinemo',
+      },
+      {
+        co_funai: 38902,
+        no_ti: 'Kuruáya',
+      },
+      {
+        co_funai: 32602,
+        no_ti: 'Paquiçamba',
+      },
+      {
+        co_funai: 32601,
+        no_ti: 'Paquiçamba',
+      },
+      {
+        co_funai: 46201,
+        no_ti: 'Trincheira Bacaja',
+      },
+      {
+        co_funai: 50601,
+        no_ti: 'Xipaya',
+      },
+      {
+        co_funai: 51001,
+        no_ti: 'Zoe',
+      },
+    ],
+    yearItems: [{ text: '2015', value: 2015 }, { text: '2019', value: 2019 }],
+    loadingSearchLandUse: false,
+    loadingRegionalCoordinators: false,
+    loadingIndigenousLands: false,
+    loadingDownloadGeojson: false,
+    loadingStatistic: false,
+    loadingTable: false,
+    loadingStats: false,
+    loadingDownloadCSV: false,
+    loadingHeatmap: false,
+    loadingYearsItems: false,
+    // loadingCycles: false,
+  }),
 
-  export const getters = {
-    getLegendItems: (state) => {
-      const legendMapping = {
-        AG: { name: 'Agropecuária', acronym: 'AG' },
-        CR: { name: 'Corte Raso', acronym: 'CR' },
-        DG: { name: 'Degradação', acronym: 'DG' },
-        MA: { name: 'Massa de Água', acronym: 'MA' },
-        MI: { name: 'Mineração', acronym: 'MI' },
-        NO: { name: 'Não Observado', acronym: '' },
-        RV: { name: 'Rodovia', acronym: 'RV' },
-        SV: { name: 'Silvicultura', acronym: 'SV' },
-        VN: { name: 'Vegetação Natural', acronym: 'VN' },
-        VI: { name: 'Vilarejo', acronym: 'VI' },
-      };
+  getters: {
+    getShowFeaturesLandUse(state) { return state.showFeaturesLandUse; },
+    getFilters(state) { return state.filters; },
+    getRegionalCoordinators(state) { return state.regionalCoordinators; },
+    getIndigenousLands(state) { return state.indigenousLands; },
+    getYearItems(state) { return state.yearItems; },
+    // getCycles(state) { return state.cycles; },
+    getLayerLandUse(state) { return state.geoserverLayerLandUse; },
+    getLayerLandUseHeatmap(state) { return state.geoserverLayerLandUseHeatmap; },
+    getUrlWmsLandUse(state) { return state.urlWmsLandUse; },
+    getOpacity(state) { return state.opacity / 100; },
+    getStats: (state) => state.stats,
+    getStagesVisible: (state) => state.stats.stages.filter((stage) => stage.visible),
 
-      // Determinar estágios ativos com base em tableLandUse
-      const activeEstagios = new Set();
-      if (state.tableLandUse && state.tableLandUse.length) {
-        state.tableLandUse.forEach(item => {
-          ['AG', 'CR', 'DG', 'MA', 'MI', 'NO', 'RV', 'SV', 'VN', 'VI'].forEach(estagio => {
-            if (parseFloat(item[`nu_area_${estagio.toLowerCase()}_ha`]) > 0) {
-              activeEstagios.add(estagio);
-            }
-          });
-        });
-      }
-
-      // Mapear terras indígenas por estágio com base em features
-      const tiCountMap = new Map();
-      if (state.features?.features) {
-        state.features.features.forEach(({ properties }) => {
-          const estagio = properties.no_estagio;
-          if (!estagio) return;
-          if (!tiCountMap.has(estagio)) {
-            tiCountMap.set(estagio, new Set());
-          }
-          tiCountMap.get(estagio).add(properties.co_funai);
-        });
-      }
-
-      // Incluir todos os estágios disponíveis, com indicação de ativo
-      return state.availableEstagios
-        .map((estagio) => {
-          const mapped = legendMapping[estagio] || { name: estagio, acronym: '' };
-          const label = mapped.acronym ? `${mapped.name} (${mapped.acronym})` : mapped.name;
-          return {
-            label,
-            color: state.landUseStyles[estagio] || '#000000',
-            count: tiCountMap.get(estagio)?.size || 0,
-            estagio,
-            visible: state.legendVisibility[estagio] !== false,
-            active: activeEstagios.has(estagio), // Indica se o estágio tem área > 0
-          };
-        })
-        .sort((a, b) => a.label.localeCompare(b.label));
+    getFormattedRegionalCoordinates: (state) => (key = 'co_cr') => {
+      if (!Array.isArray(state.filters.cr)) return [];
+      return state.filters.cr.map((r) => r[key]).filter((v) => v != null);
     },
 
-    // Novo getter para o componente de impressão
-    getActiveLegendItems: (state, getters) => {
-      return getters.getLegendItems.filter(item => item.active);
-    },
-  };
-
-  export const mutations = {
-    setLoadingLandUse(state, payload) {
-      state.loadingLandUse = payload;
+    getFormattedIndigenousLands: (state) => (key = 'co_funai') => {
+      if (!Array.isArray(state.filters.ti)) return [];
+      return state.filters.ti.map((r) => r[key]).filter((v) => v != null);
     },
 
-    resetLegendVisibility(state) {
-      state.legendVisibility = {};
-      state.availableEstagios.forEach((estagio) => {
-        Vue.set(state.legendVisibility, estagio, true); // Reativa todos os estágios
-      });
-    },
+    getParamsLandUseGeoserver: (state, getters) => (heatmap = false) => ({
+      service: 'WFS',
+      version: '1.0.0',
+      request: 'GetFeature',
+      typeName: heatmap ? getters.getLayerLandUseHeatmap : getters.getLayerLandUse,
+      outputFormat: 'application/json',
+      CQL_FILTER: getters.getGenerateCqlFilterLandUse,
+      maxFeatures: !heatmap ? state.downloadGeoserverMaxFeatures : undefined,
+    }),
 
-    setIntersectsWmsLandUse(state, intersectsWmsLandUse) {
-      state.intersectsWmsLandUse = intersectsWmsLandUse;
-    },
-    setshowFeaturesLandUse(state, showFeaturesLandUse) {
-      state.showFeaturesLandUse = showFeaturesLandUse;
-    },
-    setLoadingFeatures(state, payload) {
-      state.isLoadingFeatures = payload;
-    },
-    setFilterOptions(state, data) {
-      state.filterOptions = data;
-    },
-    setOpacity(state, opacity) {
-      state.opacity = opacity;
-    },
-    setFilters(state, filters) {
-      state.filters = { ...state.filters, ...filters };
-    },
-    setUrlCurrentWmsLandUse(state, url) {
-      state.currentUrlWmsLandUse = url;
-    },
-    setFeatures(state, features) {
-      state.features = features;
-      state.isLoadingFeatures = false;
-    },
-    clearFeatures(state) {
-      state.features = null;
-    },
-    setLandUseStyles(state, styles) {
-      state.landUseStyles = styles;
-      state.availableEstagios.forEach((estagio) => {
-        if (!(estagio in state.legendVisibility)) {
-          Vue.set(state.legendVisibility, estagio, true);
-        }
-      });
-    },
-    setTableLandUse(state, data) {
-      state.tableLandUse = data;
-    },
-    setLoadingTable(state, payload) {
-      state.isLoadingTable = payload;
-    },
-    setLoadingCSV(state, payload) {
-      state.isLoadingCSV = payload;
-    },
-    setLegendVisibility(state, { estagio, visible }) {
-      Vue.set(state.legendVisibility, estagio, visible);
-    },
-    setAvailableEstagios(state, estagios) {
-      state.availableEstagios = estagios;
-    },
-  };
-
-  export const actions = {
-  async getDataTableLandUse({ commit, state }) {
-    commit('setLoadingTable', true);
-    try {
-      const params = {
-        service: 'WFS',
-        version: '1.0.0',
-        request: 'GetFeature',
-        typeName: state.geoserverLayerLandUse,
-        outputFormat: 'application/json',
-        CQL_FILTER: '',
-        maxFeatures: 10000,
-      };
+    getGenerateCqlFilterLandUse: (state, getters) => {
+      const cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
+      const ti = getters.getFormattedIndigenousLands('co_funai').join(',');
+      const { stages } = state.stats;
+      const { year, bboxWkt } = state.filters;
 
       const filters = [];
+      if (cr && cr.length) filters.push(`co_cr IN (${cr})`);
 
-      // Adicionar filtro para estágios visíveis apenas se houver estágios visíveis
-      const visibleEstagios = Object.keys(state.legendVisibility).filter(
-        estagio => state.legendVisibility[estagio]
-      );
-      if (visibleEstagios.length > 0) {
-        filters.push(`no_estagio IN ('${visibleEstagios.join("','")}')`);
-      } else {
-        // Não adiciona filtro de estágios, permitindo que todos sejam buscados
+      if (ti && ti.length) filters.push(`co_funai IN (${ti})`);
+
+      if (year) {
+        filters.push(`(nu_ano = ${year.value})`);
       }
 
-      if (state.filters.currentView && state.intersectsWmsLandUse) filters.push(state.intersectsWmsLandUse);
-      if (state.filters.ti?.length) filters.push(`co_funai IN (${state.filters.ti.map(ti => ti.co_funai).join(',')})`);
-      if (state.filters.cr?.length) filters.push(`co_cr IN (${state.filters.cr.map(cr => cr.co_cr).join(',')})`);
-      if (state.filters.year) filters.push(`nu_ano = ${state.filters.year}`);
+      const intersects = state.filters.currentView ? `INTERSECTS(geom, ${bboxWkt})` : '';
+      if (intersects) filters.push(intersects);
 
-      if (filters.length) params.CQL_FILTER = filters.join(' AND ');
-
-      const url = `${state.urlWmsLandUse}${new URLSearchParams(params)}`;
-      const response = await this.$api.$get(url);
-
-      if (!response?.features) {
-        commit('setTableLandUse', []);
-        throw new Error('Nenhum dado encontrado');
+      if (stages && stages.length) {
+        const stagesVisible = stages.filter((stage) => stage.visible);
+        if (stagesVisible.length) {
+          // no_estagio IN ('DR','CR')
+          filters.push(`no_estagio IN (${stagesVisible.map((stage) => `'${stage.name}'`).join(',')})`);
+        } else {
+          filters.push('no_estagio IN (\'\')');
+        }
       }
 
-      const groupedData = response.features.reduce((acc, { properties }) => {
-        const key = `${properties.co_funai}-${properties.nu_ano}`;
-        const estagio = properties.no_estagio;
-        const area = properties.nu_area_ha || 0;
+      console.log(filters.join(' AND '));
 
-        if (!acc[key]) {
-          acc[key] = {
-            co_funai: properties.co_funai || '',
-            ds_cr: properties.ds_cr || '',
-            no_ti: properties.no_ti || '',
-            nu_ano: properties.nu_ano || state.filters.year,
-            nu_area_ha: 0,
-            ...['AG', 'CR', 'DG', 'MA', 'SV', 'VN', 'VI', 'RV', 'MI', 'NO'].reduce((o, e) => ({
-              ...o,
-              [`nu_area_${e.toLowerCase()}_ha`]: 0,
-            }), {}),
-          };
-        }
+      return filters.join(' AND ');
+    },
 
-        const group = acc[key];
-        if (estagio && group[`nu_area_${estagio.toLowerCase()}_ha`] !== undefined) {
-          group[`nu_area_${estagio.toLowerCase()}_ha`] += area;
-        }
-        group.nu_area_ha += area;
+    getActiveLegendItems: (state) => state.stats.stages
+      .filter((stage) => stage.visible)
+      .map((stage) => ({ ...stage, label: stage.name })),
 
-        return acc;
-      }, {});
+    checkStageActive: (state) => (stage) => state.stats.stages.find(
+      (s) => s.name === stage.no_estagio && s.visible,
+    ),
 
-      commit('setTableLandUse', Object.values(groupedData));
-    } catch (error) {
-      console.error('Erro ao buscar dados da tabela:', error);
-      commit('setTableLandUse', []);
-      commit('alert/addAlert', {
-        message: this.$i18n.t('default-error', {
-          action: this.$i18n.t('retrieve'),
-          resource: this.$i18n.t('table'),
-        }),
-        type: 'error',
-      }, { root: true });
-    } finally {
-      commit('setLoadingTable', false);
-    }
   },
 
-    async getLandUseStyleFromGeoserver({ commit, state }) {
-      try {
-        const params = {
-          service: 'WMS',
-          version: '1.1.0',
-          request: 'GetLegendGraphic',
-          layer: state.geoserverLayerLandUse,
-          format: 'application/json',
-        };
-        const url = `${state.urlWmsLandUse}${new URLSearchParams(params)}`;
-        const response = await this.$api.$get(url);
-        const styles = {};
-        if (response.Legend && response.Legend[0] && response.Legend[0].rules) {
-          response.Legend[0].rules.forEach((rule) => {
-            if (rule.filter && rule.name) {
-              const estagioMatch = rule.filter.match(/no_estagio\s*=\s*['"]?([^'"]+)['"]?/);
-              const fillColor = rule.symbolizers[0]?.Polygon?.fill || null;
-              if (estagioMatch && estagioMatch[1] && fillColor) {
-                styles[estagioMatch[1]] = fillColor;
-              }
+  mutations: {
+    setShowFeaturesLandUse(state, value) { state.showFeaturesLandUse = value; },
+    setLoadingRegionalCoordinators(state, loading) { state.loadingRegionalCoordinators = loading; },
+    setIndigenousLands(state, indigenousLands) { state.indigenousLands = indigenousLands; },
+    setLoadingIndigenousLands(state, loading) { state.loadingIndigenousLands = loading; },
+    setUrlWmsLandUse(state, url) { state.urlWmsLandUse = url; },
+    setLoadingSearchLandUse(state, loading) { state.loadingSearchLandUse = loading; },
+    setLoadingStats(state, value) { state.loadingStats = value; },
+    setLoadingDownloadGeojson(state, loading) { state.loadingDownloadGeojson = loading; },
+    setLoadingDownloadCSV(state, loading) { state.loadingDownloadCSV = loading; },
+    setOpacity(state, opacity) { state.opacity = opacity; },
+    setLoadingTable(state, loading) { state.loadingTable = loading; },
+    setLoadingStatistic(state, loading) { state.loadingStatistic = loading; },
+    clearTableLandUse(state) { state.stats.tableLandUse = []; },
+    // clearAnalyticsData(state) { state.analyticsData = []; },
+    setHeatMapLandUse(state, value) { state.heatMapLandUse = value; },
+    setLoadingHeatmap(state, loading) { state.loadingHeatmap = loading; },
+    // setLoadingCycles(state, loading) { state.loadingCycles = loading; },
+    // setCycles(state, cycles) { state.cycles = cycles; },
+    // setRangeCycles(state, range) { state.stats.rangeCycles = range; },
+
+    setCurrentBbox(state, { bbox, bboxWkt }) {
+      state.filters.bbox = bbox;
+      state.filters.bboxWkt = bboxWkt;
+    },
+
+    clearHeatmap(state) {
+      state.heatMapLandUse = false;
+      state.stats.heatmapLandUse = [];
+    },
+
+    setRegionalCoordinators(state, regionalCoordinators) {
+      state.regionalCoordinators = regionalCoordinators;
+    },
+
+    setFilters(state, filters) {
+      state.filters = {
+        ...state.filters,
+        ...filters,
+      };
+    },
+
+    setLandUseStats(state, stats) {
+      const colors = {
+        CR: '#d92b3f',
+        DG: '#ff8000',
+        DR: '#909',
+        FF: '#b35900',
+      };
+      const stages = stats.stages.map((stage) => ({
+        name: stage,
+        visible: true,
+        color: colors[stage],
+      }));
+      state.stats = {
+        ...state.stats,
+        totalFeatures: stats.total_features,
+        totalArea: stats.total_area,
+        stages,
+        tiByStages: stats.tiByStages,
+      };
+    },
+
+    setUpdateLandUseStats(state, { totalFeatures, totalArea }) {
+      state.stats = {
+        ...state.stats,
+        totalFeatures,
+        totalArea,
+      };
+    },
+
+    toggleStatsStages(state, { key, value }) {
+      state.stats.stages[key].visible = value;
+    },
+
+    setTableLandUse(state, tableLandUse) {
+      const tableData = tableLandUse.map(({ properties }) => ({
+        origin_id: properties.origin_id || '',
+        co_funai: properties.co_funai || '',
+        ds_cr: properties.ds_cr || '',
+        no_ti: properties.no_ti || '',
+        no_estagio: properties.no_estagio || '',
+        dt_imagem: properties.dt_imagem || '',
+        nu_area_ha: parseFloat(properties.nu_area_ha) || 0,
+        nu_area_cr_ha: properties.no_estagio === 'CR' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+        nu_area_dg_ha: properties.no_estagio === 'DG' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+        nu_area_dr_ha: properties.no_estagio === 'DR' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+        nu_area_ff_ha: properties.no_estagio === 'FF' ? parseFloat(properties.nu_area_ha) || 0 : 0,
+        nu_latitude: parseFloat(properties.nu_latitude) || 0,
+        nu_longitude: parseFloat(properties.nu_longitude) || 0,
+      }));
+      state.stats.tableLandUse = tableData;
+    },
+
+    // setAnalyticsData(state, analyticsData) {
+    //   const formattedAnalytics = analyticsData.map((item) => {
+    //     const newItem = { ...item };
+    //     Object.keys(newItem).forEach((key) => {
+    //       if (typeof newItem[key] === 'string' && newItem[key].endsWith('%')) {
+    //         const percentValue = newItem[key].replace('%', '').replace(',', '.');
+    //         const numberValue = parseFloat(percentValue);
+    //         if (!Number.isNaN(numberValue)) {
+    //           const roundedValue = Math.ceil(numberValue * 1000) / 1000;
+    //           newItem[key] = `${roundedValue.toFixed(3).replace('.', ',')}%`;
+    //         }
+    //       }
+    //     });
+    //     return newItem;
+    //   });
+    //   state.analyticsData = formattedAnalytics;
+    // },
+
+    setResultsHeatmap(state, resultsHeatMap) {
+      const pointsHeatMap = [];
+      if (resultsHeatMap) {
+        resultsHeatMap.features.forEach((feature) => {
+          if (
+            feature.geometry
+            && (feature.geometry.type === 'Point' || feature.geometry.type === 'MultiPoint')
+            && feature.geometry.coordinates.length
+          ) {
+            if (feature.geometry.type === 'Point') {
+              pointsHeatMap.push([
+                feature.geometry.coordinates[1],
+                feature.geometry.coordinates[0],
+                1,
+              ]);
             }
-          });
-        }
-        commit('setLandUseStyles', styles);
-      } catch (error) {
-        console.error('Erro ao buscar estilos do GeoServer:', error);
-        commit('alert/addAlert', {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('retrieve'),
-            resource: this.$i18n.t('legend'),
-          }),
-          type: 'error',
-        }, { root: true });
+            if (feature.geometry.type === 'MultiPoint') {
+              feature.geometry.coordinates.forEach((coord) => {
+                pointsHeatMap.push([coord[1], coord[0], 1]);
+              });
+            }
+          }
+          if (
+            feature.geometry
+            && (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon')
+            && feature.geometry.coordinates.length
+          ) {
+            const polygonPoints = centroid(feature);
+            pointsHeatMap.push([
+              polygonPoints.geometry.coordinates[1],
+              polygonPoints.geometry.coordinates[0],
+              1,
+            ]);
+          }
+        });
+      }
+      state.stats.heatmapLandUse = pointsHeatMap;
+    },
+
+  },
+
+  actions: {
+    async updateWmsLandUse({
+      state, dispatch, commit, getters, rootState,
+    }) {
+      let urlGeoserver = rootState.map.geoserverUrl;
+      urlGeoserver += `&CQL_FILTER=${encodeURIComponent(getters.getGenerateCqlFilterLandUse)}`;
+      commit('setUrlWmsLandUse', urlGeoserver);
+      if (state.heatMapLandUse) {
+        commit('clearHeatmap');
+        // commit('setHeatMapLandUse', true);
+        await dispatch('generateHeatmapLandUse');
+        commit('setHeatMapLandUse', true);
       }
     },
 
-    async generateUrlWmsLandUse({ state, commit }) {
-    const params = {
-      layers: state.geoserverLayerLandUse,
-      env: `fill-opacity:${state.opacity / 100}`,
-      CQL_FILTER: '',
-      format: 'image/png',
-      transparent: true,
-      version: '1.1.1',
-    };
-
-    const filters = [];
-    const visibleEstagios = Object.keys(state.legendVisibility).filter(
-      (estagio) => state.legendVisibility[estagio]
-    );
-
-    // Só aplicar o filtro de estágios se houver pelo menos um estágio visível
-    if (visibleEstagios.length > 0) {
-      filters.push(`no_estagio IN ('${visibleEstagios.join("','")}')`);
-    } else {
-     // Não adiciona filtro de estágios, permitindo que todos sejam buscados
-    }
-
-    if (state.intersectsWmsLandUse) filters.push(state.intersectsWmsLandUse);
-    if (state.filters.ti?.length) filters.push(`co_funai IN (${state.filters.ti.map(ti => ti.co_funai).join(',')})`);
-    if (state.filters.cr?.length) filters.push(`co_cr IN (${state.filters.cr.map(cr => cr.co_cr).join(',')})`);
-    if (state.filters.year) filters.push(`(nu_ano = ${state.filters.year})`);
-
-    if (filters.length) params.CQL_FILTER = filters.join(' AND ');
-
-    const fullUrl = `${state.urlWmsLandUse}${new URLSearchParams(params)}`;
-    commit('setUrlCurrentWmsLandUse', fullUrl);
-  },
-
-  async fetchLandUseFeatures({ state, commit, dispatch }) {
-    commit('setLoadingFeatures', true);
-    try {
-      await dispatch('getLandUseStyleFromGeoserver');
-
-      const params = {
-        service: 'WFS',
-        version: '1.0.0',
-        request: 'GetFeature',
-        typeName: state.geoserverLayerLandUse,
-        outputFormat: 'application/json',
-        CQL_FILTER: '',
-        maxFeatures: 10000,
-      };
-
-      let cqlFilters = [];
-      const visibleEstagios = Object.keys(state.legendVisibility).filter(
-        (estagio) => state.legendVisibility[estagio]
-      );
-
-      // Só aplicar o filtro de estágios se houver pelo menos um estágio visível
-      if (visibleEstagios.length > 0) {
-        cqlFilters.push(`no_estagio IN ('${visibleEstagios.join("','")}')`);
-      } else {
-        // Não adiciona filtro de estágios, permitindo que todos sejam buscados
-      }
-
-      if (state.filters.currentView) {
-        const map = window.mapMain;
-        const bounds = map.getBounds();
-        const bboxPolygon = L.polygon([
-          bounds.getSouthWest(),
-          [bounds.getSouthWest().lat, bounds.getNorthEast().lng],
-          bounds.getNorthEast(),
-          [bounds.getNorthEast().lat, bounds.getSouthWest().lng],
-        ]);
-        const wkt = stringify(bboxPolygon.toGeoJSON().geometry);
-        cqlFilters.push(`INTERSECTS(geom,${wkt})`);
-      }
-
-      if (state.filters.ti?.length) {
-        const tiList = state.filters.ti.map(ti => ti.co_funai).join(',');
-        cqlFilters.push(`co_funai IN (${tiList})`);
-      }
-
-      if (state.filters.cr?.length) {
-        const crList = state.filters.cr.map(cr => cr.co_cr).join(',');
-        cqlFilters.push(`co_cr IN (${crList})`);
-      }
-
-      if (state.filters.year) {
-        cqlFilters.push(`(nu_ano = ${state.filters.year})`);
-      }
-
-      if (cqlFilters.length) {
-        params.CQL_FILTER = cqlFilters.join(' AND ');
-      }
-
-
-      const url = `${state.urlWmsLandUse}${new URLSearchParams(params)}`;
-      const response = await this.$api.$get(url);
-
-
-      if (response?.features) {
-        const geojson = {
-          type: response.type,
-          features: response.features,
-        };
-        commit('setFeatures', geojson);
-      } else {
-        throw new Error('Resposta do GeoServer sem features');
-      }
-    } catch (error) {
-      console.error('Erro ao buscar features do LANDUSE:', error);
-      commit('alert/addAlert', {
-        message: this.$i18n.t('default-error', {
-          action: this.$i18n.t('retrieve'),
-          resource: this.$i18n.t('landUse'),
-        }),
-        type: 'error',
-      }, { root: true });
-      commit('setshowFeaturesLandUse', false);
-    } finally {
-      commit('setLoadingFeatures', false);
-    }
-  },
-
-    async getFeatures({ state, commit, dispatch }) {
-      commit('setUrlCurrentWmsLandUse', '');
-      commit('setLoadingLandUse', true);
-      commit('clearFeatures');
-
+    async generateUrlWmsLandUse({
+      state, commit, dispatch, rootGetters,
+    }) {
       try {
-        commit('setshowFeaturesLandUse', true);
-        commit('setLoadingFeatures', true);
-
-        const map = window.mapMain;
-        if (state.filters.currentView) {
-          const bounds = map.getBounds();
-          const sw = bounds.getSouthWest();
-          const ne = bounds.getNorthEast();
-          const nw = L.latLng(ne.lat, sw.lng);
-          const se = L.latLng(sw.lat, ne.lng);
-          const bboxPolygon = L.polygon([sw, se, ne, nw, sw]);
-          const geojson = bboxPolygon.toGeoJSON();
-          const wkt = stringify(geojson.geometry);
-          commit('setIntersectsWmsLandUse', `INTERSECTS(geom,${wkt})`);
-        } else {
-          commit('setIntersectsWmsLandUse', '');
-        }
-
-        const arrayTI = [];
-        if (state.filters.ti && state.filters.ti.length) {
-          Object.values(state.filters.ti).forEach((item) => {
-            arrayTI.push(item.co_funai);
-          });
-        }
-
-        const arrayCR = [];
-        if (state.filters.cr && state.filters.cr.length) {
-          Object.values(state.filters.cr).forEach((item) => {
-            arrayCR.push(item.co_cr);
-          });
-        }
-
-        try {
-          if (!state.filters.currentView) {
-            let bbox;
-            if (
-              (state.filters.cr && state.filters.cr.length) ||
-              (state.filters.ti && state.filters.ti.length)
-            ) {
-              bbox = await this.$api.$post('monitoring/consolidated/bbox/', {
-                co_cr: [...arrayCR],
-                co_funai: [...arrayTI],
-              });
-              if (bbox) {
-                const bounds = L.latLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]);
-                map.fitBounds(bounds);
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Erro ao buscar bbox:', error);
-          commit('alert/addAlert', {
-            message: this.$i18n.t('default-error', {
-              action: this.$i18n.t('retrieve'),
-              resource: this.$i18n.t('landUse'),
-            }),
-          }, { root: true });
-        }
-
-        await dispatch('fetchInitialEstagios');
-        await dispatch('getLandUseStyleFromGeoserver');
-        await dispatch('generateUrlWmsLandUse');
-        await dispatch('fetchLandUseFeatures');
-      } catch (exception) {
-        console.error('Erro em getFeatures:', exception);
+        commit('setLoadingSearchLandUse', true);
+        commit('setLandUseStats', { ...state.stats, stages: [] });
+        commit('clearHeatmap');
+        commit('setCurrentBbox', { bbox: rootGetters['map/bbox'], bboxWkt: rootGetters['map/bboxWkt'] });
+        await dispatch('generateLandUseStats');
+        await dispatch('zoomMapBboxRegionalCoordinates');
+        dispatch('updateWmsLandUse');
+        commit('setShowFeaturesLandUse', true);
+      } catch (error) {
         commit('alert/addAlert', {
           message: this.$i18n.t('default-error', {
             action: this.$i18n.t('retrieve'),
-            resource: this.$i18n.t('landUse'),
+            resource: this.$i18n.t('LandUse'),
           }),
           type: 'error',
         }, { root: true });
       } finally {
-        commit('setLoadingFeatures', false);
-        commit('setLoadingLandUse', false);
+        commit('setLoadingSearchLandUse', false);
       }
     },
 
-    async fetchInitialEstagios({ state, commit }) {
+    async generateLandUseStats({ commit, state, getters }, isUpdate = false) {
       try {
-        const params = {
-          service: 'WFS',
-          version: '1.0.0',
-          request: 'GetFeature',
-          typeName: state.geoserverLayerLandUse,
-          outputFormat: 'application/json',
-          CQL_FILTER: '',
-          maxFeatures: 10000,
-        };
+        commit('setLoadingStats', true);
+        const params = {};
 
-        const filters = [];
-        if (state.filters.currentView && state.intersectsWmsLandUse) filters.push(state.intersectsWmsLandUse);
-        if (state.filters.ti?.length) filters.push(`co_funai IN (${state.filters.ti.map(ti => ti.co_funai).join(',')})`);
-        if (state.filters.cr?.length) filters.push(`co_cr IN (${state.filters.cr.map(cr => cr.co_cr).join(',')})`);
-        if (state.filters.year) filters.push(`(nu_ano = ${state.filters.year})`);
+        if (isUpdate && state.stats.stages && state.stats.stages.length) {
+          params.stage = getters.getStagesVisible.map((stage) => stage.name).join(',') || 'NONE';
+        }
 
-        if (filters.length) params.CQL_FILTER = filters.join(' AND ');
-
-        const url = `${state.urlWmsLandUse}${new URLSearchParams(params)}`;
-        const response = await this.$api.$get(url);
-
-        if (response?.features) {
-          const estagios = new Set(response.features.map(f => f.properties.no_estagio).filter(Boolean));
-          commit('setAvailableEstagios', Array.from(estagios));
-          commit('setFeatures', { type: 'FeatureCollection', features: response.features });
+        if (state.filters.currentView) {
+          params.in_bbox = state.filters.bbox;
         } else {
-          commit('setAvailableEstagios', []);
-          commit('clearFeatures');
+          params.co_cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
+          params.co_funai = getters.getFormattedIndigenousLands('co_funai').join(',');
+        }
+
+        if (state.filters.startDate && state.filters.endDate) {
+          params.start_date = state.filters.startDate;
+          params.end_date = state.filters.endDate;
+        }
+
+        const stats = await this.$api.$get('land-use/map-stats/', { params });
+
+        if (isUpdate) {
+          commit('setUpdateLandUseStats', { totalFeatures: stats.total_features, totalArea: stats.total_area || 0 });
+        } else {
+          const tiByStages = Object.values(
+            stats.ti_by_stages.reduce((acc, item) => {
+              if (!acc[item.no_ti]) {
+                acc[item.no_ti] = {
+                  no_ti: item.no_ti,
+                  stages: [],
+                  total_area: 0,
+                };
+              }
+              acc[item.no_ti].stages.push({
+                no_estagio: item.no_estagio,
+                area_ha: item.nu_area_ha,
+              });
+              acc[item.no_ti].total_area += item.nu_area_ha;
+              return acc;
+            }, {}),
+          );
+          commit('setLandUseStats', { ...stats, tiByStages });
         }
       } catch (error) {
-        console.error('Erro ao buscar estágios iniciais:', error);
-        commit('setAvailableEstagios', []);
-        commit('clearFeatures');
+        console.error(error);
+      } finally {
+        commit('setLoadingStats', false);
+      }
+    },
+
+    async getLandUseSublayers({ commit, getters, rootState }) {
+      const urlGeoserver = rootState.map.geoserverUrl;
+      const params = {
+        service: 'WMS',
+        version: '1.1.0',
+        request: 'GetLegendGraphic',
+        layer: getters.getLayerLandUse,
+        format: 'application/json',
+      };
+      const response = await this.$api.$get(urlGeoserver, { params });
+      commit('setLandUseSublayers', response);
+    },
+
+    async downloadLandUseGeojson({
+      state, commit, getters, rootState,
+    }) {
+      try {
+        commit('setLoadingDownloadGeojson', true);
+        if (state.stats.totalFeatures === 0 || !getters.getStagesVisible.length) {
+          commit('alert/addAlert', {
+            message: this.$i18n.t('monitoring-no-stages-visible'),
+            type: 'info',
+          }, { root: true });
+          return;
+        }
+
+        if (state.stats.totalFeatures > state.downloadGeoserverMaxFeatures) {
+          const confirmed = await this.$confirm({
+            typeDescription: 'detailed',
+            descriptionFirst: this.$i18n.t('LandUse-description-label-1'),
+            descriptionSecond: this.$i18n.t('LandUse-description-label-2'),
+            confirm: this.$i18n.t('download'),
+            iconConfirm: 'mdi-download',
+            iconCancel: 'mdi-close',
+          });
+          if (!confirmed) return;
+        }
+        const response = await this.$api.$get(rootState.map.geoserverUrl, {
+          params: getters.getParamsLandUseGeoserver(),
+          responseType: 'blob',
+        });
+        const url = URL.createObjectURL(response);
+        Object.assign(document.createElement('a'), {
+          href: url, download: `LandUse_${new Date().toISOString().split('T')[0]}.geojson`,
+        }).click();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('download'),
+            resource: this.$i18n.t('LandUse data'),
+          }),
+          type: 'error',
+        }, { root: true });
+      } finally {
+        commit('setLoadingDownloadGeojson', false);
+      }
+    },
+
+    async getDataTableLandUse({ commit, getters, rootState }) {
+      try {
+        commit('setLoadingTable', true);
+        const params = {
+          ...getters.getParamsLandUseGeoserver(),
+          CQL_FILTER: getters.getGenerateCqlFilterLandUse,
+        };
+        const response = await this.$api.$get(rootState.map.geoserverUrl, { params });
+        commit('setTableLandUse', response.features);
+      } catch (error) {
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('LandUse data'),
+          }),
+          type: 'error',
+        }, { root: true });
+      } finally {
+        commit('setLoadingTable', false);
+      }
+    },
+
+    // async getDataAnalyticsLandUse({
+    //   commit, state, getters, rootGetters,
+    // }, groupingKey) {
+    //   try {
+    //     commit('setLoadingStatistic', true);
+    //     const params = {};
+    //     if (state.filters.startDate && state.filters.endDate) {
+    //       params.start_date = state.filters.startDate;
+    //       params.end_date = state.filters.endDate;
+    //       params.grouping = groupingKey;
+    //     }
+    //     if (state.filters.ti.length) {
+    //       params.co_funai = getters.getFormattedIndigenousLands('co_funai').join(',');
+    //     }
+    //     if (state.filters.cr.length) {
+    //       params.co_cr = getters.getFormattedRegionalCoordinates('co_cr').join(',');
+    //     }
+    //     if (state.filters.currentView) {
+    //       params.in_bbox = rootGetters['map/bbox'];
+    //     }
+    //     const analyticsLandUse = await this.$api.$get('alerts/table/', { params });
+    //     commit('setAnalyticsData', analyticsLandUse);
+    //   } catch (error) {
+    //     commit('alert/addAlert', {
+    //       message: this.$i18n.t('default-error', {
+    //         action: this.$i18n.t('retrieve'),
+    //         resource: this.$i18n.t('LandUse data'),
+    //       }),
+    //       type: 'error',
+    //     }, { root: true });
+    //   } finally {
+    //     commit('setLoadingStatistic', false);
+    //   }
+    // },
+
+    // async downloadAnalyticCSV({ commit, state }, defaultFileName) {
+    //   try {
+    //     commit('setLoadingDownloadCSV', true);
+    //     const csvData = convertToCSV(state.analyticsData);
+    //     saveData(csvData, defaultFileName);
+    //   } catch (error) {
+    //     commit('alert/addAlert', {
+    //       message: this.$i18n.t('default-error', {
+    //         action: this.$i18n.t('retrieve'),
+    //         resource: this.$i18n.t('LandUse data'),
+    //       }),
+    //       type: 'error',
+    //     }, { root: true });
+    //   } finally {
+    //     commit('setLoadingDownloadCSV', false);
+    //   }
+    // },
+
+    async generateHeatmapLandUse({ commit, getters, rootState }) {
+      try {
+        commit('setLoadingHeatmap', true);
+        const params = {
+          ...getters.getParamsLandUseGeoserver(true),
+          // remove INTERSECTS for heatmap
+          CQL_FILTER: getters.getGenerateCqlFilterLandUse.split(' AND ').filter((f) => !f.startsWith('INTERSECTS(')).join(' AND '),
+        };
+        const response = await this.$api.$get(rootState.map.geoserverUrl, { params });
+        commit('setResultsHeatmap', response);
+      } catch (error) {
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('retrieve'),
+            resource: this.$i18n.t('heatmap data'),
+          }),
+          type: 'error',
+        }, { root: true });
+      } finally {
+        commit('setLoadingHeatmap', false);
       }
     },
 
     async getFilterOptions({ commit }) {
       try {
-        const regional_coordinators = await this.$api.$get('funai/cr/');
-        const data = {};
-
-        if (regional_coordinators) {
-          data.regionalFilters = regional_coordinators.sort((a, b) => a.ds_cr.localeCompare(b.ds_cr));
-        }
-
-        commit('setFilterOptions', data);
+        commit('setLoadingRegionalCoordinators', true);
+        const regionalCoordinators = await this.$api.$get('funai/cr/');
+        commit('setRegionalCoordinators', regionalCoordinators);
       } catch (error) {
-        console.error('Erro ao buscar opções de filtro:', error);
-        commit('alert/addAlert', {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('retrieve'),
-            resource: this.$i18n.t('regional coordinators'),
-          }),
-          type: 'error',
-        }, { root: true });
-      }
-    },
-
-    async getTiOptions({ commit, state }, cr) {
-      try {
-        const params = {
-          co_cr: cr.toString(),
-        };
-
-        const tis = await this.$api.$get('funai/ti/', { params });
-
-        if (tis) {
-          commit('setFilterOptions', {
-            ...state.filterOptions,
-            tiFilters: tis.sort((a, b) => a.no_ti.localeCompare(b.no_ti)),
-          });
-        }
-      } catch (error) {
-        console.error('Erro ao buscar opções de TI:', error);
-        commit('alert/addAlert', {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('retrieve'),
-            resource: this.$i18n.t('indigenous territories'),
-          }),
-          type: 'error',
-        }, { root: true });
-      }
-    },
-
-  async downloadGeoJsonLandUse({ commit, state }) {
-    commit('setLoadingLandUse', true);
-    try {
-      const params = {
-        service: 'WFS',
-        version: '1.0.0',
-        request: 'GetFeature',
-        typeName: state.geoserverLayerLandUse,
-        outputFormat: 'application/json',
-        maxFeatures: 10000,
-      };
-
-      const filters = [];
-
-      // Adicionar filtro para estágios visíveis
-      const visibleEstagios = Object.keys(state.legendVisibility).filter(
-        estagio => state.legendVisibility[estagio]
-      );
-      if (visibleEstagios.length > 0) {
-        filters.push(`no_estagio IN ('${visibleEstagios.join("','")}')`);
-      } else {
-        throw new Error('Nenhum estágio ativo selecionado');
-      }
-
-      if (state.intersectsWmsLandUse) filters.push(state.intersectsWmsLandUse);
-      if (state.filters.ti?.length) filters.push(`co_funai IN (${state.filters.ti.map(ti => ti.co_funai).join(',')})`);
-      if (state.filters.cr?.length) filters.push(`co_cr IN (${state.filters.cr.map(cr => cr.co_cr).join(',')})`);
-      if (state.filters.year) filters.push(`nu_ano = ${state.filters.year}`);
-
-      if (filters.length) params.CQL_FILTER = filters.join(' AND ');
-
-      const url = `${state.urlWmsLandUse}${new URLSearchParams(params)}`;
-      const response = await this.$api.$get(url);
-
-      const blob = new Blob([JSON.stringify({
-        type: response.type,
-        features: response.features,
-      })], { type: 'application/geo+json' });
-
-      const downloadLink = document.createElement('a');
-      downloadLink.href = URL.createObjectURL(blob);
-      downloadLink.download = 'landUse_dados.geojson';
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-    } catch (error) {
-      console.error('Erro ao baixar GeoJSON:', error);
-      commit('alert/addAlert', {
-        message: error.message === 'Nenhum estágio ativo selecionado'
-          ? this.$i18n.t('no-active-stages-selected')
-          : this.$i18n.t('default-error', {
-              action: this.$i18n.t('download'),
-              resource: this.$i18n.t('landUse'),
+        commit(
+          'alert/addAlert',
+          {
+            message: this.$i18n.t('default-error', {
+              action: this.$i18n.t('retrieve'),
+              resource: this.$i18n.t('LandUse'),
             }),
-        type: 'error',
-      }, { root: true });
-    } finally {
-      commit('setLoadingLandUse', false);
-    }
-  },
-
-    async downloadTableLandUse({ state, commit }) {
-      commit('setLoadingCSV', true);
-      try {
-        if (!state.tableLandUse.length) throw new Error('Nenhum dado disponível na tabela');
-
-        const headers = [
-          'Código Funai', 'Coordenação Regional', 'Terra Indígena', 'Ano',
-          'Agropecuaria (ha)', 'Corte raso (ha)', 'Degradação (ha)', 'Massa de água (ha)',
-          'Silvicultura', 'Vegetação natural (ha)', 'Vilarejo (ha)', 'Rodovia (ha)',
-          'Mineração (ha)', 'Não observado (ha)', 'Total (ha)',
-        ];
-
-        const csvContent = [
-          headers.join(','),
-          ...state.tableLandUse.map(row => [
-            row.co_funai,
-            `"${row.ds_cr}"`,
-            `"${row.no_ti}"`,
-            row.nu_ano,
-            ...['ag', 'cr', 'dg', 'ma', 'sv', 'vn', 'vi', 'rv', 'mi', 'no'].map(k => row[`nu_area_${k}_ha`]),
-            row.nu_area_ha,
-          ].join(',')),
-        ].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'landUse_table.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-      } catch (error) {
-        console.error('Erro ao baixar tabela CSV:', error);
-        commit('alert/addAlert', {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('download'),
-            resource: this.$i18n.t('table'),
-          }),
-          type: 'error',
-        }, { root: true });
+            type: 'error',
+          },
+          { root: true },
+        );
       } finally {
-        commit('setLoadingCSV', false);
+        commit('setLoadingRegionalCoordinators', false);
       }
     },
 
-    async toggleLegendVisibility({ commit, dispatch, state }, { estagio, visible }) {
-      commit('setLegendVisibility', { estagio, visible });
-      // Mantém as feições atuais até que as novas sejam carregadas
-      await dispatch('generateUrlWmsLandUse');
-      await dispatch('fetchLandUseFeatures');
+    async getTiOptions({ commit, state }) {
+      try {
+        if (state.filters.cr && state.filters.cr.length) {
+          commit('setLoadingIndigenousLands', true);
+          const params = { co_cr: state.filters.cr.map((cr) => cr.co_cr).join(',') };
+          const indigenousLands = await this.$api.$get('funai/ti/', { params });
+          commit('setIndigenousLands', indigenousLands);
+        }
+      } catch (error) {
+        commit(
+          'alert/addAlert',
+          {
+            message: this.$i18n.t('default-error', {
+              action: this.$i18n.t('retrieve'),
+              resource: this.$i18n.t('indigenous territories'),
+            }),
+            type: 'error',
+          },
+          { root: true },
+        );
+      } finally {
+        commit('setLoadingIndigenousLands', false);
+      }
     },
-  };
+
+    // async getCyclesOptions({ commit }) {
+    //   try {
+    //     commit('setLoadingCycles', true);
+    //     const cycles = await this.$api.$get('LandUse/consolidated/cycles/options/');
+    //     commit('setCycles', cycles);
+    //   } catch (error) {
+    //     commit(
+    //       'alert/addAlert',
+    //       {
+    //         message: this.$i18n.t('default-error', {
+    //           action: this.$i18n.t('retrieve'),
+    //           resource: this.$i18n.t('cycle'),
+    //         }),
+    //         type: 'error',
+    //       },
+    //       { root: true },
+    //     );
+    //   } finally {
+    //     commit('setLoadingCycles', false);
+    //   }
+    // },
+
+    async zoomMapBboxRegionalCoordinates({ getters }) {
+      try {
+        if (
+          getters.getFormattedRegionalCoordinates('co_cr').length
+          || getters.getFormattedIndigenousLands('co_funai').length
+        ) {
+          const body = {
+            co_cr: getters.getFormattedRegionalCoordinates('co_cr'),
+            co_funai: getters.getFormattedIndigenousLands('co_funai'),
+          };
+          const bbox = await this.$api.$post('alerts/consolidated/bbox/', body);
+          if (bbox) {
+            // eslint-disable-next-line no-undef
+            const bounds = L.latLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]);
+            window.mapMain.fitBounds(bounds, { animated: true });
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+  },
+};

@@ -33,6 +33,7 @@ export default {
         drawing: 'drawing',
         download: 'download',
         cycle: 'Cycle',
+        year: 'Year',
         "monitoring-description-label-1": "Due to technical limitations, the generated file has a maximum limit of 10,000 features. The query made generated a number of polygons greater than that, so it is possible that not all polygons will be available in the generated file.",
         "monitoring-description-label-2": "If you need to download the complete data, please contact the CMR team via Contact Us on the platform or by email ",
         "monitoring-no-stages-visible": "Currently, there are no visible stages for download. Please activate at least one stage in the legend section before attempting to download the data."
@@ -71,6 +72,7 @@ export default {
         drawing: 'desenho',
         download: 'baixar',
         cycle: 'Ciclo',
+        year: 'Ano',
         "monitoring-description-label-1": "Devido a limitações técnicas, os arquivo gerado possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
         "monitoring-description-label-2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail ",
         "monitoring-no-stages-visible": "No momento, não há estágios visíveis para download. Por favor, ative pelo menos um estágio na seção de legendas antes de tentar baixar os dados."
