@@ -53,7 +53,7 @@
                     class="toggle_button"
                     for="agencias"
                   >
-                    {{ $t('agencias') }}
+                    {{ $t('general') }}
                   </label>
                   <input
                     id="funai"
@@ -581,7 +581,7 @@
       "downloadSuccessMessage": "The download was completed successfully.",
       "downloadErrorMessage": "An error occurred during the download. Please try again.",
       "close": "Close",
-      "agencias": "Agencies",
+      "general": "General",
       "funai": "Funai"
     },
     "pt-br": {
@@ -610,7 +610,7 @@
       "downloadSuccessMessage": "O download foi concluído com sucesso.",
       "downloadErrorMessage": "Ocorreu um erro durante o download. Por favor, tente novamente.",
       "close": "Fechar",
-      "agencias": "Agências",
+      "general": "Geral",
       "funai": "Funai"
     }
   }

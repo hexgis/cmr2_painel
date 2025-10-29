@@ -118,7 +118,7 @@ const calculatePercentages = (counts) => {
   for (const [key, value] of Object.entries(counts)) {
     percentageCounts[key] = total ? Math.round((value / total) * 100) : 0;
   }
-  
+
   return percentageCounts;
 };
 
@@ -232,23 +232,17 @@ export const actions = {
       }
 
       const response = await this.$api.$get(
-        `dashboard/get-all/?startDate=${startDate}&endDate=${endDate}&location=${location}&type_device=${typeDevice}&browser=${browser}&institution_cr=${institutionCr}&institution=${state.institutionFilter}`,
+        `dashboard/?date_after=${startDate}&date_before=${endDate}&location=${location}&type_device=${typeDevice}&browser=${browser}&institution=${institutionCr}`,
       );
 
       if (response) {
         const filteredData = {
           ...response,
           data: response.data.filter((item) => {
-            if (!item.user_email) return false;
-            if (institutionCrArray.length > 0 && item.institution_acronym) {
-              const itemInstitution = item.institution_acronym.toUpperCase().trim();
-              const matchesCR = institutionCrArray.some(cr => cr === itemInstitution);
-              if (!matchesCR) return false;
-            }
             if (state.institutionFilter === 'FUNAI') {
-              return item.is_internal === true;
+              return item.is_internal;
             }
-            return item.is_internal === false;
+            return true;
           }),
         };
 
@@ -269,8 +263,8 @@ export const actions = {
         );
 
         commit('setDateCounts', processedData.dateCounts);
-       commit('setTypeDeviceCounts', processedData.typeDeviceCounts);
-commit('setBrowserCounts', processedData.consolidatedBrowserCounts);
+        commit('setTypeDeviceCounts', processedData.typeDeviceCounts);
+        commit('setBrowserCounts', processedData.consolidatedBrowserCounts);
         commit('setInstitutionCrCounts', processedData.consolidatedInstitutionCrCounts);
         commit('setMonthlyCounts', processedMonthlyCounts);
       }
@@ -284,11 +278,11 @@ commit('setBrowserCounts', processedData.consolidatedBrowserCounts);
   async getTotalViewsPerYear({ commit, state }, { startDate, endDate, institution }) {
     try {
       const response = await this.$api.$get(
-        `dashboard/get-year/?startDate=${startDate}&endDate=${endDate || ''}&institution=${institution || state.institutionFilter}`,
+        `dashboard/?date_after=${startDate}&date_before=${endDate || ''}`,
       );
 
-      const data = Array.isArray(response) ? response : 
-                   response && response.yearly_totals ? response.yearly_totals : [];
+      const data = Array.isArray(response) ? response :
+        response && response.monthly_counts ? response.monthly_counts : [];
       commit('setTotalViewYears', data);
     } catch (error) {
       this.$store.commit('alert/addAlert', {

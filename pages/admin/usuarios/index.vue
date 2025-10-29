@@ -615,11 +615,14 @@
                 text
                 small
                 v-bind="attrs"
-                v-on="on"
                 class="text-capitalize"
+                v-on="on"
               >
                 {{ header.text }}
-                <v-icon small class="ml-1">
+                <v-icon
+                  small
+                  class="ml-1"
+                >
                   mdi-filter-variant
                 </v-icon>
               </v-btn>
@@ -1394,7 +1397,7 @@ export default {
       try {
         const [logsResponse, loginResponse, roleChangesResponse] = await Promise.all([
           this.$api.get(`/history/logs/?user_id=${user.id}`),
-          this.$api.get(`/dashboard/get-user-login/?user_id=${user.id}`),
+          this.$api.get(`/dashboard/?user=${user.id}`),
           this.$api.get(`/history/role-changes/?user_id=${user.id}`),
         ]);
 
@@ -1635,7 +1638,7 @@ export default {
     async openEditDialog(user) {
       try {
         console.log('Dados do usuário para edição:', user);
-      // Busca os dados do usuário e as roles disponíveis simultaneamente
+        // Busca os dados do usuário e as roles disponíveis simultaneamente
         const [userResponse, rolesResponse] = await Promise.all([
           this.$api.get(`/user/${user.id}/`),
           this.$api.get('/user/role/'),
