@@ -9,10 +9,10 @@
   >
     <v-card>
       <v-toolbar color="secondary">
-        <v-toolbar-title>{{ $t('compare') }}</v-toolbar-title>
-
+        <v-toolbar-title style="color: white;">
+          {{ $t('compare') }}
+        </v-toolbar-title>
         <v-spacer />
-
         <v-btn
           icon
           :aria-label="$t('close')"
@@ -20,7 +20,9 @@
           @keydown.enter="closeDialog"
           @keydown.space="closeDialog"
         >
-          <v-icon>mdi-close</v-icon>
+          <v-icon color="white">
+            mdi-close
+          </v-icon>
         </v-btn>
       </v-toolbar>
 
