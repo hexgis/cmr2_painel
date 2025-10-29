@@ -428,10 +428,16 @@ export default {
 
     setLandUseStats(state, stats) {
       const colors = {
-        CR: '#d92b3f',
-        DG: '#ff8000',
-        DR: '#909',
-        FF: '#b35900',
+        AG: '#d92b3f',
+        CR: '#ff8000',
+        DG: '#909',
+        MA: '#b35900',
+        MI: '#b35900',
+        RV: '#b35900',
+        SV: '#b35900',
+        VN: '#b35900',
+        VI: '#b35900',
+        NO: '#b35900',
       };
       const stages = stats.stages.map((stage) => ({
         name: stage,
