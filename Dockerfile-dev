@@ -6,7 +6,7 @@ WORKDIR /app/
 RUN apk add --update --no-cache git make python3 g++
 
 COPY package.json /app/
-COPY package-lock.json* yarn.lock* /app/
+COPY package-lock.json* /app/
 
 RUN npm set progress=true && npm config set depth 0
 RUN npm install --package-lock-only --legacy-peer-deps
