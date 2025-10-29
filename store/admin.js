@@ -65,7 +65,7 @@ export const actions = {
     try {
       const currentYear = new Date().getFullYear();
       const { data } = await this.$api.get(
-        `dashboard/get-all/?startDate=${currentYear}-01-01&endDate=&location=&type_device=&browser=`,
+        `dashboard/?date_after=${currentYear}-01-01`,
       );
       const acessTotal = data.monthly_counts
         .filter((monthly) => monthly.year === currentYear)

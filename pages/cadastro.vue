@@ -111,7 +111,7 @@
             class="pb-2"
             :style="modalContent !== 'welcome' ? { background: '#D92B3F', color: 'white' } : {}"
           >
-            {{ modalContent === 'funai' ? $t('funai-user') : $t('external-user') }}
+            {{ userType === 'funai' ? $t('funai-user') : $t('external-user') }}
             <v-spacer />
             <v-btn
               icon
@@ -373,6 +373,7 @@ export default {
       const data = new FormData();
       data.append('name', this.formData.name);
       data.append('email', this.formData.email);
+      data.append('is_internal', this.userType === 'funai');
 
       if (this.userType === 'funai') {
         data.append('institution', this.formData.institution);

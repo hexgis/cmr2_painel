@@ -25,9 +25,10 @@
       width="60vw"
       min-height="80vh"
       persistent
+      content-class="modal-dialog"
     >
-      <v-card class="modal-card">
-        <v-card-title class="modal-header">
+      <v-card class="modal-card d-flex flex-column">
+        <v-card-title class="primary white--text">
           <div class="d-flex align-center">
             <v-icon
               class="mr-5 header-icon"
@@ -37,10 +38,10 @@
               mdi-account-details
             </v-icon>
             <div>
-              <h3 class="modal-title">
+              <h3 class="text-h6 font-weight-bold">
                 {{ $t('dialog-title') }}
               </h3>
-              <p class="modal-subtitle mb-0">
+              <p class="mb-0 text-body-2">
                 {{ $t('access-request-details') }}
               </p>
             </div>
@@ -56,25 +57,21 @@
           </v-btn>
         </v-card-title>
 
-        <v-card-text class="modal-content">
+        <v-card-text class="modal-content flex-grow-1 overflow-y-auto pa-6">
           <!-- ===== SECTION: USER INFO ===== -->
-          <div class="info-section">
-            <div class="section-header" />
-            <v-row class="user-info-row">
-              <v-col
-                cols="12"
-                class="user-info-col"
-              >
-                <div class="info-card main-info-card">
-                  <div class="info-header">
+          <div class="mb-8">
+            <v-row>
+              <v-col cols="12">
+                <v-card class="info-card card-border-left-accent elevation-2">
+                  <div class="d-flex align-center mb-4 mx-2 pb- border-b">
                     <v-icon
-                      color="#D92B3F"
-                      class="mr-2"
+                      color="primary"
+                      class="mx-2"
                       size="20"
                     >
                       mdi-account-circle
                     </v-icon>
-                    <span class="info-label">{{ $t('user-information') }}</span>
+                    <span class="text-h6 font-weight-medium">{{ $t('user-information') }}</span>
                   </div>
                   <div class="user-info-content">
                     <v-row>
@@ -84,33 +81,47 @@
                         md="4"
                         class="info-subsection"
                       >
-                        <div class="subsection-header">
+                        <div class="d-flex align-center mb-3 pb-1 ml-2 border-b">
                           <v-icon
-                            color="#D92B3F"
+                            color="primary"
                             class="mr-2"
                             size="16"
                           >
                             mdi-account
                           </v-icon>
-                          <span class="subsection-title">{{ $t('user-details') }}</span>
+                          <span class="font-weight-medium">{{ $t('user-details') }}</span>
                         </div>
-                        <div class="info-details">
-                          <div class="info-item">
-                            <strong>{{ $t('server') }}:</strong> {{ userRequestData.name }}
+                        <div class="ml-2">
+                          <div class=" mb-2">
+                            <strong class="primary--text">{{ $t('type-of-user') }}:
+                            </strong>{{ userRequestData.is_internal
+                              ? $t('funai-user') : $t('external-user') }}
                           </div>
-                          <div class="info-item">
-                            <strong>{{ $t('email') }}:</strong> {{ userRequestData.email }}
+                          <div class=" mb-2">
+                            <strong
+                              class="primary--text"
+                            >
+                              {{ $t('server') }}:</strong> {{ userRequestData.name }}
                           </div>
-                          <div class="info-item">
-                            <strong>{{ $t('siape-registration') }}:</strong>
+                          <div class=" mb-2">
+                            <strong
+                              class="primary--text"
+                            >{{ $t('email') }}:</strong> {{ userRequestData.email }}
+                          </div>
+                          <div class=" mb-2">
+                            <strong
+                              class="primary--text"
+                            >{{ $t('siape-registration') }}:</strong>
                             {{ userRequestData.user_siape_registration || 'N/A' }}
                           </div>
-                          <div class="info-item">
-                            <strong>{{ $t('institution') }}:</strong>
+                          <div class=" mb-2">
+                            <strong
+                              class="primary--text"
+                            >{{ $t('institution') }}:</strong>
                             <v-tooltip bottom>
                               <template #activator="{ on, attrs }">
                                 <span
-                                  class="institution-acronym"
+                                  class="institution-acronym primary--text ml-1"
                                   v-bind="attrs"
                                   v-on="on"
                                 >
@@ -121,11 +132,10 @@
                               <span>{{ userRequestData.institution || 'N/A' }}</span>
                             </v-tooltip>
                           </div>
-                          <div
-                            v-if="userRequestData.file"
-                            class="info-item"
-                          >
-                            <strong>{{ $t('attachment') }}:</strong>
+                          <div v-if="userRequestData.file">
+                            <strong
+                              class="primary--text"
+                            >{{ $t('attachment') }}:</strong>
                             <v-btn
                               text
                               small
@@ -150,35 +160,45 @@
                         md="4"
                         class="info-subsection"
                       >
-                        <div class="subsection-header">
+                        <div class="d-flex align-center mb-3 pb-1 border-b">
                           <v-icon
-                            color="#D92B3F"
+                            color="primary"
                             class="mr-2"
                             size="16"
                           >
                             mdi-account-tie
                           </v-icon>
-                          <span class="subsection-title">{{ $t('coordination-info') }}</span>
+                          <span
+                            class="font-weight-medium"
+                          >{{ $t('coordination-info') }}</span>
                         </div>
-                        <div class="info-details">
-                          <div class="info-item">
-                            <strong>{{ $t('coordinator') }}:</strong>
+                        <div>
+                          <div class=" mb-2">
+                            <strong
+                              class="primary--text"
+                            >{{ $t('coordinator') }}:</strong>
                             {{ userRequestData.coordinator_name || 'N/A' }}
                           </div>
-                          <div class="info-item">
-                            <strong>{{ $t('email') }}:</strong>
+                          <div class=" mb-2">
+                            <strong
+                              class="primary--text"
+                            >{{ $t('email') }}:</strong>
                             {{ userRequestData.coordinator_email || 'N/A' }}
                           </div>
-                          <div class="info-item">
-                            <strong>{{ $t('coordinator_siape_registration') }}:</strong>
+                          <div class=" mb-2">
+                            <strong
+                              class="primary--text"
+                            >{{ $t('coordinator_siape_registration') }}:</strong>
                             {{ userRequestData.coordinator_siape_registration || 'N/A' }}
                           </div>
-                          <div class="info-item">
-                            <strong>{{ $t('institution') }}:</strong>
+                          <div class=" mb-2">
+                            <strong
+                              class="primary--text"
+                            >{{ $t('institution') }}:</strong>
                             <v-tooltip bottom>
                               <template #activator="{ on, attrs }">
                                 <span
-                                  class="institution-acronym"
+                                  class="institution-acronym primary--text ml-1"
                                   v-bind="attrs"
                                   v-on="on"
                                 >
@@ -197,30 +217,32 @@
                         md="4"
                         class="info-subsection"
                       >
-                        <div class="subsection-header">
+                        <div class="d-flex align-center mb-3 mr-2 pb-1 border-b">
                           <v-icon
-                            color="#D92B3F"
+                            color="primary"
                             class="mr-2"
                             size="16"
                           >
                             mdi-clipboard-text
                           </v-icon>
-                          <span class="subsection-title">{{ $t('request-status') }}</span>
+                          <span
+                            class="font-weight-medium"
+                          >{{ $t('request-status') }}</span>
                         </div>
                         <RequestStatus :request-data="userRequestData" />
                       </v-col>
                     </v-row>
                   </div>
-                </div>
+                </v-card>
               </v-col>
             </v-row>
           </div>
 
-          <v-divider class="section-divider" />
+          <v-divider class="section-divider my-4" />
 
           <!-- ===== SECTION: PERMISSIONS (Adms Only) ===== -->
           <template v-if="canSeeInstitutionSection">
-            <div class="permission-section">
+            <div class="permission-section mb-6">
               <v-row class="permission-row">
                 <!-- SUB-SECTION: Institution -->
                 <v-col
@@ -228,12 +250,12 @@
                   md="6"
                 >
                   <v-card
-                    class="selection-card institution-card"
+                    class="selection-card card-border-left-accent elevation-2"
                     outlined
                   >
-                    <v-card-title class="card-title">
+                    <v-card-title class="d-flex align-center">
                       <v-icon
-                        color="#D92B3F"
+                        color="primary"
                         class="mr-2"
                       >
                         mdi-domain
@@ -262,36 +284,32 @@
                         class="institution-select"
                       >
                         <template #item="{ item }">
-                          <div class="institution-item">
+                          <div class="institution-item d-flex align-center pa-3">
                             <v-icon
-                              color="#D92B3F"
+                              color="primary"
                               class="mr-3"
                             >
                               mdi-domain
                             </v-icon>
                             <div>
-                              <div class="institution-name">
+                              <div class="font-weight-medium">
                                 {{ item.name }}
-                              </div>
-                              <div
-                                v-if="item.description"
-                                class="institution-description"
-                              >
-                                {{ item.description }}
                               </div>
                             </div>
                           </div>
                         </template>
                         <template #selection="{ item }">
-                          <div class="institution-selection">
+                          <div class="d-flex align-center">
                             <v-icon
-                              color="#D92B3F"
+                              color="primary"
                               class="mr-2"
                               small
                             >
                               mdi-domain
                             </v-icon>
-                            <span class="selected-institution">{{ item.name }}</span>
+                            <span
+                              class="font-weight-medium"
+                            >{{ item.name }}</span>
                           </div>
                         </template>
                       </v-autocomplete>
@@ -305,12 +323,12 @@
                   md="6"
                 >
                   <v-card
-                    class="selection-card roles-card"
+                    class="selection-card card-border-left-accent elevation-2"
                     outlined
                   >
-                    <v-card-title class="card-title">
+                    <v-card-title class="card-title d-flex align-center">
                       <v-icon
-                        color="#D92B3F"
+                        color="primary"
                         class="mr-2"
                       >
                         mdi-account-group
@@ -318,33 +336,35 @@
                       {{ $t('roles') }}
                     </v-card-title>
                     <v-card-text class="card-content">
-                      <div class="roles-container">
+                      <div
+                        class="overflow-y-auto"
+                        style="max-height: 300px;"
+                      >
                         <v-checkbox
                           v-for="item in rolesList"
                           :key="item.id"
                           v-model="selectedRoles"
                           :value="item.id"
-                          :label="item.name"
                           dense
                           class="role-checkbox"
                           hide-details
                         >
                           <template #label>
-                            <div class="role-label">
+                            <div class="d-flex align-center">
                               <v-icon
                                 small
-                                color="#D92B3F"
+                                color="primary"
                                 class="mr-2"
                               >
                                 mdi-account-check
                               </v-icon>
-                              <span class="role-name">{{ item.name }}</span>
+                              <span class="font-weight-medium">{{ item.name }}</span>
                             </div>
                           </template>
                         </v-checkbox>
                         <div
                           v-if="selectedRoles.length === 0"
-                          class="roles-hint"
+                          class="text-center pa-5 text-caption grey--text"
                         >
                           {{ $t('select-at-least-one-role') }}
                         </div>
@@ -355,16 +375,16 @@
               </v-row>
 
               <!-- SUB-SECTION: Final Summary -->
-              <div class="summary-section">
+              <div class="mt-6">
                 <v-card
-                  class="summary-card"
+                  class="elevation-1"
                   :class="{ 'summary-visible': selectedInstitution || selectedRoles.length > 0 }"
                   color="grey lighten-5"
                 >
-                  <v-card-title class="summary-title">
+                  <v-card-title class="d-flex align-center">
                     <v-icon
                       small
-                      color="#D92B3F"
+                      color="primary"
                       class="mr-2"
                     >
                       mdi-check-circle
@@ -374,12 +394,12 @@
                   <v-card-text class="summary-content">
                     <div
                       v-if="selectedInstitution"
-                      class="summary-item"
+                      class="mb-2"
                     >
                       <v-chip
                         color="black"
                         outlined
-                        class="summary-chip"
+                        class="mr-2 mb-2"
                       >
                         <v-icon
                           left
@@ -400,7 +420,7 @@
                         :key="roleId"
                         color="black"
                         outlined
-                        class="summary-chip"
+                        class="mr-2 mb-2"
                       >
                         <v-icon
                           left
@@ -414,7 +434,7 @@
                     </div>
                     <div
                       v-if="!selectedInstitution && selectedRoles.length === 0"
-                      class="summary-placeholder"
+                      class="text-center pa-4 grey--text"
                     >
                       {{ $t('no-selections-yet') }}
                     </div>
@@ -428,10 +448,10 @@
           <template v-else>
             <div class="status-section">
               <v-card
-                class="status-card"
+                class=" elevation-2"
                 outlined
               >
-                <v-card-text class="status-content">
+                <v-card-text class="d-flex align-center">
                   <template
                     v-if="isGestor && userRequestData.status_name === 'Pendente'
                       && isSameInstitution"
@@ -496,7 +516,7 @@
           </template>
         </v-card-text>
 
-        <v-card-actions class="modal-actions">
+        <v-card-actions class="pa-4">
           <v-spacer />
 
           <!-- AÇÕES: Usuário Comum -->
@@ -551,6 +571,7 @@
               </v-btn>
               <v-btn
                 color="success"
+                class="mr-5"
                 :disabled="!selectedInstitution || selectedRoles.length === 0"
                 @click="adminApprove"
               >
@@ -573,6 +594,7 @@
                 {{ $t('reject') }}
               </v-btn>
               <v-btn
+                class="mr-5"
                 color="primary"
                 :disabled="!selectedInstitution || selectedRoles.length === 0"
                 @click="adminApprove"
@@ -587,6 +609,7 @@
             <template v-else-if="userRequestData.status_name == 'Recusada'">
               <v-btn
                 color="warning"
+                class="mr-5"
                 @click="gestorApprove"
               >
                 <v-icon left>
@@ -670,7 +693,7 @@
     "reject": "Reject",
     "approve-as-gestor": "Approve as Manager",
     "grant-access": "Grant Access",
-    "approve-as-administrator": "Approve as Administrator",
+    "approve-as-administrator": "Approve",
     "reactivate-request": "Reactivate Request",
     "no-selections-yet": "No selections made yet",
     "user-details": "User Details",
@@ -682,7 +705,10 @@
     "coordinator_siape_registration": "Coordinator SIAPE Registration",
     "coordinator": "Coordinator",
     "attachment": "Attachment",
-    "attachment-download": "Download Attachment"
+    "attachment-download": "Download Attachment",
+    "type-of-user": "Type of User",
+    "funai-user": "Internal User",
+    "external-user": "External User"
   },
   "pt-br": {
     "choose-user-bond": "Escolha um vínculo para o usuário:",
@@ -714,7 +740,7 @@
     "reject": "Recusar",
     "approve-as-gestor": "Aprovar como Gestor",
     "grant-access": "Conceder Acesso",
-    "approve-as-administrator": "Aprovar como Administrador",
+    "approve-as-administrator": "Aprovar",
     "reactivate-request": "Reativar Solicitação",
     "no-selections-yet": "Nenhuma seleção feita ainda",
     "user-details": "Detalhes do Usuário",
@@ -726,7 +752,10 @@
     "coordinator_siape_registration": "Matrícula SIAPE Coordenador",
     "coordinator": "Coordenador",
     "attachment": "Anexo",
-    "attachment-download": "Baixar anexo"
+    "attachment-download": "Baixar anexo",
+    "type-of-user": "Tipo",
+    "funai-user": "Usuário Interno",
+    "external-user": "Usuário Externo"
   }
 }
 </i18n>
@@ -1008,340 +1037,55 @@ export default {
   width: 100%
   max-width: 750px
   min-height: 300px
-  color: #5F5E5D
 
-/* ===== MODAL STYLE ===== */
+/* ===== MODAL DIALOG STYLE ===== */
+.modal-dialog
+  max-height: 90vh
+
 .modal-card
   border-radius: 12px
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1)
-  min-height: 800px
-  width: 100%
-  max-width: 1400px
-
-/* ===== MODAL HEADER ===== */
-.modal-header
-  background: linear-gradient(135deg, #D92B3F 0%, #B71C1C 100%)
-  color: white
-  padding: 24px 32px
-  border-radius: 12px 12px 0 0
-  display: flex
-  align-items: center
-  justify-content: space-between
-  min-height: 80px
-
-.header-icon
-  font-size: 32px !important
-
-.close-btn
-  position: absolute
-  right: 20px
-  top: 20px
-
-.modal-title
-  font-size: 1.6rem
-  font-weight: 600
-  margin: 0
-
-.modal-subtitle
-  font-size: 1rem
-  opacity: 0.9
-  margin-top: 6px
+  max-height: 90vh
+  overflow: hidden
 
 /* ===== MODAL CONTENT ===== */
 .modal-content
-  padding: 32px
   background: #fafafa
-  min-height: 650px
 
-.modal-actions
-  padding: 20px 32px
-  background: white
-  border-top: 1px solid #e0e0e0
+/* ===== CARDS COM BORDA ESQUERDA COLORIDA ===== */
+.card-border-left-accent
+  border-left: 4px solid #D92B3F !important
 
-/* ===== SECTION STYLES ===== */
-.info-section,
-.permission-section,
-.status-section
-  margin-bottom: 32px
+/* ===== BORDAS TEXTO ===== */
+.border-b
+  border-bottom: 1px solid #e0e0e0
 
-.section-header
-  display: flex
-  align-items: center
-  margin-bottom: 24px
-
-.section-title
-  font-size: 1.3rem
-  font-weight: 600
-  color: #2c3e50
-  margin: 0
-
-.section-divider
-  margin: 32px 0
-  background: #e0e0e0
-
-/* ===== USER INFO STYLES ===== */
-.user-info-row
-  padding: 0
-  gap: 16px
-  margin-top: 8px
-
-.user-info-col
-  display: flex
-  flex-direction: column
-  padding: 0
-
-.info-card
-  background: white
-  border-radius: 12px
-  padding: 20px
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08)
-  border-left: 4px solid #D92B3F
-  height: 100%
-  transition: all 0.3s ease
-
-.info-card:hover
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12)
+/* ===== HOVER EFFECTS ===== */
+.info-card:hover,
+.selection-card:hover
   transform: translateY(-2px)
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important
 
-.main-info-card
-  border-left: 4px solid #D92B3F
-  min-height: 220px
+.role-checkbox:hover,
+.institution-item:hover
+  background-color: #f8f8f8
 
-.info-header
-  display: flex
-  align-items: center
-  margin-bottom: 16px
-  padding-bottom: 12px
-  border-bottom: 2px solid #f0f0f0
-
-.info-label
-  font-weight: 600
-  color: #2c3e50
-  font-size: 1rem
-
-.user-info-content
-  margin-top: 8px
-
-.info-subsection
-  padding: 12px
-  margin-bottom: 8px
-
-.subsection-header
-  display: flex
-  align-items: center
-  margin-bottom: 12px
-  padding-bottom: 8px
-  border-bottom: 1px solid #e8e8e8
-
-.subsection-title
-  font-weight: 600
-  color: #D92B3F
-  font-size: 0.9rem
-
-.info-details
-  padding: 8px 0
-
-.info-item
-  margin-bottom: 8px
-  line-height: 1.5
-  font-size: 0.95rem
-  color: #2c3e50
-
-.info-item strong
-  color: #D92B3F
-  font-weight: 600
-
+/* ===== INSTITUTION ACRONYM STYLE ===== */
 .institution-acronym
-  color: #2c3e50
-  font-weight: 500
   cursor: help
   text-decoration: underline
   text-decoration-style: dotted
   text-decoration-color: #D92B3F
 
 .institution-acronym:hover
-  color: #D92B3F
-
-/* ===== SELECTION CARDS STYLES ===== */
-.selection-card
-  height: 100%
-  border-radius: 12px
-  transition: all 0.3s ease
-  background: white
-
-.selection-card:hover
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12)
-  transform: translateY(-3px)
-
-.card-title
-  font-size: 1.2rem
-  font-weight: 600
-  color: #2c3e50
-  padding: 20px 20px 0 20px
-
-.card-content
-  padding: 20px
-
-.institution-card
-  border-left: 4px solid #D92B3F
-
-.roles-card
-  border-left: 4px solid #D92B3F
-
-/* ===== INSTITUTIONS STYLES ===== */
-.institution-select
-  margin-top: 12px
-
-.institution-select .v-text-field__slot input
-  color: #000000 !important
-  font-size: 1rem
-
-.institution-select .v-select__selection--comma
-  color: #000000 !important
-
-.institution-select .v-label
-  color: #000000 !important
-
-.institution-item
-  display: flex
-  align-items: center
-  padding: 16px 20px
-  border-radius: 8px
-  transition: background-color 0.2s
-
-.institution-item:hover
-  background-color: #f8f8f8
-
-.institution-name
-  font-weight: 500
-  color: #2c3e50
-  font-size: 1rem
-
-.institution-description
-  font-size: 0.85rem
-  color: #7d7d7d
-  margin-top: 4px
-
-.institution-selection
-  display: flex
-  align-items: center
-
-.selected-institution
-  font-weight: 500
-  color: #000000
-  font-size: 1rem
-
-/* ===== FUNCTION STYLES ===== */
-.roles-container
-  max-height: 300px
-  overflow-y: auto
-  padding: 12px 0
-
-.role-checkbox
-  margin: 6px 0
-  padding: 12px
-  border-radius: 8px
-  transition: background-color 0.2s
-
-.role-checkbox:hover
-  background-color: #f8f8f8
-
-.role-label
-  display: flex
-  align-items: center
-
-.role-name
-  font-weight: 500
-  color: #2c3e50
-  font-size: 1rem
-
-.roles-hint
-  font-size: 0.9rem
-  color: #7d7d7d
-  text-align: center
-  padding: 20px
-  font-style: italic
-
-/* ===== SUMMARY STYLES ===== */
-.summary-section
-  margin-top: 24px
-  min-height: 140px
-
-.summary-card
-  border-radius: 12px
-  border: 1px solid #fce4e6
-  border-left: 4px solid #D92B3F
-  opacity: 0.5
-  transition: opacity 0.3s ease
-
-.summary-card.summary-visible
-  opacity: 1
-
-.summary-title
-  font-size: 1.1rem
-  font-weight: 600
-  color: #D92B3F
-  padding: 16px 20px 0 20px
-
-.summary-content
-  padding: 20px
-  min-height: 80px
-
-.summary-item
-  margin-bottom: 12px
-
-.summary-chip
-  margin: 4px 6px 4px 0
-  font-weight: 500
-  font-size: 0.9rem
-
-.summary-placeholder
-  color: #9e9e9e
-  font-style: italic
-  text-align: center
-  padding: 20px
-  font-size: 1rem
-
-/* ===== STATUS STYLE ===== */
-.status-card
-  border-radius: 12px
-  border-left: 4px solid #D92B3F
-
-.status-content
-  padding: 24px
-  display: flex
-  align-items: center
-  font-size: 1.1rem
-  color: #2c3e50
+  color: #D92B3F !important
 
 /* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 1440px)
-  .modal-card
-    max-width: 95vw
-    min-height: 700px
-
 @media (max-width: 960px)
-  .modal-content
-    padding: 20px
-    min-height: 500px
-
-  .user-info-row
-    gap: 12px
-
-  .info-card
-    padding: 16px
-
-  .section-title
-    font-size: 1.2rem
-
-  .modal-title
-    font-size: 1.4rem
+  .modal-header
+    min-height: 70px
 
   .close-btn
+    position: absolute
     right: 12px
     top: 12px
-
-  .modal-header
-    padding: 20px 24px
-    min-height: 70px
 </style>
