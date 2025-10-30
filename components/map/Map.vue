@@ -839,8 +839,10 @@ export default {
   display: flex
   flex-direction: row
 
-.basemap.active
-  border: 0
+  
+  
+.leaflet-control-basemaps .basemap:hover
+  transform: none !important
 
 .loading-background
   position: absolute
@@ -886,6 +888,12 @@ export default {
   background: #fff
   min-height: 125px !important
   min-width: 125px !important
+  max-height: 125px !important
+  max-width: 125px !important
+  width: 125px !important
+  height: 125px !important
+  overflow: hidden !important
+  position: relative !important
 
 .leaflet-control-minimap a
   background-color: rgba(255, 255, 255, 0.8)
@@ -895,13 +903,6 @@ export default {
   background-color: #fff
   border-radius: 0 0 4px 0
 
-@media (max-width: 768px)
-  .leaflet-control-minimap
-    min-height: 100px !important
-    min-width: 100px !important
-
-  .basemap img
-    width: 54px
 
   .basemap span
     font-size: 10px
