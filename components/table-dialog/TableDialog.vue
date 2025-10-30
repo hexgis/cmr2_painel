@@ -26,6 +26,7 @@
         <v-skeleton-loader
           v-if="loadingTable"
           type="table-row-divider@8"
+          class="mx-6"
         />
 
         <v-card-text v-if="!loadingTable">
@@ -94,6 +95,75 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+
+    <v-dialog
+      v-model="confirmDialog"
+      max-width="500"
+    >
+      <v-card>
+        <v-card-title class="headline">
+          {{ $t('confirm-dialog-title') }}
+        </v-card-title>
+        <v-card-text class="mt-4">
+          {{ $t('confirm-dialog-message1') }}
+        </v-card-text>
+        <v-card-text>
+          {{ $t('confirm-dialog-message2') }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            text
+            @click="confirmDialog = false"
+          >
+            <v-icon>mdi-check</v-icon>
+            {{ $t('acknowledge-label') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog
+      v-model="downloadDialog"
+      max-width="500"
+    >
+      <v-card>
+        <v-card-title class="headline">
+          {{ $t('confirm-dialog-title') }}
+        </v-card-title>
+        <v-card-text class="mt-4">
+          <p>{{ $t('description-label-3') }}</p>
+        </v-card-text>
+        <v-card-text>
+          <p>
+            {{ $t('description-label-4') }}
+            <a href="mailto:cmr@funai.gov.br">cmr@funai.gov.br</a>.
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            text
+            @click="downloadDialog = false"
+          >
+            {{ $t('cancel') }}
+          </v-btn>
+          <v-btn
+            color="green darken-1"
+            text
+            :loading="isDownloading"
+            @click="handleDownloadConfirmed"
+          >
+            <v-icon v-if="!isDownloading">
+              mdi-download
+            </v-icon>
+            {{ $t('download-label') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-row>
 </template>
 
@@ -156,10 +226,18 @@ export default {
       required: true,
       default: '',
     },
+    fDownloadCSV: {
+      type: Function,
+      required: true,
+      default: () => () => {},
+    },
   },
 
   data() {
     return {
+      confirmDialog: false,
+      downloadDialog: false,
+      isDownloading: false,
       row: null,
       dialogPrint: false,
       selected: [],
@@ -177,6 +255,12 @@ export default {
       set(value) {
         this.fCloseTable(value);
       },
+    },
+  },
+
+  watch: {
+    value(val) {
+      if (val && val.length >= 10000) this.confirmDialog = true;
     },
   },
 
@@ -203,37 +287,28 @@ export default {
       }
     },
 
-    closeAnalyticalDialog(value) {
-      this.dialog = value;
-    },
-
-    escapeCSVValue(value) {
-      if (value === null || value === undefined) return '';
-      const stringValue = value.toString();
-      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
+    async handleDownloadClick() {
+      if (this.value.length >= 10000) {
+        this.downloadDialog = true;
+      } else {
+        await this.startDownload();
       }
-      return stringValue;
     },
 
-    handleDownloadCSV() {
-      const headers = this.headers.map((header) => this.escapeCSVValue(header.text));
-      const headerRow = headers.join(',');
+    async handleDownloadConfirmed() {
+      this.downloadDialog = false;
+      await this.startDownload();
+    },
 
-      const dataRows = this.value.map((item) => this.headers.map((header) => this.escapeCSVValue(item[header.value])).join(','));
-
-      const csvContent = [headerRow, ...dataRows].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-
-      link.setAttribute('href', url);
-      link.setAttribute('download', `${this.tableName || 'tabela'}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+    async startDownload() {
+      this.isDownloading = true;
+      try {
+        await this.fDownloadCSV();
+      } catch (error) {
+        console.error('Erro durante o download:', error);
+      } finally {
+        this.isDownloading = false;
+      }
     },
   },
 };

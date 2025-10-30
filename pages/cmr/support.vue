@@ -98,7 +98,9 @@ export default {
     searchInput: null,
   }),
 
-  async fetch() {
+ async fetch() {
+
+  try {
     if (this.supportCategoryGroupsBase
       && Object.keys(this.supportCategoryGroupsBase).length === 0) {
       await this.$store.dispatch('supportLayers/getCategoryGroupsBase');
@@ -107,7 +109,12 @@ export default {
       && Object.keys(this.supportCategoryGroupsAntropismo).length === 0) {
       await this.$store.dispatch('supportLayers/getCategoryGroupsAntropismo');
     }
-  },
+
+  } catch (error) {
+    console.error('❌ [Support] Erro ao buscar camadas:', error);
+    this.$nuxt.error({ statusCode: error.response?.status || 500, message: error.message });
+  }
+},
 
   computed: {
     layersList() {
@@ -122,7 +129,6 @@ export default {
     sortedLayersList() {
       return this.layersList.slice().sort((a, b) => a.name.localeCompare(b.name));
     },
-
     orderedSupportLayersGroups() {
       if (!this.supportCategoryGroupsBase) return [];
       const groups = Object.values(this.supportCategoryGroupsBase);

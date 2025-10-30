@@ -28,6 +28,8 @@ export const state = () => ({
 
   },
   opacity: 100,
+  tableDeter: [],
+  isLoadingTable: false,
   intersectsWmsDeter: '',
 });
 
@@ -86,9 +88,85 @@ export const mutations = {
   clearFeatures(state) {
     state.features = null;
   },
+
+  setTableDeter(state, data) {
+    state.tableDeter = data;
+  },
+
+  setLoadingTable(state, payload) {
+    state.isLoadingTable = payload;
+  },
 };
 
 export const actions = {
+  async getDataTableDeter({ commit, state, rootState }) {
+    commit('setLoadingTable', true);
+    try {
+      const params = {
+        service: 'WFS',
+        version: '1.0.0',
+        request: 'GetFeature',
+        typeName: state.geoserverLayerDeter,
+        outputFormat: 'application/json',
+        CQL_FILTER: '',
+        maxFeatures: 10000,
+      };
+
+      const filters = [];
+
+      if (state.filters.currentView && state.intersectsWmsDeter) {
+        filters.push(state.intersectsWmsDeter);
+      }
+      if (state.filters.ti.length) {
+        filters.push(`co_funai IN (${state.filters.ti.map((ti) => ti.co_funai).join(',')})`);
+      }
+      if (state.filters.cr.length) {
+        filters.push(`co_cr IN (${state.filters.cr.map((cr) => cr.co_cr).join(',')})`);
+      }
+      if (state.filters.startYear && state.filters.endYear) {
+        filters.push(`(nu_ano >= ${state.filters.startYear} AND nu_ano <= ${state.filters.endYear})`);
+      }
+      if (filters.length) params.CQL_FILTER = filters.join(' AND ');
+
+      const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
+
+      const response = await this.$api.$get(url);
+
+      if (!response.features) {
+        commit('setTableDeter', []);
+        throw new Error('Nenhum dado encontrado');
+      }
+
+      const tableData = response.features.map(({ properties }) => ({
+        origin_id: properties.id || properties.origin_id || '',
+        co_funai: properties.co_funai || '',
+        co_cr: properties.co_cr || '',
+        ds_cr: properties.ds_cr || '',
+        no_ti: properties.no_ti || '',
+        nu_ano: properties.nu_ano || '',
+        nu_area_ha: parseFloat(properties.nu_area_ha) || 0,
+        nu_area_km2: parseFloat(properties.nu_area_km2) || 0,
+        no_classe: properties.no_classe || '',
+        sg_uf: properties.sg_uf || '',
+        dt_imagem: properties.dt_imagem || '',
+        nu_orbita: properties.nu_orbita || '',
+        nu_ponto: properties.nu_ponto || '',
+      }));
+      commit('setTableDeter', tableData);
+    } catch (error) {
+      commit('setTableDeter', []);
+      commit('alert/addAlert', {
+        message: this.$i18n.t('default-error', {
+          action: this.$i18n.t('retrieve'),
+          resource: this.$i18n.t('table'),
+        }),
+        type: 'error',
+      }, { root: true });
+    } finally {
+      commit('setLoadingTable', false);
+    }
+  },
+
   async generateUrlWmsDeter({ state, commit, rootState }, newBbox = false) {
     const params = {
       layers: state.geoserverLayerDeter,
@@ -361,6 +439,88 @@ export const actions = {
         },
         { root: true },
       );
+    }
+  },
+
+  async downloadCSV({ commit, state }, { grouping, defaultFileName }) {
+    commit('setLoadingCSV', true);
+
+    try {
+      const params = {
+        start_date: state.filters.startDate,
+        end_date: state.filters.endDate,
+        grouping,
+      };
+
+      const analyticsMonitoringcsv = await this.$api.$get(
+        'monitoring/consolidated/table-stats/',
+        { params },
+      );
+
+      if (!analyticsMonitoringcsv.length) {
+        throw new Error('Nenhum dado disponível para exportação');
+      }
+
+      const csvContent = this.$downloader.convertToCSV(analyticsMonitoringcsv, null, ';');
+      this.$downloader.downloadCSV(csvContent, defaultFileName);
+    } catch (error) {
+      console.error('Erro ao gerar CSV:', error);
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('download'),
+            resource: this.$i18n.t('deter'),
+          }),
+        },
+        { root: true },
+      );
+    } finally {
+      commit('setLoadingCSV', false);
+    }
+  },
+
+  async downloadTableDeter({ commit, state }) {
+    commit('setLoadingCSV', true);
+
+    try {
+      if (!state.tableDeter || !state.tableDeter.length) {
+        throw new Error('Nenhum dado disponível para exportação');
+      }
+
+      const headers = [
+        'ID', 'Código Funai', 'Terra Indígena',
+        'Coordenação Regional', 'Ano', 'Área (ha)',
+        'Latitude', 'Longitude',
+      ];
+
+      const data = state.tableDeter.map((item) => [
+        item.origin_id || '',
+        item.co_funai || '',
+        item.no_ti || '',
+        item.ds_cr || '',
+        item.nu_ano || '',
+        parseFloat(item.nu_area_ha) || 0,
+        item.nu_latitude || '',
+        item.nu_longitude || '',
+      ]);
+
+      const csvContent = this.$downloader.convertToCSV(data, headers, ';');
+      const fileName = `dados_deter_${new Date().toISOString().slice(0, 10)}.csv`;
+      this.$downloader.downloadCSV(csvContent, fileName);
+    } catch (error) {
+      commit(
+        'alert/addAlert',
+        {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('download'),
+            resource: this.$i18n.t('deter'),
+          }),
+        },
+        { root: true },
+      );
+    } finally {
+      commit('setLoadingCSV', false);
     }
   },
 

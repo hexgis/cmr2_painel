@@ -37,7 +37,6 @@
 </template>
 
 <script>
-import { filter } from 'jszip';
 import { mapMutations, mapActions } from 'vuex';
 
 if (typeof window !== 'undefined') {
@@ -81,12 +80,15 @@ export default {
     wmsOptions() {
       let options = {};
       if (this.layer.layer_type === 'wms') {
+        const hasDownload = this.layer.is_downloadable || false;
+
         options = {
           name: this.layer.name,
           maxZoom: 21,
           maxNativeZoom: 19,
           queryable: this.layer.wms.queryable,
           srs: 'EPSG:4674',
+          hasDownload,
         };
 
         if (this.layer.wms && this.layer.wms.geoserver_layer_options) {

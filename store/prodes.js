@@ -26,6 +26,10 @@ export const state = () => ({
   opacity: 100,
   intersectsWmsProdes: '',
   prodesStyles: {},
+  tableProdes: [],
+  isLoadingTable: false,
+  loadingCSV: false
+
 });
 
 export const getters = {
@@ -36,12 +40,13 @@ export const getters = {
       state.features.features.length > 0
     );
   },
+
   getShowFeaturesProdes: (state) => {
     return state.showFeaturesProdes;
   },
-  getLegendItems: (state) => {
-    if (!state.features || !state.prodesStyles) return [];
 
+  getLegendItems: (state) => {
+    if (!state.prodesStyles || typeof state.prodesStyles !== 'object') return [];
     // Obter anos únicos dos features que existem no prodesStyles
     const years = Array.from(
       new Set(
@@ -56,9 +61,18 @@ export const getters = {
       color: state.prodesStyles[year],
     }));
   },
+
+  getYearsRange: (state) => {
+    const legends = Object.keys(state.prodesStyles).map(year => parseInt(year, 10));
+    return legends;
+  }
 };
 
 export const mutations = {
+  setLoadingCSV(state, isLoading) {
+    state.loadingCSV = isLoading;
+  },
+
   setIntersectsWmsProdes(state, intersectsWmsProdes) {
     state.intersectsWmsProdes = intersectsWmsProdes;
   },
@@ -106,9 +120,170 @@ export const mutations = {
   setProdesStyles(state, styles) {
     state.prodesStyles = styles;
   },
+
+  setTableProdes(state, data) {
+    state.tableProdes = data;
+  },
+
+  setLoadingTable(state, payload) {
+    state.isLoadingTable = payload;
+  },
 };
 
 export const actions = {
+  async getDataTableProdes({ commit, state, rootState }) {
+
+  commit('setLoadingTable', true);
+  try {
+    const params = {
+      service: 'WFS',
+      version: '1.0.0',
+      request: 'GetFeature',
+      typeName: state.geoserverLayerProdes,
+      outputFormat: 'application/json',
+      CQL_FILTER: '',
+      maxFeatures: 10000,
+    };
+
+    const filters = [];
+
+    if (state.filters.currentView && state.intersectsWmsProdes) {
+      filters.push(state.intersectsWmsProdes);
+    }
+    if (state.filters.ti?.length) {
+      filters.push(`co_funai IN (${state.filters.ti.map(ti => ti.co_funai).join(',')})`);
+    }
+    if (state.filters.cr?.length) {
+      filters.push(`co_cr IN (${state.filters.cr.map(cr => cr.co_cr).join(',')})`);
+    }
+    if (state.filters.startYear && state.filters.endYear) {
+      filters.push(`(nu_ano >= ${state.filters.startYear} AND nu_ano <= ${state.filters.endYear})`);
+    }
+    if (filters.length) params.CQL_FILTER = filters.join(' AND ');
+
+    const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
+
+    const response = await this.$api.$get(url);
+
+    if (!response?.features) {
+      commit('setTableProdes', []);
+      throw new Error('Nenhum dado encontrado');
+    }
+
+    const tableData = response.features.map(({ properties }) => ({
+      origin_id: properties.id || properties.origin_id || '',
+      co_funai: properties.co_funai || '',
+      co_cr: properties.co_cr || '',
+      ds_cr: properties.ds_cr || '',
+      no_ti: properties.no_ti || '',
+      nu_ano: properties.nu_ano || '',
+      nu_area_ha: parseFloat(properties.nu_area_ha) || 0,
+      nu_area_km2: parseFloat(properties.nu_area_km2) || 0,
+      no_classe: properties.no_classe || '',
+      sg_uf: properties.sg_uf || '',
+      dt_imagem: properties.dt_imagem || '',
+      nu_orbita: properties.nu_orbita || '',
+      nu_ponto: properties.nu_ponto || '',
+    }));
+    commit('setTableProdes', tableData);
+  } catch (error) {
+    commit('setTableProdes', []);
+    commit('alert/addAlert', {
+      message: this.$i18n.t('default-error', {
+        action: this.$i18n.t('retrieve'),
+        resource: this.$i18n.t('table'),
+      }),
+      type: 'error',
+    }, { root: true });
+  } finally {
+    commit('setLoadingTable', false);
+  }
+},
+
+ async downloadCSV({ commit, state, rootGetters }, { grouping, defaultFileName }) {
+      commit('setLoadingCSV', true);
+
+      try {
+        const params = {
+          start_date: state.filters.startDate,
+          end_date: state.filters.endDate,
+          grouping
+        };
+
+        const analyticsMonitoringcsv = await this.$api.$get(
+          'monitoring/consolidated/table-stats/',
+          { params },
+        );
+
+        if (!analyticsMonitoringcsv?.length) {
+          throw new Error('Nenhum dado disponível para exportação');
+        }
+
+        const csvContent = this.$downloader.convertToCSV(analyticsMonitoringcsv, null, ';');
+        this.$downloader.downloadCSV(csvContent, defaultFileName);
+      } catch (error) {
+        commit(
+          'alert/addAlert',
+          {
+            message: this.$i18n.t('default-error', {
+              action: this.$i18n.t('download'),
+              resource: this.$i18n.t('prodes'),
+            }),
+          },
+          { root: true },
+        );
+      } finally {
+        commit('setLoadingCSV', false);
+      }
+    },
+
+
+   async downloadTableProdes({ commit, state }) {
+      commit('setLoadingCSV', true);
+
+      try {
+        if (!state.tableProdes || !state.tableProdes.length) {
+          throw new Error('Nenhum dado disponível para exportação');
+        }
+
+        const headers = [
+          'ID', 'Código Funai', 'Terra Indígena',
+          'Coordenação Regional', 'Ano', 'Área (ha)',
+          'Latitude', 'Longitude'
+        ];
+
+        const data = state.tableProdes.map(item => [
+          item.origin_id || '',
+          item.co_funai || '',
+          item.no_ti || '',
+          item.ds_cr || '',
+          item.nu_ano || '',
+          parseFloat(item.nu_area_ha) || 0,
+          item.nu_latitude || '',
+          item.nu_longitude || ''
+        ]);
+
+        const csvContent = this.$downloader.convertToCSV(data, headers, ';');
+        const fileName = `dados_prodes_${new Date().toISOString().slice(0, 10)}.csv`;
+        this.$downloader.downloadCSV(csvContent, fileName);
+      } catch (error) {
+        commit(
+          'alert/addAlert',
+          {
+            message: this.$i18n.t('default-error', {
+              action: this.$i18n.t('download'),
+              resource: this.$i18n.t('prodes'),
+            }),
+          },
+          { root: true },
+        );
+      } finally {
+        commit('setLoadingCSV', false);
+      }
+    },
+
+
+
   async getProdesStyleFromGeoserver({ commit, state, rootState }) {
     try {
       const params = {
@@ -309,7 +484,6 @@ export const actions = {
       }
 
     } catch (error) {
-      console.error('Erro ao buscar features do PRODES:', error);
       commit(
         'alert/addAlert',
         {

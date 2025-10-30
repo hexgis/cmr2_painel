@@ -49,7 +49,7 @@
                                         {{ $t('access-help-title') }}
                                         <a
                                             :href="localePath(helpLinks.requestAcessUrl)"
-                                            target="_blank"
+                                            target="_self"
                                         >
                                             {{ $t('access-help-link') }}</a
                                         ></v-col
@@ -121,7 +121,7 @@
                                 <p class="link-footer-dark text-h7">
                                     <a
                                         :href="localePath(helpLinks.requestAcessUrl)"
-                                        target="_blank"
+                                        target="_self"
                                     >
                                         {{ $t('access-help-link') }}</a
                                     >

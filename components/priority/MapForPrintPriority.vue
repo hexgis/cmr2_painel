@@ -310,7 +310,7 @@
     </div>
   </v-row>
 </template>
-<i18n>
+<i18n lang="json">
   {
     "en": {
       "map-title": "Monitoring Remote Center - National Indian Foundation",
@@ -456,7 +456,6 @@ export default {
         mm < 10 ? `0${mm}` : mm
       }/${yyyy}`;
     },
-
     createMap() {
       try {
         require('@/plugins/L.SimpleGraticule');

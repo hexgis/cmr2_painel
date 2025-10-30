@@ -40,7 +40,7 @@ export const mutations = {
 };
 
 export const actions = {
-  async authenticate({ commit }, { username, password }) {
+  async authenticate({ commit, dispatch }, { username, password }) {
     return await this.$api
       .$post('auth/obtain_token/', { username, password })
       .then((data) => {
@@ -58,6 +58,7 @@ export const actions = {
           path: '/',
           maxAge: 60 * 60 * 24 * 7,
         });
+        dispatch('privacyAgreement/reset', null, { root: true });
       });
   },
 
@@ -91,22 +92,40 @@ export const actions = {
     }
   },
 
-  logout({ commit }) {
-    commit('clearTokens');
-    this.$api.setHeader('Authorization', null);
+  logout({ commit, dispatch }) {
+    try {
+      commit('clearTokens');
 
-    this.$cookies.remove('token');
-    this.$cookies.remove('refresh');
+      if (this.$api && this.$api.setHeader) {
+        this.$api.setHeader('Authorization', null);
+      }
 
-    commit(
-      'userProfile/setUser',
-      {
-        user: null,
-      },
-      { root: true },
-    );
+      if (this.$cookies && typeof this.$cookies.remove === 'function') {
+        this.$cookies.remove('token');
+        this.$cookies.remove('refresh');
+      }
 
-    this.$router.replace(this.localePath('login'));
+      commit(
+        'userProfile/setUser',
+        { user: null },
+        { root: true },
+      );
+
+      dispatch('privacyAgreement/reset', null, { root: true });
+
+      if (this.$router && typeof this.$router.replace === 'function') {
+        try {
+          this.$router.replace(this.localePath('login'));
+        } catch (e) {
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+        }
+      }
+    } catch (error) {
+      commit('clearTokens');
+      commit('userProfile/setUser', { user: null }, { root: true });
+    }
   },
 
   tryAutoLogin({ commit, dispatch }) {
@@ -119,10 +138,12 @@ export const actions = {
         if (decoded.exp > Date.now() / 1000) {
           commit('setTokens', { token, refresh });
           this.$api.setHeader('Authorization', `Bearer ${token}`);
+          dispatch('privacyAgreement/reset', null, { root: true });
         } else {
           decoded = jwtDecode(refresh);
           if (decoded.exp > Date.now() / 1000) {
             commit('setTokens', { token, refresh });
+            dispatch('privacyAgreement/reset', null, { root: true });
             return dispatch('refreshToken');
           }
         }

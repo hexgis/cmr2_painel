@@ -12,7 +12,7 @@
         :max-bounds-viscosity="1"
         :options="mapOptions"
         @update:bounds="updateBounds"
-        @ready="mapReady = true"
+        @ready="onMapReady"
       >
         <l-control position="topleft">
           <div class="pa-1 map-action-buttons">
@@ -294,6 +294,7 @@ import Highlighter from '@/components/map/Highlighter.vue';
 import MapIndigenousLand from '@/components/map/MapIndigenousLand';
 import ProdesLayers from '@/components/inpe/prodes/ProdesLayers.vue';
 import FocoLayers from '../inpe/foco/FocoLayers.vue';
+import BufferPopup from './BufferPopup.vue';
 
 if (typeof window !== 'undefined') {
   require('leaflet-basemaps');
@@ -533,12 +534,6 @@ export default {
     localBounds: [],
   }),
 
-  mounted() {
-    window.mapMain.on('click', (e) => {
-      this.$store.dispatch('getWmsFeatureInfo', e.latlng);
-    });
-  },
-
   computed: {
     initialExtentCoords() {
       return this.user && this.user.settings.initial_extent.coordinates
@@ -562,14 +557,26 @@ export default {
 
   watch: {
     boundsZoomed() {
-      this.map.flyToBounds(this.bounds);
+      if (this.map && this.bounds) {
+        this.map.flyToBounds(this.bounds);
+      }
     },
   },
 
   mounted() {
     this.$nextTick(() => {
       this.createMap();
+      if (this.map) {
+        this.map.invalidateSize();
+      }
     });
+  },
+
+  beforeUnmount() {
+    if (this.map) {
+      this.map.off();
+      this.map.remove();
+    }
   },
 
   methods: {
@@ -615,6 +622,11 @@ export default {
     },
 
     createMap() {
+      if (!this.$refs.map || !this.$refs.map.mapObject) {
+        console.error('Map reference not available');
+        return;
+      }
+
       this.map = this.$refs.map.mapObject;
       window.mapMain = this.map;
       Vue.prototype.$mainMap = this.map;
@@ -622,6 +634,10 @@ export default {
       this.map.on('zoomend', this.onZoomEnd);
       this.map.addEventListener('mousemove', this.refreshCoordinates);
       this.map.on('baselayerchange', this.changeBaseMap);
+      this.map.on('click', (e) => {
+        this.$store.dispatch('getWmsFeatureInfo', e.latlng);
+      });
+
       this.createMapLayers();
       this.createCssRefs();
       this.createMiniMap();
@@ -648,6 +664,29 @@ export default {
       } else {
         this.localBounds = this.initialBounds;
       }
+    },
+
+    onMapReady() {
+      window.controlBuffer = this.$bufferControl({
+        onCreatePopupContent: (layer, bufferOutlineLayer, bufferDistance) => {
+          const BufferPopupComponent = Vue.extend(BufferPopup);
+          const popupContent = new BufferPopupComponent({
+            propsData: {
+              layer,
+              bufferDistance,
+            },
+            parent: this,
+          });
+          popupContent.$mount();
+          popupContent.$on('remove-buffer', (l) => {
+            window.controlBuffer.removeBuffer(l);
+            bufferOutlineLayer.closePopup();
+          });
+          return popupContent.$el;
+        },
+      });
+      window.controlBuffer.addTo(this.map);
+      this.mapReady = true;
     },
 
     createMapLayers() {

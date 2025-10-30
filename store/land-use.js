@@ -1,5 +1,5 @@
 import centroid from '@turf/centroid';
-import { convertToCSV, saveData } from '@/utils/csv';
+// import { convertToCSV, saveData } from '@/utils/csv';
 
 export default {
   state: () => ({

@@ -58,7 +58,9 @@
                   <template #activator="{ on, attrs }">
                     <v-icon
                       v-bind="attrs"
+                      :style="isRestricaoDeUso(category.name) ? 'cursor: pointer;' : ''"
                       v-on="on"
+                      @click="isRestricaoDeUso(category.name) ? openFunaiLink() : null"
                     >
                       mdi-information
                     </v-icon>
@@ -111,13 +113,22 @@ export default {
     loading: false,
     descriptions: {
       declarada: 'Fase em que o processo é submetido à apreciação do Ministro da Justiça, que decidirá sobre o tema e, caso entenda cabível, declarará os limites e determinará a a demarcação física da referida área objeto do procedimento demarcatório, mediante Portaria publicada no Diário Oficial da União.',
-      restricao_uso: 'Área com restrição de uso por proteção ambiental.',
+      restrição_de_uso: 'Maiores informações no site da Funai, ou clique no ícone (https://www.gov.br/funai/pt-br/atuacao/terras-indigenas/demarcacao-de-terras-indigenas).',
       regularizada: 'Áreas que se encontram em procedimento administrativo de constituição de reserva (compra direta, desapropriação ou doação) já finalizado e a área registrada em cartório imobiliário em nome da União, com usufruto indígena.',
       encaminhada_ri: 'Áreas que se encontram em procedimento administrativo de constituição de reserva (compra direta, desapropriação ou doação) ainda não finalizado.',
       homologada: 'Fase em que há a publicação dos limites materializados e georreferenciados da área, através de Decreto Presidencial, passando a ser constituída como terra indígena.',
       delimitada: 'Fase na qual há a conclusão dos estudos e que estes foram aprovados pela Presidência da Funai através de publicação no Diário Oficial da União e do Estado em que se localiza o objeto sob processo de demarcação.',
     },
   }),
+
+  computed: {
+    isRestricaoDeUso() {
+      return (categoryName) => {
+        if (!categoryName) return false;
+        return categoryName.toLowerCase().replace(/\s/g, '_') === 'restrição_de_uso';
+      };
+    },
+  },
 
   mounted() {
     this.getCategory();
@@ -129,6 +140,10 @@ export default {
         id: this.layer.id,
         category,
       });
+    },
+
+    openFunaiLink() {
+      window.open('https://www.gov.br/funai/pt-br/atuacao/terras-indigenas/demarcacao-de-terras-indigenas', '_blank');
     },
 
     async getCategory() {

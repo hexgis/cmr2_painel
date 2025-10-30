@@ -1,4 +1,18 @@
-import axios from 'axios';
+export const state = () => ({
+  acessData: {},
+  dates: [],
+  dateCounts: {},
+  typeDeviceCounts: {},
+  browserCounts: {},
+  institutionCrCounts: [],
+  monthlyData: [],
+  location: [],
+  todayDate: '',
+  weekAgoDate: '',
+  totalViewPerYears: [],
+  institutionFilter: 'AGÊNCIAS',
+});
+
 /**
  * Formats a date object to YYYY-MM-DD string format
  * Date=2023-06-21
@@ -36,6 +50,7 @@ const processResponseData = (response) => {
   const dateCounts = {};
   const typeDeviceCounts = {};
   const browserCounts = {};
+  const institutionCrCounts = {};
   const geocodedLocations = response.data.map((item) => ({
     city: item.location,
     lat: item.latitude,
@@ -57,22 +72,28 @@ const processResponseData = (response) => {
       const normalizedBrowser = item.browser.toUpperCase().trim();
       browserCounts[normalizedBrowser] = (browserCounts[normalizedBrowser] || 0) + 1;
     }
+
+    if (item.institution_acronym) {
+      const normalizedInstitution = item.institution_acronym.toUpperCase().trim();
+      institutionCrCounts[normalizedInstitution] = (
+        institutionCrCounts[normalizedInstitution] || 0) + 1;
+    }
   });
 
   const consolidatedBrowserCounts = {};
   const predefinedBrowsers = ['CHROME', 'FIREFOX', 'EDGE', 'SAFARI'];
-  let otherCount = 0;
+  let otherBrowserCount = 0;
 
   Object.entries(browserCounts).forEach(([browser, count]) => {
     if (predefinedBrowsers.includes(browser)) {
       consolidatedBrowserCounts[browser] = count;
     } else {
-      otherCount += count;
+      otherBrowserCount += count;
     }
   });
 
-  if (otherCount > 0) {
-    consolidatedBrowserCounts.OUTROS = otherCount;
+  if (otherBrowserCount > 0) {
+    consolidatedBrowserCounts.OUTROS = otherBrowserCount;
   }
 
   return {
@@ -80,23 +101,61 @@ const processResponseData = (response) => {
     dateCounts,
     typeDeviceCounts,
     consolidatedBrowserCounts,
+    consolidatedInstitutionCrCounts: institutionCrCounts,
     geocodedLocations,
   };
 };
 
-export const state = () => ({
-  acessData: {},
-  dates: [],
-  dateCounts: {},
-  typeDeviceCounts: {},
-  browserCounts: {},
-  monthlyData: [],
-  location: [],
-  todayDate: '',
-  weekAgoDate: '',
-  totalViewPerYears: [],
-  institutionFilter: 'AGÊNCIAS',
-});
+/**
+ * Calculates percentage values for count objects
+ * @param {Object} counts - Object with count values
+ * @returns {Object} Object with percentage values
+ */
+const calculatePercentages = (counts) => {
+  const total = Object.values(counts).reduce((acc, count) => acc + count, 0);
+  const percentageCounts = {};
+
+  for (const [key, value] of Object.entries(counts)) {
+    percentageCounts[key] = total ? Math.round((value / total) * 100) : 0;
+  }
+
+  return percentageCounts;
+};
+
+/**
+ * Processes monthly counts from filtered data
+ * @param {Array} data - Filtered data array
+ * @returns {Array} Processed monthly counts
+ */
+const processMonthlyCounts = (data) => {
+  const monthlyCounts = {};
+
+  data.forEach((item) => {
+    if (item.last_date_login) {
+      const dateParts = item.last_date_login.split('/');
+      let date;
+
+      if (dateParts.length === 3) {
+        const [day, month, year] = dateParts.map(Number);
+        date = new Date(year, month - 1, day);
+      } else {
+        date = new Date(item.last_date_login);
+      }
+
+      if (!isNaN(date.getTime())) {
+        const monthNum = date.getMonth() + 1;
+        const yearNum = date.getFullYear();
+        const key = `${yearNum}-${monthNum}`;
+        monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
+      }
+    }
+  });
+
+  return Object.entries(monthlyCounts).map(([key, count]) => {
+    const [year, month] = key.split('-').map(Number);
+    return { year, month, count };
+  }).filter((item) => !isNaN(item.month) && !isNaN(item.year));
+};
 
 export const mutations = {
   setDataChart(state, data) {
@@ -114,6 +173,9 @@ export const mutations = {
   },
   setBrowserCounts(state, counts) {
     state.browserCounts = normalizeObjectKeys(counts);
+  },
+  setInstitutionCrCounts(state, counts) {
+    state.institutionCrCounts = counts;
   },
   setLocation(state, locations) {
     state.location = locations;
@@ -141,63 +203,50 @@ export const actions = {
    */
   async dataChart({ commit, state, dispatch }, data) {
     await dispatch('captureDates');
-    const [startDate, endDate, location, typeDevice, browser] = [
+
+    const [startDate, endDate, location, typeDevice, browser, institutionCr] = [
       data.startDate ? data.startDate : state.weekAgoDate || '',
       data.endDate || state.todayDate || '',
       data.location || '',
       data.typeDevice || '',
       data.browser || '',
+      data.institutionCr || '',
     ];
 
-    await dispatch('getTotalViewsPerYear', { startDate, endDate, institution: state.institutionFilter });
+    await dispatch('getTotalViewsPerYear', {
+      startDate,
+      endDate,
+      institution: state.institutionFilter,
+    });
 
     try {
+      let institutionCrArray = [];
+      if (institutionCr) {
+        if (typeof institutionCr === 'string' && institutionCr.includes(',')) {
+          institutionCrArray = institutionCr.split(',').map(cr => cr.trim().toUpperCase());
+        } else if (Array.isArray(institutionCr)) {
+          institutionCrArray = institutionCr.map(cr => cr.trim().toUpperCase());
+        } else {
+          institutionCrArray = [institutionCr.trim().toUpperCase()];
+        }
+      }
+
       const response = await this.$api.$get(
-        `dashboard/get-all/?startDate=${startDate}&endDate=${endDate}&location=${location}&type_device=${typeDevice}&browser=${browser}&institution=${state.institutionFilter}`,
+        `dashboard/?date_after=${startDate}&date_before=${endDate}&location=${location}&type_device=${typeDevice}&browser=${browser}&institution=${institutionCr}`,
       );
-      console.log('dados', response);
 
       if (response) {
-        // Filtrar os dados brutos por instituição
         const filteredData = {
           ...response,
           data: response.data.filter((item) => {
-            if (!item.user_email) return false;
             if (state.institutionFilter === 'FUNAI') {
-              return item.user_email.toLowerCase().endsWith('@funai.gov.br');
+              return item.is_internal;
             }
-            return !item.user_email.toLowerCase().endsWith('@funai.gov.br');
+            return true;
           }),
         };
 
-        const monthlyCounts = {};
-        filteredData.data.forEach((item) => {
-          if (item.last_date_login) {
-            const dateParts = item.last_date_login.split('/');
-            let date;
-            if (dateParts.length === 3) {
-              const [day, month, year] = dateParts.map(Number);
-              date = new Date(year, month - 1, day);
-            } else {
-              date = new Date(item.last_date_login);
-            }
-
-            if (!isNaN(date.getTime())) {
-              const month = date.getMonth() + 1;
-              const year = date.getFullYear();
-              const key = `${year}-${month}`;
-              monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
-            } else {
-              console.warn('Invalid date format for last_date_login:', item.last_date_login);
-            }
-          }
-        });
-
-        const processedMonthlyCounts = Object.entries(monthlyCounts).map(([key, count]) => {
-          const [year, month] = key.split('-').map(Number);
-          return { year, month, count };
-        }).filter((item) => !isNaN(item.month) && !isNaN(item.year));
-
+        const processedMonthlyCounts = processMonthlyCounts(filteredData.data);
         filteredData.monthly_counts = processedMonthlyCounts;
 
         commit('setDataChart', filteredData);
@@ -212,55 +261,33 @@ export const actions = {
             return new Date(yearA, monthA - 1, dayA) - new Date(yearB, monthB - 1, dayB);
           }),
         );
+
         commit('setDateCounts', processedData.dateCounts);
         commit('setTypeDeviceCounts', processedData.typeDeviceCounts);
         commit('setBrowserCounts', processedData.consolidatedBrowserCounts);
-
-        const totalDevices = Object.values(processedData.typeDeviceCounts).reduce(
-          (acc, count) => acc + count,
-          0,
-        );
-        const percentageDeviceCounts = {};
-        for (const [key, value] of Object.entries(processedData.typeDeviceCounts)) {
-          percentageDeviceCounts[key] = totalDevices ? Math.round((value / totalDevices) * 100) : 0;
-        }
-        commit('setTypeDeviceCounts', percentageDeviceCounts);
-
-        const totalBrowsers = Object.values(processedData.consolidatedBrowserCounts).reduce(
-          (acc, count) => acc + count,
-          0,
-        );
-        const percentageBrowserCounts = {};
-        for (const [key, value] of Object.entries(
-          processedData.consolidatedBrowserCounts,
-        )) {
-          percentageBrowserCounts[key] = totalBrowsers ? Math.round((value / totalBrowsers) * 100) : 0;
-        }
-        commit('setBrowserCounts', percentageBrowserCounts);
-
+        commit('setInstitutionCrCounts', processedData.consolidatedInstitutionCrCounts);
         commit('setMonthlyCounts', processedMonthlyCounts);
       }
     } catch (error) {
       this.$store.commit('alert/addAlert', {
         message: this.$t('error'),
       });
-      console.error('Failed to fetch data:', error);
     }
   },
 
   async getTotalViewsPerYear({ commit, state }, { startDate, endDate, institution }) {
     try {
       const response = await this.$api.$get(
-        `dashboard/get-year/?startDate=${startDate}&endDate=${endDate || ''}&institution=${institution || state.institutionFilter}`,
+        `dashboard/?date_after=${startDate}&date_before=${endDate || ''}`,
       );
 
-      const data = Array.isArray(response) ? response : response && response.yearly_totals ? response.yearly_totals : [];
+      const data = Array.isArray(response) ? response :
+        response && response.monthly_counts ? response.monthly_counts : [];
       commit('setTotalViewYears', data);
     } catch (error) {
       this.$store.commit('alert/addAlert', {
         message: this.$i18n.t('default-error'),
       });
-      console.error('Failed to fetch total views per year:', error);
       commit('setTotalViewYears', []);
     }
   },
@@ -283,37 +310,16 @@ export const actions = {
 };
 
 export const getters = {
-  getDataChart(state) {
-    return state.acessData;
-  },
-  getDates(state) {
-    return state.dates;
-  },
-  getDateCounts(state) {
-    return state.dateCounts;
-  },
-  getTypeDeviceCounts(state) {
-    return state.typeDeviceCounts;
-  },
-  getBrowserCounts(state) {
-    return state.browserCounts;
-  },
-  getLocations(state) {
-    return state.location;
-  },
-  getTodayDate(state) {
-    return state.todayDate;
-  },
-  getWeekAgoDate(state) {
-    return state.weekAgoDate;
-  },
-  getMonthlyCounts(state) {
-    return state.monthlyData;
-  },
-  getTotalViewsPerYear(state) {
-    return state.totalViewPerYears;
-  },
-  getInstitutionFilter(state) {
-    return state.institutionFilter;
-  },
+  getDataChart: (state) => state.acessData,
+  getDates: (state) => state.dates,
+  getDateCounts: (state) => state.dateCounts,
+  getTypeDeviceCounts: (state) => state.typeDeviceCounts,
+  getBrowserCounts: (state) => state.browserCounts,
+  getInstitutionCrCounts: (state) => state.institutionCrCounts,
+  getLocations: (state) => state.location,
+  getTodayDate: (state) => state.todayDate,
+  getWeekAgoDate: (state) => state.weekAgoDate,
+  getMonthlyCounts: (state) => state.monthlyData,
+  getTotalViewsPerYear: (state) => state.totalViewPerYears,
+  getInstitutionFilter: (state) => state.institutionFilter,
 };

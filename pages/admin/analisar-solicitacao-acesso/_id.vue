@@ -269,17 +269,12 @@ export default {
         const isAdministrador = this.$store.state.userProfile.user.roles.some(
           (role) => role.name === 'Administrador',
         );
-        if (isGestor) {
-          await this.$api.post(
-            `/user/access-requests/${this.accessRequest.id}/gestor-approve/`,
-          );
-        } else if (isAdministrador) {
-          await this.$api.post(
-            `/user/access-requests/${this.accessRequest.id}/admin-approve/`,
-          );
-        } else {
-          throw new Error('Unauthorized');
-        }
+        if (!isGestor && !isAdministrador) throw new Error('Unauthorized');
+
+        await this.$api.post(
+          `/user/access-requests/${this.accessRequest.id}/gestor-approve/`,
+        );
+
         this.isSuccess = true;
         this.modalTitle = this.$t('success');
         this.modalMessage = this.$t('request-submitted-successfully');

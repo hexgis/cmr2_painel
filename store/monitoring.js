@@ -1,5 +1,5 @@
 import centroid from '@turf/centroid';
-import { convertToCSV, saveData } from '@/utils/csv';
+// import { convertToCSV, saveData } from '@/utils/csv';
 
 export default {
   state: () => ({
@@ -498,8 +498,8 @@ export default {
     async downloadAnalyticCSV({ commit, state }, defaultFileName) {
       try {
         commit('setLoadingDownloadCSV', true);
-        const csvData = convertToCSV(state.analyticsData);
-        saveData(csvData, defaultFileName);
+        const csvData = this.$downloader.convertToCSV(state.analyticsData);
+        this.$downloader.downloadCSV(csvData, defaultFileName);
       } catch (error) {
         commit('alert/addAlert', {
           message: this.$i18n.t('default-error', {

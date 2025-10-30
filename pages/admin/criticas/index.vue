@@ -347,25 +347,48 @@
           </v-card-text>
         </CustomDialog>
 
-        <div class="d-flex justify-space-between align-center">
-          <p class="text-uppercase">
-            <strong>{{ $t('export') }}</strong> {{ $t('as') }}
-          </p>
-          <div class="d-flex">
-            <div class="styled-btn">
-              <SavePdf :active-cards="filteredCards" />
+        <!-- Export buttons -->
+        <div class="d-flex align-center ml-3">
+          <div class="export-icons">
+            <div class="export-label text-uppercase mr-2">
+              {{ $t('export') }}
             </div>
-            <div
-              class="styled-btn"
-              style="cursor: pointer;"
-              @click="downloadCsv"
-            >
-              <v-img
-                src="/img/icons/file-excel-box.png"
-                max-width="50"
-                max-height="50"
-              />
-            </div>
+
+            <v-tooltip top>
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  icon
+                  color="#D92B3F"
+                  v-bind="attrs"
+                  class="mr-2"
+                  v-on="on"
+                  @click="downloadPdf"
+                >
+                  <v-icon size="40">
+                    mdi-file-pdf-box
+                  </v-icon>
+                </v-btn>
+              </template>
+              <span>PDF</span>
+            </v-tooltip>
+
+            <v-tooltip top>
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  icon
+                  color="#43A047"
+                  class="mr-3"
+                  v-bind="attrs"
+                  @click="downloadCsv"
+                  v-on="on"
+                >
+                  <v-icon size="40">
+                    mdi-file-excel-box
+                  </v-icon>
+                </v-btn>
+              </template>
+              <span>CSV</span>
+            </v-tooltip>
           </div>
         </div>
       </v-col>
@@ -428,11 +451,10 @@
     </div>
   </div>
 </template>
-<i18n>
+<i18n lang="json">
   {
     "en": {
-      "export": "Export",
-      "as": "As",
+      "export": "Export:",
       "noFileSelected": "No file selected",
       "attachFile": "Attach File",
       "approveRequestCreation": "Approve request upon creation",
@@ -456,8 +478,7 @@
       "andMoreFiles": "and {count} more files"
     },
     "pt-br": {
-      "export": "Exportar",
-      "as": "Como",
+      "export": "Exportar:",
       "noFileSelected": "Nenhum arquivo selecionado",
       "attachFile": "Anexar Arquivo",
       "approveRequestCreation": "Deferir solicitação na criação",
@@ -488,14 +509,13 @@ import GraphicBar from '/components/admin/GraphicBar.vue';
 import StatusFilter from '/components/admin/StatusFilter.vue';
 import SearchFilters from '/components/admin/SearchFilters.vue';
 import CustomDialog from '/components/admin/CustomDialog.vue';
-import SavePdf from '/components/admin/SavePdf.vue';
 
 import { mapGetters } from 'vuex';
 
 export default {
   name: 'CriticasSugestoes',
   components: {
-    GraphicBar, SuggestionsCard, StatusFilter, SearchFilters, CustomDialog, SavePdf,
+    GraphicBar, SuggestionsCard, StatusFilter, SearchFilters, CustomDialog,
   },
   layout: 'admin',
   middleware: 'admin',
@@ -794,7 +814,50 @@ export default {
       this.showFilters = !this.showFilters;
     },
     async downloadCsv() {
-      await this.$store.dispatch('admin/sendCsvData', { filteredData: this.filteredCards });
+      try {
+        const headers = ['Código', 'Assunto', 'Solicitante', 'Tipo', 'Status', 'Prioridade', 'Analisado Por', 'Data Abertura', 'Data Análise'];
+        const csvData = this.filteredCards.map((card) => ({
+          Código: card.code,
+          Assunto: card.subject,
+          Solicitante: card.requesting,
+          Tipo: card.solicitation_name,
+          Status: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.status_category_display || '',
+          Prioridade: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.priority_display || '',
+          'Analisado Por': card.ticket_status && card.ticket_status.analyzed_by || '',
+          'Data Abertura': card.opened_in_formatted || '',
+          'Data Análise': card.ticket_status && card.ticket_status.analyzed_in_formatted || '',
+        }));
+
+        await this.$downloader.csv(csvData, headers, 'criticas_sugestoes', {
+          delimiter: ',',
+          dateFormat: 'iso',
+          includeTimestamp: true,
+        });
+      } catch (error) {
+        console.error('Erro ao gerar CSV:', error);
+        this.$store.commit('alert/addAlert', {
+          timeout: 5000,
+          message: `${error.message || 'Erro ao exportar arquivo CSV. Tente novamente.'}`,
+          type: 'error',
+        });
+      }
+    },
+
+    async downloadPdf() {
+      const headers = ['Código', 'Assunto', 'Solicitante', 'Tipo', 'Status', 'Prioridade', 'Analisado Por', 'Data Abertura', 'Data Análise'];
+      const pdfData = this.filteredCards.map((card) => ({
+        Código: card.code,
+        Assunto: card.subject,
+        Solicitante: card.requesting,
+        Tipo: card.solicitation_name,
+        Status: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.status_category_display || '',
+        Prioridade: card.ticket_status && card.ticket_status.formated_info && card.ticket_status.formated_info.priority_display || '',
+        'Analisado Por': card.ticket_status && card.ticket_status.analyzed_by || '',
+        'Data Abertura': card.opened_in_formatted || '',
+        'Data Análise': card.ticket_status && card.ticket_status.analyzed_in_formatted || '',
+      }));
+
+      await this.$downloader.downloadPDF(pdfData, headers, 'Críticas e Sugestões', 'criticas_sugestoes.pdf');
     },
     goToCardDetails(cardId) {
       this.$router.push(`/admin/criticas/${cardId}`);
@@ -1011,10 +1074,6 @@ export default {
   width: 100%
   padding: 2rem
 
-.styled-btn
-  padding: 1rem 1rem 0
-  border-radius: 8px
-
 .card--wrapper
   display: grid
   grid-template-columns: repeat(auto-fit, minmax(350px,1fr))
@@ -1127,4 +1186,15 @@ export default {
   &--active
     border-color: #1976d2
     background-color: #f3f8ff
+
+.export-label
+  letter-spacing: 0.5px
+  font-size: 0.8rem
+  display: flex
+  align-items: center
+
+.export-icons
+  display: flex
+  align-items: center
+  gap: 0.25rem
 </style>
