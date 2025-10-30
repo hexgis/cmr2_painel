@@ -976,7 +976,18 @@ export default {
         case 'A3':
           return { width: 1450, height: 800 };
         default:
-          return { width: 210, height: 297 };
+          return { width: 1105, height: 770 };
+      }
+    },
+
+    getImageDimensions(tamanho) {
+      switch (tamanho) {
+        case 'A4':
+          return { width: 1240, height: 800 };
+        case 'A3':
+          return { width: 1600, height: 1050 };
+        default:
+          return { width: 1240, height: 800 };
       }
     },
 
@@ -1040,31 +1051,77 @@ export default {
       const mapControlZoom = document.getElementsByClassName('leaflet-control-zoom')[0];
       const infoControlRight = document.getElementsByClassName('leaflet-control-attribution')[1];
 
+      const originalStates = {
+        node: {
+          width: node.style.width,
+          height: node.style.height,
+          minWidth: node.style.minWidth,
+          maxWidth: node.style.maxWidth,
+          minHeight: node.style.minHeight,
+          maxHeight: node.style.maxHeight,
+          padding: node.style.padding,
+          boxSizing: node.style.boxSizing,
+        },
+        mapControlZoom: mapControlZoom ? mapControlZoom.style.display : '',
+        mapBounds: mapBounds ? mapBounds.style.width : '',
+        infoControlRight: infoControlRight ? infoControlRight.getAttribute('style') : '',
+      };
+
       try {
         const nameImageDownload = this.mapTitle;
 
-        mapControlZoom.style.display = 'none';
-        mapBounds.style.width = '250px';
+        if (mapControlZoom) mapControlZoom.style.display = 'none';
+        if (mapBounds) mapBounds.style.width = '250px';
+        if (infoControlRight) infoControlRight.setAttribute('style', 'width: 304px');
 
-        const originalWidth = node.style.width;
-        const originalHeight = node.style.height;
-
-        const mapDimensions = this.getMapDimensions(this.leafSize.type);
+        const mapDimensions = this.getImageDimensions(this.leafSize.type);
+        
         node.style.width = `${mapDimensions.width}px`;
         node.style.height = `${mapDimensions.height}px`;
+        node.style.minWidth = `${mapDimensions.width}px`;
+        node.style.maxWidth = `${mapDimensions.width}px`;
+        node.style.minHeight = `${mapDimensions.height}px`;
+        node.style.maxHeight = `${mapDimensions.height}px`;
+        node.style.overflow = 'hidden';
+        node.style.padding = '10px';
+        node.style.boxSizing = 'border-box';
+
+        await this.$nextTick();
+
+        const mapForPrint = this.$refs.mapForPrint || this.$children.find((child) => child.$options.name === 'MapForPrint');
+        if (mapForPrint && mapForPrint.map) {
+          mapForPrint.map.invalidateSize(true);
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+
+        const miniMapComponent = this.$children.find((child) => child.$options.name === 'MiniMap');
+        if (miniMapComponent && miniMapComponent.miniMap) {
+          miniMapComponent.miniMap.invalidateSize(true);
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         const options = {
           quality: 1,
           bgcolor: 'white',
-          width: 1230,
-          height: 780,
+          width: mapDimensions.width + 20,
+          height: mapDimensions.height + 20,
           style: {
             transform: 'scale(1)',
             transformOrigin: 'top left',
+            width: `${mapDimensions.width + 20}px`,
+            height: `${mapDimensions.height + 20}px`,
+            padding: '10px',
+          },
+          filter: (node) => {
+            if (node.classList) {
+              return !node.classList.contains('leaflet-control-zoom') &&
+                     !node.classList.contains('no-print');
+            }
+            return true;
           },
         };
-
-        infoControlRight.setAttribute('style', 'width: 304px');
 
         const image = await domtoimage.toJpeg(node, options);
 
@@ -1075,18 +1132,38 @@ export default {
           : 'Mapa.jpeg';
         link.click();
 
-        node.style.width = originalWidth;
-        node.style.height = originalHeight;
-
         this.loadingPrintImage = false;
       } catch (error) {
         console.error('Erro ao gerar imagem:', error);
         this.$emit('show-error', 'Ocorreu um erro ao gerar a imagem.');
         this.loadingPrintImage = false;
       } finally {
-        infoControlRight.setAttribute('style', 'width: auto');
-        mapBounds.style.width = 'auto';
-        mapControlZoom.style.display = 'block';
+        node.style.width = originalStates.node.width;
+        node.style.height = originalStates.node.height;
+        node.style.minWidth = originalStates.node.minWidth;
+        node.style.maxWidth = originalStates.node.maxWidth;
+        node.style.minHeight = originalStates.node.minHeight;
+        node.style.maxHeight = originalStates.node.maxHeight;
+        node.style.padding = originalStates.node.padding;
+        node.style.boxSizing = originalStates.node.boxSizing;
+        node.style.overflow = '';
+
+        if (mapControlZoom) mapControlZoom.style.display = originalStates.mapControlZoom;
+        if (mapBounds) mapBounds.style.width = originalStates.mapBounds;
+        if (infoControlRight) {
+          if (originalStates.infoControlRight) {
+            infoControlRight.setAttribute('style', originalStates.infoControlRight);
+          } else {
+            infoControlRight.removeAttribute('style');
+          }
+        }
+
+        const mapForPrint = this.$refs.mapForPrint || this.$children.find((child) => child.$options.name === 'MapForPrint');
+        if (mapForPrint && mapForPrint.map) {
+          this.$nextTick(() => {
+            mapForPrint.map.invalidateSize(true);
+          });
+        }
       }
     },
 
@@ -1242,6 +1319,15 @@ p {
 .hight_container_mini_map {
   height: 150px;
   max-height: 150px;
+  width: 100%;
+  overflow: hidden;
+}
+
+@media print {
+  .hight_container_mini_map {
+    height: 150px !important;
+    max-height: 150px !important;
+  }
 }
 
 .font-page p {
@@ -1280,6 +1366,28 @@ img.layer-thumbnail {
   width: 100% !important;
   height: 100% !important;
   background: transparent !important;
+}
+
+#map-for-print {
+  position: relative;
+  background: white !important;
+}
+
+#map-for-print .leaflet-container {
+  background: white !important;
+  background-color: white !important;
+}
+
+#map-for-print .hight_container_mini_map {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 180px !important;
+}
+
+#map-for-print .hight_container_mini_map .minimap-for-print {
+  max-width: 280px !important;
+  max-height: 180px !important;
 }
 
 @media print {
