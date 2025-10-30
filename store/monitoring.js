@@ -130,16 +130,31 @@ export default {
     setAnalytics(state, analyticsMonitoring) {
       const formattedAnalytics = analyticsMonitoring.map(item => {
         const newItem = { ...item };
-        for (const key in newItem) {
-          if (typeof newItem[key] === 'string' && newItem[key].endsWith('%')) {
-            const percentValue = newItem[key].replace('%', '').replace(',', '.');
-            const numberValue = parseFloat(percentValue);
-            if (!isNaN(numberValue)) {
-              const roundedValue = Math.ceil(numberValue * 1000) / 1000;
-              newItem[key] = roundedValue.toFixed(3).replace('.', ',') + '%';
-            }
+        
+        const parseBrazilianNumber = (str) => {
+          if (!str) return 0;
+          const cleanStr = String(str).replace(/\./g, '').replace(',', '.');
+          return parseFloat(cleanStr) || 0;
+        };
+        
+        const areaFields = ['cr_nu_area_ha', 'dg_nu_area_ha', 'dr_nu_area_ha', 'ff_nu_area_ha', 'total_nu_area_ha', 'ti_nu_area_ha'];
+        areaFields.forEach(field => {
+          if (newItem[field]) {
+            newItem[`${field}_numeric`] = parseBrazilianNumber(newItem[field]);
+          } else {
+            newItem[`${field}_numeric`] = 0;
           }
-        }
+        });
+        
+        const percFields = ['cr_nu_area_perc', 'dg_nu_area_perc', 'dr_nu_area_perc', 'ff_nu_area_perc'];
+        percFields.forEach(field => {
+          if (newItem[field]) {
+            const cleanValue = String(newItem[field]).replace('%', '');
+            newItem[`${field}_numeric`] = parseBrazilianNumber(cleanValue);
+          } else {
+            newItem[`${field}_numeric`] = 0;
+          }
+        });
         return newItem;
       });
       state.analyticsMonitoring = formattedAnalytics;
@@ -845,21 +860,30 @@ export default {
           'ID', 'Código Funai', 'Terra Indígena', 'Coordenação Regional', 'Classe',
           'Data da Imagem', 'Área do Polígono (ha)', 'Latitude', 'Longitude',
         ];
-
-        const data = state.tableMonitoring.map(row => [
-          row.origin_id,
-          row.co_funai,
-          row.no_ti,
-          row.ds_cr,
-          row.no_estagio,
-          row.dt_imagem,
-          parseFloat(row.nu_area_ha) || 0,
-          row.nu_latitude,
-          row.nu_longitude
-        ]);
-
-        const csvContent = this.$downloader.convertToCSV(data, headers, ',');
-        this.$downloader.downloadCSV(csvContent, 'monitoring_table.csv');
+ 
+        const csvContent = [
+          headers.join(','),
+          ...state.tableMonitoring.map(row => [
+            row.origin_id,
+            row.co_funai,
+            `"${row.no_ti}"`,
+            `"${row.ds_cr}"`,
+            row.no_estagio,
+            row.dt_imagem,
+            row.nu_area_ha,
+            row.nu_latitude,
+            row.nu_longitude
+          ].join(','))
+        ].join('\n');
+ 
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'monitoring_table.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
       } catch (error) {
         console.error('Erro ao baixar tabela CSV:', error);
         commit('alert/addAlert', {
@@ -941,7 +965,26 @@ export default {
     // Baixa dados analíticos em CSV
     async downloadCSV({ commit, state, rootGetters }, { grouping, defaultFileName }) {
       commit('setLoadingCSV', true);
-
+      function convertToCSV(data) {
+        if (!data || !data.length) return '';
+        const headers = Object.keys(data[0]);
+        const csvRows = [headers.join(';')];
+        data.forEach(row => {
+          const values = headers.map(header => `"${('' + row[header]).replace(/"/g, '\\"')}"`);
+          csvRows.push(values.join(';'));
+        });
+        return csvRows.join('\n');
+      }
+ 
+      function saveData(data, filename) {
+        const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+ 
       try {
         const params = {
           start_date: state.filters.startDate,
@@ -968,18 +1011,11 @@ export default {
         if (!analyticsMonitoringcsv?.length) {
           throw new Error('Nenhum dado disponível para exportação');
         }
-
-        const csvContent = this.$downloader.convertToCSV(analyticsMonitoringcsv, null, ';');
-        this.$downloader.downloadCSV(csvContent, defaultFileName);
+ 
+        const csvString = convertToCSV(analyticsMonitoringcsv);
+        saveData(csvString, defaultFileName);
       } catch (error) {
         console.error('Erro ao gerar CSV:', error);
-        commit('alert/addAlert', {
-          message: this.$i18n.t('default-error', {
-            action: this.$i18n.t('download'),
-            resource: this.$i18n.t('monitoring'),
-          }),
-          type: 'error',
-        }, { root: true });
       } finally {
         commit('setLoadingCSV', false);
       }
