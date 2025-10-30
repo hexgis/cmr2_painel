@@ -460,7 +460,6 @@ class Downloader {
    */
   async csv(data, headers, baseName, options = {}) {
     if (process.server) {
-      console.warn('csv can only be used on client-side');
       return;
     }
 
