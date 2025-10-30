@@ -879,7 +879,26 @@ export default {
   .leaflet-control-zoom
     display: none
 
+.leaflet-control-minimap
+  border: 2px solid rgba(0,0,0,0.2)
+  border-radius: 4px
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4)
+  background: #fff
+  min-height: 125px !important
+  min-width: 125px !important
+
+.leaflet-control-minimap a
+  background-color: rgba(255, 255, 255, 0.8)
+  border-radius: 4px
+
+.leaflet-control-minimap .leaflet-control-minimap-toggle-display
+  background-color: #fff
+  border-radius: 0 0 4px 0
+
 @media (max-width: 768px)
+  .leaflet-control-minimap
+    min-height: 100px !important
+    min-width: 100px !important
 
   .basemap img
     width: 54px
