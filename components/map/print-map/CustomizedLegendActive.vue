@@ -27,7 +27,7 @@
             'border': item.border || 'none'
           }"
         />
-        <p>
+        <p class="text-legend-customized">
           {{ isYear(item.label) ? item.label : $t(resolveLabel(item.label)) }}
         </p>
       </v-row>
