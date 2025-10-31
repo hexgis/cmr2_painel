@@ -572,14 +572,14 @@
         @mouseleave="collapseButtonIfNeeded"
       >
         <v-icon>mdi-plus</v-icon>
-        <slide-x-reverse-transition>
+        <v-slide-x-reverse-transition>
           <span
             v-if="!isButtonCollapsed"
             class="button-text ml-2"
           >
             {{ $t('addNewUser') }}
           </span>
-        </slide-x-reverse-transition>
+        </v-slide-x-reverse-transition>
       </v-btn>
     </div>
 
@@ -1086,46 +1086,45 @@
   </div>
 </template>
 
-<i18n>
-    {
-        "en": {
-        "manageUsers": "Manage Users",
-        "addNewUser": "Add new user",
-        "export": "Export:",
-        "noFileSelected": "No file selected",
-        "attachFile": "Attach File",
-        "approveRequestCreation": "Approve request upon creation",
-        "description": "Description",
-        "subject": "Subject",
-        "institution": "institution",
-        "requestType": "Request Type",
-        "field-required": "Field Required",
-        "max-characters": "Maximum of {max} characters allowed.",
-        "add-user": "User added successfully!",
-        "erro-add-user": "Error adding user",
-        "changed-user": "User changed successfully!",
-        "erro-create-user": "Error creating user"
-
-        },
-        "pt-br": {
-        "manageUsers": "Gerenciar Usuários",
-        "addNewUser": "Adicionar novo usuário",
-        "export": "Exportar:",
-        "noFileSelected": "Nenhum arquivo selecionado",
-        "attachFile": "Anexar Arquivo",
-        "approveRequestCreation": "Deferir solicitação na criação",
-        "description": "Descrição",
-        "subject": "Assunto",
-        "institution": "Vínculo Institucional",
-        "requestType": "Tipo de Solicitação",
-        "field-required": "Campo obrigatório",
-        "max-characters": "Máximo de {max} caracteres permitido.",
-        "add-user": "Usuário adicionado com sucesso!",
-        "erro-add-user": "Erro ao adicionar usuário",
-        "changed-user": "Usuário alterado com sucesso!",
-        "erro-create-user": "Erro ao criar usuário"
-        }
-    }
+<i18n lang="json">
+{
+  "en": {
+    "manageUsers": "Manage Users",
+    "addNewUser": "Add new user",
+    "export": "Export:",
+    "noFileSelected": "No file selected",
+    "attachFile": "Attach File",
+    "approveRequestCreation": "Approve request upon creation",
+    "description": "Description",
+    "subject": "Subject",
+    "institution": "institution",
+    "requestType": "Request Type",
+    "field-required": "Field Required",
+    "max-characters": "Maximum of {max} characters allowed.",
+    "add-user": "User added successfully!",
+    "erro-add-user": "Error adding user",
+    "changed-user": "User changed successfully!",
+    "erro-create-user": "Error creating user"
+  },
+  "pt-br": {
+    "manageUsers": "Gerenciar Usuários",
+    "addNewUser": "Adicionar novo usuário",
+    "export": "Exportar:",
+    "noFileSelected": "Nenhum arquivo selecionado",
+    "attachFile": "Anexar Arquivo",
+    "approveRequestCreation": "Deferir solicitação na criação",
+    "description": "Descrição",
+    "subject": "Assunto",
+    "institution": "Vínculo Institucional",
+    "requestType": "Tipo de Solicitação",
+    "field-required": "Campo obrigatório",
+    "max-characters": "Máximo de {max} caracteres permitido.",
+    "add-user": "Usuário adicionado com sucesso!",
+    "erro-add-user": "Erro ao adicionar usuário",
+    "changed-user": "Usuário alterado com sucesso!",
+    "erro-create-user": "Erro ao criar usuário"
+  }
+}
 </i18n>
 
 <script>
@@ -1237,6 +1236,7 @@ export default {
       activeTab: 0,
       searchLogs: '',
       searchAccess: '',
+      tableHeight: 'calc(100vh - 350px)',
 
       logsHeaders: [
         { text: 'Alterado por', value: 'alterado_por' },
