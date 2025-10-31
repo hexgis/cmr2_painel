@@ -479,10 +479,6 @@ export default {
           if (mapLayer) {
             mapLayer.addTo(this.map);
 
-            if (mapLayer.options && mapLayer.options.opacity && mapLayer.options.opacity < 0.3) {
-              mapLayer.setOpacity(0.8);
-            }
-
             if (layer.name && (layer.name.includes('DETER') || layer.name.includes('PRODES') || layer.name.includes('Focos') || layer.name.includes('Monitoramento') || layer.name.includes('Alertas'))) {
               mapLayer.setZIndex(1000);
             }
