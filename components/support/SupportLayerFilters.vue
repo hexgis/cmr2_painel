@@ -48,47 +48,46 @@
           </v-col>
         </template>
       </template>
-      <template>
-        <v-col
-          v-if="verifyFilterType('co_cr')"
-          :key="layer.filters.filter_type"
-          cols="12"
-          class="mb-5"
-        >
+
+      <v-col
+        v-if="verifyFilterType('co_cr')"
+        :key="layer.filters.filter_type"
+        cols="12"
+        class="mb-5"
+      >
+        <v-select
+          v-model="filters.co_cr"
+          :label="$t('regional-coordination-label')"
+          :items="flattened"
+          item-value="co_cr"
+          item-text="ds_cr"
+          multiple
+          hide-details
+          clearable
+          required
+        />
+      </v-col>
+
+      <v-col
+        v-if="verifyFilterType('co_funai')"
+        :key="layer.filters.filter_type"
+        class="mb-5"
+        cols="12"
+      >
+        <v-slide-y-transition>
           <v-select
-            v-model="filters.co_cr"
-            :label="$t('regional-coordination-label')"
-            :items="flattened"
-            item-value="co_cr"
-            item-text="ds_cr"
-            hide-details
-            clearable
+            v-model="filters.co_funai"
+            :label="$t('indigenous-lands-label')"
+            :items="filterOptions.tiFilters"
+            item-text="no_ti"
+            item-value="co_funai"
             multiple
+            clearable
+            hide-details
             required
           />
-        </v-col>
-
-        <v-col
-          v-if="verifyFilterType('co_funai')"
-          :key="layer.filters.filter_type"
-          class="mb-5"
-          cols="12"
-        >
-          <v-slide-y-transition>
-            <v-select
-              v-model="filters.co_funai"
-              :label="$t('indigenous-lands-label')"
-              :items="filterOptions.tiFilters"
-              item-text="no_ti"
-              item-value="co_funai"
-              multiple
-              clearable
-              hide-details
-              required
-            />
-          </v-slide-y-transition>
-        </v-col>
-      </template>
+        </v-slide-y-transition>
+      </v-col>
 
       <v-col cols="12">
         <v-btn
@@ -208,21 +207,52 @@ export default {
   methods: {
 
     populateCrOptions() {
+      // Reseta o array flattened para evitar duplicações em múltiplas chamadas
+      this.flattened = [];
+
+      // Objeto para armazenar itens agrupados por região
       const groups = {};
+      // Objeto para rastrear códigos co_cr já processados (deduplicação)
+      const seen = {};
 
-      this.filterOptions.regionalFilters.forEach((x) => {
-        groups[x.no_regiao] = groups[x.no_regiao] || { ds_cr: x.ds_cr, list: [] };
+      // Obtém o array de filtros regionais ou array vazio se indefinido
+      const items = this.filterOptions.regionalFilters || [];
 
-        groups[x.no_regiao].list.push(x);
+      // 1) Deduplica por co_cr e agrupa por no_regiao
+      items.forEach((x) => {
+        // Pula itens inválidos ou nulos
+        if (!x || x.co_cr == null) return;
+
+        // Verifica se este co_cr já foi processado
+        if (!seen[x.co_cr]) {
+          // Marca este co_cr como visto
+          seen[x.co_cr] = true;
+
+          // Obtém o nome da região ou usa 'Sem Região' como padrão
+          const regiao = x.no_regiao || 'Sem Região';
+          // Inicializa o array da região se não existir
+          if (!groups[regiao]) groups[regiao] = [];
+          // Adiciona o item ao grupo da sua região
+          groups[regiao].push(x);
+        }
       });
 
-      Object.keys(groups).forEach((categoryId) => {
-        const category = groups[categoryId];
-        const categoryRegiao = categoryId;
-        this.flattened.push({ header: categoryRegiao });
-        this.flattened.push(...category.list);
+      // 2) Constrói o array flattened: header + itens (apenas se houver itens)
+      Object.keys(groups).forEach((regiao) => {
+        // Obtém a lista de itens desta região
+        const list = groups[regiao];
+        // Pula grupos vazios para evitar headers órfãos
+        if (!list || !list.length) return;
+
+        // Adiciona o header da região
+        this.flattened.push({ header: regiao });
+        // Adiciona todos os itens desta região
+        list.forEach((item) => {
+          this.flattened.push(item);
+        });
       });
 
+      // Retorna o array flattened
       return this.flattened;
     },
 
