@@ -1,5 +1,4 @@
-# Base stage for both dev and prod
-FROM node:14-alpine as base
+FROM node:14-alpine as builder
 
 RUN mkdir /app/
 WORKDIR /app/

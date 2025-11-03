@@ -1,6 +1,5 @@
 {
     "conventionalCommits.scopes": [
-        "cmr2",
-        "restrict-area"
+        "cmr2"
     ]
 }

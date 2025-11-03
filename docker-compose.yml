@@ -1,3 +1,5 @@
+version: '3'
+
 services:
     web:
         image: gcr.io/custom-plating-209314/skyviewer:feature-homolog
@@ -13,8 +15,8 @@ services:
     dev:
         build:
             context: .
-            dockerfile: Dockerfile-dev # This will now use the 'dev' stage by default
-        command: sh -c "npm install && npm run dev"
+            dockerfile: Dockerfile-dev
+        command: npm run dev
         ports:
             - '3000:3000'
         volumes:
