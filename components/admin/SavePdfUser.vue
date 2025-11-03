@@ -12,7 +12,7 @@
         >mdi-file-pdf-box</v-icon>
       </span>
     </template>
-    <span>{{ $t('pdf') }}</span>
+    <span>PDF</span>
   </v-tooltip>
 </template>
 
@@ -82,7 +82,6 @@ export default {
 <i18n lang="json">
 {
   "en": {
-    "pdf": "PDF",
     "userList": "User List",
     "headerUser": "User",
     "headerFirstName": "First Name",
@@ -98,7 +97,6 @@ export default {
     "fileName": "user_list.pdf"
   },
   "pt-br": {
-    "pdf": "PDF",
     "userList": "Lista de Usuários",
     "headerUser": "Usuário",
     "headerFirstName": "Primeiro Nome",
