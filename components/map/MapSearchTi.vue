@@ -176,7 +176,8 @@ export default {
         formatSearchResult(item) {
             return `**Terra Indígena:** ${item?.no_ti || '-'}
           **Município:** ${item?.no_municipio || '-'}
-          **Coordenação Regional:** ${item?.ds_cr || '-'}`
+          **Coordenação Regional:** ${item?.ds_cr || '-'}
+          **Em Estudo:** ${item?.is_estudo}`
         },
 
         formatItem(item) {

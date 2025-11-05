@@ -36,9 +36,11 @@ export const state = () => ({
 });
 
 export const getters = {
-  bbox: (state) => state.bounds.toBBoxString(),
+  bbox: (state) => state.bounds?.toBBoxString() || '',
 
   bboxWkt(state) {
+    if (!state.bounds) return '';
+    
     const coords = [
       state.bounds.getSouthWest(),
       state.bounds.getNorthWest(),
@@ -52,6 +54,8 @@ export const getters = {
   },
 
   bboxEs(state) {
+    if (!state.bounds) return [];
+    
     const northWest = state.bounds.getNorthWest();
     const southEast = state.bounds.getSouthEast();
 
@@ -218,12 +222,66 @@ export const actions = {
     context.commit('addItem', item);
   },
 
-  async fetchSearchResults({ commit }, searchQuery) {
+   async fetchSearchResults({ commit, state }, searchQuery) {
     try {
-      const response = await this.$api.$get(`/funai/all-data-ti-by-name/?param=${searchQuery}`);
-      commit('setIndigenousLand', response);
-      return response;
+      const geoserverUrl = state.geoserverUrl;
+      const layerName = 'CMR-FUNAI:vw_busca_ti_cmr';
+
+      if (!geoserverUrl) {
+        console.error('❌ URL do GeoServer não configurada');
+        throw new Error('URL do GeoServer não configurada');
+      }
+
+      // Buscar dados do GeoServer via WFS
+      let url = `${geoserverUrl}service=WFS&version=1.1.0&request=GetFeature&typeName=${layerName}&outputFormat=application/json`;
+
+      // Se há searchQuery, aplicar filtro CQL
+      if (searchQuery && searchQuery.trim() !== '') {
+        // Usar ILIKE para busca case insensitive
+        const filter = `no_ti ILIKE '%${searchQuery}%'`
+        url += `&cql_filter=${encodeURIComponent(filter)}`
+      }
+
+      console.log('🔄 Buscando dados do GeoServer...');
+      console.log('URL:', url);
+
+      const response = await this.$axios.$get(url);
+
+      console.log('✅ Resposta recebida com sucesso!');
+      console.log('📦 Estrutura da resposta:', response);
+
+      // Verificar se é uma FeatureCollection válida
+      if (response.type !== 'FeatureCollection' || !response.features) {
+        console.error('❌ Resposta não é uma FeatureCollection válida');
+        console.log('📋 Estrutura recebida:', response);
+        commit('setSelectedItems', []);
+        return [];
+      }
+
+      console.log('🎯 Número de features encontrados:', response.features.length);
+
+      // Transformar os dados
+      const transformedData = response.features.map((feature, index) => {
+        return {
+          id: feature.id || `feature-${index}`,
+          ...feature.properties,
+          geometry: feature.geometry
+        };
+      });
+
+      console.log('📊 Total de registros transformados:', transformedData.length);
+
+      // Salvar no state
+      commit('setSelectedItems', transformedData);
+      console.log('💾 Dados salvos no state:', transformedData.length, 'registros');
+      
+      return transformedData;
+
     } catch (error) {
+      console.error('❌ Erro ao buscar dados do GeoServer:', error);
+      console.error('Detalhes do erro:', error.response?.data || error.message);
+      
+      commit('setSelectedItems', []);
       throw error;
     }
   },
