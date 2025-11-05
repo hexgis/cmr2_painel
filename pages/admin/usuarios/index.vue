@@ -1800,7 +1800,7 @@ export default {
           dateFormat: 'iso',
         });
 
-        await this.$downloader.downloadPDF(
+        await this.$downloader.pdf(
           data,
           headers,
           `Dados Cadastrais do Usuário: ${(this.selectedUserLogs && this.selectedUserLogs.username) || 'N/A'}`,
@@ -1881,7 +1881,7 @@ export default {
           dateFormat: 'iso',
         });
 
-        await this.$downloader.downloadPDF(combinedData, allHeaders, 'Registro de Acessos do Usuário', filename);
+        await this.$downloader.pdf(combinedData, allHeaders, 'Registro de Acessos do Usuário', filename);
       } catch (error) {
         console.error('Erro ao gerar PDF:', error);
       }
