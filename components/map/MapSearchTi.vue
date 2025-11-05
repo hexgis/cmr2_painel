@@ -123,6 +123,7 @@ export default {
             'indigenousLand',
             'savedSelectedItems',
             'selectedItems',
+            'currentTiData'
         ]),
     },
 
@@ -140,6 +141,8 @@ export default {
                 this.map.removeLayer(polygon)
             })
             this.polygons = []
+            this.isItemSelected = false
+            this.$store.commit('map/setCurrentTiData', null)
         },
 
         toggleSearch() {
@@ -174,10 +177,12 @@ export default {
         },
 
         formatSearchResult(item) {
-            return `**Terra Indígena:** ${item?.no_ti || '-'}
-          **Município:** ${item?.no_municipio || '-'}
-          **Coordenação Regional:** ${item?.ds_cr || '-'}
-          **Em Estudo:** ${item?.is_estudo}`
+          const emEstudo = item?.is_estudo ? 'Sim' : 'Não'
+
+          return `**Terra Indígena:** ${item?.no_ti || '-'}
+            **Município:** ${item?.no_municipio || '-'}
+            **Coordenação Regional:** ${item?.ds_cr || '-'}
+            **Em Estudo:** ${emEstudo}`
         },
 
         formatItem(item) {
@@ -196,54 +201,139 @@ export default {
 
         async goToIndigenousLands(matchingLand) {
             try {
-                const data = await this.$api.$get(
-                    `/funai/busca-geo-ti/?id=${matchingLand.id}`
-                )
-                if (data?.features?.length) {
-                    this.displayPolygonsOnMap(data.features)
+                const layerName = matchingLand.layername;
+                const namespace = matchingLand.namespace;
+                const tiName = matchingLand.no_ti;
+                
+                if (!layerName || !tiName) {
+                    console.error('❌ Dados insuficientes para buscar a TI');
+                    return;
+                }
+
+                const geoserverUrl = this.$store.state.map.geoserverUrl;
+                const fullLayerName = `${namespace}:${layerName}`;
+                
+                // Buscar o polígono completo da layer específica usando CQL_FILTER
+                const url = `${geoserverUrl}service=WFS&version=1.1.0&request=GetFeature&typeName=${fullLayerName}&outputFormat=application/json&cql_filter=no_ti='${encodeURIComponent(tiName)}'`;
+
+                console.log('🔍 Buscando polígono completo:', url);
+                
+                const response = await this.$axios.$get(url);
+                
+                if (response?.features?.length) {
+                    console.log('✅ Polígono encontrado:', response.features[0].properties);
+                    this.displayPolygonsOnMap(response.features);
+                    
+                    // Atualiza os dados no store para o popup usar
+                    this.$store.commit('map/setCurrentTiData', response.features[0].properties);
+                } else {
+                    console.warn('⚠️ Nenhum polígono encontrado para:', tiName);
                 }
             } catch (error) {
-                console.error('Error fetching geo data:', error)
+                console.error('Error fetching geo data:', error);
             }
         },
 
         displayPolygonsOnMap(features) {
-            let bounds = L.latLngBounds()
-            features.forEach((feature) => {
-                feature.geometry.coordinates.forEach((polygon) => {
-                    const latLngs = polygon[0].map((coord) => [
-                        coord[1],
-                        coord[0],
-                    ])
-                    bounds.extend(latLngs)
-                    const polygonLayer = L.polygon(latLngs).addTo(this.map)
-                    this.polygons.push(polygonLayer) // Armazena o polígono
-                })
-            })
-            this.map?.flyToBounds(bounds)
-        },
+    // Limpa polígonos anteriores
+    this.polygons.forEach((polygon) => {
+        this.map.removeLayer(polygon);
+    });
+    this.polygons = [];
+
+    let bounds = L.latLngBounds();
+    
+    features.forEach((feature) => {
+        // Extrai as propriedades reais do polígono
+        const realProperties = feature.properties;
+        console.log('📋 Dados reais do polígono:', realProperties);
+        
+        // Atualiza os dados no store
+        this.$store.commit('map/setCurrentTiData', realProperties);
+        
+        // Processa a geometria baseada no tipo
+        if (feature.geometry.type === 'Point') {
+            // TRATAMENTO PARA PONTOS (is_estudo = true)
+            const coordinates = feature.geometry.coordinates;
+            const point = L.marker([coordinates[1], coordinates[0]]).addTo(this.map);
+            
+            // Adiciona popup ao ponto
+            point.bindPopup(`
+                <strong>${realProperties.no_ti || 'Terra Indígena'}</strong><br/>
+                Município: ${realProperties.no_municipio || 'N/A'}<br/>
+                Status: Em Estudo
+            `);
+            
+            this.polygons.push(point);
+            bounds.extend([coordinates[1], coordinates[0]]);
+            
+        } else if (feature.geometry.type === 'Polygon') {
+            // TRATAMENTO EXISTENTE PARA POLÍGONOS (is_estudo = false)
+            const latLngs = feature.geometry.coordinates[0].map((coord) => [
+                coord[1], coord[0]
+            ]);
+            bounds.extend(latLngs);
+            const polygonLayer = L.polygon(latLngs, { 
+                color: 'blue',
+                weight: 2,
+                fillColor: 'lightblue',
+                fillOpacity: 0.3
+            }).addTo(this.map);
+            this.polygons.push(polygonLayer);
+            
+        } else if (feature.geometry.type === 'MultiPolygon') {
+            feature.geometry.coordinates.forEach((polygon) => {
+                const latLngs = polygon[0].map((coord) => [
+                    coord[1], coord[0]
+                ]);
+                bounds.extend(latLngs);
+                const polygonLayer = L.polygon(latLngs, {
+                    color: 'blue',
+                    weight: 2,
+                    fillColor: 'lightblue',
+                    fillOpacity: 0.3
+                }).addTo(this.map);
+                this.polygons.push(polygonLayer);
+            });
+        }
+    });
+    
+    // Ajusta o zoom para mostrar todos os elementos
+    if (bounds.isValid()) {
+        // Para pontos únicos, usa zoom mais próximo
+        if (features.length === 1 && features[0].geometry.type === 'Point') {
+            this.map?.flyTo(bounds.getCenter(), 14); // Zoom nível 14 para pontos
+        } else {
+            this.map?.flyToBounds(bounds, { padding: [20, 20] });
+        }
+    }
+},
 
         handleItemClick(item) {
-            this.searchQuery = item.label
+            this.searchQuery = item.label;
             const selectedItem = this.$store.state.map.selectedItems.find(
                 (ti) =>
                     ti.no_ti ===
                     item.item.match(/(?<=\*\*Terra Indígena:\*\*\s).*/)?.[0]
-            )
+            );
 
             if (selectedItem) {
-                this.addSelectedItem(selectedItem)
-                this.$emit('item-selected', this.savedSelectedItems)
-                this.goToIndigenousLands(selectedItem)
-                this.isItemSelected = true
+                this.addSelectedItem(selectedItem);
+                this.$emit('item-selected', this.savedSelectedItems);
+                
+                // Primeiro define os dados básicos no store
+                this.$store.commit('map/setCurrentTiData', selectedItem);
+                
+                // Depois busca o polígono completo
+                this.goToIndigenousLands(selectedItem);
+                this.isItemSelected = true;
             }
-            this.isSearching = false
-            this.resetSearchQuery()
+            this.isSearching = false;
+            this.resetSearchQuery();
         },
     },
 }
 </script>
-
 
 <style lang="sass">
 .search-button

@@ -13,34 +13,30 @@
     </v-icon>
 
     <v-tabs
-      v-if="isCardVisible"
+      v-if="isCardVisible && currentTiData"
       v-model="tabIndex"
       background-color="primary"
       dark
       class="fill-height"
     >
-      <v-tab
-        v-for="(item, index) in filteredItems"
-        :key="index"
-        @click="handleTabClick(item, index)"
-      >
-        {{ item.no_ti }}
+      <v-tab>
+        {{ currentTiData.no_ti || 'Terra Indígena' }}
       </v-tab>
 
-      <v-tab-item
-        v-for="(item, index) in filteredItems"
-        :key="'tab-item-' + index"
-        class="fill-height"
-      >
+      <v-tab-item class="fill-height">
         <v-card-text style="max-height: 230px; overflow-y: auto">
-          <template v-if="item && typeof item === 'object'">
+          <template v-if="currentTiData && typeof currentTiData === 'object'">
             <template
-              v-for="(entry, i) in Object.entries(item).filter(
-                ([key, value]) => key !== 'instrumentos_gestao'
+              v-for="(entry, i) in Object.entries(currentTiData).filter(
+                ([key, value]) =>
+                  key !== 'instrumentos_gestao'
+                  && value !== null
+                  && value !== ''
+                  && !key.includes('geometry')
               )"
             >
               <v-row
-                :key="'row-' + index + '-' + i"
+                :key="'row-' + i"
                 class="mx-0 lighten-2"
               >
                 <v-col
@@ -60,8 +56,12 @@
               </v-row>
 
               <v-divider
-                v-if="i < Object.entries(item).length - 1"
-                :key="'divider-' + index + '-' + i"
+                v-if="i < Object.entries(currentTiData).filter(([key, value]) => 
+                  key !== 'instrumentos_gestao'
+                  && value !== null
+                  && value !== ''
+                  && !key.includes('geometry')).length - 1"
+                :key="'divider-' + i"
                 class="list-separator my-1"
               />
             </template>
@@ -88,7 +88,7 @@ export default {
         ds_cr: 'Coordenação Regional',
         ds_decreto_homologada: 'Decreto homologado',
         ds_despacho_delimitada: 'Despacho delimitada',
-        ds_doc_resumo_declarada: ' Doc resumo declarada',
+        ds_doc_resumo_declarada: 'Doc resumo declarada',
         ds_doc_resumo_delimitada: 'Doc resumo delimitada',
         ds_doc_resumo_em_estudo: 'Doc resumo em estudo',
         ds_doc_resumo_homologada: 'Doc resumo homologada',
@@ -117,23 +117,23 @@ export default {
         st_faixa_fronteira: 'Faixa de fronteira',
         ds_fase_ti: 'Fase TI',
         ds_matricula_regularizada: 'Matricula regularizada',
+        layername: 'Layer',
+        namespace: 'Namespace',
+        is_estudo: 'Em Estudo',
       },
     };
   },
 
   computed: {
-    ...mapState('map', ['savedSelectedItems']),
-    filteredItems() {
-      return this.savedSelectedItems || [];
-    },
+    ...mapState('map', ['currentTiData']),
   },
 
   watch: {
-    savedSelectedItems: {
+    currentTiData: {
       handler(newVal) {
-        if (newVal.length > 0) {
+        if (newVal) {
           this.openCard();
-          this.tabIndex = newVal.length - 1;
+          this.tabIndex = 0;
         }
       },
       immediate: true,
@@ -148,17 +148,12 @@ export default {
     },
 
     getFormattedName(key) {
-      for (const prefix in this.replacements) {
-        if (key.startsWith(prefix)) {
-          return this.replacements[prefix];
-        }
-      }
-      return key;
+      return this.replacements[key] || key;
     },
     closeCard() {
       this.isCardVisible = false;
       this.$emit('close');
-      this.$store.commit('map/clearSavedSelectedItems');
+      this.$store.commit('map/setCurrentTiData', null);
     },
     openCard() {
       this.isCardVisible = true;
@@ -166,27 +161,26 @@ export default {
 
     formatValue(value, field) {
       const fieldName = field.toLowerCase();
- 
+
       const isDateField = (
         typeof value === 'string'
         && (fieldName.startsWith('dt_') || fieldName.startsWith('data_') || fieldName.startsWith('date'))
         && this.$moment(value).isValid()
       );
-      
       const isBooleanField = typeof value === 'boolean';
- 
+
       const isNumberField = typeof value === 'number';
- 
+
       const isLatLongField = ['lat', 'lng', 'long', 'latitude', 'longitude'].some((key) => fieldName.includes(key));
- 
+
       if (isDateField) {
         return this.$moment(value).format('DD/MM/YYYY');
       }
- 
+
       if (isBooleanField) {
         return value ? 'Sim' : 'Não';
       }
- 
+
       if (isNumberField || fieldName.startsWith('nu_')) {
         if (isLatLongField) {
           return value.toFixed(5);
@@ -196,12 +190,12 @@ export default {
         }
         const rounded = value.toFixed(2);
         const [intPart, decimalPart] = rounded.split('.');
- 
+
         return decimalPart !== '00'
           ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
           : String(parseInt(value, 10));
       }
- 
+
       return value;
     },
   },

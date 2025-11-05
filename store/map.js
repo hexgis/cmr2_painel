@@ -31,6 +31,7 @@ export const state = () => ({
   indigenousLand: [],
   savedSelectedItems: [],
   selectedItems: [],
+  currentTiData: null,
   // geoserver config
   geoserverUrl: '',
 });
@@ -82,6 +83,10 @@ export const mutations = {
 
   setSelectedItems(state, items) {
     state.selectedItems = items;
+  },
+
+  setCurrentTiData(state, tiData) {
+    state.currentTiData = tiData;
   },
 
   setActiveMenu(state, payload) {
@@ -222,7 +227,7 @@ export const actions = {
     context.commit('addItem', item);
   },
 
-   async fetchSearchResults({ commit, state }, searchQuery) {
+  async fetchSearchResults({ commit, state }, searchQuery) {
     try {
       const geoserverUrl = state.geoserverUrl;
       const layerName = 'CMR-FUNAI:vw_busca_ti_cmr';
@@ -264,6 +269,8 @@ export const actions = {
       const transformedData = response.features.map((feature, index) => {
         return {
           id: feature.id || `feature-${index}`,
+          layername: feature.properties.layername,
+          namespace: feature.properties.namespace,
           ...feature.properties,
           geometry: feature.geometry
         };
