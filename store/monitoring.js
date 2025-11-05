@@ -33,6 +33,8 @@ export default {
     },
     opacity: 100,
     cycles: [],
+    regionalCoordinators: [],
+    indigenousLands: [],
     loadingSearchMonitoring: false,
     loadingRegionalCoordinators: false,
     loadingIndigenousLands: false,
@@ -335,7 +337,7 @@ export default {
         }
 
         if (state.filters.currentTab === 'cycle' && state.filters.startCycle && state.filters.endCycle) {
-          const dateRange = await this.$api.$get('monitoring/consolidated/cycles/date-range/', {
+          const dateRange = await this.$api.$get('cycle/date-range/', {
             params: {
               cycles: `${state.filters.startCycle.no_ciclo},${state.filters.endCycle.no_ciclo}`,
             },
@@ -370,6 +372,7 @@ export default {
               return acc;
             }, {}),
           );
+          console.log({ ...stats, tiByStages });
           commit('setMonitoringStats', { ...stats, tiByStages });
         }
       } catch (error) {
@@ -586,7 +589,7 @@ export default {
     async getCyclesOptions({ commit }) {
       try {
         commit('setLoadingCycles', true);
-        const cycles = await this.$api.$get('monitoring/consolidated/cycles/options/');
+        const cycles = await this.$api.$get('cycle/options/');
         commit('setCycles', cycles);
       } catch (error) {
         commit(

@@ -726,7 +726,7 @@ export default {
         if (state.filters.currentView) {
           params.in_bbox = rootGetters['map/bbox'];
         }
-        const analyticsUrgentAlert = await this.$api.$get('alerts/table/', { params });
+        const analyticsUrgentAlert = await this.$api.$get('alerts/table-stats/', { params });
         commit('setAnalyticsData', analyticsUrgentAlert);
       } catch (error) {
         commit('alert/addAlert', {
