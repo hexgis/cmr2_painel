@@ -2,7 +2,6 @@ export const state = () => ({
   // state map
   activeMenu: '',
   openDrawPopup: null,
-  startDrawPopup: false,
   bounds: null,
   boundsZoomed: false,
   fileList: [],
@@ -27,13 +26,13 @@ export const state = () => ({
   tmsToPrint: {
     visible: false,
   },
-  hasAddLayer: false,
   indigenousLand: [],
   savedSelectedItems: [],
   selectedItems: [],
   currentTiData: null,
   // geoserver config
   geoserverUrl: '',
+  geoserverSearchTI: process.env.GEOSERVER_SEARCH_TI,
 });
 
 export const getters = {
@@ -107,6 +106,10 @@ export const mutations = {
     state.loading = loading;
   },
 
+  setLoadingFeatures(state, payload) {
+    state.isLoadingFeatures = payload;
+  },
+
   addFileToSpecificIndex(state, { file, fileIndex }) {
     state.fileList.splice(fileIndex, 0, file);
   },
@@ -174,14 +177,6 @@ export const mutations = {
     state.neighborhoods = payload;
   },
 
-  addFileToSpecificIndex(state, { file, fileIndex }) {
-    state.fileList.splice(fileIndex, 0, file);
-  },
-
-  addFileToMap(state, file) {
-    state.fileList.push(file);
-  },
-
   setBasemap(state, basemaps) {
     basemaps.forEach((basemap) => {
       basemap.options = {
@@ -209,10 +204,6 @@ export const mutations = {
     state.tmsToPrint.bounds = bounds;
   },
 
-  setHasLayer(state, hasLayer) {
-    state.hasAddLayer = hasLayer;
-  },
-
   setIndigenousLand(state, indigenousLand) {
     state.indigenousLand = indigenousLand;
   },
@@ -227,69 +218,84 @@ export const actions = {
     context.commit('addItem', item);
   },
 
-  async fetchSearchResults({ commit, state }, searchQuery) {
+  async fetchSearchResults({ commit, state, rootState }, searchQuery) {
+    commit('setLoadingFeatures', true);
     try {
-      const geoserverUrl = state.geoserverUrl;
-      const layerName = 'CMR-FUNAI:vw_busca_ti_cmr';
+      const { geoserverUrl } = state;
 
       if (!geoserverUrl) {
-        console.error('❌ URL do GeoServer não configurada');
         throw new Error('URL do GeoServer não configurada');
       }
 
-      // Buscar dados do GeoServer via WFS
-      let url = `${geoserverUrl}service=WFS&version=1.1.0&request=GetFeature&typeName=${layerName}&outputFormat=application/json`;
+      const params = {
+        service: 'WFS',
+        version: '1.1.0',
+        request: 'GetFeature',
+        typeName: state.geoserverSearchTI,
+        outputFormat: 'application/json',
+        CQL_FILTER: ''
+      };
 
-      // Se há searchQuery, aplicar filtro CQL
-      if (searchQuery && searchQuery.trim() !== '') {
-        // Usar ILIKE para busca case insensitive
-        const filter = `no_ti ILIKE '%${searchQuery}%'`
-        url += `&cql_filter=${encodeURIComponent(filter)}`
+      if (searchQuery?.trim()) {
+        const searchTerm = searchQuery.trim();
+        
+        let isEstudoFilter = '';
+        if (searchTerm.toLowerCase() === 'sim') {
+          isEstudoFilter = `is_estudo = true`;
+        } else if (searchTerm.toLowerCase() === 'não' || searchTerm.toLowerCase() === 'nao') {
+          isEstudoFilter = `is_estudo = false`;
+        }
+
+        const filters = [
+          `no_ti ILIKE '%${searchTerm}%'`,
+          `ds_cr ILIKE '%${searchTerm}%'`,
+          `no_municipio ILIKE '%${searchTerm}%'`
+        ];
+
+        if (isEstudoFilter) {
+          filters.push(isEstudoFilter);
+        }
+
+        params.CQL_FILTER = `(${filters.join(' OR ')})`;
       }
 
-      console.log('🔄 Buscando dados do GeoServer...');
-      console.log('URL:', url);
+      const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
+      const response = await this.$api.$get(url);
 
-      const response = await this.$axios.$get(url);
-
-      console.log('✅ Resposta recebida com sucesso!');
-      console.log('📦 Estrutura da resposta:', response);
-
-      // Verificar se é uma FeatureCollection válida
-      if (response.type !== 'FeatureCollection' || !response.features) {
-        console.error('❌ Resposta não é uma FeatureCollection válida');
-        console.log('📋 Estrutura recebida:', response);
-        commit('setSelectedItems', []);
-        return [];
-      }
-
-      console.log('🎯 Número de features encontrados:', response.features.length);
-
-      // Transformar os dados
-      const transformedData = response.features.map((feature, index) => {
-        return {
+      if (response?.features) {
+        const transformedData = response.features.map((feature, index) => ({
           id: feature.id || `feature-${index}`,
           layername: feature.properties.layername,
           namespace: feature.properties.namespace,
           ...feature.properties,
           geometry: feature.geometry
-        };
-      });
+        }));
 
-      console.log('📊 Total de registros transformados:', transformedData.length);
+        const sortedData = transformedData.sort((a, b) => 
+          a.no_ti.localeCompare(b.no_ti)
+        );
 
-      // Salvar no state
-      commit('setSelectedItems', transformedData);
-      console.log('💾 Dados salvos no state:', transformedData.length, 'registros');
-      
-      return transformedData;
+        commit('setSelectedItems', sortedData);
+        return sortedData;
+      } else {
+        throw new Error('Nenhuma terra indígena encontrada');
+      }
 
     } catch (error) {
-      console.error('❌ Erro ao buscar dados do GeoServer:', error);
-      console.error('Detalhes do erro:', error.response?.data || error.message);
+      console.error('Erro ao buscar terras indígenas:', error);
+      
+      commit('alert/addAlert', {
+        message: this.$i18n.t('default-error', {
+          action: this.$i18n.t('search'),
+          resource: this.$i18n.t('indigenous-lands'),
+        }),
+        type: 'error',
+      }, { root: true });
       
       commit('setSelectedItems', []);
       throw error;
+    } finally {
+      commit('setLoadingFeatures', false);
     }
   },
 
