@@ -232,6 +232,17 @@ export default {
 
             const bounds = L.latLngBounds();
             const geoserverUrl = this.$store.state.map.geoserverUrl;
+            const createPolygonLayer = (coordinates) => {
+                const latLngs = coordinates.map((coord) => [coord[1], coord[0]]);
+                bounds.extend(latLngs);
+                const polygonLayer = L.polygon(latLngs, {
+                    color: 'blue',
+                    weight: 2,
+                    fillColor: 'lightblue',
+                    fillOpacity: 0.3,
+                }).addTo(this.map);
+                this.polygons.push(polygonLayer);
+            };
 
             features.forEach((feature) => {
                 const props = feature.properties;
@@ -250,35 +261,14 @@ export default {
                         maxZoom: 22,
                     }).addTo(this.map);
                     this.polygons.push(wmsLayer);
-
                     bounds.extend([lat, lng]);
 
                 } else if (feature.geometry.type === 'Polygon') {
-                    const latLngs = feature.geometry.coordinates[0].map((coord) => [
-                        coord[1], coord[0]
-                    ]);
-                    bounds.extend(latLngs);
-                    const polygonLayer = L.polygon(latLngs, {
-                        color: 'blue',
-                        weight: 2,
-                        fillColor: 'lightblue',
-                        fillOpacity: 0.3,
-                    }).addTo(this.map);
-                    this.polygons.push(polygonLayer);
+                    createPolygonLayer(feature.geometry.coordinates[0]);
 
                 } else if (feature.geometry.type === 'MultiPolygon') {
                     feature.geometry.coordinates.forEach((polygon) => {
-                        const latLngs = polygon[0].map((coord) => [
-                            coord[1], coord[0]
-                        ]);
-                        bounds.extend(latLngs);
-                        const polygonLayer = L.polygon(latLngs, {
-                            color: 'blue',
-                            weight: 2,
-                            fillColor: 'lightblue',
-                            fillOpacity: 0.3,
-                        }).addTo(this.map);
-                        this.polygons.push(polygonLayer);
+                        createPolygonLayer(polygon[0]);
                     });
                 }
             });
@@ -286,7 +276,7 @@ export default {
             if (bounds.isValid()) {
                 if (features.length === 1 && features[0].geometry.type === 'Point') {
                     this.map && this.map.flyTo(bounds.getCenter(), 12, {
-                      easeLinearity: 0.01
+                        easeLinearity: 0.01
                     });
                 } else {
                     this.map.flyToBounds(bounds, { padding: [20, 20] });
