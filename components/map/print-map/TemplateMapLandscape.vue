@@ -1100,7 +1100,7 @@ export default {
           Array.from(legends).forEach((legend) => {
             originalLegends.push(legend.style.width);
             // eslint-disable-next-line no-param-reassign
-            legend.style.width = '130px';
+            legend.style.width = '110px';
           });
         }
 
