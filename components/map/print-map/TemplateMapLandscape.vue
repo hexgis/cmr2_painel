@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-container-print">
+  <div>
     <style>
       @media print {
       @page {
@@ -11,21 +11,20 @@
     <v-dialog
       v-model="showDialog"
       width="auto"
-      class="teste"
       @click:outside="$emit('close')"
     >
-      <v-container style="background-color: white; max-width: 100%;">
-        <div style="position: relative;">
-          <v-btn
-            icon
-            x-small
-            class="no-print"
-            style="position: absolute; top: 10px; right: 10px; z-index: 1000"
-            @click="$emit('close')"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </div>
+      <div class="print-dialog-header no-print">
+        <v-btn
+          icon
+          x-small
+          color="white"
+          class="close-btn"
+          @click="$emit('close')"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
+      <v-container style="background-color: white; max-width: 100%">
         <v-row
           id="map-for-print"
           no-gutters
@@ -35,15 +34,19 @@
             id="monitoring-data-details"
             cols="8"
             class="pr-0 mt-2"
-            style="max-height: 780px;"
+            style="max-height: 780px"
           >
             <div
               id="data-table"
               class="leaflet-bottom leaflet-right"
             >
               <template
-                v-if="showFeaturesMonitoring
-                  && hasActiveMonitoringStages && selectedItemsCount >= 0 && selectedItemsCount <= 7"
+                v-if="
+                  showFeaturesMonitoring &&
+                    hasActiveMonitoringStages &&
+                    selectedItemsCount >= 0 &&
+                    selectedItemsCount <= 7
+                "
               >
                 <!-- Bloco para Monitoramento -->
                 <div
@@ -72,8 +75,11 @@
                 </div>
               </template>
               <template
-                v-if="showFeaturesLandUse
-                  && selectedItemsCount >= 0 && selectedItemsCount <= 7"
+                v-if="
+                  showFeaturesLandUse &&
+                    selectedItemsCount >= 0 &&
+                    selectedItemsCount <= 7
+                "
               >
                 <!-- Bloco para Uso e Ocupação do Solo -->
                 <div
@@ -121,8 +127,14 @@
               </template>
             </div>
             <v-card
-              v-if="showWarningMessage && !(showFeaturesAlerts
-                && !showFeaturesMonitoring && !showFeaturesLandUse)"
+              v-if="
+                showWarningMessage &&
+                  !(
+                    showFeaturesAlerts &&
+                    !showFeaturesMonitoring &&
+                    !showFeaturesLandUse
+                  )
+              "
               class="warning-message"
               elevated
             >
@@ -156,7 +168,17 @@
             class="pl-1 mt-2"
           >
             <div class="border_container">
-              <div class="d-flex justify-space-between pl-8 pr-8 ga-1 align-center ma-4">
+              <div
+                class="
+                                    d-flex
+                                    justify-space-between
+                                    pl-8
+                                    pr-8
+                                    ga-1
+                                    align-center
+                                    ma-4
+                                "
+              >
                 <div style="width: 20%">
                   <v-img
                     contain
@@ -195,35 +217,37 @@
                       v-if="hasLegend"
                       class="d-block ma-1"
                     >
-                      <strong style="font-size: small">{{ $t('legend') }}</strong>
+                      <strong style="font-size: small">{{
+                        $t('legend')
+                      }}</strong>
                     </p>
                     <div
                       class="ma-1 flex-wrap"
-                      style="
-                        width: 100%;
-                        max-height: 100%;
-                        overflow: hidden;
-                      "
+                      style="width: 100%; max-height: 100%; overflow: hidden"
                     >
                       <div
                         style="
-                          display: flex;
-                          justify-content: flex-start;
-                          align-items: flex-start;
-                          gap: 5px;
-                        "
+                                                    display: flex;
+                                                    justify-content: flex-start;
+                                                    align-items: flex-start;
+                                                    gap: 5px;
+                                                "
                       />
 
                       <div
                         style="
-                          display: flex;
-                          justify-content: flex-start;
-                          align-items: flex-start;
-                          gap: 5px;"
+                                                    display: flex;
+                                                    justify-content: flex-start;
+                                                    align-items: flex-start;
+                                                    gap: 5px;
+                                                "
                       >
                         <div
-                          v-if="showFeaturesMonitoring
-                            && hasActiveMonitoringStages && selectedItemsCount > 0"
+                          v-if="
+                            showFeaturesMonitoring &&
+                              hasActiveMonitoringStages &&
+                              selectedItemsCount > 0
+                          "
                         >
                           <p>
                             <strong> Monitoramento Diário </strong>
@@ -231,15 +255,24 @@
                               {{ monitoringCount }}
                             </v-chip>
                           </p>
-                          <hr style="border: 1px solid red; margin: 0; margin-top: 0px;">
+                          <hr
+                            style="
+                                                            border: 1px solid red;
+                                                            margin: 0;
+                                                            margin-top: 0px;
+                                                        "
+                          >
                           <CustomizedLegend
                             class="pt-1"
                             :items="monitoringItems"
                           />
                         </div>
                         <div
-                          v-if="showFeaturesAlerts
-                            && hasActiveAlertsStages && selectedItemsCount > 0"
+                          v-if="
+                            showFeaturesAlerts &&
+                              hasActiveAlertsStages &&
+                              selectedItemsCount > 0
+                          "
                         >
                           <p>
                             <strong>Alerta Urgente</strong>
@@ -247,22 +280,42 @@
                               {{ alertsCount }}
                             </v-chip>
                           </p>
-                          <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
+                          <hr
+                            style="
+                                                            border: 1px solid blue;
+                                                            margin: 0;
+                                                            margin-top: 3px;
+                                                        "
+                          >
                           <CustomizedLegend
                             class="pt-1"
                             :items="alertsItems"
                           />
                         </div>
                         <div
-                          v-if="showFeaturesSupportLayers
-                            && (Object.values(supportLayers).filter(l => l.visible).length)
-                            && (Object.values(supportLayers).filter(l => l.visible).length <= 7)
-                            && (Object.values(supportLayerUser).filter(l => l.visible).length <= 7)"
+                          v-if="
+                            showFeaturesSupportLayers &&
+                              Object.values(supportLayers).filter(
+                                (l) => l.visible
+                              ).length &&
+                              Object.values(supportLayers).filter(
+                                (l) => l.visible
+                              ).length <= 7 &&
+                              Object.values(supportLayerUser).filter(
+                                (l) => l.visible
+                              ).length <= 7
+                          "
                         >
-                          <p style="width: 120px;">
+                          <p style="width: 120px">
                             <strong>Sobreposição de camadas</strong>
                           </p>
-                          <hr style="border: 1px solid blue;margin: 0; margin-top: 3px;">
+                          <hr
+                            style="
+                                                            border: 1px solid blue;
+                                                            margin: 0;
+                                                            margin-top: 3px;
+                                                        "
+                          >
                           <LayerList
                             :layers="supportLayerUser"
                             :is-user-layer="true"
@@ -281,7 +334,13 @@
                               {{ tableLandUse.length }}
                             </v-chip>
                           </p>
-                          <hr style="border: 1px solid blue; margin: 0; margin-top: 0px;">
+                          <hr
+                            style="
+                                                            border: 1px solid blue;
+                                                            margin: 0;
+                                                            margin-top: 0px;
+                                                        "
+                          >
                           <CustomizedLegend
                             class="pt-1"
                             :items="landUseItems"
@@ -292,7 +351,13 @@
                           <p>
                             <strong>INPE - Prodes</strong>
                           </p>
-                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                          <hr
+                            style="
+                                                            border: 1px solid blue;
+                                                            margin: 0;
+                                                            margin-top: 3px;
+                                                        "
+                          >
                           <CustomizedLegend
                             class="pt-1"
                             :items="prodesItems"
@@ -302,23 +367,44 @@
                           <p>
                             <strong>INPE - Deter</strong>
                           </p>
-                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                          <hr
+                            style="
+                                                            border: 1px solid blue;
+                                                            margin: 0;
+                                                            margin-top: 3px;
+                                                        "
+                          >
                           <CustomizedLegend
                             class="pt-1"
                             :items="deterItems"
                           />
                         </div>
-                        <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
+                        <div
+                          v-if="showFeaturesAquaMM || showFeaturesAquaMT"
+                        >
                           <p>
                             <strong>INPE - Focos de Calor</strong>
                           </p>
-                          <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                          <hr
+                            style="
+                                                            border: 1px solid blue;
+                                                            margin: 0;
+                                                            margin-top: 3px;
+                                                        "
+                          >
                           <CustomizedLegend
                             class="pt-1"
-                            :items="heatFocusItems.filter(item =>
-                              (item.label === 'Aqua Modis Manhã' && showFeaturesAquaMM) ||
-                              (item.label === 'Aqua Modis Tarde' && showFeaturesAquaMT)
-                            )"
+                            :items="
+                              heatFocusItems.filter(
+                                (item) =>
+                                  (item.label ===
+                                    'Aqua Modis Manhã' &&
+                                    showFeaturesAquaMM) ||
+                                  (item.label ===
+                                    'Aqua Modis Tarde' &&
+                                    showFeaturesAquaMT)
+                              )
+                            "
                           />
                         </div>
                       </div>
@@ -350,7 +436,8 @@
                           <v-col>
                             <p class="ml-1">
                               <strong>{{ layer.name || '-' }}.</strong>
-                              Fonte:{{ layer.fonte || '-' }}, Data de atualização:
+                              Fonte:{{ layer.fonte || '-' }}, Data de
+                              atualização:
                               {{ handleData(layer.dt_atualizacao) }}.
                             </p>
                           </v-col>
@@ -381,7 +468,8 @@
                         v-for="(year, index) in uniqueYears"
                         :key="'year-' + index"
                       >
-                        {{ year }}<span v-if="index < uniqueYears.length - 1">,
+                        {{ year
+                        }}<span v-if="index < uniqueYears.length - 1">,
                         </span>
                       </span>
                     </p>
@@ -440,40 +528,41 @@
             </div>
           </v-col>
         </v-row>
-        <div class="no-print">
-          <div class="d-flex flex-row align-md-center mr-6 mt-2">
-            <v-btn
-              class="ml-4 mb-2"
-              @click="$emit('back')"
-            >
-              {{ $t('input-button-back-second-step') }}
-            </v-btn>
-            <v-spacer />
-            <v-btn
-              color="primary"
-              class="mr-2"
-              :loading="loadingPrintImage"
-              :disabled="showWarningMessage || loadingPrintImage"
-              @click="saveImage"
-            >
-              <v-icon dark>
-                mdi-image-outline
-              </v-icon>
-              {{ $t('download-image') }}
-            </v-btn>
-            <v-btn
-              color="primary"
-              :disabled="showWarningMessage || loadingPrintImage"
-              @click="print"
-            >
-              <v-icon dark>
-                mdi-file-export-outline
-              </v-icon>
-              {{ $t('input-button-pdf-image') }}
-            </v-btn>
-          </div>
-        </div>
       </v-container>
+      <div class="print-dialog-footer no-print">
+        <div class="d-flex align-center pa-4">
+          <v-btn
+            class="ml-2"
+            @click="$emit('back')"
+          >
+            {{ $t('input-button-back-second-step') }}
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            class="mr-2"
+            :loading="loadingPrintImage"
+            :disabled="showWarningMessage || loadingPrintImage"
+            @click="saveImage"
+          >
+            <v-icon dark>
+              mdi-image-outline
+            </v-icon>
+            {{ $t('download-image') }}
+          </v-btn>
+          <v-btn
+            color="primary"
+            class="mr-4"
+            :disabled="showWarningMessage || loadingPrintImage"
+            @click="print"
+          >
+            <v-icon dark>
+              mdi-file-export-outline
+            </v-icon>
+            {{ $t('input-button-pdf-image') }}
+          </v-btn>
+        </div>
+      </div>
     </v-dialog>
   </div>
 </template>
@@ -617,9 +706,7 @@ export default {
     activeMonitoringLabel: [],
     loadingPrintImage: false,
 
-    deterItems: [
-      { label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' },
-    ],
+    deterItems: [{ label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' }],
     heatFocusItems: [
       {
         label: 'Aqua Modis Manhã',
@@ -644,39 +731,48 @@ export default {
     filteredMonitoringData() {
       return this.combinedTableData.filter(
         (item) => item.monitoring
-        && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0),
+                    && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0),
       );
     },
     filteredAlertsData() {
       return this.combinedTableData.filter(
-        (item) => item.alerts
-        && Object.keys(item.alerts).some((key) => item.alerts[key] > 0),
+        (item) => item.alerts && Object.keys(item.alerts).some((key) => item.alerts[key] > 0),
       );
     },
     filteredLandUseData() {
       return this.combinedTableData.filter(
-        (item) => item.landUse
-        && Object.keys(item.landUse).some((key) => item.landUse[key] > 0),
+        (item) => item.landUse && Object.keys(item.landUse).some((key) => item.landUse[key] > 0),
       );
     },
     filteredCombinedTableData() {
       return this.combinedTableData.filter((item) => {
         const hasMonitoring = this.showFeaturesMonitoring
-                           && item.monitoring
-                           && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0);
+                    && item.monitoring
+                    && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0);
         const hasLandUse = this.showFeaturesLandUse
-                         && item.landUse
-                         && Object.keys(item.landUse).some((key) => item.landUse[key] > 0);
+                    && item.landUse
+                    && Object.keys(item.landUse).some((key) => item.landUse[key] > 0);
         const hasAlerts = this.showFeaturesAlerts
-                         && item.alerts
-                         && Object.keys(item.alerts).some((key) => item.alerts[key] > 0);
+                    && item.alerts
+                    && Object.keys(item.alerts).some((key) => item.alerts[key] > 0);
         return hasMonitoring || hasLandUse || hasAlerts;
       });
     },
     combinedTableData() {
       const keys = {
         monitoring: ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'],
-        landUse: ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'],
+        landUse: [
+          'ag_ha',
+          'cr_ha',
+          'dg_ha',
+          'ma_ha',
+          'mi_ha',
+          'no_ha',
+          'rv_ha',
+          'sv_ha',
+          'vn_ha',
+          'vi_ha',
+        ],
         alerts: ['cr_ha', 'dg_ha', 'dr_ha'],
       };
       const initializeObject = (keyList) => keyList.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
@@ -701,7 +797,11 @@ export default {
           keys[type].forEach((key) => addValue(data[type], `nu_area_${key}`, item[`nu_area_${key}`]));
         });
       };
-      if (!Array.isArray(this.tableMonitoring) || !Array.isArray(this.tableLandUse) || !Array.isArray(this.tableAlerts)) {
+      if (
+        !Array.isArray(this.tableMonitoring)
+                || !Array.isArray(this.tableLandUse)
+                || !Array.isArray(this.tableAlerts)
+      ) {
         console.warn('tableMonitoring, tableLandUse ou tableAlerts não são arrays válidos.');
         return [];
       }
@@ -712,7 +812,18 @@ export default {
     },
     totalAreas() {
       const monitoringKeys = ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'];
-      const landUseKeys = ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'];
+      const landUseKeys = [
+        'ag_ha',
+        'cr_ha',
+        'dg_ha',
+        'ma_ha',
+        'mi_ha',
+        'no_ha',
+        'rv_ha',
+        'sv_ha',
+        'vn_ha',
+        'vi_ha',
+      ];
       const alertsKeys = ['cr_ha', 'dg_ha', 'dr_ha'];
       const initializeObject = (keys) => keys.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
       const addValue = (target, key, value) => {
@@ -725,7 +836,11 @@ export default {
       return this.combinedTableData.reduce(
         (acc, item) => {
           addValue(acc, 'nu_area_ha', item.nu_area_ha);
-          monitoringKeys.forEach((key) => addValue(acc.monitoring, `nu_area_${key}`, item.monitoring[`nu_area_${key}`]));
+          monitoringKeys.forEach((key) => addValue(
+            acc.monitoring,
+            `nu_area_${key}`,
+            item.monitoring[`nu_area_${key}`],
+          ));
           landUseKeys.forEach((key) => addValue(acc.landUse, `nu_area_${key}`, item.landUse[`nu_area_${key}`]));
           alertsKeys.forEach((key) => addValue(acc.alerts, `nu_area_${key}`, item.alerts[`nu_area_${key}`]));
           return acc;
@@ -756,9 +871,7 @@ export default {
         .some((key) => this[key]);
     },
     layerCategories() {
-      return [
-        ['Support Layers', this.supportLayers, this.showFeaturesSupportLayers],
-      ]
+      return [['Support Layers', this.supportLayers, this.showFeaturesSupportLayers]]
         .map(([name, layers, show]) => ({ name, layers, show }))
         .filter(({ show }) => show);
     },
@@ -775,11 +888,7 @@ export default {
       return (this.layers && this.layers.aquaMT && this.layers.aquaMT.features) || null;
     },
     focoFilters() {
-      return (
-        this.layers
-        && this.layers.aquaMM
-        && this.layers.aquaMM.filters
-      ) || {};
+      return (this.layers && this.layers.aquaMM && this.layers.aquaMM.filters) || {};
     },
     prodesItems() {
       return this.$store.getters['prodes/getLegendItems'];
@@ -839,8 +948,7 @@ export default {
     },
     combinedTableData(newVal) {
       this.selectedItemsCount = newVal.length;
-      this.showWarningMessage = (this.showFeaturesMonitoring
-       || this.showFeaturesLandUse) && newVal.length > 7;
+      this.showWarningMessage = (this.showFeaturesMonitoring || this.showFeaturesLandUse) && newVal.length > 7;
     },
   },
 
@@ -855,19 +963,18 @@ export default {
       await this.getDataTableAlerts();
     }
     this.selectedItemsCount = this.combinedTableData.length;
-    this.showWarningMessage = (this.showFeaturesMonitoring
-     || this.showFeaturesLandUse) && this.selectedItemsCount > 7;
+    this.showWarningMessage = (this.showFeaturesMonitoring || this.showFeaturesLandUse) && this.selectedItemsCount > 7;
 
-    const visibleLayersCount = Object.values(this.supportLayers)
-      .filter((l) => l.visible).length;
+    const visibleLayersCount = Object.values(this.supportLayers).filter((l) => l.visible).length;
     if (visibleLayersCount > 0) {
       if (visibleLayersCount > 7) {
         this.showWarningMessage = true;
       }
     }
 
-    const visibleUserLayers = Object.values(this.supportLayerUser)
-      .filter((l) => l.visible).length;
+    const visibleUserLayers = Object.values(this.supportLayerUser).filter(
+      (l) => l.visible,
+    ).length;
     if (visibleUserLayers > 0) {
       if (visibleUserLayers > 7) {
         this.showWarningMessage = true;
@@ -940,12 +1047,8 @@ export default {
 
     adjustMapSizeForPrint(tamanho) {
       const mapDimensions = this.getMapDimensions(tamanho);
-      document.getElementById(
-        'map-for-print',
-      ).style.width = `${mapDimensions.width}px`;
-      document.getElementById(
-        'map-for-print',
-      ).style.height = `${mapDimensions.height}px`;
+      document.getElementById('map-for-print').style.width = `${mapDimensions.width}px`;
+      document.getElementById('map-for-print').style.height = `${mapDimensions.height}px`;
     },
 
     getMapDimensions(tamanho) {
@@ -971,7 +1074,9 @@ export default {
       const node = document.getElementById('map-for-print');
       const mapBounds = document.getElementsByClassName('leaflet-control-mapbounds')[0];
       const mapControlZoom = document.getElementsByClassName('leaflet-control-zoom')[0];
-      const infoControlRight = document.getElementsByClassName('leaflet-control-attribution')[1];
+      const infoControlRight = document.getElementsByClassName(
+        'leaflet-control-attribution',
+      )[1];
       const legends = document.getElementsByClassName('text-legend-customized');
       const originalLegends = [];
 
@@ -983,7 +1088,13 @@ export default {
         const nameImageDownload = this.mapTitle;
 
         mapControlZoom.style.display = 'none';
-        mapBounds.style.width = '230px';
+        mapBounds.style.width = '250px';
+
+        const originalWidth = node.style.width;
+        const originalHeight = node.style.height;
+
+        node.style.width = '1230px';
+        node.style.height = '780px';
 
         if (legends && legends.length > 0) {
           Array.from(legends).forEach((legend) => {
@@ -1004,14 +1115,17 @@ export default {
           },
         };
 
+        infoControlRight.setAttribute('style', 'width: 304px');
+
         const image = await domtoimage.toJpeg(node, options);
 
         const link = document.createElement('a');
         link.href = image;
-        link.download = nameImageDownload
-          ? `${nameImageDownload}.jpeg`
-          : 'Mapa.jpeg';
+        link.download = nameImageDownload ? `${nameImageDownload}.jpeg` : 'Mapa.jpeg';
         link.click();
+
+        node.style.width = originalWidth;
+        node.style.height = originalHeight;
 
         this.loadingPrintImage = false;
       } catch (error) {
@@ -1041,179 +1155,199 @@ export default {
 
 <style scoped>
 #monitoring-data-details {
-  position: relative;
+    position: relative;
 }
 
 #data-table {
-  position: absolute;
-  right: 0.5rem;
-  bottom: 1.5rem;
-  display: flex;
-  flex-wrap: wrap-reverse;
-  justify-content: flex-start;
-  flex-direction: column;
-  max-height: 760px;
-  gap: 0.5rem;
-}
-
-#data-table p {
-  width: 110px;
+    position: absolute;
+    right: 0.5rem;
+    bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap-reverse;
+    justify-content: flex-start;
+    flex-direction: column;
+    max-height: 760px;
+    gap: 0.5rem;
 }
 
 .bordered-red,
 .bordered-blue {
-  padding: 10px;
-  border-radius: 5px;
+    padding: 10px;
+    border-radius: 5px;
 }
 
 .bordered-red {
-  border: 2px solid red;
+    border: 2px solid red;
 }
 
 .bordered-blue {
-  border: 2px solid blue;
+    border: 2px solid blue;
 }
 
 .bordered-black {
-  border: 2px solid black;
+    border: 2px solid black;
 }
 
 #data-table > div {
-  background: #fffbfb;
-  opacity: 0.9;
-  padding: 5px;
+    background: #fffbfb;
+    opacity: 0.9;
+    padding: 5px;
 }
 
 .map-wrapper {
-  width: 100%;
+    width: 100%;
 }
 
 .vue-leaflet-map {
-  height: 100% !important;
+    height: 100% !important;
 }
 
 .legend-info-map {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 60%;
-  padding-bottom: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 60%;
+    padding-bottom: 5px;
 }
 
 .legend-info-map-details {
-  height: 100%;
+    height: 100%;
+}
+
+.print-dialog-header {
+  flex-shrink: 0;
+  background: var(--v-primary-base) ;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: flex-end;
+  position: relative;
+  z-index: 10;
+}
+
+.print-dialog-footer {
+  flex-shrink: 0;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  position: relative;
+  z-index: 10;
 }
 
 @page {
-  size: landscape;
-  margin: 0;
+    size: landscape;
+    margin: 0;
 }
 
 @media print {
-  @page {
-    size: landscape;
-    margin: 0;
-  }
+    @page {
+        size: landscape;
+        margin: 0;
+    }
 
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 
-  .logo,
-  .legend-item {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
+    .print-dialog-header,
+    .print-dialog-footer {
+      display: none !important;
+    }
 
-  .container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100% !important;
-    overflow: hidden !important;
-    box-shadow: none;
-  }
+    .logo,
+    .legend-item {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 
-  .no-print {
-    display: none;
-  }
+    .container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100% !important;
+        overflow: hidden !important;
+        box-shadow: none;
+    }
 
-  .v-icon {
-    color: inherit !important;
-  }
+    .no-print {
+        display: none;
+    }
+
+    .v-icon {
+        color: inherit !important;
+    }
 }
 
 p {
-  font-size: xx-small;
-  margin: 0;
+    font-size: xx-small;
+    margin: 0;
 }
 
 .font-title {
-  line-break: anywhere;
-  width: 100%;
+    line-break: anywhere;
+    width: 100%;
 }
 
 .font-title p {
-  font-size: 10px;
-  margin: 0px;
-  padding: 0px;
-  text-align: center;
-  max-width: 750px;
-  font-family: 'Roboto', sans-serif;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: #6c757d;
+    font-size: 10px;
+    margin: 0px;
+    padding: 0px;
+    text-align: center;
+    max-width: 750px;
+    font-family: 'Roboto', sans-serif;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #6c757d;
 }
 
 .print-mini-map-text {
-  color: dimgray !important;
-  font-size: xx-small;
-  white-space: nowrap;
+    color: dimgray !important;
+    font-size: xx-small;
+    white-space: nowrap;
 }
 
 .border_container_legend {
-  border: 0.5px gray;
-  background: #fff;
-  border-radius: 5px;
-  box-shadow: 0 0 5px #bbb !important;
-  height: 100%;
+    border: 0.5px gray;
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 5px #bbb !important;
+    height: 100%;
 }
 
 .border_container {
-  height: 100%;
+    height: 100%;
 }
 
 .hight_container_mini_map {
-  height: 150px;
-  max-height: 150px;
-  width: 100%;
+    height: 150px;
+    max-height: 150px;
+    width: 100%;
 }
 
 .font-page p {
-  font-size: large;
+    font-size: large;
 }
 
 .image-container {
-  width: 100%;
+    width: 100%;
 }
 
 .row {
-  margin: 0 !important;
+    margin: 0 !important;
 }
 
 img.layer-thumbnail {
-  width: 25px;
+    width: 25px;
 }
 
 .warning-message {
-  position: absolute;
-  max-width: 350px;
-  top: 35%;
-  left: 30%;
-  z-index: 20;
-  background: #ffffff;
+    position: absolute;
+    max-width: 350px;
+    top: 35%;
+    left: 30%;
+    z-index: 20;
+    background: #ffffff;
 }
 
 @media (max-width: 600px) {
