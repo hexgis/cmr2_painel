@@ -202,7 +202,7 @@
                   {{ print_title }}
                 </p>
               </div>
-              <div class="d-flex justify-center hight_container_mini_map">
+              <div class="d-flex justify-center height_container_mini_map">
                 <MiniMap
                   v-if="currentBouldMap"
                   :current-bould-map="currentBouldMap"
@@ -1319,7 +1319,7 @@ p {
     height: 100%;
 }
 
-.hight_container_mini_map {
+.height_container_mini_map {
     height: 150px;
     max-height: 150px;
     width: 100%;
