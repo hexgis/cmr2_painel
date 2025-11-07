@@ -167,7 +167,7 @@
             cols="4"
             class="pl-1 mt-2"
           >
-            <div class="border_container">
+            <div class="border-container">
               <div
                 class="
                                     d-flex
@@ -202,7 +202,7 @@
                   {{ print_title }}
                 </p>
               </div>
-              <div class="d-flex justify-center height_container_mini_map">
+              <div class="d-flex justify-center height-container-mini-map">
                 <MiniMap
                   v-if="currentBouldMap"
                   :current-bould-map="currentBouldMap"
@@ -1315,11 +1315,11 @@ p {
     height: 100%;
 }
 
-.border_container {
+.border-container {
     height: 100%;
 }
 
-.height_container_mini_map {
+.height-container-mini-map {
     height: 150px;
     max-height: 150px;
     width: 100%;
