@@ -170,14 +170,14 @@
             <div class="border-container">
               <div
                 class="
-                                    d-flex
-                                    justify-space-between
-                                    pl-8
-                                    pr-8
-                                    ga-1
-                                    align-center
-                                    ma-4
-                                "
+                    d-flex
+                    justify-space-between
+                    pl-8
+                    pr-8
+                    ga-1
+                    align-center
+                    ma-4
+                "
               >
                 <div style="width: 20%">
                   <v-img
@@ -227,20 +227,20 @@
                     >
                       <div
                         style="
-                                                    display: flex;
-                                                    justify-content: flex-start;
-                                                    align-items: flex-start;
-                                                    gap: 5px;
-                                                "
+                            display: flex;
+                            justify-content: flex-start;
+                            align-items: flex-start;
+                            gap: 5px;
+                        "
                       />
 
                       <div
                         style="
-                                                    display: flex;
-                                                    justify-content: flex-start;
-                                                    align-items: flex-start;
-                                                    gap: 5px;
-                                                "
+                            display: flex;
+                            justify-content: flex-start;
+                            align-items: flex-start;
+                            gap: 5px;
+                        "
                       >
                         <div
                           v-if="
@@ -257,10 +257,10 @@
                           </p>
                           <hr
                             style="
-                                                            border: 1px solid red;
-                                                            margin: 0;
-                                                            margin-top: 0px;
-                                                        "
+                                border: 1px solid red;
+                                margin: 0;
+                                margin-top: 0px;
+                            "
                           >
                           <CustomizedLegend
                             class="pt-1"
@@ -282,10 +282,10 @@
                           </p>
                           <hr
                             style="
-                                                            border: 1px solid blue;
-                                                            margin: 0;
-                                                            margin-top: 3px;
-                                                        "
+                                border: 1px solid blue;
+                                margin: 0;
+                                margin-top: 3px;
+                            "
                           >
                           <CustomizedLegend
                             class="pt-1"
@@ -311,10 +311,10 @@
                           </p>
                           <hr
                             style="
-                                                            border: 1px solid blue;
-                                                            margin: 0;
-                                                            margin-top: 3px;
-                                                        "
+                                border: 1px solid blue;
+                                margin: 0;
+                                margin-top: 3px;
+                            "
                           >
                           <LayerList
                             :layers="supportLayerUser"
@@ -336,10 +336,10 @@
                           </p>
                           <hr
                             style="
-                                                            border: 1px solid blue;
-                                                            margin: 0;
-                                                            margin-top: 0px;
-                                                        "
+                                border: 1px solid blue;
+                                margin: 0;
+                                margin-top: 0px;
+                            "
                           >
                           <CustomizedLegend
                             class="pt-1"
@@ -353,10 +353,10 @@
                           </p>
                           <hr
                             style="
-                                                            border: 1px solid blue;
-                                                            margin: 0;
-                                                            margin-top: 3px;
-                                                        "
+                                border: 1px solid blue;
+                                margin: 0;
+                                margin-top: 3px;
+                            "
                           >
                           <CustomizedLegend
                             class="pt-1"
@@ -369,10 +369,10 @@
                           </p>
                           <hr
                             style="
-                                                            border: 1px solid blue;
-                                                            margin: 0;
-                                                            margin-top: 3px;
-                                                        "
+                                border: 1px solid blue;
+                                margin: 0;
+                                margin-top: 3px;
+                            "
                           >
                           <CustomizedLegend
                             class="pt-1"
@@ -387,10 +387,10 @@
                           </p>
                           <hr
                             style="
-                                                            border: 1px solid blue;
-                                                            margin: 0;
-                                                            margin-top: 3px;
-                                                        "
+                                border: 1px solid blue;
+                                margin: 0;
+                                margin-top: 3px;
+                            "
                           >
                           <CustomizedLegend
                             class="pt-1"
@@ -1215,22 +1215,22 @@ export default {
 }
 
 .print-dialog-header {
-  flex-shrink: 0;
-  background: var(--v-primary-base) ;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 8px 16px;
-  display: flex;
-  justify-content: flex-end;
-  position: relative;
-  z-index: 10;
+    flex-shrink: 0;
+    background: var(--v-primary-base);
+    border-bottom: 1px solid #e0e0e0;
+    padding: 8px 16px;
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    z-index: 10;
 }
 
 .print-dialog-footer {
-  flex-shrink: 0;
-  background: white;
-  border-top: 1px solid #e0e0e0;
-  position: relative;
-  z-index: 10;
+    flex-shrink: 0;
+    background: white;
+    border-top: 1px solid #e0e0e0;
+    position: relative;
+    z-index: 10;
 }
 
 @page {
@@ -1251,7 +1251,7 @@ export default {
 
     .print-dialog-header,
     .print-dialog-footer {
-      display: none !important;
+        display: none !important;
     }
 
     .logo,
@@ -1350,10 +1350,13 @@ img.layer-thumbnail {
     background: #ffffff;
 }
 
-@media (max-width: 600px) {
-  :deep(.v-dialog) {
-    background-color: #fff !important;
-  }
+:deep(.v-chip) {
+  padding: 0 5px !important;
 }
 
+@media (max-width: 600px) {
+    :deep(.v-dialog) {
+        background-color: #fff !important;
+    }
+}
 </style>
