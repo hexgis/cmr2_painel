@@ -36,11 +36,11 @@ export const state = () => ({
 });
 
 export const getters = {
-  bbox: (state) => state.bounds?.toBBoxString() || '',
+  bbox: (state) => (state.bounds ? state.bounds.toBBoxString() : '') || '',
 
   bboxWkt(state) {
     if (!state.bounds) return '';
-    
+
     const coords = [
       state.bounds.getSouthWest(),
       state.bounds.getNorthWest(),
@@ -55,7 +55,7 @@ export const getters = {
 
   bboxEs(state) {
     if (!state.bounds) return [];
-    
+
     const northWest = state.bounds.getNorthWest();
     const southEast = state.bounds.getSouthEast();
 
@@ -233,23 +233,23 @@ export const actions = {
         request: 'GetFeature',
         typeName: state.geoserverSearchTI,
         outputFormat: 'application/json',
-        CQL_FILTER: ''
+        CQL_FILTER: '',
       };
 
-      if (searchQuery?.trim()) {
+      if (searchQuery && searchQuery.trim()) {
         const searchTerm = searchQuery.trim();
-        
+
         let isEstudoFilter = '';
         if (searchTerm.toLowerCase() === 'sim') {
-          isEstudoFilter = `is_estudo = true`;
+          isEstudoFilter = 'is_estudo = true';
         } else if (searchTerm.toLowerCase() === 'não' || searchTerm.toLowerCase() === 'nao') {
-          isEstudoFilter = `is_estudo = false`;
+          isEstudoFilter = 'is_estudo = false';
         }
 
         const filters = [
           `no_ti ILIKE '%${searchTerm}%'`,
           `ds_cr ILIKE '%${searchTerm}%'`,
-          `no_municipio ILIKE '%${searchTerm}%'`
+          `no_municipio ILIKE '%${searchTerm}%'`,
         ];
 
         if (isEstudoFilter) {
@@ -262,28 +262,26 @@ export const actions = {
       const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
       const response = await this.$api.$get(url);
 
-      if (response?.features) {
+      if (response && response.features) {
         const transformedData = response.features.map((feature, index) => ({
           id: feature.id || `feature-${index}`,
           layername: feature.properties.layername,
           namespace: feature.properties.namespace,
           ...feature.properties,
-          geometry: feature.geometry
+          geometry: feature.geometry,
         }));
 
-        const sortedData = transformedData.sort((a, b) => 
-          a.no_ti.localeCompare(b.no_ti)
-        );
+        const sortedData = transformedData.sort((a, b) => a.no_ti.localeCompare(b.no_ti));
 
         commit('setSelectedItems', sortedData);
         return sortedData;
-      } else {
-        throw new Error('Nenhuma terra indígena encontrada');
       }
 
+      commit('setSelectedItems', []);
+      return [];
     } catch (error) {
       console.error('Erro ao buscar terras indígenas:', error);
-      
+
       commit('alert/addAlert', {
         message: this.$i18n.t('default-error', {
           action: this.$i18n.t('search'),
@@ -291,7 +289,7 @@ export const actions = {
         }),
         type: 'error',
       }, { root: true });
-      
+
       commit('setSelectedItems', []);
       throw error;
     } finally {
@@ -432,10 +430,10 @@ export const actions = {
 
   async getGeoserverConfig({ commit, rootState }) {
     try {
-      const idGeoserver = rootState.userProfile.user 
+      const idGeoserver = rootState.userProfile.user
         ? process.env.GEOSERVER_PRIVATE
         : process.env.GEOSERVER_PUBLICO;
-      const response = await this.$api.$get(`layer/geoserver/${idGeoserver}/`);      
+      const response = await this.$api.$get(`layer/geoserver/${idGeoserver}/`);
       commit('setGeoserverConfig', {
         url: `${response.wms_url.replace('wms', 'ows')}&`,
       });

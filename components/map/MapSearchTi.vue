@@ -176,11 +176,11 @@ export default {
         },
 
         formatSearchResult(item) {
-          const emEstudo = item?.is_estudo ? 'Sim' : 'Não'
+          const emEstudo = item && item.is_estudo ? 'Sim' : 'Não';
 
-          return `**Terra Indígena:** ${item?.no_ti || '-'}
-            **Município:** ${item?.no_municipio || '-'}
-            **Coordenação Regional:** ${item?.ds_cr || '-'}
+          return `**Terra Indígena:** ${(item && item.no_ti) || '-'}
+            **Município:** ${(item && item.no_municipio) || '-'}
+            **Coordenação Regional:** ${(item && item.ds_cr) || '-'}
             **Em Estudo:** ${emEstudo}`
         },
 
@@ -203,58 +203,69 @@ export default {
                 const layerName = matchingLand.layername;
                 const namespace = matchingLand.namespace;
                 const tiName = matchingLand.no_ti;
-                
+
                 if (!layerName || !tiName) {
                     return;
                 }
 
                 const geoserverUrl = this.$store.state.map.geoserverUrl;
                 const fullLayerName = `${namespace}:${layerName}`;
-                
-                const url = `${geoserverUrl}service=WFS&version=1.1.0&request=GetFeature&typeName=${fullLayerName}&outputFormat=application/json&cql_filter=no_ti='${encodeURIComponent(tiName)}'`;
+
+                const url = `${geoserverUrl}service=WFS&version=1.1.0
+                &request=GetFeature&typeName=${fullLayerName}
+                &outputFormat=application/json&cql_filter=no_ti='${encodeURIComponent(tiName)}'`;
 
                 const response = await this.$axios.$get(url);
-                
-                if (response?.features?.length) {
-                    this.displayPolygonsOnMap(response.features);
+
+                if (response && response.features && response.features.length) {
+                    this.displayPolygonsOnMap(response.features, fullLayerName, tiName);
                     this.$store.commit('map/setCurrentTiData', response.features[0].properties);
                 }
-            } catch (error) {}
+            } catch (error) {
+                console.error('Erro ao buscar Terra Indígena:', error);
+            }
         },
 
-        displayPolygonsOnMap(features) {
-            this.polygons.forEach((polygon) => {
-                this.map.removeLayer(polygon);
-            });
+        displayPolygonsOnMap(features, fullLayerName, tiName) {
+            this.polygons.forEach((polygon) => this.map.removeLayer(polygon));
             this.polygons = [];
 
-            let bounds = L.latLngBounds();
-            
+            const bounds = L.latLngBounds();
+            const geoserverUrl = this.$store.state.map.geoserverUrl;
+
             features.forEach((feature) => {
-                const realProperties = feature.properties;
-                this.$store.commit('map/setCurrentTiData', realProperties);
-                
+                const props = feature.properties;
+                this.$store.commit('map/setCurrentTiData', props);
+
                 if (feature.geometry.type === 'Point') {
-                    const coordinates = feature.geometry.coordinates;
-                    const point = L.marker([coordinates[1], coordinates[0]]).addTo(this.map);
-                    
-          
-                    this.polygons.push(point);
-                    bounds.extend([coordinates[1], coordinates[0]]);
-                    
+                    const [lng, lat] = feature.geometry.coordinates;
+                    const cqlFilter = `no_ti='${props.no_ti}'`;
+                    const wmsLayer = L.tileLayer.wms(geoserverUrl.replace('ows', 'wms'), {
+                        layers: fullLayerName,
+                        format: 'image/png',
+                        transparent: true,
+                        CQL_FILTER: cqlFilter,
+                        zIndex: 999,
+                        minZoom: 0,
+                        maxZoom: 22,
+                    }).addTo(this.map);
+                    this.polygons.push(wmsLayer);
+
+                    bounds.extend([lat, lng]);
+
                 } else if (feature.geometry.type === 'Polygon') {
                     const latLngs = feature.geometry.coordinates[0].map((coord) => [
                         coord[1], coord[0]
                     ]);
                     bounds.extend(latLngs);
-                    const polygonLayer = L.polygon(latLngs, { 
+                    const polygonLayer = L.polygon(latLngs, {
                         color: 'blue',
                         weight: 2,
                         fillColor: 'lightblue',
-                        fillOpacity: 0.3
+                        fillOpacity: 0.3,
                     }).addTo(this.map);
                     this.polygons.push(polygonLayer);
-                    
+
                 } else if (feature.geometry.type === 'MultiPolygon') {
                     feature.geometry.coordinates.forEach((polygon) => {
                         const latLngs = polygon[0].map((coord) => [
@@ -265,18 +276,20 @@ export default {
                             color: 'blue',
                             weight: 2,
                             fillColor: 'lightblue',
-                            fillOpacity: 0.3
+                            fillOpacity: 0.3,
                         }).addTo(this.map);
                         this.polygons.push(polygonLayer);
                     });
                 }
             });
-            
+
             if (bounds.isValid()) {
                 if (features.length === 1 && features[0].geometry.type === 'Point') {
-                    this.map?.flyTo(bounds.getCenter(), 14);
+                    this.map && this.map.flyTo(bounds.getCenter(), 12, {
+                      easeLinearity: 0.01
+                    });
                 } else {
-                    this.map?.flyToBounds(bounds, { padding: [20, 20] });
+                    this.map.flyToBounds(bounds, { padding: [20, 20] });
                 }
             }
         },
