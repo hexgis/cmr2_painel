@@ -350,8 +350,13 @@ export default {
         });
 
         // Add base tile layer
-        const baseLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-        this.baseLayer = this.$L.tileLayer(baseLayerUrl, { attribution: '' });
+        let baseLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        let baseLayerOptions = {};
+        if (this.$store.state.map.currentBaseMap && this.$store.state.map.currentBaseMap.url) {
+          baseLayerUrl = this.$store.state.map.currentBaseMap.url;
+          baseLayerOptions = this.$store.state.map.currentBaseMap.options || { attribution: '' };
+        }
+        this.baseLayer = this.$L.tileLayer(baseLayerUrl, baseLayerOptions);
         this.baseLayer.addTo(this.map);
 
         this.addVisibleLayersFromMainMap();

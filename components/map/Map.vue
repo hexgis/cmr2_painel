@@ -703,6 +703,20 @@ export default {
           tileZ: 1,
         }),
       );
+
+      this.setCurrentBaseMap({
+        // eslint-disable-next-line no-underscore-dangle
+        url: tileLayers[0]._url,
+        options: tileLayers[0].options,
+      });
+
+      this.map.on('baselayerchange', (e) => {
+        this.setCurrentBaseMap({
+          // eslint-disable-next-line no-underscore-dangle
+          url: e._url,
+          options: e.options,
+        });
+      });
     },
 
     createMiniMap() {
@@ -771,6 +785,7 @@ export default {
       'setLocalBounds',
       'setActiveMenu',
       'setActiveMenuMarker',
+      'setCurrentBaseMap',
     ]),
   },
 };
@@ -839,8 +854,6 @@ export default {
   display: flex
   flex-direction: row
 
-  
-  
 .leaflet-control-basemaps .basemap:hover
   transform: none !important
 
@@ -902,7 +915,6 @@ export default {
 .leaflet-control-minimap .leaflet-control-minimap-toggle-display
   background-color: #fff
   border-radius: 0 0 4px 0
-
 
   .basemap span
     font-size: 10px
