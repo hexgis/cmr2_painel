@@ -217,7 +217,7 @@ export const createWmsOptions = (layer, customZIndex = null) => {
 
   const wmsOptions = {
     ...baseOptions,
-    layers: layer.wms.geoserver_layer_name,
+    layers: `${layer.wms.geoserver_layer_namespace}:${layer.wms.geoserver_layer_name}`,
     format: 'image/png',
     transparent: true,
     version: '1.1.0',

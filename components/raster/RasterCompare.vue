@@ -518,7 +518,7 @@ export default {
           return null;
         }
 
-        const url = `${layer.wms.geoserver.geoserver_url}/wms`;
+        const url = `${layer.wms.geoserver.wms_url}`;
         const options = createWmsOptions(layer, customZIndex);
         const wmsLayer = this.$L.tileLayer.wms(url, options);
 
