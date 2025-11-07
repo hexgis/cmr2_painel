@@ -99,6 +99,72 @@ export const getDefaultZIndex = (layer) => {
   return 8;
 };
 
+export function generateCqlLayer(layer) {
+  let wmsUrl = '';
+  if (layer.layer_type === 'wms') {
+    const { filters } = layer;
+    if (filters.startData || filters.endData) {
+      const [aliasStartDate, aliasEndDate] = layer.filters; // Destructuring filter alias
+
+      if (filters.startData.length && filters.endData.length) {
+        const valueStartData = filters.startData;
+        const valueEndData = filters.endData;
+
+        wmsUrl += `${aliasStartDate.filter_alias} >= (${valueStartData}) AND ${aliasEndDate.filter_alias} <= (${valueEndData})`;
+        return wmsUrl;
+      }
+    }
+
+    const coCrObj = filters.find((filter) => filter.co_cr);
+    const coFunaiObj = filters.find((filter) => filter.co_funai);
+    if (coCrObj || coFunaiObj) {
+      const { co_cr: coCR } = coCrObj;
+      const { co_funai: CoFunai } = coFunaiObj;
+      const [firstInput, secondInput] = layer.filters;
+
+      const valueCoCr = coCR.join(',');
+      const valueCoFunai = CoFunai.join(',');
+
+      if (coCR.length && CoFunai.length) {
+        wmsUrl += `${firstInput.alias} IN (${
+          firstInput.type === 'co_cr'
+            ? valueCoCr
+            : valueCoFunai
+        }) AND ${secondInput.alias} IN (${
+          secondInput.type === 'co_funai'
+            ? valueCoFunai
+            : valueCoCr
+        })`;
+        return wmsUrl;
+      }
+
+      if (coCR.length) {
+        if (firstInput.type === 'co_cr') {
+          wmsUrl += `${firstInput.alias} IN (${valueCoCr} )`;
+        } else {
+          wmsUrl += `${secondInput.alias} IN (${valueCoCr} )`;
+        }
+      }
+
+      if (CoFunai.length) {
+        // let list_funaiTi = filters.co_funai.join(',')
+        if (firstInput.type === 'co_funai') {
+          wmsUrl += `${firstInput.alias} IN (${valueCoFunai} )`;
+        } else {
+          wmsUrl += `${secondInput.alias} IN (${valueCoFunai} )`;
+        }
+      }
+      return wmsUrl;
+    }
+
+    if (layer.cql) {
+      wmsUrl += `${layer.cql}`;
+    }
+    return wmsUrl;
+  }
+  return '';
+}
+
 /**
  * Creates base options for any layer type
  * Includes common settings like opacity, z-index and error URL
@@ -112,16 +178,17 @@ export const getDefaultZIndex = (layer) => {
  * @returns {Object} Base layer options
  */
 export const createLayerOptions = (layer, customZIndex = null) => {
+  console.log('🚀 ~ createLayerOptions ~ layer:', layer);
   // Convert opacity from 0-100 range to 0-1 range (same as main map)
   // Example: layer.opacity = 50 becomes normalizedOpacity = 0.5
-  const normalizedOpacity = layer.opacity ? Math.max(0.01, Math.min(1, layer.opacity / 100)) : 1;
 
   const baseOptions = {
     attribution: '',
-    opacity: normalizedOpacity,
+    env: `percentage:${(Math.max(0.01, Math.min(1, layer.opacity / 100))) || 1}`,
     errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
     zIndex: customZIndex || getDefaultZIndex(layer),
   };
+  if (generateCqlLayer(layer)) baseOptions.CQL_FILTER = generateCqlLayer(layer);
 
   return baseOptions;
 };
@@ -150,7 +217,7 @@ export const createWmsOptions = (layer, customZIndex = null) => {
 
   const wmsOptions = {
     ...baseOptions,
-    layers: layer.wms.geoserver_layer_name,
+    layers: `${layer.wms.geoserver_layer_namespace}:${layer.wms.geoserver_layer_name}`,
     format: 'image/png',
     transparent: true,
     version: '1.1.0',
