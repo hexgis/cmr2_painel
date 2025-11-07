@@ -261,10 +261,6 @@ export default {
     },
   },
 
-  mounted() {
-    // Component mounted
-  },
-
   beforeDestroy() {
     // Clean up maps when component is destroyed
     this.cleanupMaps();
@@ -372,10 +368,10 @@ export default {
       let center = [-15.7801, -47.9292]; // Default to Brazil center
       let zoom = 5;
 
-      if (window.map && window.map.getCenter) {
+      if (window.mapMain && window.mapMain.getCenter) {
         try {
-          center = [window.map.getCenter().lat, window.map.getCenter().lng];
-          zoom = window.map.getZoom();
+          center = [window.mapMain.getCenter().lat, window.mapMain.getCenter().lng];
+          zoom = window.mapMain.getZoom();
         } catch (e) {
           // Use defaults if main map is not accessible
         }
