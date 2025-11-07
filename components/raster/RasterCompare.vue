@@ -459,9 +459,28 @@ export default {
           }
         });
 
+        // Support Layers User Layers
+        const supportUserLayers = this.$store.state.supportLayersUser.supportLayerUser || {};
+        Object.values(supportUserLayers).forEach((layer) => {
+          if (layer.visible) {
+            const isHighResOrMosaic = layer.name
+              && (layer.name.toLowerCase().includes('alta resolução')
+                || layer.name.toLowerCase().includes('mosaicos')
+                || layer.name.toLowerCase().includes('alta resolu')
+                || layer.name.toLowerCase().includes('mosaic'));
+
+            allVisibleLayers.push({
+              ...layer,
+              source: 'supportLayersUser',
+              zIndex: isHighResOrMosaic ? 4 : 10,
+            });
+          }
+        });
+
         this.addInpeLayers(allVisibleLayers);
         this.addMonitoringLayers(allVisibleLayers);
         this.addDeterProdesLayers(allVisibleLayers);
+        this.addSupportLayerUserLayers(allVisibleLayers);
 
         allVisibleLayers.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
 
@@ -503,6 +522,8 @@ export default {
           return this.createWmsLayer(layer, customZIndex);
         } if (layer.layer_type === 'tms' && layer.tms) {
           return this.createTmsLayer(layer, customZIndex);
+        } if (layer.geometry) {
+          return this.createVectorLayer(layer, customZIndex);
         }
         // Unsupported layer type or missing layer data
         return null;
@@ -540,6 +561,29 @@ export default {
 
         this.setupLayerEventHandlers(tmsLayer);
         return tmsLayer;
+      } catch (error) {
+        return null;
+      }
+    },
+
+    createVectorLayer(layer, customZIndex = null) {
+      try {
+        const geoJsonOptions = {
+          style: {
+            color: layer.style && layer.style.color ? layer.style.color : '#3388ff',
+            weight: layer.style && layer.style.weight ? layer.style.weight : 3,
+            opacity: layer.style && layer.style.opacity ? layer.style.opacity : 1.0,
+            fillColor: layer.style && layer.style.fillColor ? layer.style.fillColor : '#3388ff',
+            fillOpacity: layer.style && layer.style.fillOpacity ? layer.style.fillOpacity : 0.2,
+          },
+        };
+
+        const vectorLayer = this.$L.geoJSON(layer.geometry, geoJsonOptions);
+
+        if (customZIndex) vectorLayer.setZIndex(customZIndex);
+
+        this.setupLayerEventHandlers(vectorLayer);
+        return vectorLayer;
       } catch (error) {
         return null;
       }
@@ -817,6 +861,23 @@ export default {
             id: 'prodes_deforestation',
           });
         }
+      } catch (error) {
+        console.log(error.message);
+      }
+    },
+
+    addSupportLayerUserLayers(layersToAdd) {
+      try {
+        const supportUserLayers = this.$store.state.supportLayersUser.supportLayerUser || {};
+        Object.values(supportUserLayers).forEach((layer) => {
+          if (layer.visible) {
+            layersToAdd.push({
+              ...layer,
+              source: 'supportLayersUser',
+              zIndex: 10,
+            });
+          }
+        });
       } catch (error) {
         console.log(error.message);
       }
