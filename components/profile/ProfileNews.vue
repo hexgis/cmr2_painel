@@ -1,32 +1,21 @@
 <template>
   <v-dialog
     v-model="newsDialog"
-    width="800"
+    :width="$vuetify.breakpoint.mdAndUp ? '130vh' : '95vw'"
     persistent
   >
     <v-card class="dialog-card">
       <v-toolbar
         color="primary"
         dark
-        dense
       >
-        <v-toolbar-title>
+        <v-toolbar-title class="text-h6 d-flex flex-column">
           {{ $t('news.title') }}
+          <span class="text-caption mt-1">
+            {{ dataFormatada }}
+          </span>
         </v-toolbar-title>
         <v-spacer />
-        <v-checkbox
-          v-if="hasUnreadNews && hasNews"
-          v-model="allReadChecked"
-          :label="$t('news.markAllAsRead')"
-          color="green"
-          hide-details
-          class="mr-2 mt-1 mark-all-checkbox"
-          @change="markAllAsRead"
-        >
-          <template #label>
-            <span style="color: white">{{ $t('news.markAllAsRead') }}</span>
-          </template>
-        </v-checkbox>
         <v-btn
           icon
           @click="closeDialog"
@@ -36,108 +25,234 @@
       </v-toolbar>
 
       <v-card-text class="pa-0">
-        <!-- Exibe carousel apenas se houver notícias -->
-        <v-carousel
-          v-if="hasNews"
-          v-model="carouselIndex"
-          reverse
-          height="60vh"
-          :show-arrows="false"
-          hide-delimiters
-          delimiter-icon="mdi-circle"
-        >
-          <v-carousel-item
-            v-for="news in displayedNews"
-            :key="news.id"
+        <v-row class="fill-height ma-0">
+          <!-- Barra Lateral -->
+          <v-col
+            cols="12"
+            md="4"
+            class="pa-0 sidebar-col"
           >
-            <div class="news-content-wrapper">
-              <div class="news-content">
-                <h2>
-                  {{ news.title }}
+            <v-sheet
+              color="grey lighten-5"
+              class="d-flex flex-column fill-height"
+            >
+              <!-- Campo de Pesquisa -->
+              <v-card-text class="mb-n8">
+                <v-text-field
+                  v-model="searchQuery"
+                  :label="$t('news.searchPlaceholder')"
+                  prepend-inner-icon="mdi-magnify"
+                  clearable
+                  outlined
+                  dense
+                  @input="handleSearch"
+                  @click:clear="clearSearch"
+                >
+                  <template v-slot:append v-if="searchQuery">
+                    <v-chip
+                      small
+                      color="primary lighten-4"
+                      text-color="primary darken-2"
+                      class="mr-2"
+                    >
+                      {{ filteredNews.length }} {{ $t('news.results') }}
+                    </v-chip>
+                  </template>
+                </v-text-field>
+              </v-card-text>
+
+              <!-- Header da lista com contador -->
+              <v-sheet class="px-4 py-2 grey lighten-3 d-flex justify-space-between align-center">
+                <span class="text-caption font-weight-medium">
+                  {{ $t('news.newsList') }} ({{ displayedNews.length }})
+                </span>
+                <v-chip
+                  v-if="hasUnreadNews"
+                  small
+                  color="red lighten-4"
+                  text-color="red darken-2"
+                >
+                  <v-icon left small>mdi-email-alert</v-icon>
+                  {{ unreadNewsCount }} {{ $t('news.unread') }}
+                </v-chip>
+              </v-sheet>
+
+              <!-- Lista de Notícias -->
+              <v-sheet class="flex-grow-1">
+                <v-list
+                  class="news-list"
+                  dense
+                >
+                  <v-list-item
+                    v-for="(newsItem, index) in filteredNews"
+                    :key="newsItem.id"
+                    :class="{
+                      'primary lighten-4': selectedNewsIndex === getOriginalIndex(newsItem.id),
+                      'grey lighten-3': isNewsRead(newsItem.id)
+                    }"
+                    class="mb-2 mx-2 rounded-lg"
+                    @click="handleNewsItemClick(getOriginalIndex(newsItem.id))"
+                  >
+                    <v-list-item-content>
+                      <v-list-item-title class="font-weight-medium text-body-2">
+                        {{ newsItem.title }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle class="text-caption">
+                        {{ formatDate(newsItem.date) }}
+                      </v-list-item-subtitle>
+                    </v-list-item-content>
+
+                    <v-list-item-action v-if="isNewsRead(newsItem.id)">
+                      <v-chip
+                        small
+                        color="green lighten-4"
+                        text-color="green darken-2"
+                        class="ml-2"
+                      >
+                        <v-icon
+                          left
+                          small
+                        >
+                          mdi-check
+                        </v-icon>
+                        {{ $t('news.read') }}
+                      </v-chip>
+                    </v-list-item-action>
+                    
+                    <!-- Indicador de não lida -->
+                    <v-list-item-action v-else>
+                      <v-badge
+                        dot
+                        color="red"
+                        class="ml-2"
+                      />
+                    </v-list-item-action>
+                  </v-list-item>
+
+                  <!-- Mensagem quando não há resultados -->
+                  <v-list-item v-if="searchQuery && filteredNews.length === 0">
+                    <v-list-item-content class="text-center py-4">
+                      <v-icon
+                        size="48"
+                        color="grey lighten-1"
+                        class="mb-2"
+                      >
+                        mdi-magnify-remove
+                      </v-icon>
+                      <v-list-item-title class="text-body-1 grey--text">
+                        {{ $t('news.noResults') }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle class="text-caption grey--text">
+                        {{ $t('news.noResultsDescription') }}
+                      </v-list-item-subtitle>
+                    </v-list-item-content>
+                  </v-list-item>
+                </v-list>
+              </v-sheet>
+
+              <!-- Botão Marcar Todas como Lidas -->
+              <v-card-actions
+                v-if="hasUnreadNews && hasNews && unreadNewsCount > 1 && (!searchQuery || filteredNews.length > 0)"
+                class="px-6 py-4 grey lighten-3 flex-shrink-0"
+              >
+                <v-btn
+                  block
+                  color="red"
+                  outlined
+                  @click="markAllAsRead"
+                >
+                  <v-icon left>mdi-check-all</v-icon>
+                  {{ $t('news.markAllAsRead') }}
                   <v-chip
-                    v-if="isNewsRead(news.id)"
                     small
-                    color="green lighten-4"
-                    text-color="green darken-2"
+                    color="red lighten-4"
+                    text-color="red darken-2"
                     class="ml-2"
                   >
-                    <v-icon
-                      left
-                      small
-                    >
-                      mdi-check
-                    </v-icon>
-                    {{ $t('news.read') }}
+                    {{ unreadNewsCount }}
                   </v-chip>
-                </h2>
-                <div class="d-flex justify-end px-14">
-                  <v-switch
-                    v-if="!isNewsRead(news.id)"
-                    :label="$t('news.markAsRead')"
-                    color="green"
-                    hide-details
-                    class="mt-n10"
-                    @change="updateReadStatus({ newsId: news.id, isChecked: $event })"
-                  />
-                </div>
-                <p>
-                  {{ formatDate(news.date) }}
-                </p>
+                </v-btn>
+              </v-card-actions>
+            </v-sheet>
+          </v-col>
 
-                <div class="scrollable-content">
-                  <MarkdownRenderer :content="news.content" />
-                </div>
-              </div>
-            </div>
-          </v-carousel-item>
-        </v-carousel>
-
-        <!-- Mensagem quando não há notícias -->
-        <div
-          v-else
-          class="no-news-message"
-        >
-          <v-icon
-            size="64"
-            color="grey lighten-1"
+          <!-- Corpo da Mensagem -->
+          <v-col
+            cols="12"
+            md="8"
+            class="pa-0 content-col"
           >
-            mdi-newspaper-variant-multiple
-          </v-icon>
-          <h3>{{ $t('news.noNews') }}</h3>
-          <p>{{ $t('news.noNewsDescription') }}</p>
-        </div>
+            <v-sheet class="d-flex flex-column fill-height">
+              <template v-if="hasNews && selectedNews">
+                <v-sheet class="d-flex flex-column fill-height">
+                  <!-- Conteúdo da Notícia com Scroll Apenas Aqui -->
+                  <v-sheet class="content-scrollable flex-grow-1 pa-6">
+                    <MarkdownRenderer 
+                      :key="markdownKey"
+                      :content="selectedNews.content" 
+                    />
+                  </v-sheet>
+
+                  <!-- Footer com Botão Marcar como Lida -->
+                  <v-card-actions
+                    v-if="!isNewsRead(selectedNews.id)"
+                    class="px-6 py-4 grey lighten-3 flex-shrink-0"
+                  >
+                    <v-spacer />
+                    <v-btn
+                      color="red"
+                      depressed
+                      outlined
+                      @click="markCurrentAsRead"
+                    >
+                      <v-icon left>mdi-check</v-icon>
+                      {{ $t('news.markAsRead') }}
+                    </v-btn>
+                  </v-card-actions>
+                </v-sheet>
+              </template>
+
+              <!-- Mensagem quando não há notícias selecionadas -->
+              <template v-else-if="hasNews && !selectedNews">
+                <v-sheet class="d-flex flex-column align-center justify-center fill-height text-center pa-6">
+                  <v-icon
+                    size="64"
+                    color="grey lighten-1"
+                    class="mb-4"
+                  >
+                    mdi-newspaper
+                  </v-icon>
+                  <v-list-item-title class="text-h5 mb-2 grey--text text--darken-1">
+                    {{ $t('news.selectNews') }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle class="text-body-1 grey--text">
+                    {{ $t('news.selectNewsDescription') }}
+                  </v-list-item-subtitle>
+                </v-sheet>
+              </template>
+
+              <!-- Mensagem quando não há notícias -->
+              <template v-else>
+                <v-sheet class="d-flex flex-column align-center justify-center fill-height text-center pa-6">
+                  <v-icon
+                    size="64"
+                    color="grey lighten-1"
+                    class="mb-4"
+                  >
+                    mdi-newspaper-variant-multiple
+                  </v-icon>
+                  <v-list-item-title class="text-h5 mb-2 grey--text text--darken-1">
+                    {{ $t('news.noNews') }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle class="text-body-1 grey--text">
+                    {{ $t('news.noNewsDescription') }}
+                  </v-list-item-subtitle>
+                </v-sheet>
+              </template>
+            </v-sheet>
+          </v-col>
+        </v-row>
       </v-card-text>
-
-      <v-card-actions
-        v-if="displayedNews.length > 1"
-        class="navigation-actions"
-      >
-        <v-btn
-          color="#d92b3f"
-          text
-          :disabled="nextDisabled || !hasNews"
-          @click="carouselIndex++"
-        >
-          <v-icon left>
-            mdi-chevron-left
-          </v-icon>
-          {{ $t('news.next') }}
-        </v-btn>
-
-        <v-spacer />
-
-        <v-btn
-          color="#d92b3f"
-          text
-          :disabled="prevDisabled || !hasNews"
-          @click="carouselIndex--"
-        >
-          {{ $t('news.previous') }}
-          <v-icon right>
-            mdi-chevron-right
-          </v-icon>
-        </v-btn>
-      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
@@ -150,11 +265,17 @@
       "markAsRead": "Mark as Read",
       "markAllAsRead": "Mark all as read",
       "read": "Read",
+      "unread": "unread",
       "close": "Close",
-      "previous": "Previous",
-      "next": "Next",
       "noNews": "No news at the moment",
-      "noNewsDescription": "Check back later for updates!"
+      "noNewsDescription": "Check back later for updates!",
+      "selectNews": "Select a news item",
+      "selectNewsDescription": "Choose a news item from the list to read its content",
+      "searchPlaceholder": "Search news...",
+      "results": "result(s)",
+      "noResults": "No results found",
+      "noResultsDescription": "Try different keywords",
+      "newsList": "News list"
     }
   },
   "pt-br": {
@@ -163,11 +284,17 @@
       "markAsRead": "Marcar como lida",
       "markAllAsRead": "Marcar todas como lidas",
       "read": "Notícia lida",
+      "unread": "não lidas",
       "close": "Fechar",
-      "previous": "Próxima novidade",
-      "next": "Novidade anterior",
       "noNews": "Nenhuma novidade no momento",
-      "noNewsDescription": "Volte mais tarde para ver as atualizações!"
+      "noNewsDescription": "Volte mais tarde para ver as atualizações!",
+      "selectNews": "Selecione uma notícia",
+      "selectNewsDescription": "Escolha uma notícia da lista para ler seu conteúdo",
+      "searchPlaceholder": "Pesquisar notícias...",
+      "results": "resultado(s)",
+      "noResults": "Nenhum resultado encontrado",
+      "noResultsDescription": "Tente palavras-chave diferentes",
+      "newsList": "Lista de notícias"
     }
   }
 }
@@ -197,6 +324,15 @@ export default {
     },
   },
 
+  data() {
+    return {
+      selectedNewsIndex: 0,
+      forceUpdateKey: 0,
+      searchQuery: '',
+      filteredNews: [],
+    };
+  },
+
   computed: {
     ...mapState('userProfile', ['news']),
     ...mapGetters('userProfile', [
@@ -207,9 +343,33 @@ export default {
       'isNewsRead',
     ]),
 
-    // Nova computed property para verificar se há notícias
+    dataFormatada() {
+      const data = new Date();
+      const dia = data.getDate();
+      const mes = data.toLocaleString('pt-BR', { month: 'long' });
+      const ano = data.getFullYear();
+      return `${dia} de ${mes} de ${ano}`;
+    },
+
+    sortedNews() {
+      return [...this.displayedNews].sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+      });
+    },
+
+    selectedNews() {
+      if (this.hasNews && this.selectedNewsIndex !== null && this.selectedNewsIndex >= 0) {
+        return this.sortedNews[this.selectedNewsIndex];
+      }
+      return null;
+    },
+
     hasNews() {
       return this.displayedNews && this.displayedNews.length > 0;
+    },
+
+    markdownKey() {
+      return this.selectedNews ? `${this.selectedNews.id}-${this.forceUpdateKey}` : 'empty';
     },
 
     newsDialog: {
@@ -221,15 +381,6 @@ export default {
       },
     },
 
-    carouselIndex: {
-      get() {
-        return this.news.carouselIndex;
-      },
-      set(value) {
-        this.setCarouselIndex(value);
-      },
-    },
-
     allReadChecked: {
       get() {
         return this.news.allReadChecked;
@@ -237,6 +388,12 @@ export default {
       set(value) {
         this.setAllReadChecked(value);
       },
+    },
+
+    // Nova computed property para contar notícias não lidas
+    unreadNewsCount() {
+      if (!this.displayedNews) return 0;
+      return this.displayedNews.filter(newsItem => !this.isNewsRead(newsItem.id)).length;
     },
   },
 
@@ -254,6 +411,16 @@ export default {
       if (!newVal) {
         this.$emit('onDialogClose');
       }
+    },
+
+    displayedNews: {
+      handler(newNews) {
+        if (newNews && newNews.length > 0 && (this.selectedNewsIndex === null || this.selectedNewsIndex >= newNews.length)) {
+          this.selectedNewsIndex = 0;
+        }
+        this.filteredNews = [...this.sortedNews];
+      },
+      immediate: true,
     },
   },
 
@@ -282,70 +449,122 @@ export default {
       this.closeNewsDialog();
     },
 
+    handleSearch() {
+      if (!this.searchQuery || this.searchQuery.trim() === '') {
+        this.filteredNews = [...this.sortedNews];
+        return;
+      }
+
+      const query = this.searchQuery.toLowerCase().trim();
+      this.filteredNews = this.sortedNews.filter(newsItem => {
+        const titleMatch = newsItem.title.toLowerCase().includes(query);
+        const contentMatch = newsItem.content.toLowerCase().includes(query);
+        return titleMatch || contentMatch;
+      });
+
+      if (this.filteredNews.length > 0) {
+        const currentNewsInFiltered = this.filteredNews.find(item => 
+          item.id === this.selectedNews?.id
+        );
+        if (!currentNewsInFiltered) {
+          this.selectedNewsIndex = this.getOriginalIndex(this.filteredNews[0].id);
+        }
+      }
+    },
+
+    clearSearch() {
+      this.searchQuery = '';
+      this.filteredNews = [...this.sortedNews];
+    },
+
+    getOriginalIndex(newsId) {
+      return this.sortedNews.findIndex(item => item.id === newsId);
+    },
+
+    handleNewsItemClick(index) {
+      this.selectedNewsIndex = index;
+      this.setCarouselIndex(index);
+      this.forceUpdateKey += 1;
+    },
+
+    markCurrentAsRead() {
+      if (this.selectedNews && this.selectedNews.id && !this.isNewsRead(this.selectedNews.id)) {
+        this.updateReadStatus({ 
+          newsId: this.selectedNews.id, 
+          isChecked: true 
+        });
+      }
+    },
+
+    toggleNewsReadStatus(newsId) {
+      const isCurrentlyRead = this.isNewsRead(newsId);
+      this.updateReadStatus({
+        newsId,
+        isChecked: !isCurrentlyRead,
+      });
+    },
+
     formatDate(dateString) {
       if (!dateString) return '';
       const date = new Date(dateString);
       if (isNaN(date)) return '';
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      };
       return date.toLocaleDateString('pt-BR', options);
     },
   },
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .dialog-card {
-  display: flex;
-  flex-direction: column;
-
-  .news-content-wrapper, .news-content {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    margin-top: 6px;
-  }
-
-  .news-content {
-    flex: 1;
-    padding: 12px 8px 0 35px;
-
-    .scrollable-content {
+  .sidebar-col {
+    border-right: 1px solid #e0e0e0;
+    
+    .news-list {
+      max-height: calc(70vh - 160px);
       overflow-y: auto;
-      height: 85%;
-
-      &::-webkit-scrollbar {
-        width: 6px;
-        &-track { background: #f1f1f1; border-radius: 3px; }
-        &-thumb {
-          background: #888;
-          border-radius: 3px;
-          &:hover { background: #555; }
-        }
-      }
     }
   }
 
-  .no-news-message {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 60vh;
-    text-align: center;
-    padding: 20px;
-    color: #757575;
-
-    h3 {
-      margin: 16px 0 8px;
-      font-size: 1.5rem;
-      font-weight: 500;
+  .content-col {
+    .v-sheet {
+      min-height: 70vh;
     }
 
-    p {
-      margin: 0;
-      font-size: 1rem;
-      color: #9e9e9e;
+    .content-scrollable {
+      max-height: calc(70vh - 100px);
+      overflow-y: auto;
     }
   }
 }
+
+// Scrollbar styling apenas para as áreas com scroll
+.news-list::-webkit-scrollbar,
+.content-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.news-list::-webkit-scrollbar-track,
+.content-scrollable::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.news-list::-webkit-scrollbar-thumb,
+.content-scrollable::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.news-list::-webkit-scrollbar-thumb:hover,
+.content-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
 </style>
+enhance news dialog with search functionality and improved layout
