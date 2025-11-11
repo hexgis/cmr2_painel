@@ -94,7 +94,11 @@
     "pageText": "{0}-{1} of {2}",
     "noDataText": "No data available",
     "loadingText": "Loading items...",
-    "download-csv": "Download CSV"
+    "download-csv": "Download CSV",
+    "no-data-to-export": "No data available for export",
+    "preparing-download": "Preparing download...",
+    "csv-download-success": "CSV generated successfully!",
+    "csv-download-error": "Error generating CSV. Please try again."
   },
   "pt-br": {
     "itemsPerPageText": "Itens por página:",
@@ -102,7 +106,11 @@
     "pageText": "{0}-{1} de {2}",
     "noDataText": "Nenhum dado disponível",
     "loadingText": "Carregando itens...",
-    "download-csv": "Baixar CSV"
+    "download-csv": "Baixar CSV",
+    "no-data-to-export": "Nenhum dado disponível para exportação",
+    "preparing-download": "Preparando download...",
+    "csv-download-success": "CSV gerado com sucesso!",
+    "csv-download-error": "Erro ao gerar CSV. Tente novamente."
   }
 }
 </i18n>
@@ -178,43 +186,68 @@ export default {
       }
     },
 
-    escapeCSVValue(value) {
-      if (value === null || value === undefined) return '';
-      const stringValue = value.toString();
-      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
-      }
-      return stringValue;
-    },
-
+    /**
+     * Downloads table data as CSV
+     * @returns {Promise<void>}
+     */
     async handleDownloadCSV() {
-      const confirmed = await this.$confirm({
-        typeDescription: 'detailed',
-        descriptionFirst: this.$i18n.t('monitoring-description-label-1'),
-        descriptionSecond: this.$i18n.t('monitoring-description-label-2'),
-        confirm: this.$i18n.t('download'),
-        iconConfirm: 'mdi-download',
-        iconCancel: 'mdi-close',
-      });
-      if (!confirmed) return;
+      try {
+        const confirmed = await this.$confirm({
+          typeDescription: 'detailed',
+          descriptionFirst: this.$i18n.t('monitoring-description-label-1'),
+          descriptionSecond: this.$i18n.t('monitoring-description-label-2'),
+          confirm: this.$i18n.t('download'),
+          iconConfirm: 'mdi-download',
+          iconCancel: 'mdi-close',
+        });
 
-      const headers = this.headers.map((header) => this.escapeCSVValue(header.text));
-      const headerRow = headers.join(',');
+        if (!confirmed) return;
 
-      const dataRows = this.table.map((item) => this.headers.map((header) => this.escapeCSVValue(item[header.value])).join(','));
+        if (!this.table || !this.table.length) {
+          if (this.$toast) {
+            this.$toast.warning(this.$t('no-data-to-export'));
+          }
+          return;
+        }
 
-      const csvContent = [headerRow, ...dataRows].join('\n');
+        if (this.$toast) {
+          this.$toast.info(this.$t('preparing-download'));
+        }
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
+        // Convert headers and data dynamically
+        const csvHeaders = this.headers.map((h) => h.text || h.value || h);
+        const csvData = this.table.map((row) => {
+          const cleanRow = {};
+          this.headers.forEach((header, i) => {
+            const key = header.value || header;
+            const value = row[key];
+            cleanRow[csvHeaders[i]] = (value && typeof value === 'object')
+              ? (value.name || value.text || value.label || String(value))
+              : value;
+          });
+          return cleanRow;
+        });
 
-      link.setAttribute('href', url);
-      link.setAttribute('download', `${this.tableName || 'tabela'}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+        const result = await this.$downloader.csv(
+          csvData,
+          csvHeaders,
+          this.tableName || 'tabela',
+          {
+            includeTimestamp: true,
+            dateFormat: 'br',
+            delimiter: ',',
+            encoding: 'utf-8',
+          },
+        );
+
+        if (this.$toast) {
+          this.$toast.success(`${this.$t('csv-download-success')} (${result.recordCount} registros)`);
+        }
+      } catch (error) {
+        if (this.$toast) {
+          this.$toast.error(this.$t('csv-download-error'));
+        }
+      }
     },
   },
 };
