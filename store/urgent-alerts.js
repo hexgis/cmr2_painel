@@ -724,7 +724,7 @@ export default {
       }
     },
 
-    // Baixa tabela de monitoramento em CSV
+    // Download monitoring table as CSV
     async downloadTableAlerts({ state, commit }) {
       commit('setLoadingCSV', true);
       try {
@@ -735,29 +735,20 @@ export default {
           'Data da Imagem', 'Área do Polígono (ha)', 'Latitude', 'Longitude',
         ];
 
-        const csvContent = [
-          headers.join(','),
-          ...state.tableAlerts.map(row => [
-            row.origin_id,
-            row.co_funai,
-            `"${row.no_ti}"`,
-            `"${row.ds_cr}"`,
-            row.no_estagio,
-            row.dt_imagem,
-            row.nu_area_ha,
-            row.nu_latitude,
-            row.nu_longitude
-          ].join(','))
-        ].join('\n');
+        const rows = state.tableAlerts.map(row => [
+          row.origin_id,
+          row.co_funai,
+          row.no_ti,
+          row.ds_cr,
+          row.no_estagio,
+          row.dt_imagem,
+          row.nu_area_ha,
+          row.nu_latitude,
+          row.nu_longitude
+        ]);
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'alarts_table.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
+        const csvContent = this.$downloader.convertToCSV(rows, headers);
+        this.$downloader.downloadCSV(csvContent, 'alerts_table.csv');
       } catch (error) {
         console.error('Erro ao baixar tabela CSV:', error);
         commit('alert/addAlert', {
@@ -837,25 +828,6 @@ export default {
     // Baixa dados analíticos em CSV
     async downloadCSV({ commit, state, rootGetters }, { grouping, defaultFileName }) {
       commit('setLoadingCSV', true);
-      function convertToCSV(data) {
-        if (!data || !data.length) return '';
-        const headers = Object.keys(data[0]);
-        const csvRows = [headers.join(';')];
-        data.forEach(row => {
-          const values = headers.map(header => `"${('' + row[header]).replace(/"/g, '\\"')}"`);
-          csvRows.push(values.join(';'));
-        });
-        return csvRows.join('\n');
-      }
-
-      function saveData(data, filename) {
-        const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        URL.revokeObjectURL(link.href);
-      }
 
       try {
         const params = {
@@ -863,6 +835,7 @@ export default {
           end_date: state.filters.endDate,
           grouping
         };
+
         const analyticsAlertscsv = await this.$api.$get(
           'alerts/consolidated/table-stats/',
           { params },
@@ -872,10 +845,17 @@ export default {
           throw new Error('Nenhum dado disponível para exportação');
         }
 
-        const csvString = convertToCSV(analyticsAlertscsv);
-        saveData(csvString, defaultFileName);
+        const csvContent = this.$downloader.convertToCSV(analyticsAlertscsv, null, ';');
+        this.$downloader.downloadCSV(csvContent, defaultFileName);
       } catch (error) {
         console.error('Erro ao gerar CSV:', error);
+        commit('alert/addAlert', {
+          message: this.$i18n.t('default-error', {
+            action: this.$i18n.t('download'),
+            resource: this.$i18n.t('alerts'),
+          }),
+          type: 'error',
+        }, { root: true });
       } finally {
         commit('setLoadingCSV', false);
       }

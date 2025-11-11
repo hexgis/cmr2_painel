@@ -12,7 +12,7 @@
         :max-bounds-viscosity="1"
         :options="mapOptions"
         @update:bounds="updateBounds"
-        @ready="mapReady = true"
+        @ready="onMapReady"
       >
         <l-control position="topleft">
           <div class="pa-1 map-action-buttons">
@@ -294,6 +294,7 @@ import Highlighter from '@/components/map/Highlighter.vue';
 import MapIndigenousLand from '@/components/map/MapIndigenousLand';
 import ProdesLayers from '@/components/inpe/prodes/ProdesLayers.vue';
 import FocoLayers from '../inpe/foco/FocoLayers.vue';
+import BufferPopup from './BufferPopup.vue';
 
 if (typeof window !== 'undefined') {
   require('leaflet-basemaps');
@@ -533,12 +534,6 @@ export default {
     localBounds: [],
   }),
 
-  mounted() {
-    window.mapMain.on('click', (e) => {
-      this.$store.dispatch('getWmsFeatureInfo', e.latlng);
-    });
-  },
-
   computed: {
     initialExtentCoords() {
       return this.user && this.user.settings.initial_extent.coordinates
@@ -562,14 +557,26 @@ export default {
 
   watch: {
     boundsZoomed() {
-      this.map.flyToBounds(this.bounds);
+      if (this.map && this.bounds) {
+        this.map.flyToBounds(this.bounds);
+      }
     },
   },
 
   mounted() {
     this.$nextTick(() => {
       this.createMap();
+      if (this.map) {
+        this.map.invalidateSize();
+      }
     });
+  },
+
+  beforeUnmount() {
+    if (this.map) {
+      this.map.off();
+      this.map.remove();
+    }
   },
 
   methods: {
@@ -615,6 +622,11 @@ export default {
     },
 
     createMap() {
+      if (!this.$refs.map || !this.$refs.map.mapObject) {
+        console.error('Map reference not available');
+        return;
+      }
+
       this.map = this.$refs.map.mapObject;
       window.mapMain = this.map;
       Vue.prototype.$mainMap = this.map;
@@ -622,6 +634,10 @@ export default {
       this.map.on('zoomend', this.onZoomEnd);
       this.map.addEventListener('mousemove', this.refreshCoordinates);
       this.map.on('baselayerchange', this.changeBaseMap);
+      this.map.on('click', (e) => {
+        this.$store.dispatch('getWmsFeatureInfo', e.latlng);
+      });
+
       this.createMapLayers();
       this.createCssRefs();
       this.createMiniMap();
@@ -650,6 +666,29 @@ export default {
       }
     },
 
+    onMapReady() {
+      window.controlBuffer = this.$bufferControl({
+        onCreatePopupContent: (layer, bufferOutlineLayer, bufferDistance) => {
+          const BufferPopupComponent = Vue.extend(BufferPopup);
+          const popupContent = new BufferPopupComponent({
+            propsData: {
+              layer,
+              bufferDistance,
+            },
+            parent: this,
+          });
+          popupContent.$mount();
+          popupContent.$on('remove-buffer', (l) => {
+            window.controlBuffer.removeBuffer(l);
+            bufferOutlineLayer.closePopup();
+          });
+          return popupContent.$el;
+        },
+      });
+      window.controlBuffer.addTo(this.map);
+      this.mapReady = true;
+    },
+
     createMapLayers() {
       const tileLayers = [];
       this.baseLayers.forEach((layer) => {
@@ -664,6 +703,20 @@ export default {
           tileZ: 1,
         }),
       );
+
+      this.setCurrentBaseMap({
+        // eslint-disable-next-line no-underscore-dangle
+        url: tileLayers[0]._url,
+        options: tileLayers[0].options,
+      });
+
+      this.map.on('baselayerchange', (e) => {
+        this.setCurrentBaseMap({
+          // eslint-disable-next-line no-underscore-dangle
+          url: e._url,
+          options: e.options,
+        });
+      });
     },
 
     createMiniMap() {
@@ -732,6 +785,7 @@ export default {
       'setLocalBounds',
       'setActiveMenu',
       'setActiveMenuMarker',
+      'setCurrentBaseMap',
     ]),
   },
 };
@@ -800,8 +854,8 @@ export default {
   display: flex
   flex-direction: row
 
-.basemap.active
-  border: 0
+.leaflet-control-basemaps .basemap:hover
+  transform: none !important
 
 .loading-background
   position: absolute
@@ -840,10 +894,27 @@ export default {
   .leaflet-control-zoom
     display: none
 
-@media (max-width: 768px)
+.leaflet-control-minimap
+  border: 2px solid rgba(0,0,0,0.2)
+  border-radius: 4px
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4)
+  background: #fff
+  min-height: 125px !important
+  min-width: 125px !important
+  max-height: 125px !important
+  max-width: 125px !important
+  width: 125px !important
+  height: 125px !important
+  overflow: hidden !important
+  position: relative !important
 
-  .basemap img
-    width: 54px
+.leaflet-control-minimap a
+  background-color: rgba(255, 255, 255, 0.8)
+  border-radius: 4px
+
+.leaflet-control-minimap .leaflet-control-minimap-toggle-display
+  background-color: #fff
+  border-radius: 0 0 4px 0
 
   .basemap span
     font-size: 10px

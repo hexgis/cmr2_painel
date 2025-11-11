@@ -111,7 +111,7 @@
             class="pb-2"
             :style="modalContent !== 'welcome' ? { background: '#D92B3F', color: 'white' } : {}"
           >
-            {{ modalContent === 'funai' ? $t('funai-user') : $t('external-user') }}
+            {{ userType === 'funai' ? $t('funai-user') : $t('external-user') }}
             <v-spacer />
             <v-btn
               icon
@@ -373,6 +373,7 @@ export default {
       const data = new FormData();
       data.append('name', this.formData.name);
       data.append('email', this.formData.email);
+      data.append('is_internal', this.userType === 'funai');
 
       if (this.userType === 'funai') {
         data.append('institution', this.formData.institution);
@@ -398,9 +399,11 @@ export default {
           data.append('coordinator_institution_acronym', coordinatorInstitution.acronym || '');
         }
       } else {
-        if (this.formData.institution && this.formData.institution.text) {
-          data.append('institution', this.formData.institution.text);
-        }
+        data.append('organization', this.formData.organization);
+        data.append('position', this.formData.position);
+        data.append('justification', this.formData.justification);
+        data.append('external_institution_name', this.formData.institution);
+
         if (this.formData.attachment) {
           data.append('attachment', this.formData.attachment);
         }

@@ -130,16 +130,31 @@ export default {
     setAnalytics(state, analyticsMonitoring) {
       const formattedAnalytics = analyticsMonitoring.map(item => {
         const newItem = { ...item };
-        for (const key in newItem) {
-          if (typeof newItem[key] === 'string' && newItem[key].endsWith('%')) {
-            const percentValue = newItem[key].replace('%', '').replace(',', '.');
-            const numberValue = parseFloat(percentValue);
-            if (!isNaN(numberValue)) {
-              const roundedValue = Math.ceil(numberValue * 1000) / 1000;
-              newItem[key] = roundedValue.toFixed(3).replace('.', ',') + '%';
-            }
+        
+        const parseBrazilianNumber = (str) => {
+          if (!str) return 0;
+          const cleanStr = String(str).replace(/\./g, '').replace(',', '.');
+          return parseFloat(cleanStr) || 0;
+        };
+        
+        const areaFields = ['cr_nu_area_ha', 'dg_nu_area_ha', 'dr_nu_area_ha', 'ff_nu_area_ha', 'total_nu_area_ha', 'ti_nu_area_ha'];
+        areaFields.forEach(field => {
+          if (newItem[field]) {
+            newItem[`${field}_numeric`] = parseBrazilianNumber(newItem[field]);
+          } else {
+            newItem[`${field}_numeric`] = 0;
           }
-        }
+        });
+        
+        const percFields = ['cr_nu_area_perc', 'dg_nu_area_perc', 'dr_nu_area_perc', 'ff_nu_area_perc'];
+        percFields.forEach(field => {
+          if (newItem[field]) {
+            const cleanValue = String(newItem[field]).replace('%', '');
+            newItem[`${field}_numeric`] = parseBrazilianNumber(cleanValue);
+          } else {
+            newItem[`${field}_numeric`] = 0;
+          }
+        });
         return newItem;
       });
       state.analyticsMonitoring = formattedAnalytics;
@@ -845,7 +860,7 @@ export default {
           'ID', 'Código Funai', 'Terra Indígena', 'Coordenação Regional', 'Classe',
           'Data da Imagem', 'Área do Polígono (ha)', 'Latitude', 'Longitude',
         ];
-
+ 
         const csvContent = [
           headers.join(','),
           ...state.tableMonitoring.map(row => [
@@ -860,7 +875,7 @@ export default {
             row.nu_longitude
           ].join(','))
         ].join('\n');
-
+ 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
@@ -960,7 +975,7 @@ export default {
         });
         return csvRows.join('\n');
       }
-
+ 
       function saveData(data, filename) {
         const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
@@ -969,7 +984,7 @@ export default {
         link.click();
         URL.revokeObjectURL(link.href);
       }
-
+ 
       try {
         const params = {
           start_date: state.filters.startDate,
@@ -987,6 +1002,7 @@ export default {
         if (state.filters.currentView) {
           params.in_bbox = rootGetters['map/bbox'];
         }
+
         const analyticsMonitoringcsv = await this.$api.$get(
           'monitoring/consolidated/table-stats/',
           { params },
@@ -995,7 +1011,7 @@ export default {
         if (!analyticsMonitoringcsv?.length) {
           throw new Error('Nenhum dado disponível para exportação');
         }
-
+ 
         const csvString = convertToCSV(analyticsMonitoringcsv);
         saveData(csvString, defaultFileName);
       } catch (error) {

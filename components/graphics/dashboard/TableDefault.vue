@@ -93,7 +93,7 @@ export default {
         this.getTotalViewsPerYear.forEach((yearlyTotal) => {
           if (yearlyTotal && Number.isInteger(yearlyTotal.year)
           && yearlyTotal.count !== undefined) {
-            const date = `Total de acessos em ${yearlyTotal.year}:`;
+            const date = `Total de acessos gerais em ${yearlyTotal.year}:`;
             if (
               !monthlyItems.some(
                 (existingItem) => existingItem.date === date

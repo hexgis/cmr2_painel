@@ -65,7 +65,7 @@ export const actions = {
     try {
       const currentYear = new Date().getFullYear();
       const { data } = await this.$api.get(
-        `dashboard/get-all/?startDate=${currentYear}-01-01&endDate=&location=&type_device=&browser=`,
+        `dashboard/?date_after=${currentYear}-01-01`,
       );
       const acessTotal = data.monthly_counts
         .filter((monthly) => monthly.year === currentYear)
@@ -240,6 +240,27 @@ export const actions = {
       commit('setPendingRequestsCount', data.count || 0);
     } catch (error) {
       commit('setPendingRequestsCount', 0);
+    }
+  },
+
+  async downloadFileTicketDetails({ commit }, { file, downloadType }) {
+    try {
+      if (!file || !file.id) return;
+
+      const url = `/adm-panel/tickets/download/${file.id}/${downloadType}/`;
+
+      const response = await this.$api.get(url, { responseType: 'blob' });
+      const contentType = response.headers['content-type'] || 'application/octet-stream';
+      const blob = new Blob([response.data], { type: contentType });
+      await this.$downloader.file(blob, response.headers['content-disposition'], file.name);
+    } catch (error) {
+      commit('alert/addAlert', {
+        message: this.$i18n.t('default-error', {
+          action: this.$i18n.t('retrieve'),
+          resource: this.$i18n.t('file'),
+        }),
+        type: 'error',
+      }, { root: true });
     }
   },
 };

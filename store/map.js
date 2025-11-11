@@ -12,7 +12,6 @@ export const state = () => ({
   myLocation: null,
   startDraw: null,
   loadPopup: false,
-  startDrawPopup: false,
   startDrone: false,
   neighborhoods: false,
   shareLocation: {
@@ -24,10 +23,10 @@ export const state = () => ({
   buttonPopup: {},
   isDrawing: false,
   basemaps: [],
+  currentBaseMap: {},
   tmsToPrint: {
     visible: false,
   },
-  hasAddLayer: false,
   indigenousLand: [],
   savedSelectedItems: [],
   selectedItems: [],
@@ -211,6 +210,10 @@ export const mutations = {
   setGeoserverConfig(state, { url }) {
     state.geoserverUrl = url;
   },
+
+  setCurrentBaseMap(state, { url, options }) {
+    state.currentBaseMap = { url, options };
+  },
 };
 
 export const actions = {
@@ -361,10 +364,10 @@ export const actions = {
 
   async getGeoserverConfig({ commit, rootState }) {
     try {
-      const idGeoserver = rootState.userProfile.user 
+      const idGeoserver = rootState.userProfile.user
         ? process.env.GEOSERVER_PRIVATE
         : process.env.GEOSERVER_PUBLICO;
-      const response = await this.$api.$get(`layer/geoserver/${idGeoserver}/`);      
+      const response = await this.$api.$get(`layer/geoserver/${idGeoserver}/`);
       commit('setGeoserverConfig', {
         url: `${response.wms_url.replace('wms', 'ows')}&`,
       });
