@@ -1,7 +1,7 @@
 <template>
   <v-dialog
     v-model="newsDialog"
-    :width="$vuetify.breakpoint.mdAndUp ? '130vh' : '95vw'"
+    :width="$vuetify.breakpoint.mdAndUp ? '110vh' : '90vw'"
     persistent
   >
     <v-card class="dialog-card">
@@ -45,7 +45,6 @@
                   clearable
                   outlined
                   dense
-                  @input="handleSearch"
                   @click:clear="clearSearch"
                 >
                   <template v-slot:append v-if="searchQuery">
@@ -84,14 +83,14 @@
                   dense
                 >
                   <v-list-item
-                    v-for="(newsItem, index) in filteredNews"
+                    v-for="newsItem in filteredNews"
                     :key="newsItem.id"
                     :class="{
-                      'primary lighten-4': selectedNewsIndex === getOriginalIndex(newsItem.id),
+                      'primary lighten-4': selectedNewsIndex === getNewsIndexById(newsItem.id),
                       'grey lighten-3': isNewsRead(newsItem.id)
                     }"
                     class="mb-2 mx-2 rounded-lg"
-                    @click="handleNewsItemClick(getOriginalIndex(newsItem.id))"
+                    @click="handleNewsItemClick(getNewsIndexById(newsItem.id))"
                   >
                     <v-list-item-content>
                       <v-list-item-title class="font-weight-medium text-body-2">
@@ -118,7 +117,7 @@
                         {{ $t('news.read') }}
                       </v-chip>
                     </v-list-item-action>
-                    
+
                     <!-- Indicador de não lida -->
                     <v-list-item-action v-else>
                       <v-badge
@@ -187,9 +186,9 @@
                 <v-sheet class="d-flex flex-column fill-height">
                   <!-- Conteúdo da Notícia com Scroll Apenas Aqui -->
                   <v-sheet class="content-scrollable flex-grow-1 pa-6">
-                    <MarkdownRenderer 
+                    <MarkdownRenderer
                       :key="markdownKey"
-                      :content="selectedNews.content" 
+                      :content="selectedNews.content"
                     />
                   </v-sheet>
 
@@ -282,7 +281,7 @@
     "news": {
       "title": "Novidades",
       "markAsRead": "Marcar como lida",
-      "markAllAsRead": "Marcar todas como lidas",
+      "markAllAsRead": "Marcar todas",
       "read": "Notícia lida",
       "unread": "não lidas",
       "close": "Fechar",
@@ -318,18 +317,11 @@ export default {
       type: Boolean,
       default: false,
     },
-    showAllNews: {
-      type: Boolean,
-      default: false,
-    },
   },
 
   data() {
     return {
-      selectedNewsIndex: 0,
       forceUpdateKey: 0,
-      searchQuery: '',
-      filteredNews: [],
     };
   },
 
@@ -338,34 +330,19 @@ export default {
     ...mapGetters('userProfile', [
       'displayedNews',
       'hasUnreadNews',
-      'prevDisabled',
-      'nextDisabled',
       'isNewsRead',
+      'sortedNews',
+      'filteredNews',
+      'unreadNewsCount',
+      'selectedNews',
+      'getNewsIndexById',
+      'hasNews',
+      'selectedNewsIndex',
+      'searchQuery'
     ]),
 
     dataFormatada() {
-      const data = new Date();
-      const dia = data.getDate();
-      const mes = data.toLocaleString('pt-BR', { month: 'long' });
-      const ano = data.getFullYear();
-      return `${dia} de ${mes} de ${ano}`;
-    },
-
-    sortedNews() {
-      return [...this.displayedNews].sort((a, b) => {
-        return new Date(b.date) - new Date(a.date);
-      });
-    },
-
-    selectedNews() {
-      if (this.hasNews && this.selectedNewsIndex !== null && this.selectedNewsIndex >= 0) {
-        return this.sortedNews[this.selectedNewsIndex];
-      }
-      return null;
-    },
-
-    hasNews() {
-      return this.displayedNews && this.displayedNews.length > 0;
+      return this.formatDate(new Date());
     },
 
     markdownKey() {
@@ -381,19 +358,13 @@ export default {
       },
     },
 
-    allReadChecked: {
+    searchQuery: {
       get() {
-        return this.news.allReadChecked;
+        return this.$store.state.userProfile.searchQuery;
       },
       set(value) {
-        this.setAllReadChecked(value);
-      },
-    },
-
-    // Nova computed property para contar notícias não lidas
-    unreadNewsCount() {
-      if (!this.displayedNews) return 0;
-      return this.displayedNews.filter(newsItem => !this.isNewsRead(newsItem.id)).length;
+        this.setSearchQuery(value);
+      }
     },
   },
 
@@ -411,16 +382,6 @@ export default {
       if (!newVal) {
         this.$emit('onDialogClose');
       }
-    },
-
-    displayedNews: {
-      handler(newNews) {
-        if (newNews && newNews.length > 0 && (this.selectedNewsIndex === null || this.selectedNewsIndex >= newNews.length)) {
-          this.selectedNewsIndex = 0;
-        }
-        this.filteredNews = [...this.sortedNews];
-      },
-      immediate: true,
     },
   },
 
@@ -441,81 +402,56 @@ export default {
       'markAllAsRead',
       'openNewsDialog',
       'closeNewsDialog',
+      'setSearchQuery',
+      'clearSearch',
+      'handleNewsSelection'
     ]),
 
-    ...mapMutations('userProfile', ['setNewsDialog', 'setCarouselIndex', 'setAllReadChecked']),
+    ...mapMutations('userProfile', ['setNewsDialog', 'setCarouselIndex']),
 
     closeDialog() {
       this.closeNewsDialog();
     },
 
-    handleSearch() {
-      if (!this.searchQuery || this.searchQuery.trim() === '') {
-        this.filteredNews = [...this.sortedNews];
-        return;
-      }
-
-      const query = this.searchQuery.toLowerCase().trim();
-      this.filteredNews = this.sortedNews.filter(newsItem => {
-        const titleMatch = newsItem.title.toLowerCase().includes(query);
-        const contentMatch = newsItem.content.toLowerCase().includes(query);
-        return titleMatch || contentMatch;
-      });
-
-      if (this.filteredNews.length > 0) {
-        const currentNewsInFiltered = this.filteredNews.find(item => 
-          item.id === this.selectedNews?.id
-        );
-        if (!currentNewsInFiltered) {
-          this.selectedNewsIndex = this.getOriginalIndex(this.filteredNews[0].id);
-        }
-      }
-    },
-
     clearSearch() {
-      this.searchQuery = '';
-      this.filteredNews = [...this.sortedNews];
-    },
-
-    getOriginalIndex(newsId) {
-      return this.sortedNews.findIndex(item => item.id === newsId);
+      this.$store.dispatch('userProfile/clearSearch');
+      this.forceUpdateKey += 1;
     },
 
     handleNewsItemClick(index) {
-      this.selectedNewsIndex = index;
-      this.setCarouselIndex(index);
+      this.handleNewsSelection(index);
       this.forceUpdateKey += 1;
     },
 
     markCurrentAsRead() {
       if (this.selectedNews && this.selectedNews.id && !this.isNewsRead(this.selectedNews.id)) {
-        this.updateReadStatus({ 
-          newsId: this.selectedNews.id, 
-          isChecked: true 
+        this.updateReadStatus({
+          newsId: this.selectedNews.id,
+          isChecked: true
         });
       }
     },
 
-    toggleNewsReadStatus(newsId) {
-      const isCurrentlyRead = this.isNewsRead(newsId);
-      this.updateReadStatus({
-        newsId,
-        isChecked: !isCurrentlyRead,
-      });
-    },
+    formatDate(date) {
+      if (!date) return '';
+      const dateObj = new Date(date);
+      if (isNaN(dateObj)) return '';
 
-    formatDate(dateString) {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      if (isNaN(date)) return '';
-      const options = {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      };
-      return date.toLocaleDateString('pt-BR', options);
+      if (date === this.news?.date) {
+        const options = {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        };
+        return dateObj.toLocaleDateString('pt-BR', options);
+      } else {
+        const dia = dateObj.getDate();
+        const mes = dateObj.toLocaleString('pt-BR', { month: 'long' });
+        const ano = dateObj.getFullYear();
+        return `${dia} de ${mes} de ${ano}`;
+      }
     },
   },
 };
@@ -525,7 +461,7 @@ export default {
 .dialog-card {
   .sidebar-col {
     border-right: 1px solid #e0e0e0;
-    
+
     .news-list {
       max-height: calc(70vh - 160px);
       overflow-y: auto;
@@ -534,26 +470,14 @@ export default {
 
   .content-col {
     .v-sheet {
-      min-height: 70vh;
+      min-height: 60vh;
     }
 
     .content-scrollable {
-      max-height: calc(70vh - 100px);
+      max-height: calc(75vh - 100px);
       overflow-y: auto;
     }
   }
-}
-
-// Scrollbar styling apenas para as áreas com scroll
-.news-list::-webkit-scrollbar,
-.content-scrollable::-webkit-scrollbar {
-  width: 6px;
-}
-
-.news-list::-webkit-scrollbar-track,
-.content-scrollable::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
 }
 
 .news-list::-webkit-scrollbar-thumb,
@@ -562,9 +486,4 @@ export default {
   border-radius: 3px;
 }
 
-.news-list::-webkit-scrollbar-thumb:hover,
-.content-scrollable::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
 </style>
-enhance news dialog with search functionality and improved layout
