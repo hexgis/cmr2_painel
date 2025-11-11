@@ -96,7 +96,6 @@
     "loadingText": "Loading items...",
     "download-csv": "Download CSV",
     "no-data-to-export": "No data available for export",
-    "preparing-download": "Preparing download...",
     "csv-download-success": "CSV generated successfully!",
     "csv-download-error": "Error generating CSV. Please try again."
   },
@@ -108,7 +107,6 @@
     "loadingText": "Carregando itens...",
     "download-csv": "Baixar CSV",
     "no-data-to-export": "Nenhum dado disponível para exportação",
-    "preparing-download": "Preparando download...",
     "csv-download-success": "CSV gerado com sucesso!",
     "csv-download-error": "Erro ao gerar CSV. Tente novamente."
   }
@@ -208,10 +206,6 @@ export default {
             this.$toast.warning(this.$t('no-data-to-export'));
           }
           return;
-        }
-
-        if (this.$toast) {
-          this.$toast.info(this.$t('preparing-download'));
         }
 
         // Convert headers and data dynamically
