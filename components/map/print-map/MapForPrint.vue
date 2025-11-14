@@ -155,6 +155,10 @@ export default {
     this.$nextTick(() => {
       this.createMap();
     });
+
+    this.$nextTick(() => {
+      this.$emit('mapReady', this.map);
+    });
   },
 
   updated() {
