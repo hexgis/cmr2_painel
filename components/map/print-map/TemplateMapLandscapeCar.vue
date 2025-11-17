@@ -1,150 +1,201 @@
 <template>
-  <v-dialog
-    v-model="showDialog"
-    width="auto"
-    @click:outside="$emit('close')"
-  >
-    <!-- Header -->
-    <v-card-title class="print-dialog-header no-print primary">
-      <v-spacer />
-      <v-btn
-        icon
-        x-small
-        color="white"
-        @click="$emit('close')"
-      >
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </v-card-title>
-
-    <v-container
-      fluid
-      class="pa-0"
-      style="background-color: white"
+  <div>
+    <style>
+      @media print {
+      @page {
+      size: landscape;
+      margin: 0;
+      }
+      }
+    </style>
+    <v-dialog
+      v-model="showDialog"
+      width="auto"
+      @click:outside="$emit('close')"
     >
-      <v-row
-        no-gutters
-        class="map-container"
-      >
-        <!-- Mapa -->
-        <v-col
-          cols="12"
-          class="pa-2 mt-2 map-col"
+      <div class="print-dialog-header no-print">
+        <v-btn
+          icon
+          x-small
+          color="white"
+          class="close-btn"
+          @click="$emit('close')"
         >
-          <div class="map-legend-container">
-            <!-- MiniMap -->
-
-            <v-card class="mini-map-card">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
+      <v-container style="background-color: white; max-width: 100%">
+        <v-row
+          id="map-for-print-container"
+          no-gutters
+          style="width: 1230px; height: 780px; max-height: 780px; overflow: hidden"
+        >
+          <v-col
+            cols="12"
+            class="pr-0 mt-2"
+            style="max-height: 500px; position: relative"
+          >
+            <!-- MiniMap em cima do mapa principal -->
+            <div class="mini-map-overlay">
               <MiniMap
                 v-if="currentBouldMap"
                 :current-bould-map="currentBouldMap"
                 :map-center="mapCenter"
                 :main-zoom="mainZoom"
               />
+            </div>
+            <v-card
+              v-if="
+                showWarningMessage &&
+                  !(
+                    showFeaturesAlerts &&
+                    !showFeaturesMonitoring &&
+                    !showFeaturesLandUse
+                  )
+              "
+              class="warning-message"
+              elevated
+            >
+              <v-card-text>
+                <p class="text-subtitle-1">
+                  {{ $t('warning-message') }}
+                </p>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn
+                  color="primary"
+                  text
+                  @click="showWarningMessage = false"
+                >
+                  {{ $t('agree') }}
+                </v-btn>
+              </v-card-actions>
             </v-card>
+
+            <MapForPrint
+              ref="mapForPrint"
+              :leaf-size="leafSize"
+              :main-map="mainMap"
+              :selected-base-map="selectedBaseMap"
+              class="map-wrapper"
+              @updateBounds="updateBounds"
+              @getCenter="getCenter"
+              @getZoom="getZoom"
+              @mapReady="onMapReady"
+            />
+          </v-col>
+
+          <!-- Segunda coluna movida para abaixo do mapa -->
+
+          <div class="font-title pb-2">
+            <p>
+              {{ mapTitle }}
+            </p>
+            <p>
+              {{ print_title }}
+            </p>
           </div>
 
-          <!-- Warning Message -->
-          <v-card
-            v-if="showWarningMessage && !(showFeaturesAlerts && !showFeaturesMonitoring && !showFeaturesLandUse)"
-            class="warning-message"
+          <!-- Lista CAR na legenda -->
+          <div
+            v-if="carData && carData.length > 0"
+            class="car-legend-section"
           >
-            <v-card-text>
-              <p class="text-subtitle-1">
-                {{ $t('warning-message') }}
-              </p>
-            </v-card-text>
-            <v-card-actions>
-              <v-btn
-                color="primary"
-                text
-                @click="showWarningMessage = false"
-              >
-                {{ $t('agree') }}
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-
-          <!-- Mapa Principal -->
-          <MapForPrint
-            ref="mapForPrint"
-            :leaf-size="leafSize"
-            :main-map="mainMap"
-            :selected-base-map="selectedBaseMap"
-            class="map-wrapper"
-            @updateBounds="updateBounds"
-            @getCenter="getCenter"
-            @getZoom="getZoom"
-            @mapReady="onMapReady"
-          />
-        </v-col>
-
-        <!-- Legenda e Informações -->
-        <v-col
-          cols="12"
-          class="pl-1 mt-2 info-col"
-        >
-          <v-card class="border-container">
-            <v-card-text>
-              <!-- Título -->
-              <v-row class="font-title pb-2 text-center">
-                <v-col cols="12">
-                  <p>{{ mapTitle }}</p>
-                  <p>{{ print_title }}</p>
+            <p class="d-flex align-center ma-1">
+              <strong class="mr-2">Cadastro Ambiental Rural (CAR)</strong>
+              <v-chip x-small>
+                {{ carData.length }}
+              </v-chip>
+            </p>
+            <div class="car-list-container pt-1">
+              <v-row class="car-list-row">
+                <v-col
+                  v-for="(item, index) in carData"
+                  :key="'car-' + index"
+                  cols="3"
+                  class="car-list-item"
+                >
+                  <div class="d-flex align-center">
+                    <v-avatar
+                      :color="getCarColor(index)"
+                      size="20"
+                      class="mr-1 car-number-avatar"
+                    >
+                      <span class="white--text font-weight-bold" style="font-size: 10px;">
+                        {{ index + 1 }}
+                      </span>
+                    </v-avatar>
+                    <span class="car-name">{{ getTerraIndigenaName(item) }}</span>
+                  </div>
                 </v-col>
               </v-row>
+            </div>
+            <v-divider class="my-2" />
+          </div>
 
-              <!-- Legendas -->
-              <v-row class="legend-info-map">
-                <v-col>fasdfas</v-col>
-                <v-col cols="12">
-                  <v-row class="legend-section">
-                    <!-- Monitoramento -->
-                    <v-col
-                      v-if="showFeaturesMonitoring && hasActiveMonitoringStages && selectedItemsCount > 0"
-                      cols="auto"
+
+
+
+
+
+
+
+          TABELA
+
+          <div class="legend-info-map">
+            <div class="legend-info-map-details">
+              <div>
+                <p v-if="hasLegend" class="d-block ma-1">
+                  <strong style="font-size: small">{{ $t('legend') }}</strong>
+                </p>
+                <div>
+                  <div
+                    style="display: flex; justify-content: flex-start; align-items: flex-start;
+                    gap: 5px; flex-wrap: wrap;"
+                  >
+                    <div
+                      v-if="showFeaturesMonitoring
+                        && hasActiveMonitoringStages && selectedItemsCount > 0"
                     >
-                      <p class="d-flex align-center">
-                        <strong class="mr-2">Monitoramento Diário</strong>
+                      <p>
+                        <strong>Monitoramento Diário</strong>
                         <v-chip x-small>
                           {{ monitoringCount }}
                         </v-chip>
                       </p>
-                      <v-divider class="red-divider" />
+                      <hr style="border: 1px solid red; margin: 0; margin-top: 0px;">
                       <CustomizedLegend
                         class="pt-1"
                         :items="monitoringItems"
                       />
-                    </v-col>
-
-                    <!-- Alertas -->
-                    <v-col
-                      v-if="showFeaturesAlerts && hasActiveAlertsStages && selectedItemsCount > 0"
-                      cols="auto"
+                    </div>
+                    <div
+                      v-if="showFeaturesAlerts
+                        && hasActiveAlertsStages
+                        && selectedItemsCount > 0"
                     >
-                      <p class="d-flex align-center">
-                        <strong class="mr-2">Alerta Urgente</strong>
+                      <p>
+                        <strong>Alerta Urgente</strong>
                         <v-chip x-small>
                           {{ alertsCount }}
                         </v-chip>
                       </p>
-                      <v-divider class="blue-divider" />
+                      <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
                       <CustomizedLegend
                         class="pt-1"
                         :items="alertsItems"
                       />
-                    </v-col>
-
-                    <!-- Camadas de Suporte -->
-                    <v-col
-                      v-if="showFeaturesSupportLayers &&
-                        Object.values(supportLayers).filter(l => l.visible).length &&
-                        Object.values(supportLayers).filter(l => l.visible).length <= 7 &&
-                        Object.values(supportLayerUser).filter(l => l.visible).length <= 7"
-                      cols="auto"
+                    </div>
+                    <div
+                      v-if="showFeaturesSupportLayers
+                        && Object.values(supportLayers).filter(l => l.visible).length
+                        && Object.values(supportLayers).filter(l => l.visible).length <= 7
+                        && Object.values(supportLayerUser).filter(l => l.visible).length <= 7"
                     >
-                      <p><strong>Sobreposição de camadas</strong></p>
-                      <v-divider class="blue-divider" />
+                      <p style="width: 120px">
+                        <strong>Sobreposição de camadas</strong>
+                      </p>
+                      <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
                       <LayerList
                         :layers="supportLayerUser"
                         :is-user-layer="true"
@@ -154,239 +205,208 @@
                         :layers="supportLayers"
                         class="mt-1"
                       />
-                    </v-col>
-
-                    <!-- Uso do Solo -->
-                    <v-col
-                      v-if="showFeaturesLandUse"
-                      cols="auto"
-                    >
-                      <p class="d-flex align-center">
-                        <strong class="mr-2">Uso e Ocupação do Solo</strong>
+                    </div>
+                    <div v-if="showFeaturesLandUse">
+                      <p>
+                        <strong>Uso e Ocupação do Solo</strong>
                         <v-chip x-small>
                           {{ tableLandUse.length }}
                         </v-chip>
                       </p>
-                      <v-divider class="blue-divider" />
+                      <hr style="border: 1px solid blue; margin: 0; margin-top: 0px;">
                       <CustomizedLegend
                         class="pt-1"
                         :items="landUseItems"
                       />
-                    </v-col>
+                    </div>
 
-                    <!-- PRODES -->
-                    <v-col
-                      v-if="showFeaturesProdes"
-                      cols="auto"
-                    >
+                    <div v-if="showFeaturesProdes">
                       <p><strong>INPE - Prodes</strong></p>
-                      <v-divider class="blue-divider" />
+                      <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
                       <CustomizedLegend
                         class="pt-1"
                         :items="prodesItems"
                       />
-                    </v-col>
+                    </div>
 
-                    <!-- DETER -->
-                    <v-col
-                      v-if="showFeaturesDeter"
-                      cols="auto"
-                    >
+                    <div v-if="showFeaturesDeter">
                       <p><strong>INPE - Deter</strong></p>
-                      <v-divider class="blue-divider" />
+                      <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
                       <CustomizedLegend
                         class="pt-1"
                         :items="deterItems"
                       />
-                    </v-col>
+                    </div>
 
-                    <!-- Focos de Calor -->
-                    <v-col
-                      v-if="showFeaturesAquaMM || showFeaturesAquaMT"
-                      cols="auto"
-                    >
+                    <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
                       <p><strong>INPE - Focos de Calor</strong></p>
-                      <v-divider class="blue-divider" />
+                      <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
                       <CustomizedLegend
                         class="pt-1"
                         :items="heatFocusItems.filter(item =>
                           (item.label === 'Aqua Modis Manhã' && showFeaturesAquaMM) ||
-                          (item.label === 'Aqua Modis Tarde' && showFeaturesAquaMT)
-                        )"
+                          (item.label === 'Aqua Modis Tarde' && showFeaturesAquaMT))"
                       />
-                    </v-col>
-                  </v-row>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                  <!-- Bases Cartográficas -->
-                  <v-divider class="my-2" />
-                  <v-row v-if="hasCartographicDatasets">
-                    <v-col cols="12">
-                      <p class="ma-1">
-                        <strong>Bases Cartográficas:</strong>
-                      </p>
-                      <v-row
-                        v-for="layerCategory in layerCategories"
-                        :key="layerCategory.name"
-                      >
-                        <v-col
-                          v-for="layer in layerCategory.layers"
-                          :key="layer.id"
-                          cols="12"
-                        >
-                          <v-row
-                            v-if="layer.visible"
-                            no-gutters
-                            align="center"
-                          >
-                            <v-col>
-                              <p class="ml-1">
-                                <strong>{{ layer.name || '-' }}.</strong>
-                                Fonte:{{ layer.fonte || '-' }}, Data de atualização:
-                                {{ handleData(layer.dt_atualizacao) }}.
-                              </p>
-                            </v-col>
-                          </v-row>
-                        </v-col>
-                      </v-row>
-                    </v-col>
-                  </v-row>
+          <div>
+            <v-divider />
+            <p
+              v-if="hasCartographicDatasets"
+              class="d-block ma-1"
+            >
+              Bases Cartográficas:
+            </p>
 
-                  <!-- Filtros de Data -->
-                  <v-row>
-                    <v-col cols="12">
-                      <p
-                        v-if="showFeaturesMonitoring"
-                        class="ml-1"
-                      >
-                        {{ $t('monitoring-print-label') }}
-                        {{ handleData(monitoringFilters.startDate) }}
-                        {{ $t('and') }}
-                        {{ handleData(monitoringFilters.endDate) }}
-                      </p>
+            <div
+              v-for="layerCategory in layerCategories"
+              :key="layerCategory.name"
+            >
+              <div
+                v-for="layer in layerCategory.layers"
+                :key="layer.id"
+              >
+                <v-row
+                  v-if="layer.visible"
+                  no-gutters
+                  align="center"
+                  class="image-container"
+                >
+                  <v-col>
+                    <p class="ml-1">
+                      <strong>{{ layer.name || '-' }}.</strong>
+                      Fonte:{{ layer.fonte || '-' }}, Data de
+                      atualização:
+                      {{ handleData(layer.dt_atualizacao) }}.
+                    </p>
+                  </v-col>
+                </v-row>
+              </div>
+            </div>
+          </div>
 
-                      <p
-                        v-if="showFeaturesAlerts"
-                        class="ml-1"
-                      >
-                        {{ $t('alerts-print-label') }}
-                        {{ handleData(alertsFilters.startDate) }}
-                        {{ $t('and') }}
-                        {{ handleData(alertsFilters.endDate) }}
-                      </p>
 
-                      <p
-                        v-if="showFeaturesLandUse && uniqueYears.length > 0"
-                        class="ml-1"
-                      >
-                        {{ $t('land-use-print-label') }}
-                        <span
-                          v-for="(year, index) in uniqueYears"
-                          :key="'year-' + index"
-                        >
-                          {{ year }}<span v-if="index < uniqueYears.length - 1">, </span>
-                        </span>
-                      </p>
+          <div v-if="showFeaturesMonitoring">
+            <p class="ml-1">
+              {{ $t('monitoring-print-label') }}
+              {{ handleData(monitoringFilters.startDate) }}
+              {{ $t('and') }}
+              {{ handleData(monitoringFilters.endDate) }}
+            </p>
+          </div>
+          <div v-if="showFeaturesAlerts">
+            <p class="ml-1">
+              {{ $t('alerts-print-label') }}
+              {{ handleData(alertsFilters.startDate) }}
+              {{ $t('and') }}
+              {{ handleData(alertsFilters.endDate) }}
+            </p>
+          </div>
+          <div v-if="showFeaturesLandUse && uniqueYears.length > 0">
+            <p class="ml-1">
+              {{ $t('land-use-print-label') }}
+              <span
+                v-for="(year, index) in uniqueYears"
+                :key="'year-' + index"
+              >
+                {{ year
+                }}<span v-if="index < uniqueYears.length - 1">,
+                </span>
+              </span>
+            </p>
+          </div>
+          <div v-if="showFeaturesProdes">
+            <p class="ml-1">
+              {{ $t('prodes-print-label') }}
+              {{ handleProdesYear() }}
+            </p>
+          </div>
+          <div v-if="showFeaturesDeter">
+            <p class="ml-1">
+              {{ $t('deter-print-label') }}
+              {{ handleData(deterFilters.startDate) }}
+              {{ $t('and') }}
+              {{ handleData(deterFilters.endDate) }}
+            </p>
+          </div>
+          <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
+            <p class="ml-1">
+              {{ $t('heat-focus-print-label') }}
+              {{ handleData(focoFilters.startDate) }}
+              {{ $t('and') }}
+              {{ handleData(focoFilters.endDate) }}
+            </p>
+          </div>
 
-                      <p
-                        v-if="showFeaturesProdes"
-                        class="ml-1"
-                      >
-                        {{ $t('prodes-print-label') }}
-                        {{ handleProdesYear() }}
-                      </p>
+          <v-divider />
+          <div class="ma-1">
+            <p>
+              {{ print_info }}
+              {{ $t('text-address0') }}
+            </p>
+            <p>
+              {{ print_info }}
+              {{ $t('text-address') }}
+              {{ todayDate() }}
+            </p>
+          </div>
 
-                      <p
-                        v-if="showFeaturesDeter"
-                        class="ml-1"
-                      >
-                        {{ $t('deter-print-label') }}
-                        {{ handleData(deterFilters.startDate) }}
-                        {{ $t('and') }}
-                        {{ handleData(deterFilters.endDate) }}
-                      </p>
-
-                      <p
-                        v-if="showFeaturesAquaMM || showFeaturesAquaMT"
-                        class="ml-1"
-                      >
-                        {{ $t('heat-focus-print-label') }}
-                        {{ handleData(focoFilters.startDate) }}
-                        {{ $t('and') }}
-                        {{ handleData(focoFilters.endDate) }}
-                      </p>
-                    </v-col>
-                  </v-row>
-
-                  <!-- Informações de Rodapé -->
-                  <v-divider class="my-2" />
-                  <v-row>
-                    <v-col cols="12">
-                      <p class="ma-1">
-                        {{ print_info }}
-                        {{ $t('text-address0') }}
-                      </p>
-                      <p class="ma-1">
-                        {{ print_info }}
-                        {{ $t('text-address') }}
-                        {{ todayDate() }}
-                      </p>
-                    </v-col>
-                  </v-row>
-
-                  <v-divider class="my-2" />
-                  <v-row>
-                    <v-col cols="12">
-                      <p class="ma-1">
-                        {{ $t('author-label') }}
-                      </p>
-                      <p class="ma-1">
-                        {{ $t('text-info') }}
-                      </p>
-                      <p class="ma-1">
-                        {{ $t('text-format') }}
-                        {{ leafSize.type }}.
-                      </p>
-                    </v-col>
-                  </v-row>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-container>
-
-    <!-- Footer -->
-    <v-card-actions class="print-dialog-footer no-print">
-      <v-btn @click="$emit('back')">
-        {{ $t('input-button-back-second-step') }}
-      </v-btn>
-      <v-spacer />
-      <v-btn
-        color="primary"
-        class="mr-2"
-        :loading="loadingPrintImage"
-        :disabled="showWarningMessage || loadingPrintImage"
-        @click="saveImage"
-      >
-        <v-icon dark>
-          mdi-image-outline
-        </v-icon>
-        {{ $t('download-image') }}
-      </v-btn>
-      <v-btn
-        color="primary"
-        class="mr-4"
-        :disabled="showWarningMessage || loadingPrintImage"
-        @click="print"
-      >
-        <v-icon dark>
-          mdi-file-export-outline
-        </v-icon>
-        {{ $t('input-button-pdf-image') }}
-      </v-btn>
-    </v-card-actions>
-  </v-dialog>
+          <v-divider />
+          <div class="ma-1">
+            <p>
+              {{ $t('author-label') }}
+            </p>
+            <p>
+              {{ $t('text-info') }}
+            </p>
+            <p>
+              {{ $t('text-format') }}
+              {{ leafSize.type }}.
+            </p>
+          </div>
+        </v-row>
+      </v-container>
+      <div class="print-dialog-footer no-print">
+        <div class="d-flex align-center pa-4">
+          <v-btn
+            class="ml-2"
+            @click="$emit('back')"
+          >
+            {{ $t('input-button-back-second-step') }}
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            class="mr-2"
+            :loading="loadingPrintImage"
+            :disabled="showWarningMessage || loadingPrintImage"
+            @click="saveImage"
+          >
+            <v-icon dark>
+              mdi-image-outline
+            </v-icon>
+            {{ $t('download-image') }}
+          </v-btn>
+          <v-btn
+            color="primary"
+            class="mr-4"
+            :disabled="showWarningMessage || loadingPrintImage"
+            @click="print"
+          >
+            <v-icon dark>
+              mdi-file-export-outline
+            </v-icon>
+            {{ $t('input-button-pdf-image') }}
+          </v-btn>
+        </div>
+      </div>
+    </v-dialog>
+  </div>
 </template>
 
 <i18n>
@@ -552,7 +572,8 @@ export default {
 
     filteredMonitoringData() {
       return this.combinedTableData.filter(
-        (item) => item.monitoring && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0),
+        (item) => item.monitoring
+        && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0),
       );
     },
     filteredAlertsData() {
@@ -567,9 +588,12 @@ export default {
     },
     filteredCombinedTableData() {
       return this.combinedTableData.filter((item) => {
-        const hasMonitoring = this.showFeaturesMonitoring && item.monitoring && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0);
-        const hasLandUse = this.showFeaturesLandUse && item.landUse && Object.keys(item.landUse).some((key) => item.landUse[key] > 0);
-        const hasAlerts = this.showFeaturesAlerts && item.alerts && Object.keys(item.alerts).some((key) => item.alerts[key] > 0);
+        const hasMonitoring = this.showFeaturesMonitoring
+        && item.monitoring && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0);
+        const hasLandUse = this.showFeaturesLandUse
+        && item.landUse && Object.keys(item.landUse).some((key) => item.landUse[key] > 0);
+        const hasAlerts = this.showFeaturesAlerts 
+        && item.alerts && Object.keys(item.alerts).some((key) => item.alerts[key] > 0);
         return hasMonitoring || hasLandUse || hasAlerts;
       });
     },
@@ -757,7 +781,8 @@ export default {
     combinedTableData: {
       handler(newVal) {
         this.selectedItemsCount = newVal.length;
-        this.showWarningMessage = (this.showFeaturesMonitoring || this.showFeaturesLandUse) && newVal.length > 7;
+        this.showWarningMessage = (this.showFeaturesMonitoring
+        || this.showFeaturesLandUse) && newVal.length > 7;
       },
       immediate: true,
     },
@@ -775,7 +800,8 @@ export default {
     }
 
     this.selectedItemsCount = this.combinedTableData.length;
-    this.showWarningMessage = (this.showFeaturesMonitoring || this.showFeaturesLandUse) && this.selectedItemsCount > 7;
+    this.showWarningMessage = (this.showFeaturesMonitoring
+    || this.showFeaturesLandUse) && this.selectedItemsCount > 7;
 
     const visibleLayersCount = Object.values(this.supportLayers).filter((l) => l.visible).length;
     if (visibleLayersCount > 0 && visibleLayersCount > 7) {
@@ -788,7 +814,36 @@ export default {
     }
   },
 
+  beforeDestroy() {
+    this.removeCARFromMap();
+  },
+
   methods: {
+    getCarColor(index) {
+      const colors = [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+        '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+        '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2',
+        '#F9E79F', '#A9DFBF', '#F5B7B1', '#AED6F1', '#E8DAEF',
+        '#A3E4D7', '#FAD7A0', '#D2B4DE', '#A9CCE3', '#F9E79F',
+        '#ABEBC6',
+      ];
+      return colors[index % colors.length];
+    },
+
+    getTerraIndigenaName(carItem) {
+      if (carItem.properties && carItem.properties.no_terra_indigena) {
+        return carItem.properties.no_terra_indigena;
+      }
+      if (carItem.no_terra_indigena) {
+        return carItem.no_terra_indigena;
+      }
+      if (carItem.properties && carItem.properties.nome) {
+        return carItem.properties.nome;
+      }
+      return 'Nome não disponível';
+    },
+
     onMapReady(map) {
       console.log('🗺️ Mapa de impressão pronto!');
       this.printMap = map;
@@ -803,6 +858,7 @@ export default {
     displayCAROnMap(features) {
       try {
         console.log('🗺️ Adicionando CAR ao mapa de impressão...');
+        console.log('📋 Dados CAR recebidos:', features);
 
         if (!this.printMap) {
           console.error('❌ Mapa de impressão ainda não está pronto');
@@ -948,8 +1004,8 @@ export default {
 
     adjustMapSizeForPrint(tamanho) {
       const mapDimensions = this.getMapDimensions(tamanho);
-      document.querySelector('.map-container').style.width = `${mapDimensions.width}px`;
-      document.querySelector('.map-container').style.height = `${mapDimensions.height}px`;
+      document.getElementById('map-for-print-container').style.width = `${mapDimensions.width}px`;
+      document.getElementById('map-for-print-container').style.height = `${mapDimensions.height}px`;
     },
 
     getMapDimensions(tamanho) {
@@ -972,16 +1028,41 @@ export default {
 
     async saveImage() {
       this.loadingPrintImage = true;
-      const node = document.querySelector('.map-container');
+      const node = document.getElementById('map-for-print-container');
+      const mapBounds = document.getElementsByClassName('leaflet-control-mapbounds')[0];
+      const mapControlZoom = document.getElementsByClassName('leaflet-control-zoom')[0];
+      const infoControlRight = document.getElementsByClassName('leaflet-control-attribution')[1];
+      const legends = document.getElementsByClassName('text-legend-customized');
+      const originalLegends = [];
+      const originalStyle = infoControlRight ? infoControlRight.getAttribute('style') : null;
 
       try {
         const nameImageDownload = this.mapTitle;
 
+        // Preparar controles do mapa (igual ao código que funciona)
+        if (mapControlZoom) mapControlZoom.style.display = 'none';
+        if (mapBounds) mapBounds.style.width = '250px';
+        if (infoControlRight) {
+          const currentWidth = parseFloat(window.getComputedStyle(infoControlRight).width);
+          infoControlRight.style.width = `${currentWidth + 30}px`;
+        }
+
         const originalWidth = node.style.width;
         const originalHeight = node.style.height;
+        const originalOverflow = node.style.overflow;
 
         node.style.width = '1230px';
         node.style.height = '780px';
+        node.style.overflow = 'hidden';
+
+        if (legends && legends.length > 0) {
+          Array.from(legends).forEach((legend) => {
+            originalLegends.push(legend.style.width);
+            legend.style.width = '110px';
+          });
+        }
+
+        await this.$nextTick();
 
         const options = {
           quality: 1,
@@ -994,6 +1075,10 @@ export default {
           },
         };
 
+        if (infoControlRight) {
+          infoControlRight.setAttribute('style', 'width: 304px');
+        }
+
         const image = await domtoimage.toJpeg(node, options);
 
         const link = document.createElement('a');
@@ -1001,14 +1086,25 @@ export default {
         link.download = nameImageDownload ? `${nameImageDownload}.jpeg` : 'Mapa.jpeg';
         link.click();
 
-        node.style.width = originalWidth;
-        node.style.height = originalHeight;
-
         this.loadingPrintImage = false;
       } catch (error) {
         console.error('Erro ao gerar imagem:', error);
         this.$emit('show-error', 'Ocorreu um erro ao gerar a imagem.');
         this.loadingPrintImage = false;
+      } finally {
+        if (infoControlRight) infoControlRight.setAttribute('style', originalStyle || 'width: auto');
+        if (mapBounds) mapBounds.style.width = 'auto';
+        if (mapControlZoom) mapControlZoom.style.display = 'block';
+        if (originalLegends && originalLegends.length > 0) {
+          Array.from(legends).forEach((legend, index) => {
+            legend.style.width = originalLegends[index];
+          });
+        }
+        if (node) {
+          node.style.width = originalWidth;
+          node.style.height = originalHeight;
+          node.style.overflow = originalOverflow;
+        }
       }
     },
 
@@ -1016,111 +1112,184 @@ export default {
     ...mapActions('land-use', ['getDataTableLandUse']),
     ...mapActions('urgent-alerts', ['getDataTableAlerts']),
   },
-
-  beforeDestroy() {
-    this.removeCARFromMap();
-  },
 };
 </script>
 
 <style scoped>
-.map-container {
-  width: 1230px;
-  height: 800px;
-  max-height: 780px;
-  overflow: hidden;
+/* Mini-mapa no canto superior direito */
+.mini-map-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 200px;
+  height: 150px;
+  z-index: 1000;
+  background: white;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.map-col {
+/* Container principal do mapa para impressão */
+#map-for-print-container {
+  flex-direction: column;
+}
+
+#monitoring-data-details {
   position: relative;
-  max-height: 780px;
 }
 
-.map-legend-container {
+/* Tabela de dados flutuante no mapa */
+#data-table {
   position: absolute;
   right: 0.5rem;
   bottom: 1.5rem;
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap-reverse;
   justify-content: flex-start;
-  flex-direction: column;
   max-height: 760px;
   gap: 0.5rem;
   z-index: 1000;
 }
 
-.mini-map-card {
+#data-table > div {
   background: #fffbfb;
   opacity: 0.9;
   padding: 5px;
 }
 
-.map-wrapper {
-  width: 100%;
-  height: 100%;
+.bordered-red { border: 2px solid red; }
+.bordered-blue { border: 2px solid blue; }
+.bordered-black { border: 2px solid black; }
+
+.bordered-red,
+.bordered-blue {
+  padding: 10px;
+  border-radius: 5px;
 }
 
+/* CAR flutuante no mapa (canto inferior esquerdo) */
+.car-map-container {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  max-height: 200px;
+  gap: 0.3rem;
+  z-index: 1000;
+}
+
+.car-map-item {
+  background: #fffbfb;
+  opacity: 0.9;
+  padding: 3px 6px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+}
+
+.car-map-name {
+  font-size: 8px;
+  line-height: 1.1;
+  word-break: break-word;
+  max-width: 120px;
+}
+
+/* Legenda - lista de CAR */
+.car-legend-section { margin-bottom: 8px; }
+.car-list-row {
+  max-height: 120px;
+  overflow-y: auto;
+  margin: 0 -2px;
+}
+.car-list-item {
+  padding: 1px 2px;
+  margin-bottom: 1px;
+}
+.car-name {
+  font-size: 8px;
+  line-height: 1.1;
+  word-break: break-word;
+}
+.car-number-avatar {
+  border: 1px solid white !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  min-width: 20px !important;
+}
+
+/* Ajustes gerais do mapa */
+.map-wrapper { width: 100%; }
+.vue-leaflet-map { height: 100% !important; }
+
+/* Legenda principal - ajustes críticos para não cortar conteúdo */
 .legend-info-map {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
+  height: auto !important;
   padding-bottom: 5px;
+  overflow: visible !important;
 }
 
-.legend-section {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.legend-info-map-details {
+  height: auto !important;
+  overflow: visible !important;
 }
 
-.legend-card {
-  background: #fffbfb;
-  opacity: 0.9;
-  max-width: 200px;
+.legend-content-container {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 5px;
 }
 
-.red-divider {
-  border-color: red !important;
-  border-width: 1px !important;
-  margin: 0;
-  margin-top: 0px;
+.legend-content-container::-webkit-scrollbar {
+  width: 6px;
+}
+.legend-content-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
 }
 
-.blue-divider {
-  border-color: blue !important;
-  border-width: 1px !important;
-  margin: 0;
-  margin-top: 3px;
-}
-
-.print-dialog-header {
+/* Dialog de impressão */
+.print-dialog-header,
+.print-dialog-footer {
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.print-dialog-header {
+  background: var(--v-primary-base);
   border-bottom: 1px solid #e0e0e0;
   padding: 8px 16px;
   display: flex;
   justify-content: flex-end;
-  position: relative;
-  z-index: 10;
 }
-
 .print-dialog-footer {
-  flex-shrink: 0;
   background: white;
   border-top: 1px solid #e0e0e0;
-  position: relative;
-  z-index: 10;
 }
 
+/* Configuração geral da página */
 @page {
   size: landscape;
   margin: 0;
 }
 
+/* ==================== REGRAS DE IMPRESSÃO ==================== */
 @media print {
-  @page {
-    size: landscape;
-    margin: 0;
+  .mini-map-overlay {
+    top: 10px;
+    right: 10px;
+    width: 180px;
+    height: 130px;
+  }
+
+  #map-for-print-container {
+    height: auto !important;
   }
 
   * {
@@ -1129,14 +1298,9 @@ export default {
   }
 
   .print-dialog-header,
-  .print-dialog-footer {
+  .print-dialog-footer,
+  .no-print {
     display: none !important;
-  }
-
-  .logo,
-  .legend-item {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
   .container {
@@ -1149,29 +1313,48 @@ export default {
     box-shadow: none;
   }
 
-  .no-print {
-    display: none;
+  .v-icon { color: inherit !important; }
+
+  /* Legenda completa visível na impressão */
+  .legend-info-map,
+  .legend-info-map-details,
+  .legend-content-container {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
   }
 
-  .v-icon {
-    color: inherit !important;
+  .car-list-row {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+
+  .car-list-item { break-inside: avoid; }
+
+  .car-number-avatar,
+  .logo,
+  .legend-item {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .border-container {
+    height: auto !important;
+    page-break-inside: avoid;
   }
 }
 
-p {
-  font-size: xx-small;
-  margin: 0;
-}
+/* Tipografia e elementos auxiliares */
+p { font-size: xx-small; margin: 0; }
 
 .font-title {
   line-break: anywhere;
   width: 100%;
 }
-
 .font-title p {
   font-size: 10px;
-  margin: 0px;
-  padding: 0px;
+  margin: 0;
+  padding: 0;
   text-align: center;
   max-width: 750px;
   font-family: 'Roboto', sans-serif;
@@ -1180,9 +1363,34 @@ p {
   color: #6c757d;
 }
 
-.border-container {
+.print-mini-map-text {
+  color: dimgray !important;
+  font-size: xx-small;
+  white-space: nowrap;
+}
+
+.border_container_legend {
+  border: 0.5px solid gray;
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 5px #bbb !important;
   height: 100%;
 }
+
+.border-container,
+.height-container-mini-map {
+  height: 100%;
+}
+
+.height-container-mini-map {
+  max-height: 150px;
+  width: 100%;
+}
+
+.font-page p { font-size: large; }
+.image-container { width: 100%; }
+.row { margin: 0 !important; }
+img.layer-thumbnail { width: 25px; }
 
 .warning-message {
   position: absolute;
@@ -1193,23 +1401,9 @@ p {
   background: #ffffff;
 }
 
-:deep(.v-chip) {
-  padding: 0 5px !important;
-}
-
-.car-number-marker {
-  background: transparent !important;
-  border: none !important;
-}
+:deep(.v-chip) { padding: 0 5px !important; }
 
 @media (max-width: 600px) {
-  :deep(.v-dialog) {
-    background-color: #fff !important;
-  }
-}
-
-.info-col {
-  max-height: 780px;
-  overflow-y: auto;
+  :deep(.v-dialog) { background-color: #fff !important; }
 }
 </style>
