@@ -230,8 +230,11 @@
               <v-card
                 outlined
                 class="upload-card pa-4"
-                :class="{ 'upload-card--active': file && file.length < 10 }"
-                @click="triggerFileInput"
+                :class="{ 
+                  'upload-card--active': file && file.length < 10,
+                  'upload-card--disabled': file && file.length >= 10
+                }"
+                @click="file && file.length < 10 ? triggerFileInput() : null"
               >
                 <div class="text-center">
                   <v-icon
@@ -461,8 +464,6 @@
               />
             </v-menu>
           </v-col>
-
-          </v-col>
         </v-row>
 
         <v-row>
@@ -531,7 +532,7 @@
     </v-card-actions>
   </div>
 </template>
-<i18n>
+<i18n lang="json">
   {
       "en": {
           "reopenRequest": "REOPEN REQUEST",
@@ -564,7 +565,11 @@
           "error-request-message": "Something went wrong. Please try again.",
           "showAll": "Show all",
           "showLess": "Show less",
-          "andMoreFiles": "and {count} more files"
+          "andMoreFiles": "and {count} more files",
+          "fileMaxLimitError": "The maximum limit is 10 files.",
+          "fileSizeError": "One or more files exceed the {size}MB limit.",
+          "fileTooBigError": "File too large: {fileName} (maximum 10MB)",
+          "fileInvalidExtensionError": "Invalid extension: {fileName}"
       },
       "pt-br": {
           "reopenRequest": "REABRIR SOLICITAÇÃO",
@@ -597,7 +602,11 @@
           "error-request-message": "Algo deu errado. Tente novamente.",
           "showAll": "Mostrar todos",
           "showLess": "Mostrar menos",
-          "andMoreFiles": "e mais {count} arquivos"
+          "andMoreFiles": "e mais {count} arquivos",
+          "fileMaxLimitError": "O limite máximo é de 10 arquivos.",
+          "fileSizeError": "Um ou mais arquivos ultrapassam o limite de {size}MB.",
+          "fileTooBigError": "Arquivo muito grande: {fileName} (máximo 10MB)",
+          "fileInvalidExtensionError": "Extensão inválida: {fileName}"
       }
   }
 </i18n>
@@ -638,39 +647,6 @@ export default {
       errorModal: false,
       showAllFiles: false,
       fileErrorMessages: [],
-      fileRules: [
-        (files) => {
-          if (!files || files.length === 0) return true;
-
-          // Check maximum number of files
-          if (files.length > 10) {
-            this.fileErrorMessages = ['Máximo de 10 arquivos permitidos'];
-            return false;
-          }
-
-          // Check file size (10MB limit)
-          const maxSize = 10 * 1024 * 1024; // 10MB
-          const oversizedFiles = files.filter((file) => file.size > maxSize);
-          if (oversizedFiles.length > 0) {
-            this.fileErrorMessages = [`Arquivos muito grandes: ${oversizedFiles.map((f) => f.name).join(', ')} (máximo 10MB)`];
-            return false;
-          }
-
-          // Check file extensions
-          const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
-          const invalidFiles = files.filter((file) => {
-            const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-            return !validExtensions.includes(ext);
-          });
-          if (invalidFiles.length > 0) {
-            this.fileErrorMessages = [`Extensões inválidas: ${invalidFiles.map((f) => f.name).join(', ')}`];
-            return false;
-          }
-
-          this.fileErrorMessages = [];
-          return true;
-        },
-      ],
     };
   },
   watch: {
@@ -960,20 +936,35 @@ export default {
     addFiles(files) {
       if (!files) return;
 
-      // Convert to array if single file
+      const MAX_SIZE_MB = 10;
+      const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
       const fileArray = Array.isArray(files) ? files : [files];
 
-      // Add files to existing array
+      const totalFilesAfterAdd = this.file.length + fileArray.length;
+      if (totalFilesAfterAdd > 10) {
+        this.fileErrorMessages = [this.$t('fileMaxLimitError')];
+        this.tempFile = null;
+        this.$refs.fileInput.reset();
+        return;
+      }
+
+      const hasLargeFile = fileArray.some(f => f.size > MAX_SIZE_BYTES);
+
+      if (hasLargeFile) {
+        this.fileErrorMessages = [this.$t('fileSizeError', { size: MAX_SIZE_MB })];
+
+        this.tempFile = null;
+        this.$refs.fileInput.reset();
+        return;
+      }
+
       fileArray.forEach((file) => {
-        if (this.file.length < 10) {
-          // Validate file
-          if (this.validateSingleFile(file)) {
-            this.file.push(file);
-          }
+        if (this.validateSingleFile(file)) {
+          this.file.push(file);
         }
       });
 
-      // Clear the temp input
       this.tempFile = null;
       this.$refs.fileInput.reset();
     },
@@ -993,12 +984,12 @@ export default {
       const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
       if (file.size > maxSize) {
-        this.fileErrorMessages = [`Arquivo muito grande: ${file.name} (máximo 10MB)`];
+        this.fileErrorMessages = [this.$t('fileTooBigError', { fileName: file.name })];
         return false;
       }
 
       if (!validExtensions.includes(ext)) {
-        this.fileErrorMessages = [`Extensão inválida: ${file.name}`];
+        this.fileErrorMessages = [this.$t('fileInvalidExtensionError', { fileName: file.name })];
         return false;
       }
 
@@ -1245,6 +1236,16 @@ p
   &--active
     border-color: #1976d2
     background-color: #f3f8ff
+
+  &--disabled
+    cursor: not-allowed
+    border-color: #bdbdbd
+    background-color: #f5f5f5
+    opacity: 0.6
+
+    &:hover
+      border-color: #bdbdbd
+      background-color: #f5f5f5
 
 // Attachment styles (same as Timeline.vue)
 .attachments-header
