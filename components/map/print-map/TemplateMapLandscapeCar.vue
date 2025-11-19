@@ -1,11 +1,23 @@
 <template>
-  <div>
+  <v-container>
     <style>
       @media print {
       @page {
       size: landscape;
       margin: 0;
       }
+      }
+      
+      /* Classe para os divisores estilizados */
+      .styled-divider {
+        border: 1px solid blue; 
+        margin: 0; 
+        margin-top: 3px;
+      }
+      .styled-divider-red {
+        border: 1px solid red; 
+        margin: 0; 
+        margin-top: 3px;
       }
     </style>
     <v-dialog
@@ -65,7 +77,6 @@
             </v-col>
 
             <!-- Segunda coluna movida para abaixo do mapa -->
-
             <v-sheet class="font-title pb-2 dont-break">
               <p>
                 {{ mapTitle }}
@@ -115,16 +126,76 @@
               </v-col>
             </v-row>
             <v-divider />
-            TABELA
+            
+         
+         <!-- Tabela CAR detalhada -->
+            <v-row 
+              v-if="carData && carData.length > 0" 
+              class="mt-2"
+            >
+              <v-col cols="12">
+                <v-simple-table 
+                  dense 
+                  fixed-header
+                  height="auto"
+                  class="text-caption"
+                >
+                  <template v-slot:default>
+                    <thead>
+                      <tr class="text-caption">
+                        <th class="text-center px-1">#</th>
+                        <th class="text-left px-1">Código de origem</th>
+                        <th class="text-left px-1">Nome da Terra Indígena</th>
+                        <th class="text-left px-1">Município</th>
+                        <th class="text-left px-1">UF</th>
+                        <th class="text-left px-1">Etnia</th>
+                        <th class="text-right px-1">Área (ha)</th>
+                        <th class="text-left px-1">Situação</th>
+                        <th class="text-left px-1">Condição do Imóvel</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="(item, index) in carData"
+                        :key="'car-table-' + index"
+                        class="text-caption"
+                      >
+                        <td class="text-center px-1">
+                          <v-avatar
+                            :color="getCarColor(index)"
+                            size="20"
+                          >
+                            <span class="white--text font-weight-bold text-caption">
+                              {{ index + 1 }}
+                            </span>
+                          </v-avatar>
+                        </td>
+                        <td class="px-1">{{ item.properties?.co_imovel || '-' }}</td>
+                        <td class="px-1">{{ getTerraIndigenaName(item) }}</td>
+                        <td class="px-1">{{ getMunicipioName(item) }}</td>
+                        <td class="px-1">{{ item.properties?.sg_uf || '-' }}</td>
+                        <td class="px-1">{{ item.properties?.no_etnia || '-' }}</td>
+                        <td class="text-right px-1">{{ formatNumber(item.properties?.nu_area_ha) }}</td>
+                        <td class="px-1">{{ item.properties?.tp_situacao || '-' }}</td>
+                        <td class="px-1">{{ item.properties?.ds_condicao_imovel || '-' }}</td>
+                      </tr>
+                    </tbody>
+                  </template>
+                </v-simple-table>
+              </v-col>
+            </v-row>
+
             <v-divider />
 
             <v-row
-              class="flex-nowrap justify-start align-start "
+              class="flex-nowrap justify-start align-start"
               style="gap: 5px; flex-wrap: wrap;"
             >
               <v-col
-                v-if="showFeaturesMonitoring
-                  && hasActiveMonitoringStages && selectedItemsCount > 0"
+                v-if="showFeaturesMonitoring 
+                && hasActiveMonitoringStages 
+                && selectedItemsCount > 0"
+                cols="2"
               >
                 <p>
                   <strong>Monitoramento Diário</strong>
@@ -132,16 +203,18 @@
                     {{ monitoringCount }}
                   </v-chip>
                 </p>
-                <hr style="border: 1px solid red; margin: 0; margin-top: 0px;">
+                <hr class="styled-divider-red">
                 <CustomizedLegend
                   class="pt-1"
                   :items="monitoringItems"
                 />
               </v-col>
-              <v-cols
-                v-if="showFeaturesAlerts
-                  && hasActiveAlertsStages
-                  && selectedItemsCount > 0"
+
+              <v-col
+                v-if="showFeaturesAlerts 
+                && hasActiveAlertsStages 
+                && selectedItemsCount > 0"
+                cols="2"
               >
                 <p>
                   <strong>Alerta Urgente</strong>
@@ -149,22 +222,23 @@
                     {{ alertsCount }}
                   </v-chip>
                 </p>
-                <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                <hr class="styled-divider">
                 <CustomizedLegend
                   class="pt-1"
                   :items="alertsItems"
                 />
-              </v-cols>
-              <v-cols
+              </v-col>
+              <v-col
                 v-if="showFeaturesSupportLayers
                   && Object.values(supportLayers).filter(l => l.visible).length
                   && Object.values(supportLayers).filter(l => l.visible).length <= 7
                   && Object.values(supportLayerUser).filter(l => l.visible).length <= 7"
+                cols="2"
               >
                 <p style="width: 120px">
                   <strong>Sobreposição de camadas</strong>
                 </p>
-                <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                <hr class="styled-divider">
                 <LayerList
                   :layers="supportLayerUser"
                   :is-user-layer="true"
@@ -174,9 +248,11 @@
                   :layers="supportLayers"
                   class="mt-1"
                 />
-              </v-cols>
-              <v-cols
+              </v-col>
+
+              <v-col
                 v-if="showFeaturesLandUse"
+                cols="2"
               >
                 <p>
                   <strong>Uso e Ocupação do Solo</strong>
@@ -184,74 +260,73 @@
                     {{ tableLandUse.length }}
                   </v-chip>
                 </p>
-                <hr style="border: 1px solid blue; margin: 0; margin-top: 0px;">
+                <hr class="styled-divider">
                 <CustomizedLegend
                   class="pt-1"
                   :items="landUseItems"
                 />
-              </v-cols>
+              </v-col>
 
-              <v-cols
+              <v-col
                 v-if="showFeaturesProdes"
+                cols="2"
               >
                 <p><strong>INPE - Prodes</strong></p>
-                <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                <hr class="styled-divider">
                 <CustomizedLegend
                   class="pt-1"
                   :items="prodesItems"
                 />
-              </v-cols>
+              </v-col>
 
-              <v-cols
+              <v-col
                 v-if="showFeaturesDeter"
+                cols="2"
               >
                 <p><strong>INPE - Deter</strong></p>
-                <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                <hr class="styled-divider">
                 <CustomizedLegend
                   class="pt-1"
                   :items="deterItems"
                 />
-              </v-cols>
+              </v-col>
 
-              <v-cols
+              <v-col
                 v-if="showFeaturesAquaMM || showFeaturesAquaMT"
+                cols="2"
               >
                 <p><strong>INPE - Focos de Calor</strong></p>
-                <hr style="border: 1px solid blue; margin: 0; margin-top: 3px;">
+                <hr class="styled-divider">
                 <CustomizedLegend
                   class="pt-1"
-                  :items="heatFocusItems.filter(item =>
-                    (item.label === 'Aqua Modis Manhã' && showFeaturesAquaMM) ||
-                    (item.label === 'Aqua Modis Tarde' && showFeaturesAquaMT))"
+                  :items="filteredHeatFocusItems"
                 />
-              </v-cols>
+              </v-col>
             </v-row>
 
-            <v-cols>
+            <v-col v-if="shouldShowCartographicSection">
               <v-divider />
-              <p
-                v-if="hasCartographicDatasets"
-                class="d-block ma-1"
-              >
+              <p class="d-block ma-1">
                 Bases Cartográficas:
               </p>
 
-              <v-cols
+              <v-col
                 v-for="layerCategory in layerCategories"
-                :key="layerCategory.name"
+                :key="`${layerCategory.name}-${layerCategory.type}`"
               >
-                <v-cols
-                  v-for="layer in layerCategory.layers"
-                  :key="layer.id"
+                <v-col
+                  v-for="(layer, layerId) in layerCategory.layers"
+                  :key="layerId"
+                  class="pa-0 mb-1"
                 >
                   <v-row
-                    v-if="layer.visible"
+                    v-if="layer && layer.visible"
                     no-gutters
                     align="center"
                     class="image-container"
                   >
                     <v-col>
-                      <p class="ml-1">
+                      <p>
                         <strong>{{ layer.name || '-' }}.</strong>
                         Fonte:{{ layer.fonte || '-' }}, Data de
                         atualização:
@@ -259,124 +334,90 @@
                       </p>
                     </v-col>
                   </v-row>
-                </v-cols>
-              </v-cols>
-            </v-cols>
+                </v-col>
+              </v-col>
+            </v-col>
 
-            <v-cols>
-              <v-cols v-if="showFeaturesMonitoring">
-                <p class="ml-1">
-                  {{ $t('monitoring-print-label') }}
-                  {{ handleData(monitoringFilters.startDate) }}
-                  {{ $t('and') }}
-                  {{ handleData(monitoringFilters.endDate) }}
-                </p>
-              </v-cols>
-              <v-cols v-if="showFeaturesAlerts">
-                <p class="ml-1">
-                  {{ $t('alerts-print-label') }}
-                  {{ handleData(alertsFilters.startDate) }}
-                  {{ $t('and') }}
-                  {{ handleData(alertsFilters.endDate) }}
-                </p>
-              </v-cols>
-              <v-cols v-if="showFeaturesLandUse && uniqueYears.length > 0">
-                <p class="ml-1">
-                  {{ $t('land-use-print-label') }}
-                  <span
-                    v-for="(year, index) in uniqueYears"
-                    :key="'year-' + index"
-                  >
-                    {{ year
-                    }}<span v-if="index < uniqueYears.length - 1">,
+            <v-col>
+              <v-col
+                v-for="(feature, index) in activePrintFeatures"
+                :key="feature.key || index"
+                class="py-1"
+              >
+                <p>
+                  {{ $t(feature.label) }}
+                  <span v-if="feature.type === 'date-range'">
+                    {{ handleData(feature.startDate) }}
+                    {{ $t('and') }}
+                    {{ handleData(feature.endDate) }}
+                  </span>
+                  <span v-else-if="feature.type === 'years-list' && feature.years.length > 0">
+                    <span
+                      v-for="(year, yearIndex) in feature.years"
+                      :key="'year-' + yearIndex"
+                    >
+                      {{ year }}<span v-if="yearIndex < feature.years.length - 1">, </span>
                     </span>
                   </span>
+                  <span v-else-if="feature.type === 'single-year'">
+                    {{ feature.yearHandler() }}
+                  </span>
                 </p>
-              </v-cols>
-              <v-cols v-if="showFeaturesProdes">
-                <p class="ml-1">
-                  {{ $t('prodes-print-label') }}
-                  {{ handleProdesYear() }}
-                </p>
-              </v-cols>
-              <v-cols v-if="showFeaturesDeter">
-                <p class="ml-1">
-                  {{ $t('deter-print-label') }}
-                  {{ handleData(deterFilters.startDate) }}
-                  {{ $t('and') }}
-                  {{ handleData(deterFilters.endDate) }}
-                </p>
-              </v-cols>
-              <v-cols v-if="showFeaturesAquaMM || showFeaturesAquaMT">
-                <p class="ml-1">
-                  {{ $t('heat-focus-print-label') }}
-                  {{ handleData(focoFilters.startDate) }}
-                  {{ $t('and') }}
-                  {{ handleData(focoFilters.endDate) }}
-                </p>
-              </v-cols>
-            </v-cols>
-
-            <div>
+              </v-col>
               <v-divider />
-              <div class="ma-1">
-                <p>
-                  {{ print_info }}
-                  {{ $t('text-address0') }}
-                </p>
-                <p>
-                  {{ print_info }}
-                  {{ $t('text-address') }}
-                  {{ todayDate() }}
-                </p>
-              </div>
-            </div>
+            </v-col>
 
-            <div>
-              <v-divider />
-              <div class="ma-1">
-                <p>
-                  {{ $t('author-label') }}
-                </p>
-                <p>
-                  {{ $t('text-info') }}
-                </p>
-                <p>
-                  {{ $t('text-format') }}
-                  {{ leafSize.type }}.
-                </p>
-              </div>
-            </div>
+            <v-col class="ml-3 py-1">
+              <p>
+                {{ print_info }}
+                {{ $t('text-address0') }}
+              </p>
+              <p>
+                {{ print_info }}
+                {{ $t('text-address') }}
+                {{ todayDate() }}
+              </p>
+            </v-col>
+            <v-divider />
+            <v-col class="ml-3 py-1">
+              <p>
+                {{ $t('author-label') }}
+              </p>
+              <p>
+                {{ $t('text-info') }}
+              </p>
+              <p>
+                {{ $t('text-format') }}
+                {{ leafSize.type }}.
+              </p>
+            </v-col>
           </v-row>
         </v-container>
       </v-row>
 
       <!-- Footer com botões -->
-      <div class="print-dialog-footer no-print">
-        <div class="d-flex align-center pa-4">
-          <v-btn
-            class="ml-2"
-            @click="$emit('back')"
-          >
-            {{ $t('input-button-back-second-step') }}
-          </v-btn>
-          <v-spacer />
-          <v-btn
-            color="primary"
-            class="mr-4"
-            :disabled="loadingPrintImage"
-            @click="print"
-          >
-            <v-icon dark>
-              mdi-file-export-outline
-            </v-icon>
-            {{ $t('input-button-pdf-image') }}
-          </v-btn>
-        </div>
-      </div>
-      </v-rowdiv>
+      <v-footer class="print-dialog-footer no-print pa-4">
+        <v-btn
+          class="ml-2"
+          @click="$emit('back')"
+        >
+          {{ $t('input-button-back-second-step') }}
+        </v-btn>
+        <v-spacer />
+        <v-btn
+          color="primary"
+          class="mr-4"
+          :disabled="loadingPrintImage"
+          @click="print"
+        >
+          <v-icon dark>
+            mdi-file-export-outline
+          </v-icon>
+          {{ $t('input-button-pdf-image') }}
+        </v-btn>
+      </v-footer>
     </v-dialog>
-  </div>
+  </v-container>
 </template>
 
 <i18n>
@@ -525,6 +566,69 @@ export default {
   }),
 
   computed: {
+    filteredHeatFocusItems() {
+      return this.heatFocusItems.filter((item) => (item.label === 'Aqua Modis Manhã' && this.showFeaturesAquaMM)
+        || (item.label === 'Aqua Modis Tarde' && this.showFeaturesAquaMT));
+    },
+
+    activePrintFeatures() {
+      const features = [];
+
+      if (this.showFeaturesMonitoring) {
+        features.push({
+          type: 'date-range',
+          label: 'monitoring-print-label',
+          startDate: this.monitoringFilters.startDate,
+          endDate: this.monitoringFilters.endDate
+        });
+      }
+
+      if (this.showFeaturesAlerts) {
+        features.push({
+          type: 'date-range',
+          label: 'alerts-print-label',
+          startDate: this.alertsFilters.startDate,
+          endDate: this.alertsFilters.endDate
+        });
+      }
+
+      if (this.showFeaturesLandUse && this.uniqueYears.length > 0) {
+        features.push({
+          type: 'years-list',
+          label: 'land-use-print-label',
+          years: this.uniqueYears
+        });
+      }
+
+      if (this.showFeaturesProdes) {
+        features.push({
+          type: 'single-year',
+          label: 'prodes-print-label',
+          yearHandler: this.handleProdesYear
+        });
+      }
+
+      if (this.showFeaturesDeter) {
+        features.push({
+          type: 'date-range',
+          label: 'deter-print-label',
+          startDate: this.deterFilters.startDate,
+          endDate: this.deterFilters.endDate
+        });
+      }
+
+      if (this.showFeaturesAquaMM || this.showFeaturesAquaMT) {
+        features.push({
+          type: 'date-range',
+          label: 'heat-focus-print-label',
+          startDate: this.focoFilters.startDate,
+          endDate: this.focoFilters.endDate
+        });
+      }
+
+      return features;
+    },
+
     hasActiveMonitoringStages() {
       return Object.values(this.legendVisibility).some((visible) => visible);
     },
@@ -638,21 +742,75 @@ export default {
     showDialog() {
       return this.showDialogLandscape;
     },
+    
     hasCartographicDatasets() {
-      return Object.keys(this)
-        .filter((key) => key.startsWith('showFeatures'))
-        .some((key) => this[key]);
+      const result = this.showFeaturesSupportLayers;
+      return result;
     },
-    hasLegend() {
-      return Object.keys(this)
-        .filter((key) => key.startsWith('showFeatures'))
-        .some((key) => this[key]);
+
+    hasVisibleCartographicLayers() {
+      if (!this.showFeaturesSupportLayers) return false;
+      
+      const systemLayersVisible = this.supportLayers && 
+        Object.values(this.supportLayers).some(layer => layer && layer.visible);
+      
+      const userLayersVisible = this.supportLayerUser && 
+        Object.values(this.supportLayerUser).some(layer => layer && layer.visible);
+      
+      const result = systemLayersVisible || userLayersVisible;
+      
+      return result;
     },
+
     layerCategories() {
-      return [['Support Layers', this.supportLayers, this.showFeaturesSupportLayers]]
-        .map(([name, layers, show]) => ({ name, layers, show }))
-        .filter(({ show }) => show);
+      const categories = [];
+      
+      if (this.showFeaturesSupportLayers && this.supportLayers) {
+        const visibleSystemLayers = Object.entries(this.supportLayers)
+          .filter(([_, layer]) => layer && layer.visible)
+          .reduce((acc, [key, layer]) => {
+            acc[key] = layer;
+            return acc;
+          }, {});
+          
+        if (Object.keys(visibleSystemLayers).length > 0) {
+          categories.push({
+            name: 'Support Layers',
+            layers: visibleSystemLayers,
+            type: 'system'
+          });
+        }
+      }
+      
+      if (this.showFeaturesSupportLayers && this.supportLayerUser) {
+        const visibleUserLayers = Object.entries(this.supportLayerUser)
+          .filter(([_, layer]) => layer && layer.visible)
+          .reduce((acc, [key, layer]) => {
+            acc[key] = layer;
+            return acc;
+          }, {});
+          
+        if (Object.keys(visibleUserLayers).length > 0) {
+          categories.push({
+            name: 'User Layers', 
+            layers: visibleUserLayers,
+            type: 'user'
+          });
+        }
+      }
+
+      return categories;
     },
+
+    shouldShowCartographicSection() {
+      const result = this.hasCartographicDatasets && this.hasVisibleCartographicLayers;
+      return result;
+    },
+
+    hasLegend() {
+      return this.hasCartographicDatasets;
+    },
+    
     showFeaturesAquaMM() {
       return (this.layers && this.layers.aquaMM && this.layers.aquaMM.showFeatures) || false;
     },
@@ -762,6 +920,16 @@ export default {
   },
 
   methods: {
+    getMunicipioName(carItem) {
+      if (carItem.properties?.no_municipio_car) {
+        return carItem.properties.no_municipio_car;
+      }
+      if (carItem.properties?.no_municipio) {
+        return carItem.properties.no_municipio;
+      }
+      return '-';
+    },
+
     getCarColor(index) {
       const colors = [
         '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
@@ -785,6 +953,26 @@ export default {
         return carItem.properties.nome;
       }
       return 'Nome não disponível';
+    },
+
+    formatNumber(value) {
+      let number;
+      if (typeof value === 'string') {
+        const cleanedValue = value.replace(/\./g, '').replace(',', '.');
+        number = parseFloat(cleanedValue);
+      } else {
+        number = parseFloat(value);
+      }
+
+      if (!Number.isNaN(number)) {
+        const rounded = number.toFixed(3);
+        const [intPart, decimalPart] = rounded.split('.');
+
+        return decimalPart !== '00'
+          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
+          : String(parseInt(number, 10));
+      }
+      return '-';
     },
 
     onMapReady(map) {
@@ -881,30 +1069,6 @@ export default {
         this.carLayer = null;
         console.log('🗑️ CAR removido do mapa de impressão');
       }
-    },
-
-    formatNumber(value) {
-      let number;
-      if (typeof value === 'string') {
-        const cleanedValue = value.replace(/\./g, '').replace(',', '.');
-        number = parseFloat(cleanedValue);
-      } else {
-        number = parseFloat(value);
-      }
-
-      if (!Number.isNaN(number)) {
-        const rounded = number.toFixed(3);
-        const [intPart, decimalPart] = rounded.split('.');
-
-        return decimalPart !== '00'
-          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
-          : String(parseInt(number, 10));
-      }
-      return '-';
-    },
-
-    vectorImage(layer) {
-      return layer.vector.thumbnail_blob || layer.vector.image;
     },
 
     handleProdesYear() {
@@ -1217,10 +1381,6 @@ section {
 
 .table-print {
   width: 100%;
-}
-
-.dont-break {
-  page-break-inside: avoid;
 }
 
 .overlap h3 {
