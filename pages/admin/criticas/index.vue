@@ -116,7 +116,10 @@
                 </v-col>
               </v-row>
 
-              <v-row dense class="mb-0">
+              <v-row
+                dense
+                class="mb-0"
+              >
                 <v-col cols="12">
                   <v-textarea
                     v-model="newTicketData.description"
@@ -137,7 +140,10 @@
                 dense
                 class="mb-0"
               >
-                <v-col cols="12" class="pb-2">
+                <v-col
+                  cols="12"
+                  class="pb-2"
+                >
                   <v-checkbox
                     v-model="checkbox"
                     :label="$t('approveRequestCreation')"
@@ -593,39 +599,6 @@ export default {
         { label: 'solicitações atendidas', total: 0, color: '#12A844' },
       ],
       fileErrorMessages: [],
-      fileRules: [
-        (files) => {
-          if (!files || files.length === 0) return true;
-
-          // Check maximum number of files
-          if (files.length > 10) {
-            this.fileErrorMessages = [this.$t('fileMaxLimitRulesError')];
-            return false;
-          }
-
-          // Check file size (10MB limit)
-          const maxSize = 10 * 1024 * 1024; // 10MB
-          const oversizedFiles = files.filter((file) => file.size > maxSize);
-          if (oversizedFiles.length > 0) {
-            this.fileErrorMessages = [this.$t('filesTooBigRulesError', { fileNames: oversizedFiles.map((f) => f.name).join(', ') })];
-            return false;
-          }
-
-          // Check file extensions
-          const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
-          const invalidFiles = files.filter((file) => {
-            const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-            return !validExtensions.includes(ext);
-          });
-          if (invalidFiles.length > 0) {
-            this.fileErrorMessages = [this.$t('fileInvalidExtensionsRulesError', { fileNames: invalidFiles.map((f) => f.name).join(', ') })];
-            return false;
-          }
-
-          this.fileErrorMessages = [];
-          return true;
-        },
-      ],
     };
   },
   async mounted() {
@@ -642,6 +615,7 @@ export default {
     this.setDefaultStatusFiltersForAdmin();
   },
 
+  // eslint-disable-next-line vue/order-in-components
   computed: {
     ...mapGetters('admin', ['tickets', 'labels']),
     ...mapGetters('userProfile', ['userData']),
@@ -925,16 +899,16 @@ export default {
       const fileArray = Array.isArray(files) ? files : [files];
 
       const totalFilesAfterAdd = this.newTicketData.attachments.length + fileArray.length;
-      
+
       if (totalFilesAfterAdd > 10) {
         this.fileErrorMessages = [this.$t('fileMaxLimitError')];
-        
+
         this.tempFile = null;
         this.$refs.fileInput.reset();
         return;
       }
 
-      const hasLargeFile = fileArray.some(f => f.size > MAX_SIZE_BYTES);
+      const hasLargeFile = fileArray.some((f) => f.size > MAX_SIZE_BYTES);
 
       if (hasLargeFile) {
         this.fileErrorMessages = [this.$t('fileSizeError', { size: MAX_SIZE_MB })];

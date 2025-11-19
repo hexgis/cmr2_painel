@@ -230,7 +230,7 @@
               <v-card
                 outlined
                 class="upload-card pa-4"
-                :class="{ 
+                :class="{
                   'upload-card--active': file && file.length < 10,
                   'upload-card--disabled': file && file.length >= 10
                 }"
@@ -949,7 +949,7 @@ export default {
         return;
       }
 
-      const hasLargeFile = fileArray.some(f => f.size > MAX_SIZE_BYTES);
+      const hasLargeFile = fileArray.some((f) => f.size > MAX_SIZE_BYTES);
 
       if (hasLargeFile) {
         this.fileErrorMessages = [this.$t('fileSizeError', { size: MAX_SIZE_MB })];
