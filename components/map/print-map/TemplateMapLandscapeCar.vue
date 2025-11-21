@@ -7,16 +7,16 @@
       margin: 0;
       }
       }
-      
+
       /* Classe para os divisores estilizados */
       .styled-divider {
-        border: 1px solid blue; 
-        margin: 0; 
+        border: 1px solid blue;
+        margin: 0;
         margin-top: 3px;
       }
       .styled-divider-red {
-        border: 1px solid red; 
-        margin: 0; 
+        border: 1px solid red;
+        margin: 0;
         margin-top: 3px;
       }
     </style>
@@ -126,16 +126,16 @@
               </v-col>
             </v-row>
             <v-divider />
-            
-         
+
+
          <!-- Tabela CAR detalhada -->
-            <v-row 
-              v-if="carData && carData.length > 0" 
+            <v-row
+              v-if="carData && carData.length > 0"
               class="mt-2"
             >
               <v-col cols="12">
-                <v-simple-table 
-                  dense 
+                <v-simple-table
+                  dense
                   fixed-header
                   height="auto"
                   class="text-caption"
@@ -192,8 +192,8 @@
               style="gap: 5px; flex-wrap: wrap;"
             >
               <v-col
-                v-if="showFeaturesMonitoring 
-                && hasActiveMonitoringStages 
+                v-if="showFeaturesMonitoring
+                && hasActiveMonitoringStages
                 && selectedItemsCount > 0"
                 cols="2"
               >
@@ -211,8 +211,8 @@
               </v-col>
 
               <v-col
-                v-if="showFeaturesAlerts 
-                && hasActiveAlertsStages 
+                v-if="showFeaturesAlerts
+                && hasActiveAlertsStages
                 && selectedItemsCount > 0"
                 cols="2"
               >
@@ -408,7 +408,7 @@
           color="primary"
           class="mr-4"
           :disabled="loadingPrintImage"
-          @click="print"
+          @click="generateMultiPagePDF"
         >
           <v-icon dark>
             mdi-file-export-outline
@@ -487,11 +487,11 @@
 
 <script>
 import { mapState, mapActions } from 'vuex';
-import domtoimage from 'dom-to-image';
 import MapForPrint from './MapForPrint.vue';
 import MiniMap from './MiniMap.vue';
 import LayerList from './LayerListActive.vue';
 import CustomizedLegend from './CustomizedLegendActive.vue';
+import html2canvas from 'html2canvas';
 
 export default {
   name: 'PrintTemplateMapLandscape',
@@ -742,7 +742,7 @@ export default {
     showDialog() {
       return this.showDialogLandscape;
     },
-    
+
     hasCartographicDatasets() {
       const result = this.showFeaturesSupportLayers;
       return result;
@@ -750,21 +750,21 @@ export default {
 
     hasVisibleCartographicLayers() {
       if (!this.showFeaturesSupportLayers) return false;
-      
-      const systemLayersVisible = this.supportLayers && 
+
+      const systemLayersVisible = this.supportLayers &&
         Object.values(this.supportLayers).some(layer => layer && layer.visible);
-      
-      const userLayersVisible = this.supportLayerUser && 
+
+      const userLayersVisible = this.supportLayerUser &&
         Object.values(this.supportLayerUser).some(layer => layer && layer.visible);
-      
+
       const result = systemLayersVisible || userLayersVisible;
-      
+
       return result;
     },
 
     layerCategories() {
       const categories = [];
-      
+
       if (this.showFeaturesSupportLayers && this.supportLayers) {
         const visibleSystemLayers = Object.entries(this.supportLayers)
           .filter(([_, layer]) => layer && layer.visible)
@@ -772,7 +772,7 @@ export default {
             acc[key] = layer;
             return acc;
           }, {});
-          
+
         if (Object.keys(visibleSystemLayers).length > 0) {
           categories.push({
             name: 'Support Layers',
@@ -781,7 +781,7 @@ export default {
           });
         }
       }
-      
+
       if (this.showFeaturesSupportLayers && this.supportLayerUser) {
         const visibleUserLayers = Object.entries(this.supportLayerUser)
           .filter(([_, layer]) => layer && layer.visible)
@@ -789,10 +789,10 @@ export default {
             acc[key] = layer;
             return acc;
           }, {});
-          
+
         if (Object.keys(visibleUserLayers).length > 0) {
           categories.push({
-            name: 'User Layers', 
+            name: 'User Layers',
             layers: visibleUserLayers,
             type: 'user'
           });
@@ -810,7 +810,7 @@ export default {
     hasLegend() {
       return this.hasCartographicDatasets;
     },
-    
+
     showFeaturesAquaMM() {
       return (this.layers && this.layers.aquaMM && this.layers.aquaMM.showFeatures) || false;
     },
@@ -920,6 +920,628 @@ export default {
   },
 
   methods: {
+    async generateMultiPagePDF() {
+      try {
+        this.loadingPrintImage = true;
+
+        // Capturar o mapa principal e o minimapa separadamente
+        const [mapCanvas, miniMapCanvas] = await Promise.all([
+          this.captureMapAsImage('.map-wrapper'),
+          this.captureMapAsImage('.mini-map-overlay')
+        ]);
+
+        const mapImage = mapCanvas.toDataURL('image/png');
+        const miniMapImage = miniMapCanvas.toDataURL('image/png');
+
+        // Capturar as legendas e conteúdo
+        const legendContent = await this.captureLegendContent();
+
+        // Preparar conteúdo para múltiplas páginas
+        const printContent = this.generatePrintContent(mapImage, miniMapImage, legendContent);
+
+        // Criar nova janela para impressão
+        const printWindow = window.open('', '_blank');
+        const printDocument = printWindow.document;
+
+        // Escrever conteúdo completo
+        printDocument.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>${this.mapTitle}</title>
+              <meta charset="utf-8">
+              <style>
+                ${this.getPrintStyles()}
+              </style>
+            </head>
+            <body onload="window.print(); setTimeout(() => window.close(), 500);">
+              ${printContent}
+            </body>
+          </html>
+        `);
+
+        printDocument.close();
+
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        this.$emit('error', 'Erro ao gerar o documento PDF');
+      } finally {
+        this.loadingPrintImage = false;
+      }
+    },
+
+    async captureMapAsImage(selector) {
+      return new Promise((resolve) => {
+        this.$nextTick(() => {
+          const element = document.querySelector(selector);
+          if (element) {
+            html2canvas(element, {
+              useCORS: true,
+              allowTaint: true,
+              scale: 2,
+              backgroundColor: '#ffffff',
+              logging: false
+            }).then(resolve).catch(() => {
+              // Fallback: criar canvas vazio
+              const canvas = document.createElement('canvas');
+              canvas.width = selector === '.map-wrapper' ? 800 : 200;
+              canvas.height = selector === '.map-wrapper' ? 500 : 150;
+              const ctx = canvas.getContext('2d');
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.fillStyle = '#000000';
+              ctx.textAlign = 'center';
+              ctx.fillText(selector === '.map-wrapper' ? 'Mapa não disponível' : 'MiniMapa não disponível', canvas.width/2, canvas.height/2);
+              resolve(canvas);
+            });
+          } else {
+            // Fallback: criar canvas vazio
+            const canvas = document.createElement('canvas');
+            canvas.width = selector === '.map-wrapper' ? 800 : 200;
+            canvas.height = selector === '.map-wrapper' ? 500 : 150;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#000000';
+            ctx.textAlign = 'center';
+            ctx.fillText(selector === '.map-wrapper' ? 'Mapa não disponível' : 'MiniMapa não disponível', canvas.width/2, canvas.height/2);
+            resolve(canvas);
+          }
+        });
+      });
+    },
+
+    async captureLegendContent() {
+      return new Promise((resolve) => {
+        this.$nextTick(() => {
+          const content = {
+            carSummary: this.generateCarSummaryHTML(),
+            supportLayers: this.generateSupportLayersHTML(),
+            legends: this.generateAllLegendsHTML(),
+            additionalInfo: this.generateAdditionalInfoHTML()
+          };
+          resolve(content);
+        });
+      });
+    },
+
+    generatePrintContent(mapImage, miniMapImage, legendContent) {
+      let content = '';
+
+      // Página 1 - Mapa e informações principais
+      content += this.generatePage1(mapImage, miniMapImage, legendContent);
+
+      // Página 2 - Tabela CAR (se houver dados)
+      if (this.carData && this.carData.length > 0) {
+        content += this.generateCarTablePage();
+      }
+
+      // Página 3 - Legendas e informações finais
+      content += this.generateLegendPage(legendContent);
+
+      return content;
+    },
+
+    generatePage1(mapImage, miniMapImage, legendContent) {
+      return `
+        <div class="print-page page-1">
+          <div class="page-header">
+            <h1>${this.mapTitle}</h1>
+            <p>${this.print_title}</p>
+          </div>
+
+          <div class="map-section">
+            <div class="main-map-container">
+              <img src="${mapImage}" alt="Mapa Principal" class="map-image" />
+              <div class="mini-map-overlay-print">
+                <img src="${miniMapImage}" alt="Mini Mapa" class="mini-map-image" />
+              </div>
+            </div>
+          </div>
+
+          ${legendContent.carSummary}
+
+          <div class="legends-section-page1">
+            ${legendContent.legends}
+          </div>
+
+          <div class="page-footer">
+            <p>${this.print_info} ${this.$t('text-address0')}</p>
+            <p>${this.print_info} ${this.$t('text-address')} ${this.todayDate()}</p>
+            <p class="page-number">Página 1 de ${this.carData && this.carData.length > 0 ? '3' : '2'}</p>
+          </div>
+        </div>
+      `;
+    },
+
+    generateCarTablePage() {
+      const tableRows = this.carData.map((item, index) => `
+        <tr>
+          <td class="text-center">
+            <span class="color-badge" style="background-color: ${this.getCarColor(index)}; color: white; display: inline-block; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-size: 10px; font-weight: bold;">${index + 1}</span>
+          </td>
+          <td>${item.properties?.co_imovel || '-'}</td>
+          <td>${this.getTerraIndigenaName(item)}</td>
+          <td>${this.getMunicipioName(item)}</td>
+          <td>${item.properties?.sg_uf || '-'}</td>
+          <td>${item.properties?.no_etnia || '-'}</td>
+          <td class="text-right">${this.formatNumber(item.properties?.nu_area_ha)}</td>
+          <td>${item.properties?.tp_situacao || '-'}</td>
+          <td>${item.properties?.ds_condicao_imovel || '-'}</td>
+        </tr>
+      `).join('');
+
+      return `
+        <div class="print-page page-2">
+          <div class="page-header">
+            <h2>Cadastro Ambiental Rural - Detalhamento</h2>
+            <p>Total de CARs: ${this.carData.length}</p>
+          </div>
+
+          <div class="table-container">
+            <table class="car-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Código de origem</th>
+                  <th>Nome da Terra Indígena</th>
+                  <th>Município</th>
+                  <th>UF</th>
+                  <th>Etnia</th>
+                  <th>Área (ha)</th>
+                  <th>Situação</th>
+                  <th>Condição do Imóvel</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRows}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="page-footer">
+            <p class="page-number">Página 2 de 3</p>
+          </div>
+        </div>
+      `;
+    },
+
+    generateLegendPage(legendContent) {
+      return `
+        <div class="print-page page-3">
+          <div class="page-header">
+            <h2>Informações Complementares</h2>
+          </div>
+
+          <div class="support-layers-section">
+            ${legendContent.supportLayers}
+          </div>
+
+          <div class="additional-info-section">
+            ${legendContent.additionalInfo}
+          </div>
+
+          <div class="final-info">
+            <p>${this.$t('author-label')}</p>
+            <p>${this.$t('text-info')}</p>
+            <p>${this.$t('text-format')} ${this.leafSize.type}.</p>
+          </div>
+
+          <div class="page-footer">
+            <p class="page-number">Página ${this.carData && this.carData.length > 0 ? '3' : '2'} de ${this.carData && this.carData.length > 0 ? '3' : '2'}</p>
+          </div>
+        </div>
+      `;
+    },
+
+    generateCarSummaryHTML() {
+      if (!this.carData || this.carData.length === 0) return '';
+
+      const carItems = this.carData.slice(0, 12).map((item, index) => `
+        <div class="car-summary-item">
+          <span class="color-badge" style="background-color: ${this.getCarColor(index)}; color: white; display: inline-block; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-size: 10px; font-weight: bold; margin-right: 8px;">${index + 1}</span>
+          <span class="car-name">${this.getTerraIndigenaName(item)}</span>
+        </div>
+      `).join('');
+
+      const remainingCount = this.carData.length - 12;
+      const remainingText = remainingCount > 0 ?
+        `<div class="car-remaining">+ ${remainingCount} outros CARs listados na próxima página</div>` : '';
+
+      return `
+        <div class="car-summary-section">
+          <h3>Cadastro Ambiental Rural (CAR) - Resumo</h3>
+          <div class="car-summary-grid">
+            ${carItems}
+          </div>
+          ${remainingText}
+        </div>
+      `;
+    },
+
+    generateSupportLayersHTML() {
+      if (!this.shouldShowCartographicSection) return '';
+
+      let layersHTML = '';
+
+      this.layerCategories.forEach(category => {
+        Object.values(category.layers).forEach(layer => {
+          if (layer && layer.visible) {
+            layersHTML += `
+              <div class="layer-info">
+                <p>
+                  <strong>${layer.name || '-'}.</strong>
+                  Fonte: ${layer.fonte || '-'}, Data de atualização:
+                  ${this.handleData(layer.dt_atualizacao)}.
+                </p>
+              </div>
+            `;
+          }
+        });
+      });
+
+      return `
+        <div class="support-layers">
+          <h3>Bases Cartográficas</h3>
+          ${layersHTML}
+        </div>
+      `;
+    },
+
+    generateAllLegendsHTML() {
+      let legendsHTML = '';
+
+      // Monitoramento
+      if (this.showFeaturesMonitoring && this.hasActiveMonitoringStages) {
+        legendsHTML += this.generateLegendSectionHTML('Monitoramento Diário', this.monitoringItems);
+      }
+
+      // Alertas
+      if (this.showFeaturesAlerts && this.hasActiveAlertsStages) {
+        legendsHTML += this.generateLegendSectionHTML('Alerta Urgente', this.alertsItems);
+      }
+
+      // Uso do Solo
+      if (this.showFeaturesLandUse) {
+        legendsHTML += this.generateLegendSectionHTML('Uso e Ocupação do Solo', this.landUseItems);
+      }
+
+      // Prodes
+      if (this.showFeaturesProdes) {
+        legendsHTML += this.generateLegendSectionHTML('INPE - Prodes', this.prodesItems);
+      }
+
+      // Deter
+      if (this.showFeaturesDeter) {
+        legendsHTML += this.generateLegendSectionHTML('INPE - Deter', this.deterItems);
+      }
+
+      // Focos de Calor
+      if (this.showFeaturesAquaMM || this.showFeaturesAquaMT) {
+        legendsHTML += this.generateLegendSectionHTML('INPE - Focos de Calor', this.filteredHeatFocusItems);
+      }
+
+      return legendsHTML;
+    },
+
+    generateLegendSectionHTML(title, items) {
+      if (!items || items.length === 0) return '';
+
+      const itemsHTML = items.map(item => `
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: ${item.color}; border: ${item.border || '1px solid #ccc'}; width: 15px; height: 15px; display: inline-block; margin-right: 8px;"></span>
+          <span class="legend-label">${item.label}</span>
+        </div>
+      `).join('');
+
+      return `
+        <div class="legend-section">
+          <h4>${title}</h4>
+          <div class="legend-items">
+            ${itemsHTML}
+          </div>
+        </div>
+      `;
+    },
+
+    generateAdditionalInfoHTML() {
+      return this.activePrintFeatures.map(feature => `
+        <div class="info-item">
+          <strong>${this.$t(feature.label)}</strong>
+          ${feature.type === 'date-range' ?
+            `${this.handleData(feature.startDate)} ${this.$t('and')} ${this.handleData(feature.endDate)}` :
+          feature.type === 'years-list' && feature.years.length > 0 ?
+            feature.years.join(', ') :
+          feature.type === 'single-year' ?
+            feature.yearHandler() : ''}
+        </div>
+      `).join('');
+    },
+
+    getPrintStyles() {
+      return `
+        @page {
+          size: landscape;
+          margin: 1cm;
+        }
+
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: Arial, sans-serif;
+          color: #000;
+          background: white;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .print-page {
+          page-break-after: always;
+          padding: 20px;
+          min-height: 95vh;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .print-page:last-child {
+          page-break-after: auto;
+        }
+
+        .page-header {
+          text-align: center;
+          margin-bottom: 20px;
+          border-bottom: 2px solid #333;
+          padding-bottom: 10px;
+        }
+
+        .page-header h1 {
+          margin: 0 0 5px 0;
+          font-size: 24px;
+          color: #333;
+        }
+
+        .page-header h2 {
+          margin: 0 0 5px 0;
+          font-size: 20px;
+          color: #333;
+        }
+
+        .page-header p {
+          margin: 0;
+          font-size: 14px;
+          color: #666;
+        }
+
+        .map-section {
+          flex: 1;
+          margin: 15px 0;
+          position: relative;
+        }
+
+        .main-map-container {
+          position: relative;
+          display: inline-block;
+        }
+
+        .map-image {
+          max-width: 100%;
+          max-height: 500px;
+          border: 1px solid #ccc;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .mini-map-overlay-print {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 180px;
+          height: 130px;
+          border: 2px solid #ccc;
+          border-radius: 4px;
+          background: white;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .mini-map-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .car-summary-section {
+          margin: 15px 0;
+          padding: 15px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+        }
+
+        .car-summary-section h3 {
+          margin: 0 0 10px 0;
+          font-size: 16px;
+          color: #333;
+        }
+
+        .car-summary-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+
+        .car-summary-item {
+          display: flex;
+          align-items: center;
+          font-size: 11px;
+          padding: 4px;
+        }
+
+        .car-name {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .car-remaining {
+          font-size: 11px;
+          font-style: italic;
+          color: #666;
+          text-align: center;
+        }
+
+        .legends-section-page1 {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 15px;
+          margin: 15px 0;
+        }
+
+        .legend-section {
+          break-inside: avoid;
+        }
+
+        .legend-section h4 {
+          margin: 0 0 10px 0;
+          font-size: 14px;
+          color: #333;
+          border-bottom: 1px solid #ddd;
+          padding-bottom: 5px;
+        }
+
+        .legend-items {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .legend-item {
+          display: flex;
+          align-items: center;
+          font-size: 11px;
+        }
+
+        .legend-label {
+          line-height: 1.2;
+        }
+
+        .table-container {
+          flex: 1;
+          overflow: hidden;
+        }
+
+        .car-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 9px;
+          margin-bottom: 15px;
+        }
+
+        .car-table th,
+        .car-table td {
+          border: 1px solid #ccc;
+          padding: 4px 6px;
+          text-align: left;
+        }
+
+        .car-table th {
+          background-color: #f5f5f5;
+          font-weight: bold;
+        }
+
+        .car-table .text-center {
+          text-align: center;
+        }
+
+        .car-table .text-right {
+          text-align: right;
+        }
+
+        .support-layers-section {
+          margin: 15px 0;
+        }
+
+        .support-layers h3 {
+          margin: 0 0 10px 0;
+          font-size: 16px;
+          color: #333;
+        }
+
+        .layer-info {
+          margin-bottom: 8px;
+          font-size: 11px;
+        }
+
+        .additional-info-section {
+          margin: 15px 0;
+          padding: 15px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+        }
+
+        .info-item {
+          margin-bottom: 8px;
+          font-size: 11px;
+        }
+
+        .info-item strong {
+          color: #333;
+        }
+
+        .final-info {
+          margin-top: auto;
+          padding: 15px;
+          border-top: 1px solid #ddd;
+          font-size: 11px;
+          color: #666;
+        }
+
+        .page-footer {
+          margin-top: auto;
+          padding-top: 15px;
+          border-top: 1px solid #ddd;
+          font-size: 10px;
+          color: #666;
+        }
+
+        .page-number {
+          text-align: center;
+          font-weight: bold;
+        }
+
+        @media print {
+          .print-page {
+            padding: 0;
+            min-height: 100vh;
+          }
+
+          body {
+            margin: 0;
+            padding: 0;
+          }
+        }
+      `;
+    },
+
+    // Mantenha todos os seus métodos existentes abaixo...
     getMunicipioName(carItem) {
       if (carItem.properties?.no_municipio_car) {
         return carItem.properties.no_municipio_car;
@@ -1126,93 +1748,10 @@ export default {
       }
     },
 
+    // Mantenha o método print original se necessário para compatibilidade
     print() {
       this.adjustMapSizeForPrint(this.leafSize.type);
-      const style = document.createElement('style');
-      style.setAttribute('media', 'print');
       window.print();
-    },
-
-    async saveImage() {
-      this.loadingPrintImage = true;
-      const node = document.getElementById('map-for-print-container');
-      const mapBounds = document.getElementsByClassName('leaflet-control-mapbounds')[0];
-      const mapControlZoom = document.getElementsByClassName('leaflet-control-zoom')[0];
-      const infoControlRight = document.getElementsByClassName('leaflet-control-attribution')[1];
-      const legends = document.getElementsByClassName('text-legend-customized');
-      const originalLegends = [];
-      const originalStyle = infoControlRight ? infoControlRight.getAttribute('style') : null;
-
-      try {
-        const nameImageDownload = this.mapTitle;
-
-        // Preparar controles do mapa (igual ao código que funciona)
-        if (mapControlZoom) mapControlZoom.style.display = 'none';
-        if (mapBounds) mapBounds.style.width = '250px';
-        if (infoControlRight) {
-          const currentWidth = parseFloat(window.getComputedStyle(infoControlRight).width);
-          infoControlRight.style.width = `${currentWidth + 30}px`;
-        }
-
-        const originalWidth = node.style.width;
-        const originalHeight = node.style.height;
-        const originalOverflow = node.style.overflow;
-
-        node.style.width = '1230px';
-        node.style.height = '780px';
-        node.style.overflow = 'hidden';
-
-        if (legends && legends.length > 0) {
-          Array.from(legends).forEach((legend) => {
-            originalLegends.push(legend.style.width);
-            legend.style.width = '110px';
-          });
-        }
-
-        await this.$nextTick();
-
-        const options = {
-          quality: 1,
-          bgcolor: 'white',
-          width: 1230,
-          height: 780,
-          style: {
-            transform: 'scale(1)',
-            transformOrigin: 'top left',
-          },
-        };
-
-        if (infoControlRight) {
-          infoControlRight.setAttribute('style', 'width: 304px');
-        }
-
-        const image = await domtoimage.toJpeg(node, options);
-
-        const link = document.createElement('a');
-        link.href = image;
-        link.download = nameImageDownload ? `${nameImageDownload}.jpeg` : 'Mapa.jpeg';
-        link.click();
-
-        this.loadingPrintImage = false;
-      } catch (error) {
-        console.error('Erro ao gerar imagem:', error);
-        this.$emit('show-error', 'Ocorreu um erro ao gerar a imagem.');
-        this.loadingPrintImage = false;
-      } finally {
-        if (infoControlRight) infoControlRight.setAttribute('style', originalStyle || 'width: auto');
-        if (mapBounds) mapBounds.style.width = 'auto';
-        if (mapControlZoom) mapControlZoom.style.display = 'block';
-        if (originalLegends && originalLegends.length > 0) {
-          Array.from(legends).forEach((legend, index) => {
-            legend.style.width = originalLegends[index];
-          });
-        }
-        if (node) {
-          node.style.width = originalWidth;
-          node.style.height = originalHeight;
-          node.style.overflow = originalOverflow;
-        }
-      }
     },
 
     ...mapActions('monitoring', ['getDataTableMonitoring']),
