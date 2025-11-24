@@ -578,7 +578,7 @@ export default {
           geojson.features.push({
             type: 'Feature',
             geometry: circle,
-            properties: {},
+            properties: { color: layer.options.color || '#3388ff' },
           });
           return;
         }

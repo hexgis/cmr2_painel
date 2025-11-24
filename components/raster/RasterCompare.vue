@@ -261,10 +261,6 @@ export default {
     },
   },
 
-  mounted() {
-    // Component mounted
-  },
-
   beforeDestroy() {
     // Clean up maps when component is destroyed
     this.cleanupMaps();
@@ -354,8 +350,13 @@ export default {
         });
 
         // Add base tile layer
-        const baseLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-        this.baseLayer = this.$L.tileLayer(baseLayerUrl, { attribution: '' });
+        let baseLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        let baseLayerOptions = {};
+        if (this.$store.state.map.currentBaseMap && this.$store.state.map.currentBaseMap.url) {
+          baseLayerUrl = this.$store.state.map.currentBaseMap.url;
+          baseLayerOptions = this.$store.state.map.currentBaseMap.options || { attribution: '' };
+        }
+        this.baseLayer = this.$L.tileLayer(baseLayerUrl, baseLayerOptions);
         this.baseLayer.addTo(this.map);
 
         this.addVisibleLayersFromMainMap();
@@ -372,10 +373,10 @@ export default {
       let center = [-15.7801, -47.9292]; // Default to Brazil center
       let zoom = 5;
 
-      if (window.map && window.map.getCenter) {
+      if (window.mapMain && window.mapMain.getCenter) {
         try {
-          center = [window.map.getCenter().lat, window.map.getCenter().lng];
-          zoom = window.map.getZoom();
+          center = [window.mapMain.getCenter().lat, window.mapMain.getCenter().lng];
+          zoom = window.mapMain.getZoom();
         } catch (e) {
           // Use defaults if main map is not accessible
         }
@@ -459,9 +460,28 @@ export default {
           }
         });
 
+        // Support Layers User Layers
+        const supportUserLayers = this.$store.state.supportLayersUser.supportLayerUser || {};
+        Object.values(supportUserLayers).forEach((layer) => {
+          if (layer.visible) {
+            const isHighResOrMosaic = layer.name
+              && (layer.name.toLowerCase().includes('alta resolução')
+                || layer.name.toLowerCase().includes('mosaicos')
+                || layer.name.toLowerCase().includes('alta resolu')
+                || layer.name.toLowerCase().includes('mosaic'));
+
+            allVisibleLayers.push({
+              ...layer,
+              source: 'supportLayersUser',
+              zIndex: isHighResOrMosaic ? 4 : 10,
+            });
+          }
+        });
+
         this.addInpeLayers(allVisibleLayers);
         this.addMonitoringLayers(allVisibleLayers);
         this.addDeterProdesLayers(allVisibleLayers);
+        this.addSupportLayerUserLayers(allVisibleLayers);
 
         allVisibleLayers.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
 
@@ -478,10 +498,6 @@ export default {
           const mapLayer = this.createLayer(layer, layer.zIndex);
           if (mapLayer) {
             mapLayer.addTo(this.map);
-
-            if (mapLayer.options && mapLayer.options.opacity && mapLayer.options.opacity < 0.3) {
-              mapLayer.setOpacity(0.8);
-            }
 
             if (layer.name && (layer.name.includes('DETER') || layer.name.includes('PRODES') || layer.name.includes('Focos') || layer.name.includes('Monitoramento') || layer.name.includes('Alertas'))) {
               mapLayer.setZIndex(1000);
@@ -507,6 +523,8 @@ export default {
           return this.createWmsLayer(layer, customZIndex);
         } if (layer.layer_type === 'tms' && layer.tms) {
           return this.createTmsLayer(layer, customZIndex);
+        } if (layer.geometry) {
+          return this.createVectorLayer(layer, customZIndex);
         }
         // Unsupported layer type or missing layer data
         return null;
@@ -522,7 +540,7 @@ export default {
           return null;
         }
 
-        const url = `${layer.wms.geoserver.geoserver_url}/wms`;
+        const url = `${layer.wms.geoserver.wms_url}`;
         const options = createWmsOptions(layer, customZIndex);
         const wmsLayer = this.$L.tileLayer.wms(url, options);
 
@@ -544,6 +562,29 @@ export default {
 
         this.setupLayerEventHandlers(tmsLayer);
         return tmsLayer;
+      } catch (error) {
+        return null;
+      }
+    },
+
+    createVectorLayer(layer, customZIndex = null) {
+      try {
+        const geoJsonOptions = {
+          style: {
+            color: layer.style && layer.style.color ? layer.style.color : '#3388ff',
+            weight: layer.style && layer.style.weight ? layer.style.weight : 3,
+            opacity: layer.style && layer.style.opacity ? layer.style.opacity : 1.0,
+            fillColor: layer.style && layer.style.fillColor ? layer.style.fillColor : '#3388ff',
+            fillOpacity: layer.style && layer.style.fillOpacity ? layer.style.fillOpacity : 0.2,
+          },
+        };
+
+        const vectorLayer = this.$L.geoJSON(layer.geometry, geoJsonOptions);
+
+        if (customZIndex) vectorLayer.setZIndex(customZIndex);
+
+        this.setupLayerEventHandlers(vectorLayer);
+        return vectorLayer;
       } catch (error) {
         return null;
       }
@@ -821,6 +862,23 @@ export default {
             id: 'prodes_deforestation',
           });
         }
+      } catch (error) {
+        console.log(error.message);
+      }
+    },
+
+    addSupportLayerUserLayers(layersToAdd) {
+      try {
+        const supportUserLayers = this.$store.state.supportLayersUser.supportLayerUser || {};
+        Object.values(supportUserLayers).forEach((layer) => {
+          if (layer.visible) {
+            layersToAdd.push({
+              ...layer,
+              source: 'supportLayersUser',
+              zIndex: 10,
+            });
+          }
+        });
       } catch (error) {
         console.log(error.message);
       }

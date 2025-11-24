@@ -146,6 +146,9 @@ export default {
 .minimap-for-print{
     width: 100% !important;
     height: 100% !important;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
 }
 
 #printMap{
@@ -156,5 +159,28 @@ export default {
 .leaflet-container{
     width: 100% !important;
     height: 100% !important;
+    background: white !important;
+}
+
+#miniPrintMap {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 150px;
+}
+
+.print-mini-map-text {
+    font-size: 10px !important;
+    font-weight: bold !important;
+    line-height: 1.2 !important;
+    padding: 2px 4px !important;
+}
+
+@media print {
+    .minimap-for-print {
+        max-width: none !important;
+        max-height: none !important;
+        width: 100% !important;
+        height: 150px !important;
+    }
 }
 </style>
