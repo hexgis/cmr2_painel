@@ -365,8 +365,6 @@ export default {
         }
       }
 
-      console.log(filters.join(' AND '));
-
       return filters.join(' AND ');
     },
 

@@ -153,10 +153,7 @@ export default {
         (v) => ((!!v && !!v.length) || !!this.filters.currentView) || false,
       ],
       ruleYearsItems: [
-        (v) => {
-          console.log(v);
-          return !!v || false;
-        },
+        (v) => !!v || false,
       ],
     };
   },
@@ -265,8 +262,6 @@ export default {
     },
 
     searchLandUse() {
-      console.log(this.$refs.urgentAlertForm.validate());
-
       if (this.$refs.urgentAlertForm.validate()) {
         this.$store.commit('land-use/setUrlWmsLandUse', '');
         this.$store.dispatch('land-use/generateUrlWmsLandUse');

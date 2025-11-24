@@ -112,8 +112,6 @@ export default {
         }
       }
 
-      console.log(filters.join(' AND '));
-
       return filters.join(' AND ');
     },
 
@@ -372,7 +370,6 @@ export default {
               return acc;
             }, {}),
           );
-          console.log({ ...stats, tiByStages });
           commit('setMonitoringStats', { ...stats, tiByStages });
         }
       } catch (error) {
