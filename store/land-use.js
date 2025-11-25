@@ -618,7 +618,7 @@ export default {
       state, dispatch, commit, getters, rootState,
     }) {
       let urlGeoserver = rootState.map.geoserverUrl;
-      urlGeoserver += `&CQL_FILTER=${encodeURIComponent(getters.getGenerateCqlFilterLandUse)}`;
+      urlGeoserver += `CQL_FILTER=${encodeURIComponent(getters.getGenerateCqlFilterLandUse)}`;
       commit('setUrlWmsLandUse', urlGeoserver);
       if (state.heatMapLandUse) {
         commit('clearHeatmap');

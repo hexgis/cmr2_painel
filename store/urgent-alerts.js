@@ -5,6 +5,13 @@ export default {
   state: () => ({
     showFeaturesUrgentAlert: false,
     heatMapUrgentAlert: false,
+    heatMapUrgentAlertOptions: {
+      minOpacity: 0.5,
+      maxZoom: 18,
+      radius: 20,
+      blur: 15,
+      zIndex: 4,
+    },
     urlWmsUrgentAlert: '',
     analyticsData: [],
     geoserverLayerUrgentAlert: process.env.GEOSERVER_URGENT_ALERT,

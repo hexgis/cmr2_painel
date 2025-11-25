@@ -31,13 +31,6 @@ export default {
   name: 'MonitoringLayers',
 
   data: () => ({
-    resultsHeatmapOptions: {
-      minOpacity: 0.5,
-      maxZoom: 18,
-      radius: 20,
-      blur: 15,
-      zIndex: 4,
-    },
     heatmapLayer: null,
   }),
 
@@ -50,6 +43,7 @@ export default {
     ...mapState('monitoring', [
       'showFeaturesMonitoring',
       'heatMapMonitoring',
+      'heatMapMonitoringOptions',
       'stats',
     ]),
   },
@@ -70,7 +64,7 @@ export default {
       this.removeMonitoramentoHeatLayer();
       this.heatmapLayer = this.$L.heatLayer(
         this.stats.heatmapMonitoring,
-        this.resultsHeatmapOptions,
+        this.heatMapMonitoringOptions,
       );
       window.mapMain.addLayer(this.heatmapLayer);
     },

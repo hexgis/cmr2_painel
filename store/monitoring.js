@@ -5,6 +5,13 @@ export default {
   state: () => ({
     showFeaturesMonitoring: false,
     heatMapMonitoring: false,
+    heatMapMonitoringOptions: {
+      minOpacity: 0.5,
+      maxZoom: 18,
+      radius: 20,
+      blur: 15,
+      zIndex: 4,
+    },
     urlWmsMonitoring: '',
     analyticsData: [],
     geoserverLayerMonitoring: process.env.GEOSERVER_MONITORING,
