@@ -1,28 +1,8 @@
 <template>
   <v-container>
-    <style>
-      @media print {
-      @page {
-      size: landscape;
-      margin: 0;
-      }
-      }
-
-      /* Classe para os divisores estilizados */
-      .styled-divider {
-        border: 1px solid blue;
-        margin: 0;
-        margin-top: 3px;
-      }
-      .styled-divider-red {
-        border: 1px solid red;
-        margin: 0;
-        margin-top: 3px;
-      }
-    </style>
     <v-dialog
       v-model="showDialog"
-      width="auto"
+      width="1230px"
       @click:outside="$emit('close')"
     >
       <v-toolbar
@@ -46,47 +26,40 @@
 
           <!-- Logos e Título centralizados -->
           <v-row class="justify-center text-center ma-2">
-            <v-col cols="12">
-              <!-- Logos lado a lado -->
-              <v-row class="justify-center align-center mb-2">
-                <v-col cols="auto">
-                  <v-img
-                    contain
-                    :src="logo_funai"
-                    max-width="120px"
-                    max-height="60px"
-                  />
-                </v-col>
-                <v-col cols="auto" class="pl-16">
-                  <v-img
-                    contain
-                    :src="logo_cmr"
-                    max-width="180px"
-                    max-height="60px"
-                  />
-                </v-col>
-              </v-row>
-              
-              <!-- Título -->
-              <v-row class="justify-center">
-                <v-col cols="12">
-                  <p class="font-title text-h6">{{ mapTitle }}</p>
-                </v-col>
-              </v-row>
-            </v-col>
+              <v-col cols="6" class="d-flex justify-end align-end">
+                <v-img
+                  contain
+                  :src="logo_funai"
+                  max-width="120px"
+                  max-height="60px"
+                />
+              </v-col>
+              <v-col cols="6" class="mt-2">
+                <v-img
+                  contain
+                  :src="logo_cmr"
+                  max-width="180px"
+                  max-height="60px"
+                />
+              </v-col>
+              <v-col cols="12">
+                <p class="font-title text-h6">{{ mapTitle }}</p>
+              </v-col>
           </v-row>
 
+          <!-- Mapa principal e legenda -->
           <v-row
             id="map-for-print-container"
             no-gutters
-            style="width: 1230px;  overflow: hidden"
+            style="overflow: hidden"
           >
+
+          <!-- MiniMap em cima do mapa principal -->
             <v-col
               cols="12"
               class="pr-0 mt-2"
               style="max-height: 500px; position: relative"
             >
-              <!-- MiniMap em cima do mapa principal -->
               <v-sheet class="mini-map-overlay">
                 <MiniMap
                   v-if="currentBouldMap"
@@ -108,6 +81,7 @@
                 @mapReady="onMapReady"
               />
             </v-col>
+
 
             <!-- Lista CAR na legenda -->
             <v-row
@@ -148,8 +122,11 @@
                 </v-row>
               </v-col>
             </v-row>
+
             <v-divider />
 
+
+            <!-- Legendas das camadas -->
             <v-row
               class="flex-nowrap justify-start align-start"
               style="gap: 5px; flex-wrap: wrap;"
@@ -326,48 +303,51 @@
               </v-col>
             </v-row>
 
-            <v-col v-if="shouldShowCartographicSection">
-              <v-divider />
-              <!-- Texto sobre sistema geodésico -->
-             <v-col class="py-2">
-                <p>
-                  {{ $t('geodetic-system-info-part1') }}
-                  <strong>{{ $t('geodetic-system-info-strong') }}</strong>
-                  {{ $t('geodetic-system-info-part2') }}
-                </p>
-              </v-col>
-              <v-divider />
-              <p class="d-block ml-3 mt-2">
-                <strong>Bases Cartográficas:</strong>
-              </p>
+            <v-divider />
 
+            <!-- Seção de informações adicionais -->
+            <v-col class="pa-3">
+              <p>
+                {{ $t('geodetic-system-info-part1') }}
+                <strong>{{ $t('geodetic-system-info-strong') }}</strong>
+                {{ $t('geodetic-system-info-part2') }}
+              </p>
+            </v-col>
+
+            <v-divider />
+
+            <p class="d-block px-3 py-2">
+              <strong>Bases Cartográficas:</strong>
+            </p>
+
+            <v-col
+              v-for="layerCategory in layerCategories"
+              :key="`${layerCategory.name}-${layerCategory.type}`"
+            >
               <v-col
-                v-for="layerCategory in layerCategories"
-                :key="`${layerCategory.name}-${layerCategory.type}`"
+                v-for="(layer, layerId) in layerCategory.layers"
+                :key="layerId"
+                class="py-1"
               >
-                <v-col
-                  v-for="(layer, layerId) in layerCategory.layers"
-                  :key="layerId"
-                  class="pa-0 mb-1"
+                <v-row
+                  v-if="layer && layer.visible"
+                  no-gutters
+                  align="center"
+                  class="image-container"
                 >
-                  <v-row
-                    v-if="layer && layer.visible"
-                    no-gutters
-                    align="center"
-                    class="image-container"
-                  >
-                    <v-col>
-                      <p>
-                        <strong>{{ layer.name || '-' }}.</strong>
-                        Fonte:{{ layer.fonte || '-' }}, Data de
-                        atualização:
-                        {{ handleData(layer.dt_atualizacao) }}.
-                      </p>
-                    </v-col>
-                  </v-row>
-                </v-col>
+                  <v-col>
+                    <p>
+                      <strong>{{ layer.name || '-' }}.</strong>
+                      Fonte:{{ layer.fonte || '-' }}, Data de
+                      atualização:
+                      {{ handleData(layer.dt_atualizacao) }}.
+                    </p>
+                  </v-col>
+                </v-row>
               </v-col>
             </v-col>
+
+            <v-divider />
 
             <v-col>
               <v-col
@@ -398,18 +378,18 @@
               <v-divider />
             </v-col>
 
-            <v-col class="ml-3 py-1">
+            <v-col class="ml-2 py-1">
               <p>
-                {{ print_info }}
                 {{ $t('text-address0') }}
               </p>
               <p>
-                {{ print_info }}
                 {{ $t('text-address') }}
                 {{ todayDate() }}
               </p>
             </v-col>
+
             <v-divider />
+
             <v-col class="ml-3 py-1">
               <p>
                 {{ $t('author-label') }}
@@ -422,6 +402,7 @@
                 {{ leafSize.type }}.
               </p>
             </v-col>
+
           </v-row>
         </v-container>
       </v-row>
@@ -438,8 +419,8 @@
         <v-btn
           color="primary"
           class="mr-4"
-          :disabled="loadingPrintImage"
-          @click="generateMultiPagePDF"
+          :disabled="showWarningMessage || loadingPrintImage"
+          @click="print"
         >
           <v-icon dark>
             mdi-file-export-outline
@@ -448,12 +429,8 @@
         </v-btn>
       </v-footer>
     </v-dialog>
-    <PDFGenerator ref="pdfGenerator" />
   </v-container>
 </template>
-
-
-
 
 <i18n>
 {
@@ -532,7 +509,6 @@ import MapForPrint from './MapForPrint.vue';
 import MiniMap from './MiniMap.vue';
 import LayerList from './LayerListActive.vue';
 import CustomizedLegend from './CustomizedLegendActive.vue';
-import PDFGenerator from './PDFGenerator.vue';
 
 export default {
   name: 'PrintTemplateMapLandscape',
@@ -541,7 +517,6 @@ export default {
     MiniMap,
     LayerList,
     CustomizedLegend,
-    PDFGenerator
   },
 
   props: {
@@ -577,21 +552,13 @@ export default {
 
   data: () => ({
     selectedItemsCount: 0,
-    totalMonitoring: 0,
-    totalLandUse: 0,
-    map: null,
-    miniMap: null,
     currentBouldMap: null,
     mapCenter: null,
     mainZoom: null,
     logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
     logo_cmr: process.env.DEFAULT_LOGO_IMAGE_CMR,
-    print_title: process.env.PRINT_TITLE,
-    print_info: process.env.PRINT_INFO,
-    loadingPrintImage: false,
     carLayer: null,
     printMap: null,
-
     deterItems: [{ label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' }],
     heatFocusItems: [
       {
@@ -605,192 +572,102 @@ export default {
         icon: 'mdi-fire',
       },
     ],
+    CAR_COLORS: [
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+      '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+      '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2',
+      '#F9E79F', '#A9DFBF', '#F5B7B1', '#AED6F1', '#E8DAEF',
+      '#A3E4D7', '#FAD7A0', '#D2B4DE', '#A9CCE3', '#F9E79F',
+      '#ABEBC6',
+    ],
   }),
 
   computed: {
     filteredHeatFocusItems() {
-      return this.heatFocusItems.filter((item) => (item.label === 'Aqua Modis Manhã' && this.showFeaturesAquaMM)
-        || (item.label === 'Aqua Modis Tarde' && this.showFeaturesAquaMT));
+      const { showFeaturesAquaMM, showFeaturesAquaMT } = this;
+      return this.heatFocusItems.filter(item =>
+        (item.label === 'Aqua Modis Manhã' && showFeaturesAquaMM) ||
+        (item.label === 'Aqua Modis Tarde' && showFeaturesAquaMT)
+      );
     },
 
     activePrintFeatures() {
       const features = [];
-
-      if (this.showFeaturesMonitoring) {
-        features.push({
+      const conditions = [
+        {
+          condition: this.showFeaturesMonitoring,
           type: 'date-range',
           label: 'monitoring-print-label',
-          startDate: this.monitoringFilters.startDate,
-          endDate: this.monitoringFilters.endDate
-        });
-      }
-
-      if (this.showFeaturesAlerts) {
-        features.push({
+          startDate: this.monitoringFilters?.startDate,
+          endDate: this.monitoringFilters?.endDate
+        },
+        {
+          condition: this.showFeaturesAlerts,
           type: 'date-range',
           label: 'alerts-print-label',
-          startDate: this.alertsFilters.startDate,
-          endDate: this.alertsFilters.endDate
-        });
-      }
-
-      if (this.showFeaturesLandUse && this.uniqueYears.length > 0) {
-        features.push({
+          startDate: this.alertsFilters?.startDate,
+          endDate: this.alertsFilters?.endDate
+        },
+        {
+          condition: this.showFeaturesLandUse && this.uniqueYears.length > 0,
           type: 'years-list',
           label: 'land-use-print-label',
           years: this.uniqueYears
-        });
-      }
-
-      if (this.showFeaturesProdes) {
-        features.push({
+        },
+        {
+          condition: this.showFeaturesProdes,
           type: 'single-year',
           label: 'prodes-print-label',
           yearHandler: this.handleProdesYear
-        });
-      }
-
-      if (this.showFeaturesDeter) {
-        features.push({
+        },
+        {
+          condition: this.showFeaturesDeter,
           type: 'date-range',
           label: 'deter-print-label',
-          startDate: this.deterFilters.startDate,
-          endDate: this.deterFilters.endDate
-        });
-      }
-
-      if (this.showFeaturesAquaMM || this.showFeaturesAquaMT) {
-        features.push({
+          startDate: this.deterFilters?.startDate,
+          endDate: this.deterFilters?.endDate
+        },
+        {
+          condition: this.showFeaturesAquaMM || this.showFeaturesAquaMT,
           type: 'date-range',
           label: 'heat-focus-print-label',
-          startDate: this.focoFilters.startDate,
-          endDate: this.focoFilters.endDate
-        });
-      }
+          startDate: this.focoFilters?.startDate,
+          endDate: this.focoFilters?.endDate
+        }
+      ];
 
-      return features;
+      return conditions
+        .filter(item => item.condition)
+        .map(({ condition, ...rest }) => rest);
     },
 
     hasActiveMonitoringStages() {
       return Object.values(this.legendVisibility).some((visible) => visible);
     },
+
     hasActiveAlertsStages() {
       return Object.values(this.legendVisibilityalerts).some((visible) => visible);
     },
 
-    filteredMonitoringData() {
-      return this.combinedTableData.filter(
-        (item) => item.monitoring
-        && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0),
-      );
+    monitoringCount() {
+      return this.tableMonitoring?.length || 0;
     },
-    filteredAlertsData() {
-      return this.combinedTableData.filter(
-        (item) => item.alerts && Object.keys(item.alerts).some((key) => item.alerts[key] > 0),
-      );
+
+    alertsCount() {
+      return this.tableAlerts?.length || 0;
     },
-    filteredLandUseData() {
-      return this.combinedTableData.filter(
-        (item) => item.landUse && Object.keys(item.landUse).some((key) => item.landUse[key] > 0),
-      );
-    },
-    filteredCombinedTableData() {
-      return this.combinedTableData.filter((item) => {
-        const hasMonitoring = this.showFeaturesMonitoring
-        && item.monitoring && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0);
-        const hasLandUse = this.showFeaturesLandUse
-        && item.landUse && Object.keys(item.landUse).some((key) => item.landUse[key] > 0);
-        const hasAlerts = this.showFeaturesAlerts
-        && item.alerts && Object.keys(item.alerts).some((key) => item.alerts[key] > 0);
-        return hasMonitoring || hasLandUse || hasAlerts;
-      });
-    },
-    combinedTableData() {
-      const keys = {
-        monitoring: ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'],
-        landUse: ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'],
-        alerts: ['cr_ha', 'dg_ha', 'dr_ha'],
-      };
 
-      const initializeObject = (keyList) => keyList.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
-      const initializeData = (noTi) => ({
-        no_ti: noTi,
-        nu_area_ha: 0,
-        monitoring: initializeObject(keys.monitoring),
-        landUse: initializeObject(keys.landUse),
-        alerts: initializeObject(keys.alerts),
-      });
-
-      const addValue = (target, key, value) => {
-        const updatedValue = (target[key] || 0) + (parseFloat(value) || 0);
-        target[key] = updatedValue;
-      };
-
-      const combined = {};
-
-      const processTable = (table, type) => {
-        if (!Array.isArray(table)) return;
-
-        table.forEach((item) => {
-          if (!item.no_ti) return;
-          if (!combined[item.no_ti]) combined[item.no_ti] = initializeData(item.no_ti);
-          const data = combined[item.no_ti];
-          addValue(data, 'nu_area_ha', item.nu_area_ha);
-          keys[type].forEach((key) => addValue(data[type], `nu_area_${key}`, item[`nu_area_${key}`]));
-        });
-      };
-
-      processTable(this.tableMonitoring, 'monitoring');
-      processTable(this.tableLandUse, 'landUse');
-      processTable(this.tableAlerts, 'alerts');
-
-      return Object.values(combined);
-    },
-    totalAreas() {
-      const monitoringKeys = ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'];
-      const landUseKeys = ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'];
-      const alertsKeys = ['cr_ha', 'dg_ha', 'dr_ha'];
-
-      const initializeObject = (keys) => keys.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
-      const addValue = (target, key, value) => {
-        target[key] += parseFloat(value) || 0;
-      };
-
-      if (!Array.isArray(this.combinedTableData)) {
-        return initializeObject(['ha', ...monitoringKeys, ...landUseKeys, ...alertsKeys]);
-      }
-
-      return this.combinedTableData.reduce(
-        (acc, item) => {
-          addValue(acc, 'nu_area_ha', item.nu_area_ha);
-          monitoringKeys.forEach((key) => addValue(acc.monitoring, `nu_area_${key}`, item.monitoring[`nu_area_${key}`]));
-          landUseKeys.forEach((key) => addValue(acc.landUse, `nu_area_${key}`, item.landUse[`nu_area_${key}`]));
-          alertsKeys.forEach((key) => addValue(acc.alerts, `nu_area_${key}`, item.alerts[`nu_area_${key}`]));
-          return acc;
-        },
-        {
-          nu_area_ha: 0,
-          monitoring: initializeObject(monitoringKeys),
-          landUse: initializeObject(landUseKeys),
-          alerts: initializeObject(alertsKeys),
-        },
-      );
-    },
     uniqueYears() {
       if (!Array.isArray(this.tableLandUse)) return [];
       const years = this.tableLandUse.map((item) => item.nu_ano);
       return [...new Set(years)];
     },
+
     showDialog() {
       return this.showDialogLandscape;
     },
 
-    hasCartographicDatasets() {
-      const result = this.showFeaturesSupportLayers;
-      return result;
-    },
-
-    hasVisibleCartographicLayers() {
+    hasVisibleSupportLayers() {
       if (!this.showFeaturesSupportLayers) return false;
 
       const systemLayersVisible = this.supportLayers &&
@@ -799,20 +676,6 @@ export default {
       const userLayersVisible = this.supportLayerUser &&
         Object.values(this.supportLayerUser).some(layer => layer && layer.visible);
 
-      const result = systemLayersVisible || userLayersVisible;
-
-      return result;
-    },
-
-    hasVisibleSupportLayers() {
-      if (!this.showFeaturesSupportLayers) return false;
-      
-      const systemLayersVisible = this.supportLayers && 
-        Object.values(this.supportLayers).some(layer => layer && layer.visible);
-      
-      const userLayersVisible = this.supportLayerUser && 
-        Object.values(this.supportLayerUser).some(layer => layer && layer.visible);
-      
       return systemLayersVisible || userLayersVisible;
     },
 
@@ -856,90 +719,80 @@ export default {
       return categories;
     },
 
-    shouldShowCartographicSection() {
-      const result = this.hasCartographicDatasets && this.hasVisibleCartographicLayers;
-      return result;
-    },
-
-    hasLegend() {
-      return this.hasCartographicDatasets;
-    },
-
+    // Computed properties simplificadas usando métodos
     showFeaturesAquaMM() {
-      return (this.layers && this.layers.aquaMM && this.layers.aquaMM.showFeatures) || false;
+      return this.isLayerActive('aquaMM');
     },
+
     showFeaturesAquaMT() {
-      return (this.layers && this.layers.aquaMT && this.layers.aquaMT.showFeatures) || false;
+      return this.isLayerActive('aquaMT');
     },
+
     featuresAquaMM() {
-      return (this.layers && this.layers.aquaMM && this.layers.aquaMM.features) || null;
+      return this.getLayerFeatures('aquaMM');
     },
+
     featuresAquaMT() {
-      return (this.layers && this.layers.aquaMT && this.layers.aquaMT.features) || null;
+      return this.getLayerFeatures('aquaMT');
     },
+
     focoFilters() {
-      return (this.layers && this.layers.aquaMM && this.layers.aquaMM.filters) || {};
+      return this.layers?.aquaMM?.filters || {};
     },
+
     prodesItems() {
       return this.$store.getters['prodes/getLegendItems'];
     },
+
     monitoringItems() {
       return this.$store.getters['monitoring/getActiveLegendItems'];
     },
+
     alertsItems() {
       return this.$store.getters['urgent-alerts/getLegendItems'];
     },
+
     landUseItems() {
       return this.$store.getters['land-use/getActiveLegendItems'];
     },
-    monitoringCount() {
-      return this.filteredMonitoringData.length;
-    },
-    alertsCount() {
-      return this.filteredAlertsData.length;
-    },
+
     ...mapState({
       monitoringFilters: (state) => state.monitoring.filters,
       alertsFilters: (state) => state['urgent-alerts'].filters,
       prodesFilters: (state) => state.prodes.filters,
       deterFilters: (state) => state.deter.filters,
       showFeaturesMonitoring: (state) => state.monitoring.showFeaturesMonitoring,
-      monitoringFeatures: (state) => state.monitoring.features,
       showFeaturesAlerts: (state) => state['urgent-alerts'].showFeaturesAlerts,
       tableMonitoring: (state) => state.monitoring.tableMonitoring,
       tableAlerts: (state) => state['urgent-alerts'].tableAlerts,
       legendVisibility: (state) => state.monitoring.legendVisibility,
       legendVisibilityalerts: (state) => state['urgent-alerts'].legendVisibility,
       showFeaturesProdes: (state) => state.prodes.showFeaturesProdes,
-      prodesFeatures: (state) => state.prodes.features,
       showFeaturesDeter: (state) => state.deter.showFeaturesDeter,
-      deterFeatures: (state) => state.deter.features,
       showFeaturesLandUse: (state) => state['land-use'].showFeaturesLandUse,
-      landUseFeatures: (state) => state['land-use'].features,
       tableLandUse: (state) => state['land-use'].tableLandUse,
       supportLayerUser: (state) => state.supportLayersUser.supportLayerUser,
       showFeaturesSupportLayers: (state) => state.supportLayers.showFeaturesSupportLayers,
       supportLayers: (state) => state.supportLayers.supportLayers,
-      supportLayersCategoryBase: (state) => state.supportLayers.supportLayersCategoryBase,
-      showFeaturesUrgentAlerts: (state) => state['urgent-alerts'].showFeaturesUrgentAlerts,
       layers: (state) => state.foco.layers,
-      filterOptions: (state) => state.foco.filterOptions,
-      isLoadingFeatures: (state) => state.foco.isLoadingFeatures,
-      bounds: (state) => state.map.bounds,
-      totalFeatures: (state) => state.monitoring.totalFeatures,
     }),
   },
 
   watch: {
     carData: {
-      handler(newData) {
-        if (newData && newData.length > 0 && this.printMap) {
-          console.log('🗺️ Recebidos dados CAR para exibir:', newData.length);
-          this.$nextTick(() => {
-            this.displayCAROnMap(newData);
-          });
-        } else if (newData && newData.length > 0) {
-          console.log('⏳ Dados CAR recebidos, aguardando mapa...');
+      handler(newData, oldData) {
+        // Evitar processamento desnecessário se dados não mudaram
+        if (JSON.stringify(newData) === JSON.stringify(oldData)) return;
+
+        if (newData?.length > 0) {
+          if (this.printMap) {
+            console.log('🗺️ Recebidos dados CAR para exibir:', newData.length);
+            this.$nextTick(() => {
+              this.displayCAROnMap(newData);
+            });
+          } else {
+            console.log('⏳ Dados CAR recebidos, aguardando mapa...');
+          }
         } else {
           this.removeCARFromMap();
         }
@@ -947,46 +800,39 @@ export default {
       immediate: true,
       deep: true,
     },
-    combinedTableData: {
-      handler(newVal) {
-        this.selectedItemsCount = newVal.length;
-      },
-      immediate: true,
-    },
   },
 
   async mounted() {
+    const promises = [];
+
     if (this.showFeaturesMonitoring && this.getDataTableMonitoring) {
-      await this.getDataTableMonitoring();
+      promises.push(this.getDataTableMonitoring());
     }
     if (this.showFeaturesLandUse && this.getDataTableLandUse) {
-      await this.getDataTableLandUse();
+      promises.push(this.getDataTableLandUse());
     }
     if (this.showFeaturesAlerts && this.getDataTableAlerts) {
-      await this.getDataTableAlerts();
+      promises.push(this.getDataTableAlerts());
     }
 
-    this.selectedItemsCount = this.combinedTableData.length;
+    await Promise.all(promises);
+    this.updateSelectedItemsCount();
   },
 
   beforeDestroy() {
     this.removeCARFromMap();
+    this.printMap = null;
+    this.carLayer = null;
   },
 
   methods: {
-    async generateMultiPagePDF() {
-      try {
-        this.loadingPrintImage = true;
+    // Métodos auxiliares para layers
+    isLayerActive(layerName) {
+      return this.layers?.[layerName]?.showFeatures || false;
+    },
 
-        // Use o componente PDFGenerator
-        await this.$refs.pdfGenerator.generatePDF(this);
-
-      } catch (error) {
-        console.error('Erro ao gerar PDF:', error);
-        this.$emit('error', 'Erro ao gerar o documento PDF');
-      } finally {
-        this.loadingPrintImage = false;
-      }
+    getLayerFeatures(layerName) {
+      return this.layers?.[layerName]?.features || null;
     },
 
     getMunicipioName(carItem) {
@@ -1000,15 +846,7 @@ export default {
     },
 
     getCarColor(index) {
-      const colors = [
-        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-        '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
-        '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2',
-        '#F9E79F', '#A9DFBF', '#F5B7B1', '#AED6F1', '#E8DAEF',
-        '#A3E4D7', '#FAD7A0', '#D2B4DE', '#A9CCE3', '#F9E79F',
-        '#ABEBC6',
-      ];
-      return colors[index % colors.length];
+      return this.CAR_COLORS[index % this.CAR_COLORS.length];
     },
 
     getTerraIndigenaName(carItem) {
@@ -1025,23 +863,30 @@ export default {
     },
 
     formatNumber(value) {
-      let number;
-      if (typeof value === 'string') {
-        const cleanedValue = value.replace(/\./g, '').replace(',', '.');
-        number = parseFloat(cleanedValue);
-      } else {
-        number = parseFloat(value);
-      }
+      if (value == null || value === '') return '-';
 
-      if (!Number.isNaN(number)) {
-        const rounded = number.toFixed(3);
-        const [intPart, decimalPart] = rounded.split('.');
+      try {
+        const num = typeof value === 'string'
+          ? parseFloat(value.replace(/\./g, '').replace(',', '.'))
+          : Number(value);
 
-        return decimalPart !== '00'
-          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
-          : String(parseInt(number, 10));
+        if (isNaN(num)) return '-';
+
+        // Verificar se é inteiro
+        if (Number.isInteger(num)) {
+          return num.toLocaleString('pt-BR');
+        }
+
+        // Para decimais
+        const formatted = num.toLocaleString('pt-BR', {
+          minimumFractionDigits: 3,
+          maximumFractionDigits: 3
+        });
+
+        return formatted;
+      } catch {
+        return '-';
       }
-      return '-';
     },
 
     onMapReady(map) {
@@ -1057,6 +902,12 @@ export default {
 
     displayCAROnMap(features) {
       try {
+        // Validar features
+        if (!Array.isArray(features) || features.length === 0) {
+          console.warn('⚠️ Nenhum dado CAR válido para exibir');
+          return;
+        }
+
         console.log('🗺️ Adicionando CAR ao mapa de impressão...');
         console.log('📋 Dados CAR recebidos:', features);
 
@@ -1067,17 +918,8 @@ export default {
 
         this.removeCARFromMap();
 
-        const colors = [
-          '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-          '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
-          '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2',
-          '#F9E79F', '#A9DFBF', '#F5B7B1', '#AED6F1', '#E8DAEF',
-          '#A3E4D7', '#FAD7A0', '#D2B4DE', '#A9CCE3', '#F9E79F',
-          '#ABEBC6',
-        ];
-
         const carLayers = features.map((feature, index) => {
-          const color = colors[index % colors.length];
+          const color = this.getCarColor(index);
           const numero = index + 1;
 
           const carStyle = {
@@ -1140,6 +982,14 @@ export default {
       }
     },
 
+    updateSelectedItemsCount() {
+      this.selectedItemsCount = Math.max(
+        this.tableMonitoring?.length || 0,
+        this.tableAlerts?.length || 0,
+        this.tableLandUse?.length || 0
+      );
+    },
+
     handleProdesYear() {
       const { prodesFilters } = this;
       if (!prodesFilters) return '-';
@@ -1180,8 +1030,11 @@ export default {
 
     adjustMapSizeForPrint(tamanho) {
       const mapDimensions = this.getMapDimensions(tamanho);
-      document.getElementById('map-for-print-container').style.width = `${mapDimensions.width}px`;
-      document.getElementById('map-for-print-container').style.height = `${mapDimensions.height}px`;
+      const mapContainer = document.getElementById('map-for-print-container');
+      if (mapContainer) {
+        mapContainer.style.width = `${mapDimensions.width}px`;
+        mapContainer.style.height = `${mapDimensions.height}px`;
+      }
     },
 
     getMapDimensions(tamanho) {
@@ -1208,16 +1061,26 @@ export default {
 </script>
 
 <style scoped>
-/* ... (mantenha todos os estilos existentes do template) ... */
-</style>
-<style scoped>
+/* ===== VARIÁVEIS E CONFIGURAÇÕES GLOBAIS ===== */
+:deep(.v-dialog) {
+  overflow: visible !important;
+}
+
+:deep(.v-chip) {
+  padding: 0 5px !important;
+}
+
+/* ===== LAYOUT E CONTAINERS ===== */
+.row {
+  margin: 0 !important;
+}
+
 .content-scroll-container {
   max-height: 80vh;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-/* Scroll personalizado */
 .content-scroll-container::-webkit-scrollbar {
   width: 8px;
 }
@@ -1236,148 +1099,20 @@ export default {
   background: #a8a8a8;
 }
 
-/* CONTAINER PRINCIPAL - SCROLL APENAS NO CONTEÚDO */
-.dialog-content-wrapper {
-  max-height: calc(95vh - 120px);
+/* ===== COMPONENTES DE DIALOG ===== */
+.print-dialog-header {
+  background: var(--v-primary-base);
+  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 16px;
   display: flex;
-  flex-direction: column;
+  justify-content: flex-end;
 }
 
-/* SEÇÃO DO MAPA - FIXA SEM SCROLL */
-.map-section-fixed {
-  flex-shrink: 0;
-  height: 780px;
-  overflow: hidden;
+/* ===== COMPONENTES DE MAPA ===== */
+#map-for-print-container {
+  display: block;
 }
 
-/* SEÇÃO DE CONTEÚDO - COM SCROLL */
-.content-section-scrollable {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  max-height: calc(95vh - 780px - 120px);
-  padding: 8px 0;
-}
-
-/* REMOVER SCROLL DO CONTAINER PRINCIPAL DO V-DIALOG */
-:deep(.v-dialog__content) {
-  overflow: visible !important;
-}
-
-:deep(.v-dialog) {
-  overflow: visible !important;
-}
-
-/* REMOVER SCROLL DO V-CONTAINER */
-:deep(.container) {
-  overflow: visible !important;
-}
-
-/* Ajustes para garantir que não haja scroll duplo */
-.table-print {
-  display: flex;
-  flex-direction: column;
-}
-
-.table-print tbody {
-  display: flex;
-  flex-direction: column;
-}
-
-/* SCROLL PERSONALIZADO PARA O CONTEÚDO */
-.content-section-scrollable::-webkit-scrollbar {
-  width: 8px;
-}
-
-.content-section-scrollable::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.content-section-scrollable::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.content-section-scrollable::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Metadata */
-.metadata {
-  color: #666;
-  font-size: 12px;
-  font-style: italic;
-}
-
-.informacoes {
-  line-height: normal;
-  font-size: 13px;
-  color: #666666;
-}
-
-section {
-  width: 100%;
-  height: 100%;
-}
-.section-map {
-  width: 100%;
-  height: 770px;
-}
-
-.section-info {
-  width: 32%;
-}
-
-.infos-width {
-  width: 100%;
-}
-
-.container-border {
-  border: 1px solid black;
-}
-
-.dont-break {
-  page-break-inside: avoid;
-}
-
-.space-footer {
-    display: table-footer-group;
-}
-.modal-inventario-title h1 {
-    color: #7F5539;
-    font-size: 26px;
-    font-weight: 400;
-}
-.modal-inventario-title i {
-    color: #7F5539 !important;
-}
-.modal-inventario-header .logo {
-    height: 40px;
-}
-/* Section */
-.modal-inventario .section-title, .modal-inventario .section-title i {
-    color: #7F5539;
-}
-.modal-inventario .section-title i {
-    font-size: 22px;
-}
-.modal-inventario .section-title h3 {
-    font-weight: 400;
-    font-size: 18px;
-}
-
-.table-print {
-  width: 100%;
-}
-
-.overlap h3 {
-  color: #7F5539;
-  font-weight: 500;
-  font-size: 18px;
-}
-
-/* Mini-mapa no canto superior direito */
 .mini-map-overlay {
   position: absolute;
   top: 10px;
@@ -1391,360 +1126,243 @@ section {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Container principal do mapa para impressão */
-#map-for-print-container {
-  flex-direction: column;
-}
-
-#monitoring-data-details {
-  position: relative;
-}
-
-/* Tabela de dados flutuante no mapa */
-#data-table {
-  position: absolute;
-  right: 0.5rem;
-  bottom: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: wrap-reverse;
-  justify-content: flex-start;
-  max-height: 760px;
-  gap: 0.5rem;
-  z-index: 1000;
-}
-
-#data-table > div {
-  background: #fffbfb;
-  opacity: 0.9;
-  padding: 5px;
-}
-
-.bordered-red { border: 2px solid red; }
-.bordered-blue { border: 2px solid blue; }
-.bordered-black { border: 2px solid black; }
-
-.bordered-red,
-.bordered-blue {
-  padding: 10px;
-  border-radius: 5px;
-}
-
-/* CAR flutuante no mapa (canto inferior esquerdo) */
-.car-map-container {
-  position: absolute;
-  left: 0.5rem;
-  bottom: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  max-height: 200px;
-  gap: 0.3rem;
-  z-index: 1000;
-}
-
-.car-map-item {
-  background: #fffbfb;
-  opacity: 0.9;
-  padding: 3px 6px;
-  border-radius: 3px;
-  border: 1px solid #ccc;
-}
-
-.car-map-name {
-  font-size: 8px;
-  line-height: 1.1;
-  word-break: break-word;
-  max-width: 120px;
-}
-
-/* Legenda - lista de CAR SEM SCROLL */
-.car-legend-section {
-  margin-bottom: 8px;
-}
-
-/* REMOVER SCROLL DA LISTA CAR */
-.car-list-container {
-  /* REMOVER estas propriedades que causam scroll */
-  /* max-height: 120px; */
-  /* overflow-y: auto; */
-}
-
-.car-list-row {
-  /* REMOVER estas propriedades que causam scroll */
-  /* max-height: 120px; */
-  /* overflow-y: auto; */
-  margin: 0 -2px;
-  flex-wrap: wrap;
-}
-
+/* ===== COMPONENTES DE LISTA ===== */
 .car-list-item {
   padding: 1px 2px;
   margin-bottom: 1px;
 }
+
 .car-name {
   font-size: 8px;
   line-height: 1.1;
   word-break: break-word;
 }
-.car-number-avatar {
-  border: 1px solid white !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  flex-shrink: 0;
-  min-width: 20px !important;
-}
 
-/* Ajustes gerais do mapa */
-.map-wrapper { width: 100%; }
-.vue-leaflet-map { height: 100% !important; }
-
-/* Legenda principal - ajustes críticos para não cortar conteúdo */
-.legend-info-map {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: auto !important;
-  padding-bottom: 5px;
-  overflow: visible !important;
-}
-
-.legend-info-map-details {
-  height: auto !important;
-  overflow: visible !important;
-}
-
-.legend-content-container {
-  max-height: 200px;
-  overflow-y: auto;
-  padding-right: 5px;
-}
-
-.legend-content-container::-webkit-scrollbar {
-  width: 6px;
-}
-.legend-content-container::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 3px;
-}
-
-/* Dialog de impressão */
-.print-dialog-header,
-.print-dialog-footer {
-  flex-shrink: 0;
-  position: relative;
-  z-index: 10;
-}
-.print-dialog-header {
-  background: var(--v-primary-base);
-  border-bottom: 1px solid #e0e0e0;
-  padding: 8px 16px;
-  display: flex;
-  justify-content: flex-end;
-}
-.print-dialog-footer {
-  background: white;
-  border-top: 1px solid #e0e0e0;
-}
-
-/* Configuração geral da página */
-@page {
-  size: landscape;
+/* ===== ELEMENTOS DE FORMATAÇÃO ===== */
+p {
+  font-size: xx-small;
   margin: 0;
 }
 
-/* ==================== REGRAS DE IMPRESSÃO ==================== */
-@media print {
-  /* REMOVER SCROLL NA IMPRESSÃO */
-  .dialog-content-wrapper {
-    max-height: none !important;
-    overflow: visible !important;
-  }
+.styled-divider {
+  border: 1px solid blue;
+  margin: 0;
+  margin-top: 3px;
+}
 
-  .content-section-scrollable {
+.styled-divider-red {
+  border: 1px solid red;
+  margin: 0;
+  margin-top: 3px;
+}
+
+/* ===== IMPRESSÃO - MANTÉM LAYOUT EXATO DA TELA ===== */
+@media print {
+  /* Reset de diálogos e overlays */
+  :deep(.v-dialog) {
+    position: fixed !important;
+    box-shadow: none !important;
     overflow: visible !important;
-    max-height: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
     padding: 0 !important;
   }
 
-  .map-section-fixed {
+  :deep(.v-overlay) {
+    position: relative !important;
+    background: white !important;
+  }
+
+  :deep(.v-overlay__scrim) {
+    background: white !important;
+    opacity: 1 !important;
+  }
+
+  /* Remove elementos não essenciais */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Header do diálogo - mantém estilo visual */
+  .print-dialog-header {
+    background-color: var(--v-primary-base) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color: white !important;
+    padding: 8px 16px !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* Container principal - ajustes de layout */
+  .content-scroll-container {
+    max-height: none !important;
     height: auto !important;
+    overflow: visible !important;
+    page-break-inside: avoid !important;
   }
 
-  .mini-map-overlay {
-    top: 10px;
-    right: 10px;
-    width: 180px;
-    height: 130px;
-  }
-
+  /* Mapa - mantém dimensões exatas */
   #map-for-print-container {
+    width: 100% !important;
+    height: 500px !important; /* Ajuste conforme necessário */
+    page-break-inside: avoid !important;
+  }
+
+  .map-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* MiniMap - mantém posicionamento */
+  .mini-map-overlay {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    width: 200px !important;
+    height: 150px !important;
+    z-index: 1000 !important;
+    background: white !important;
+    border: 2px solid #ccc !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Tabelas - evita quebras */
+  :deep(.v-data-table) {
+    page-break-inside: avoid !important;
+  }
+
+  :deep(table) {
+    page-break-inside: avoid !important;
+  }
+
+  /* Legendas e listas */
+  .car-list-item {
+    page-break-inside: avoid !important;
+  }
+
+  /* Textos e cores */
+  p, span, div, td, th {
+    color: black !important;
+    font-size: 10pt !important;
+  }
+
+  /* Mantém cores de fundo importantes */
+  :deep(.v-avatar) {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove sombras e efeitos visuais desnecessários */
+  :deep(.elevation-*) {
+    box-shadow: none !important;
+  }
+
+  /* Ajusta margens e padding para impressão */
+  .v-container {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .v-row {
+    margin: 0 !important;
+  }
+
+  .v-col {
+    padding: 4px !important;
+  }
+
+  /* Garante que imagens sejam impressas */
+  .v-img {
+    max-width: 100% !important;
     height: auto !important;
   }
 
+  /* Logos - mantém tamanho */
+  .v-col .v-img {
+    max-width: 120px !important;
+    max-height: 60px !important;
+  }
+
+  /* Títulos */
+  .font-title {
+    color: black !important;
+    font-size: 14pt !important;
+    font-weight: bold !important;
+  }
+
+  /* Divisores */
+  .styled-divider,
+  .styled-divider-red {
+    border-width: 1px !important;
+    margin: 2px 0 !important;
+  }
+
+  /* Remove scrollbars */
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Configuração de página */
+  @page {
+    margin: 0.5cm;
+    size: landscape; /* Ou portrait dependendo da sua necessidade */
+  }
+
+  /* Garante que não haja quebras de página indesejadas */
+  .dont-break {
+    page-break-inside: avoid !important;
+  }
+
+  /* Footer do diálogo - remove na impressão */
+  .print-dialog-footer {
+    display: none !important;
+  }
+}
+
+/* ===== MELHORIAS ADICIONAIS PARA IMPRESSÃO ===== */
+@media print {
+  /* Garante contraste adequado */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  .print-dialog-header,
-  .print-dialog-footer,
-  .no-print {
-    display: none !important;
+  /* Melhora legibilidade do texto */
+  body {
+    font-family: "Arial", "Helvetica", sans-serif !important;
+    line-height: 1.2 !important;
   }
 
-  .container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100% !important;
-    overflow: hidden !important;
-    box-shadow: none;
+  /* Ajusta tamanhos de fonte para impressão */
+  .text-h6 {
+    font-size: 14pt !important;
   }
 
-  .v-icon { color: inherit !important; }
-
-  /* Legenda completa visível na impressão */
-  .legend-info-map,
-  .legend-info-map-details,
-  .legend-content-container {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
+  .text-caption {
+    font-size: 9pt !important;
   }
 
-  .car-list-row {
-    max-height: none !important;
-    overflow-y: visible !important;
+  /* Remove espaçamentos excessivos */
+  .pa-1 { padding: 4px !important; }
+  .pa-2 { padding: 8px !important; }
+  .pa-3 { padding: 12px !important; }
+  .pa-4 { padding: 16px !important; }
+
+  .ma-1 { margin: 4px !important; }
+  .ma-2 { margin: 8px !important; }
+  .ma-3 { margin: 12px !important; }
+  .ma-4 { margin: 16px !important; }
+
+  /* Garante que o mapa seja renderizado corretamente */
+  :deep(.leaflet-container) {
+    background: white !important;
   }
 
-  .car-list-item { break-inside: avoid; }
-
-  .car-number-avatar,
-  .logo,
-  .legend-item {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+  :deep(.leaflet-control-container) {
+    display: none !important; /* Remove controles do mapa na impressão */
   }
-
-  .border-container {
-    height: auto !important;
-    page-break-inside: avoid;
-  }
-
-  .informacoes {
-    /* Show background color on print */
-    -webkit-print-color-adjust: exact;
-    /*chrome & webkit browsers*/
-    color-adjust: exact;
-    /*firefox & IE */
-    padding-left: 11px;
-    max-width: 1145px !important;
-    /* width: 100%; */
-  }
-  .modal-inventario-header i,
-  .modal-inventario-header h1 {
-    color: white !important;
-  }
-
-  .modal-inventario-header .logo {
-    background-color: whitesmoke;
-  }
-  .table-print, .modal-inventario-header {
-    width: 151.5%;
-  }
-
-  :deep(.leaflet-control-attribution) {
-    display: none !important;
-  }
-}
-
-/* Tipografia e elementos auxiliares */
-p { font-size: xx-small; margin: 0; }
-
-.font-title {
-  line-break: anywhere;
-  width: 100%;
-}
-.font-title p {
-  font-size: 10px;
-  margin: 0;
-  padding: 0;
-  text-align: center;
-  max-width: 750px;
-  font-family: 'Roboto', sans-serif;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: #6c757d;
-}
-
-.print-mini-map-text {
-  color: dimgray !important;
-  font-size: xx-small;
-  white-space: nowrap;
-}
-
-.border_container_legend {
-  border: 0.5px solid gray;
-  background: #fff;
-  border-radius: 5px;
-  box-shadow: 0 0 5px #bbb !important;
-  height: 100%;
-}
-
-.border-container,
-.height-container-mini-map {
-  height: 100%;
-}
-
-.height-container-mini-map {
-  max-height: 150px;
-  width: 100%;
-}
-
-.font-page p { font-size: large; }
-.image-container { width: 100%; }
-.row { margin: 0 !important; }
-img.layer-thumbnail { width: 25px; }
-
-:deep(.v-chip) { padding: 0 5px !important; }
-
-@media (max-width: 600px) {
-  :deep(.v-dialog) { background-color: #fff !important; }
-
-  .dialog-content-wrapper {
-    max-height: calc(100vh - 120px);
-  }
-
-  .content-section-scrollable {
-    max-height: calc(100vh - 500px - 120px);
-  }
-
-  .map-section-fixed {
-    height: 500px;
-  }
-}
-
-/* CORREÇÃO SIMPLES - APENAS ISSO É NECESSÁRIO */
-.content-scroll-container {
-  max-height: 80vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* Garantir que todo o conteúdo abaixo do mapa seja rolável */
-#map-for-print-container {
-  display: block;
-}
-
-/* Remover qualquer altura fixa que impeça o scroll */
-.table-print tbody {
-  display: block;
-}
-
-/* Garantir que o v-container não limite o scroll */
-:deep(.v-container) {
-  overflow: visible !important;
 }
 </style>
