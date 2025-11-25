@@ -186,6 +186,8 @@
                 <v-sheet class="d-flex flex-column fill-height">
                   <!-- Conteúdo da Notícia com Scroll Apenas Aqui -->
                   <v-sheet class="content-scrollable flex-grow-1 pa-6">
+                    <h2>{{ selectedNews.title }}</h2>
+                    <p class="mb-4 font-italic">{{ formatDate(selectedNews.date) }}</p>
                     <MarkdownRenderer
                       :key="markdownKey"
                       :content="selectedNews.content"
