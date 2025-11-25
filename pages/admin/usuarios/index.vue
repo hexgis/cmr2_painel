@@ -1989,7 +1989,7 @@ export default {
   position: relative
 
   // For Vuetify data table to fill the container
-  ::v-deep .v-data-table
+  :deep(.v-data-table)
     height: 100% !important
     display: flex !important
     flex-direction: column !important
