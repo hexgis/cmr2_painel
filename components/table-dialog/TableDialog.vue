@@ -39,7 +39,7 @@
                   color="secondary"
                   v-bind="attrs"
                   v-on="on"
-                  @click="handleDownloadCSV"
+                  @click="handleDownloadConfirmed"
                 >
                   <v-icon>mdi-download</v-icon>
                 </v-btn>
@@ -109,6 +109,9 @@
         </v-card-text>
         <v-card-text>
           {{ $t('confirm-dialog-message2') }}
+          <span>
+            <a href="mailto:cmr@funai.gov.br">cmr@funai.gov.br</a>.
+          </span>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -170,6 +173,10 @@
 <i18n>
 {
   "en": {
+    "confirm-dialog-title": "Attention",
+    "confirm-dialog-message1": "Due to technical limitations, the generated table has a maximum limit of 10,000 features. The query performed generated a higher number of polygons, so it is possible that not all polygons will be available in the generated file.",
+    "confirm-dialog-message2": "If you need to download the complete data, please contact the CMR team through the Contact Us on the platform or by email ",
+    "acknowledge-label": "I understand",
     "itemsPerPageText": "Items per page:",
     "itemsPerPageAllText": "All",
     "pageText": "{0}-{1} of {2}",
@@ -178,6 +185,10 @@
     "download-csv": "Download CSV"
   },
   "pt-br": {
+    "confirm-dialog-title": "Atenção",
+    "confirm-dialog-message1": "Devido a limitações técnicas, a tabela gerada possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
+    "confirm-dialog-message2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail ",
+    "acknowledge-label": "Entendi",
     "itemsPerPageText": "Itens por página:",
     "itemsPerPageAllText": "Todos",
     "pageText": "{0}-{1} de {2}",
