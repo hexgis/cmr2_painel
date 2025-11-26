@@ -857,7 +857,7 @@ export default {
         'Data Análise': card.ticket_status && card.ticket_status.analyzed_in_formatted || '',
       }));
 
-      await this.$downloader.downloadPDF(pdfData, headers, 'Críticas e Sugestões', 'criticas_sugestoes.pdf');
+      await this.$downloader.pdf(pdfData, headers, 'Críticas e Sugestões', 'criticas_sugestoes');
     },
     goToCardDetails(cardId) {
       this.$router.push(`/admin/criticas/${cardId}`);
