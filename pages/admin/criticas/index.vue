@@ -46,12 +46,13 @@
           v-model="showModal"
           title="Nova Solicitação"
           max-width="600px"
+          max-height="80vh"
           :has-cta="true"
           :save-btn="saveTicket"
           :save-active="formValid"
           @save="saveTicket"
         >
-          <v-card-text>
+          <v-card-text class="dialog-content">
             <v-form
               ref="form"
               v-model="formValid"
@@ -115,7 +116,10 @@
                 </v-col>
               </v-row>
 
-              <v-row dense>
+              <v-row
+                dense
+                class="mb-0"
+              >
                 <v-col cols="12">
                   <v-textarea
                     v-model="newTicketData.description"
@@ -134,11 +138,17 @@
               <v-row
                 v-if="userData?.components?.feedback_admin === true"
                 dense
+                class="mb-0"
               >
-                <v-col cols="12">
+                <v-col
+                  cols="12"
+                  class="pb-2"
+                >
                   <v-checkbox
                     v-model="checkbox"
                     :label="$t('approveRequestCreation')"
+                    class="mt-0 pt-0"
+                    hide-details
                   />
                 </v-col>
               </v-row>
@@ -160,21 +170,30 @@
                     <v-card
                       outlined
                       class="upload-card pa-4"
-                      :class="{ 'upload-card--active': newTicketData.attachments && newTicketData.attachments.length < 10 }"
-                      @click="triggerFileInput"
+                      :class="{
+                        'upload-card--active': newTicketData.attachments && newTicketData.attachments.length < 10,
+                        'upload-card--disabled': newTicketData.attachments && newTicketData.attachments.length >= 10
+                      }"
+                      @click="newTicketData.attachments && newTicketData.attachments.length < 10 ? triggerFileInput() : null"
                     >
                       <div class="text-center">
                         <v-icon
-                          size="32"
-                          color="primary"
-                          class="mb-2"
+                          size="28"
+                          :color="newTicketData.attachments && newTicketData.attachments.length >= 10 ? 'grey' : 'primary'"
+                          class="mb-1"
                         >
                           mdi-cloud-upload
                         </v-icon>
-                        <p class="mb-1">
-                          {{ $t('chooseFile') }}
+                        <p
+                          class="mb-0 text-body-2"
+                          :class="{ 'grey--text': newTicketData.attachments && newTicketData.attachments.length >= 10 }"
+                        >
+                          {{ newTicketData.attachments && newTicketData.attachments.length >= 10 ? $t('maxFilesReached') : $t('chooseFile') }}
                         </p>
-                        <p class="caption grey--text mb-0">
+                        <p
+                          v-if="newTicketData.attachments && newTicketData.attachments.length < 10"
+                          class="caption grey--text mb-0"
+                        >
                           {{ $t('selectYourFile') }}
                         </p>
                       </div>
@@ -336,9 +355,10 @@
                       type="error"
                       dense
                       outlined
-                      class="mt-2"
+                      class="mt-2 mb-0"
+                      text
                     >
-                      {{ fileErrorMessages.join(', ') }}
+                      <span class="text-body-2">{{ fileErrorMessages.join(', ') }}</span>
                     </v-alert>
                   </div>
                 </v-col>
@@ -473,9 +493,17 @@
       "attachedFiles": "Attached files:",
       "chooseFile": "Choose files",
       "selectYourFile": "Select your files (PDF, JPG, JPEG, PNG, XLS, XLSX, CSV, DOC, DOCX, TXT) - Multiple selection",
+      "maxFilesReached": "Maximum files reached",
       "showAll": "Show all",
       "showLess": "Show less",
-      "andMoreFiles": "and {count} more files"
+      "andMoreFiles": "and {count} more files",
+      "fileMaxLimitError": "The maximum limit is 10 files.",
+      "fileSizeError": "One or more files exceed the {size}MB limit.",
+      "fileTooBigError": "File too large: {fileName} (maximum 10MB)",
+      "fileInvalidExtensionError": "Invalid extension: {fileName}",
+      "fileMaxLimitRulesError": "Maximum of 10 files allowed",
+      "filesTooBigRulesError": "Files too large: {fileNames} (maximum 10MB)",
+      "fileInvalidExtensionsRulesError": "Invalid extensions: {fileNames}"
     },
     "pt-br": {
       "export": "Exportar:",
@@ -497,9 +525,17 @@
       "attachedFiles": "Arquivos anexados:",
       "chooseFile": "Escolher Arquivos",
       "selectYourFile": "Selecione seus arquivos (múltipla seleção)",
+      "maxFilesReached": "Limite máximo atingido",
       "showAll": "Mostrar todos",
       "showLess": "Mostrar menos",
-      "andMoreFiles": "e mais {count} arquivos"
+      "andMoreFiles": "e mais {count} arquivos",
+      "fileMaxLimitError": "O limite máximo é de 10 arquivos.",
+      "fileSizeError": "Um ou mais arquivos ultrapassam o limite de {size}MB.",
+      "fileTooBigError": "Arquivo muito grande: {fileName} (máximo 10MB)",
+      "fileInvalidExtensionError": "Extensão inválida: {fileName}",
+      "fileMaxLimitRulesError": "Máximo de 10 arquivos permitidos",
+      "filesTooBigRulesError": "Arquivos muito grandes: {fileNames} (máximo 10MB)",
+      "fileInvalidExtensionsRulesError": "Extensões inválidas: {fileNames}"
     }
   }
 </i18n>
@@ -563,39 +599,6 @@ export default {
         { label: 'solicitações atendidas', total: 0, color: '#12A844' },
       ],
       fileErrorMessages: [],
-      fileRules: [
-        (files) => {
-          if (!files || files.length === 0) return true;
-
-          // Check maximum number of files
-          if (files.length > 10) {
-            this.fileErrorMessages = ['Máximo de 10 arquivos permitidos'];
-            return false;
-          }
-
-          // Check file size (10MB limit)
-          const maxSize = 10 * 1024 * 1024; // 10MB
-          const oversizedFiles = files.filter((file) => file.size > maxSize);
-          if (oversizedFiles.length > 0) {
-            this.fileErrorMessages = [`Arquivos muito grandes: ${oversizedFiles.map((f) => f.name).join(', ')} (máximo 10MB)`];
-            return false;
-          }
-
-          // Check file extensions
-          const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
-          const invalidFiles = files.filter((file) => {
-            const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-            return !validExtensions.includes(ext);
-          });
-          if (invalidFiles.length > 0) {
-            this.fileErrorMessages = [`Extensões inválidas: ${invalidFiles.map((f) => f.name).join(', ')}`];
-            return false;
-          }
-
-          this.fileErrorMessages = [];
-          return true;
-        },
-      ],
     };
   },
   async mounted() {
@@ -612,6 +615,7 @@ export default {
     this.setDefaultStatusFiltersForAdmin();
   },
 
+  // eslint-disable-next-line vue/order-in-components
   computed: {
     ...mapGetters('admin', ['tickets', 'labels']),
     ...mapGetters('userProfile', ['userData']),
@@ -888,16 +892,37 @@ export default {
     addFiles(files) {
       if (!files) return;
 
+      const MAX_SIZE_MB = 10;
+      const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
       // Convert to array if single file
       const fileArray = Array.isArray(files) ? files : [files];
 
+      const totalFilesAfterAdd = this.newTicketData.attachments.length + fileArray.length;
+
+      if (totalFilesAfterAdd > 10) {
+        this.fileErrorMessages = [this.$t('fileMaxLimitError')];
+
+        this.tempFile = null;
+        this.$refs.fileInput.reset();
+        return;
+      }
+
+      const hasLargeFile = fileArray.some((f) => f.size > MAX_SIZE_BYTES);
+
+      if (hasLargeFile) {
+        this.fileErrorMessages = [this.$t('fileSizeError', { size: MAX_SIZE_MB })];
+
+        this.tempFile = null;
+        this.$refs.fileInput.reset();
+        return;
+      }
+
       // Add files to existing array
       fileArray.forEach((file) => {
-        if (this.newTicketData.attachments.length < 10) {
-          // Validate file
-          if (this.validateSingleFile(file)) {
-            this.newTicketData.attachments.push(file);
-          }
+        // Validate file
+        if (this.validateSingleFile(file)) {
+          this.newTicketData.attachments.push(file);
         }
       });
 
@@ -921,12 +946,12 @@ export default {
       const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
       if (file.size > maxSize) {
-        this.fileErrorMessages = [`Arquivo muito grande: ${file.name} (máximo 10MB)`];
+        this.fileErrorMessages = [this.$t('fileTooBigError', { fileName: file.name })];
         return false;
       }
 
       if (!validExtensions.includes(ext)) {
-        this.fileErrorMessages = [`Extensão inválida: ${file.name}`];
+        this.fileErrorMessages = [this.$t('fileInvalidExtensionError', { fileName: file.name })];
         return false;
       }
 
@@ -1187,6 +1212,16 @@ export default {
     border-color: #1976d2
     background-color: #f3f8ff
 
+  &--disabled
+    cursor: not-allowed
+    border-color: #bdbdbd
+    background-color: #f5f5f5
+    opacity: 0.6
+
+    &:hover
+      border-color: #bdbdbd
+      background-color: #f5f5f5
+
 .export-label
   letter-spacing: 0.5px
   font-size: 0.8rem
@@ -1197,4 +1232,9 @@ export default {
   display: flex
   align-items: center
   gap: 0.25rem
+
+.dialog-content
+  padding: 16px 24px !important
+
+  /* Remove scroll interno para evitar scroll duplo */
 </style>

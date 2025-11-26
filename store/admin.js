@@ -247,12 +247,14 @@ export const actions = {
     try {
       if (!file || !file.id) return;
 
-      const url = `/adm-panel/tickets/download/${file.id}/${downloadType}/`;
+      const fileId = typeof file.id === 'object' ? file.id.id : file.id;
+      const url = `/adm-panel/tickets/download/${fileId}/${downloadType}/`;
 
       const response = await this.$api.get(url, { responseType: 'blob' });
       const contentType = response.headers['content-type'] || 'application/octet-stream';
-      const blob = new Blob([response.data], { type: contentType });
-      await this.$downloader.file(blob, response.headers['content-disposition'], file.name);
+      const fileName = file.name_file || file.name || 'download';
+
+      await this.$downloader.blob(response.data, fileName, contentType);
     } catch (error) {
       commit('alert/addAlert', {
         message: this.$i18n.t('default-error', {
