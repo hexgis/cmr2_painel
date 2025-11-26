@@ -123,6 +123,7 @@ export default {
             'indigenousLand',
             'savedSelectedItems',
             'selectedItems',
+            'currentTiData'
         ]),
     },
 
@@ -140,6 +141,8 @@ export default {
                 this.map.removeLayer(polygon)
             })
             this.polygons = []
+            this.isItemSelected = false
+            this.$store.commit('map/setCurrentTiData', null)
         },
 
         toggleSearch() {
@@ -168,15 +171,17 @@ export default {
                 this.$store.commit('map/setSelectedItems', data)
                 this.isLoading = false
             } catch (error) {
-                console.error('Error fetching results:', error)
                 this.isLoading = false
             }
         },
 
         formatSearchResult(item) {
-            return `**Terra Indígena:** ${item?.no_ti || '-'}
-          **Município:** ${item?.no_municipio || '-'}
-          **Coordenação Regional:** ${item?.ds_cr || '-'}`
+          const emEstudo = item && item.is_estudo ? 'Sim' : 'Não';
+
+          return `**Terra Indígena:** ${(item && item.no_ti) || '-'}
+            **Município:** ${(item && item.no_municipio) || '-'}
+            **Coordenação Regional:** ${(item && item.ds_cr) || '-'}
+            **Em Estudo:** ${emEstudo}`
         },
 
         formatItem(item) {
@@ -195,54 +200,111 @@ export default {
 
         async goToIndigenousLands(matchingLand) {
             try {
-                const data = await this.$api.$get(
-                    `/funai/busca-geo-ti/?id=${matchingLand.id}`
-                )
-                if (data?.features?.length) {
-                    this.displayPolygonsOnMap(data.features)
+                const layerName = matchingLand.layername;
+                const namespace = matchingLand.namespace;
+                const tiName = matchingLand.no_ti;
+
+                if (!layerName || !tiName) {
+                    return;
+                }
+
+                const geoserverUrl = this.$store.state.map.geoserverUrl;
+                const fullLayerName = `${namespace}:${layerName}`;
+
+                const url = `${geoserverUrl}service=WFS&version=1.1.0
+                &request=GetFeature&typeName=${fullLayerName}
+                &outputFormat=application/json&cql_filter=no_ti='${encodeURIComponent(tiName)}'`;
+
+                const response = await this.$axios.$get(url);
+
+                if (response && response.features && response.features.length) {
+                    this.displayPolygonsOnMap(response.features, fullLayerName, tiName);
+                    this.$store.commit('map/setCurrentTiData', response.features[0].properties);
                 }
             } catch (error) {
-                console.error('Error fetching geo data:', error)
+                console.error('Erro ao buscar Terra Indígena:', error);
             }
         },
 
-        displayPolygonsOnMap(features) {
-            let bounds = L.latLngBounds()
+        displayPolygonsOnMap(features, fullLayerName, tiName) {
+            this.polygons.forEach((polygon) => this.map.removeLayer(polygon));
+            this.polygons = [];
+
+            const bounds = L.latLngBounds();
+            const geoserverUrl = this.$store.state.map.geoserverUrl;
+            const createPolygonLayer = (coordinates) => {
+                const latLngs = coordinates.map((coord) => [coord[1], coord[0]]);
+                bounds.extend(latLngs);
+                const polygonLayer = L.polygon(latLngs, {
+                    color: 'blue',
+                    weight: 2,
+                    fillColor: 'lightblue',
+                    fillOpacity: 0.3,
+                }).addTo(this.map);
+                this.polygons.push(polygonLayer);
+            };
+
             features.forEach((feature) => {
-                feature.geometry.coordinates.forEach((polygon) => {
-                    const latLngs = polygon[0].map((coord) => [
-                        coord[1],
-                        coord[0],
-                    ])
-                    bounds.extend(latLngs)
-                    const polygonLayer = L.polygon(latLngs).addTo(this.map)
-                    this.polygons.push(polygonLayer) // Armazena o polígono
-                })
-            })
-            this.map?.flyToBounds(bounds)
+                const props = feature.properties;
+                this.$store.commit('map/setCurrentTiData', props);
+
+                if (feature.geometry.type === 'Point') {
+                    const [lng, lat] = feature.geometry.coordinates;
+                    const cqlFilter = `no_ti='${props.no_ti}'`;
+                    const wmsLayer = L.tileLayer.wms(geoserverUrl.replace('ows', 'wms'), {
+                        layers: fullLayerName,
+                        format: 'image/png',
+                        transparent: true,
+                        CQL_FILTER: cqlFilter,
+                        zIndex: 999,
+                        minZoom: 0,
+                        maxZoom: 22,
+                    }).addTo(this.map);
+                    this.polygons.push(wmsLayer);
+                    bounds.extend([lat, lng]);
+
+                } else if (feature.geometry.type === 'Polygon') {
+                    createPolygonLayer(feature.geometry.coordinates[0]);
+
+                } else if (feature.geometry.type === 'MultiPolygon') {
+                    feature.geometry.coordinates.forEach((polygon) => {
+                        createPolygonLayer(polygon[0]);
+                    });
+                }
+            });
+
+            if (bounds.isValid()) {
+                if (features.length === 1 && features[0].geometry.type === 'Point') {
+                    this.map && this.map.flyTo(bounds.getCenter(), 12, {
+                        easeLinearity: 0.01
+                    });
+                } else {
+                    this.map.flyToBounds(bounds, { padding: [20, 20] });
+                }
+            }
         },
 
         handleItemClick(item) {
-            this.searchQuery = item.label
+            this.searchQuery = item.label;
             const selectedItem = this.$store.state.map.selectedItems.find(
                 (ti) =>
                     ti.no_ti ===
                     item.item.match(/(?<=\*\*Terra Indígena:\*\*\s).*/)?.[0]
-            )
+            );
 
             if (selectedItem) {
-                this.addSelectedItem(selectedItem)
-                this.$emit('item-selected', this.savedSelectedItems)
-                this.goToIndigenousLands(selectedItem)
-                this.isItemSelected = true
+                this.addSelectedItem(selectedItem);
+                this.$emit('item-selected', this.savedSelectedItems);
+                this.$store.commit('map/setCurrentTiData', selectedItem);
+                this.goToIndigenousLands(selectedItem);
+                this.isItemSelected = true;
             }
-            this.isSearching = false
-            this.resetSearchQuery()
+            this.isSearching = false;
+            this.resetSearchQuery();
         },
     },
 }
 </script>
-
 
 <style lang="sass">
 .search-button

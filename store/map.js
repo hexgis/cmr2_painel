@@ -2,7 +2,6 @@ export const state = () => ({
   // state map
   activeMenu: '',
   openDrawPopup: null,
-  startDrawPopup: false,
   bounds: null,
   boundsZoomed: false,
   fileList: [],
@@ -30,14 +29,18 @@ export const state = () => ({
   indigenousLand: [],
   savedSelectedItems: [],
   selectedItems: [],
+  currentTiData: null,
   // geoserver config
   geoserverUrl: '',
+  geoserverSearchTI: process.env.GEOSERVER_SEARCH_TI,
 });
 
 export const getters = {
-  bbox: (state) => state.bounds.toBBoxString(),
+  bbox: (state) => (state.bounds ? state.bounds.toBBoxString() : '') || '',
 
   bboxWkt(state) {
+    if (!state.bounds) return '';
+
     const coords = [
       state.bounds.getSouthWest(),
       state.bounds.getNorthWest(),
@@ -51,6 +54,8 @@ export const getters = {
   },
 
   bboxEs(state) {
+    if (!state.bounds) return [];
+
     const northWest = state.bounds.getNorthWest();
     const southEast = state.bounds.getSouthEast();
 
@@ -79,6 +84,10 @@ export const mutations = {
     state.selectedItems = items;
   },
 
+  setCurrentTiData(state, tiData) {
+    state.currentTiData = tiData;
+  },
+
   setActiveMenu(state, payload) {
     state.activeMenu = payload !== state.activeMenu ? payload : '';
   },
@@ -95,6 +104,10 @@ export const mutations = {
 
   setMapLoading(state, loading) {
     state.loading = loading;
+  },
+
+  setLoadingFeatures(state, payload) {
+    state.isLoadingFeatures = payload;
   },
 
   addFileToSpecificIndex(state, { file, fileIndex }) {
@@ -164,14 +177,6 @@ export const mutations = {
     state.neighborhoods = payload;
   },
 
-  addFileToSpecificIndex(state, { file, fileIndex }) {
-    state.fileList.splice(fileIndex, 0, file);
-  },
-
-  addFileToMap(state, file) {
-    state.fileList.push(file);
-  },
-
   setBasemap(state, basemaps) {
     basemaps.forEach((basemap) => {
       basemap.options = {
@@ -199,10 +204,6 @@ export const mutations = {
     state.tmsToPrint.bounds = bounds;
   },
 
-  setHasLayer(state, hasLayer) {
-    state.hasAddLayer = hasLayer;
-  },
-
   setIndigenousLand(state, indigenousLand) {
     state.indigenousLand = indigenousLand;
   },
@@ -221,13 +222,82 @@ export const actions = {
     context.commit('addItem', item);
   },
 
-  async fetchSearchResults({ commit }, searchQuery) {
+  async fetchSearchResults({ commit, state, rootState }, searchQuery) {
+    commit('setLoadingFeatures', true);
     try {
-      const response = await this.$api.$get(`/funai/all-data-ti-by-name/?param=${searchQuery}`);
-      commit('setIndigenousLand', response);
-      return response;
+      const { geoserverUrl } = state;
+
+      if (!geoserverUrl) {
+        throw new Error('URL do GeoServer não configurada');
+      }
+
+      const params = {
+        service: 'WFS',
+        version: '1.1.0',
+        request: 'GetFeature',
+        typeName: state.geoserverSearchTI,
+        outputFormat: 'application/json',
+        CQL_FILTER: '',
+      };
+
+      if (searchQuery && searchQuery.trim()) {
+        const searchTerm = searchQuery.trim();
+
+        let isEstudoFilter = '';
+        if (searchTerm.toLowerCase() === 'sim') {
+          isEstudoFilter = 'is_estudo = true';
+        } else if (searchTerm.toLowerCase() === 'não' || searchTerm.toLowerCase() === 'nao') {
+          isEstudoFilter = 'is_estudo = false';
+        }
+
+        const filters = [
+          `no_ti ILIKE '%${searchTerm}%'`,
+          `ds_cr ILIKE '%${searchTerm}%'`,
+          `no_municipio ILIKE '%${searchTerm}%'`,
+        ];
+
+        if (isEstudoFilter) {
+          filters.push(isEstudoFilter);
+        }
+
+        params.CQL_FILTER = `(${filters.join(' OR ')})`;
+      }
+
+      const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
+      const response = await this.$api.$get(url);
+
+      if (response && response.features) {
+        const transformedData = response.features.map((feature, index) => ({
+          id: feature.id || `feature-${index}`,
+          layername: feature.properties.layername,
+          namespace: feature.properties.namespace,
+          ...feature.properties,
+          geometry: feature.geometry,
+        }));
+
+        const sortedData = transformedData.sort((a, b) => a.no_ti.localeCompare(b.no_ti));
+
+        commit('setSelectedItems', sortedData);
+        return sortedData;
+      }
+
+      commit('setSelectedItems', []);
+      return [];
     } catch (error) {
+      console.error('Erro ao buscar terras indígenas:', error);
+
+      commit('alert/addAlert', {
+        message: this.$i18n.t('default-error', {
+          action: this.$i18n.t('search'),
+          resource: this.$i18n.t('indigenous-lands'),
+        }),
+        type: 'error',
+      }, { root: true });
+
+      commit('setSelectedItems', []);
       throw error;
+    } finally {
+      commit('setLoadingFeatures', false);
     }
   },
 
