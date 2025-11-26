@@ -979,13 +979,9 @@ export default {
         if (validationResult.isValid) {
           validFiles.push(file);
         } else {
-          console.log('Arquivo inválido:', file.name, 'Erros:', validationResult.errors);
           errorMessages.push(...validationResult.errors);
         }
       });
-
-      console.log('Arquivos válidos:', validFiles.length);
-      console.log('Mensagens de erro:', errorMessages);
 
       if (validFiles.length > 0) {
         this.file.push(...validFiles);
@@ -993,7 +989,6 @@ export default {
 
       if (errorMessages.length > 0) {
         this.fileErrorMessages = [...new Set(errorMessages)];
-        console.log('fileErrorMessages definido:', this.fileErrorMessages);
       } else {
         this.fileErrorMessages = [];
       }
