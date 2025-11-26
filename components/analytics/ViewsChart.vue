@@ -123,7 +123,6 @@
                     <template #activator="{ on, attrs }">
                       <v-btn
                         icon
-                        disabled
                         color="#43A047"
                         class="mr-2"
                         v-bind="attrs"
@@ -556,7 +555,7 @@
   </div>
 </template>
 
-<i18n>
+<i18n lang="json">
   {
     "en": {
       "searchLabel": "Search",
@@ -623,7 +622,6 @@
 import domtoimage from 'dom-to-image';
 import { jsPDF } from 'jspdf';
 import { mapGetters, mapActions } from 'vuex';
-import { formatDate } from '@/store/charts';
 import DoughnutChartContainer from '@/components/graphics/dashboard/DoughnutChartContainer.vue';
 import LineChartViews from '@/components/graphics/dashboard/LineChartViews.vue';
 import PieChartView from '@/components/graphics/dashboard/PieChart.vue';
@@ -779,7 +777,11 @@ export default {
         ? 'box-shadow:none!important;border:1px solid #EEE;'
         : 'box-shadow:0 3px 1px -2px rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 1px 5px 0 rgba(0,0,0,.12)!important;';
 
-      [sel.share, sel.map, sel.head].forEach((s) => document.querySelectorAll(s).forEach((e) => (e.style.display = disp)));
+      [sel.share, sel.map, sel.head].forEach((s) => {
+        document.querySelectorAll(s).forEach((e) => {
+          e.style.display = disp;
+        });
+      });
 
       document.querySelectorAll(sel.card)
         .forEach((c) => c.setAttribute('style', cardStyle));
@@ -858,39 +860,55 @@ export default {
 
     async downloadCSV() {
       this.downloading = 'csv';
-      let institutionCrParam = '';
-      if (this.appliedFilters.cr) {
-        if (Array.isArray(this.appliedFilters.cr)) {
-          institutionCrParam = this.appliedFilters.cr.join(',');
-        } else {
-          institutionCrParam = this.appliedFilters.cr;
-        }
-      }
 
       try {
-        const response = await this.$api.$get(
-          `/dashboard/download-csv/?startDate=${this.appliedFilters.startDate || ''}&endDate=${
-            this.appliedFilters.endDate || ''
-          }&location=${this.appliedFilters.city || ''}&type_device=${
-            this.appliedFilters.device || ''
-          }&browser=${this.appliedFilters.browser || ''}&institution_acronym=${
-            institutionCrParam || ''
-          }`,
-          { responseType: 'blob' },
-        );
+        const chartData = this.getDataChart;
 
-        const url = window.URL.createObjectURL(new Blob([response]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'data.xlsx');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        this.downloadSuccess = true;
+        if (!chartData || !chartData.data || chartData.data.length === 0) {
+          throw new Error(this.$t('downloadErrorMessage'));
+        }
+
+        const headers = [
+          'Data',
+          'Usuário',
+          'Email',
+          'Instituição',
+          'Sigla',
+          'Navegador',
+          'Dispositivo',
+          'Localização',
+          'Latitude',
+          'Longitude',
+          'IP',
+          'Interno/Externo',
+        ];
+
+        const rows = chartData.data.map((item) => [
+          this.formatDate(item.date) || '',
+          item.user || '',
+          item.email || '',
+          item.institution || '',
+          item.institution_acronym || '',
+          item.browser || '',
+          item.type_device || '',
+          item.location || '',
+          item.latitude || '',
+          item.longitude || '',
+          item.ip || '',
+          item.is_internal ? 'Interno' : 'Externo',
+        ]);
+
+        const { filename } = this.formatTitleForDocument();
+
+        await this.$downloader.csv(rows, headers, filename, {
+          delimiter: ',',
+          includeTimestamp: true,
+        });
       } catch (error) {
         this.downloadSuccess = false;
         this.$store.commit('alert/addAlert', {
-          message: this.$t('downloadErrorMessage'),
+          message: error.message || this.$t('downloadErrorMessage'),
+          type: 'error',
         });
       } finally {
         this.downloading = null;
@@ -960,6 +978,7 @@ export default {
           },
         });
 
+        // eslint-disable-next-line new-cap
         const pdf = new jsPDF({
           orientation: 'landscape',
           unit: 'mm',
@@ -976,7 +995,9 @@ export default {
 
         const img = new Image();
         img.src = image;
-        await new Promise((resolve) => (img.onload = resolve));
+        await new Promise((resolve) => {
+          img.onload = () => resolve();
+        });
 
         // Keep image ratio and center it
         const ratio = Math.min(pageWidth / img.width, (pageHeight - 20) / img.height);
