@@ -5,36 +5,32 @@
       transition="dialog-bottom-transition"
       persistent
       no-click-animation
-      width="80vw"
+      width="70vw"
       :fullscreen="$vuetify.breakpoint.smAndDown"
     >
-      <v-card max-height="80vh">
+      <v-card>
         <v-toolbar
           dark
           color="secondary"
+          dense
         >
           <h3>{{ tableName }}</h3>
           <v-spacer />
           <v-btn
             icon
+            small
             @click="fCloseTable(false)"
           >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
 
-        <v-skeleton-loader
-          v-if="loadingTable"
-          type="table-row-divider@8"
-          class="mx-6"
-        />
-
-        <v-card-text v-if="!loadingTable">
+        <v-card-text>
           <div class="d-flex justify-end ma-4">
             <v-tooltip bottom>
               <template #activator="{ on, attrs }">
                 <v-btn
-                  small
+                  x-small
                   fab
                   color="secondary"
                   v-bind="attrs"
@@ -51,10 +47,11 @@
           <v-data-table
             :headers="headers"
             :items-per-page="5"
-            :items="value"
+            :items="table"
             class="font-weight-regular table-height"
             multi-sort
             height="50vh"
+            :loading="loadingTable"
             fixed-header
             mobile-breakpoint="0"
             :footer-props="{
@@ -82,86 +79,8 @@
                 </v-col>
               </v-row>
             </template>
-            <template
-              v-if="[item.action]"
-              #[`item.actions`]="{ item }"
-            >
-              <MapPrinterPriority
-                class="mx-2 mb-2"
-                :value="dialogPrint"
-              />
-            </template>
           </v-data-table>
         </v-card-text>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog
-      v-model="confirmDialog"
-      max-width="500"
-    >
-      <v-card>
-        <v-card-title class="headline">
-          {{ $t('confirm-dialog-title') }}
-        </v-card-title>
-        <v-card-text class="mt-4">
-          {{ $t('confirm-dialog-message1') }}
-        </v-card-text>
-        <v-card-text>
-          {{ $t('confirm-dialog-message2') }}
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="primary"
-            text
-            @click="confirmDialog = false"
-          >
-            <v-icon>mdi-check</v-icon>
-            {{ $t('acknowledge-label') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog
-      v-model="downloadDialog"
-      max-width="500"
-    >
-      <v-card>
-        <v-card-title class="headline">
-          {{ $t('confirm-dialog-title') }}
-        </v-card-title>
-        <v-card-text class="mt-4">
-          <p>{{ $t('description-label-3') }}</p>
-        </v-card-text>
-        <v-card-text>
-          <p>
-            {{ $t('description-label-4') }}
-            <a href="mailto:cmr@funai.gov.br">cmr@funai.gov.br</a>.
-          </p>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="primary"
-            text
-            @click="downloadDialog = false"
-          >
-            {{ $t('cancel') }}
-          </v-btn>
-          <v-btn
-            color="green darken-1"
-            text
-            :loading="isDownloading"
-            @click="handleDownloadConfirmed"
-          >
-            <v-icon v-if="!isDownloading">
-              mdi-download
-            </v-icon>
-            {{ $t('download-label') }}
-          </v-btn>
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-row>
@@ -175,7 +94,10 @@
     "pageText": "{0}-{1} of {2}",
     "noDataText": "No data available",
     "loadingText": "Loading items...",
-    "download-csv": "Download CSV"
+    "download-csv": "Download CSV",
+    "no-data-to-export": "No data available for export",
+    "csv-download-success": "CSV generated successfully!",
+    "csv-download-error": "Error generating CSV. Please try again."
   },
   "pt-br": {
     "itemsPerPageText": "Itens por página:",
@@ -183,24 +105,23 @@
     "pageText": "{0}-{1} de {2}",
     "noDataText": "Nenhum dado disponível",
     "loadingText": "Carregando itens...",
-    "download-csv": "Baixar CSV"
+    "download-csv": "Baixar CSV",
+    "no-data-to-export": "Nenhum dado disponível para exportação",
+    "csv-download-success": "CSV gerado com sucesso!",
+    "csv-download-error": "Erro ao gerar CSV. Tente novamente."
   }
 }
 </i18n>
 
 <script>
-import { mapMutations } from 'vuex';
-import MapPrinterPriority from '../priority/MapPrinterPriority.vue';
-
 export default {
   name: 'TableDialog',
 
-  components: { MapPrinterPriority },
-
   props: {
     table: {
-      type: Boolean,
+      type: Array,
       required: true,
+      default: () => [],
     },
     headers: {
       type: Array,
@@ -208,9 +129,9 @@ export default {
       default: () => [],
     },
     value: {
-      type: Array,
+      type: Boolean,
       required: true,
-      default: () => [],
+      default: false,
     },
     loadingTable: {
       type: Boolean,
@@ -226,31 +147,18 @@ export default {
       required: true,
       default: '',
     },
-    fDownloadCSV: {
-      type: Function,
-      required: true,
-      default: () => () => {},
-    },
   },
 
   data() {
     return {
-      confirmDialog: false,
-      downloadDialog: false,
-      isDownloading: false,
-      row: null,
       dialogPrint: false,
-      selected: [],
-      detail: [],
-      featuresIndividual: null,
-      geometry: true,
     };
   },
 
   computed: {
     localTable: {
       get() {
-        return this.table;
+        return this.value;
       },
       set(value) {
         this.fCloseTable(value);
@@ -258,18 +166,7 @@ export default {
     },
   },
 
-  watch: {
-    value(val) {
-      if (val && val.length >= 10000) this.confirmDialog = true;
-    },
-  },
-
   methods: {
-    ...mapMutations('priority', [
-      'setDetail',
-      'setfeaturesIndividual',
-    ]),
-
     getColor(prioridade) {
       switch (prioridade) {
         case 'Muito Alta':
@@ -287,27 +184,63 @@ export default {
       }
     },
 
-    async handleDownloadClick() {
-      if (this.value.length >= 10000) {
-        this.downloadDialog = true;
-      } else {
-        await this.startDownload();
-      }
-    },
-
-    async handleDownloadConfirmed() {
-      this.downloadDialog = false;
-      await this.startDownload();
-    },
-
-    async startDownload() {
-      this.isDownloading = true;
+    /**
+     * Downloads table data as CSV
+     * @returns {Promise<void>}
+     */
+    async handleDownloadCSV() {
       try {
-        await this.fDownloadCSV();
+        const confirmed = await this.$confirm({
+          typeDescription: 'detailed',
+          descriptionFirst: this.$i18n.t('monitoring-description-label-1'),
+          descriptionSecond: this.$i18n.t('monitoring-description-label-2'),
+          confirm: this.$i18n.t('download'),
+          iconConfirm: 'mdi-download',
+          iconCancel: 'mdi-close',
+        });
+
+        if (!confirmed) return;
+
+        if (!this.table || !this.table.length) {
+          if (this.$toast) {
+            this.$toast.warning(this.$t('no-data-to-export'));
+          }
+          return;
+        }
+
+        // Convert headers and data dynamically
+        const csvHeaders = this.headers.map((h) => h.text || h.value || h);
+        const csvData = this.table.map((row) => {
+          const cleanRow = {};
+          this.headers.forEach((header, i) => {
+            const key = header.value || header;
+            const value = row[key];
+            cleanRow[csvHeaders[i]] = (value && typeof value === 'object')
+              ? (value.name || value.text || value.label || String(value))
+              : value;
+          });
+          return cleanRow;
+        });
+
+        const result = await this.$downloader.csv(
+          csvData,
+          csvHeaders,
+          this.tableName || 'tabela',
+          {
+            includeTimestamp: true,
+            dateFormat: 'br',
+            delimiter: ',',
+            encoding: 'utf-8',
+          },
+        );
+
+        if (this.$toast) {
+          this.$toast.success(`${this.$t('csv-download-success')} (${result.recordCount} registros)`);
+        }
       } catch (error) {
-        console.error('Erro durante o download:', error);
-      } finally {
-        this.isDownloading = false;
+        if (this.$toast) {
+          this.$toast.error(this.$t('csv-download-error'));
+        }
       }
     },
   },

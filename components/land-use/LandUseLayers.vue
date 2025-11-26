@@ -1,152 +1,86 @@
 <template>
-  <div class="map-container">
-    <l-lwms-tile-layer
-      v-if="currentUrlWmsLandUse && showFeaturesLandUse"
-      ref="wmsLayer"
-      :base-url="currentUrlWmsLandUse"
-      :layers="geoserverLayerLandUse"
-      format="image/png"
-      :transparent="true"
-      :z-index="2"
-      :opacity="opacity / 100"
-      :visible="showFeaturesLandUse"
-      :options="{ Legend: false, name: $t('legend-name') }"
-    />
-    <BaseAlert />
-  </div>
+  <l-lwms-tile-layer
+    ref="wmsLayer"
+    :base-url="getUrlWmsLandUse"
+    :layers="getLayerLandUse"
+    format="image/png"
+    :transparent="true"
+    :z-index="3"
+    :pane="'monitoring-layers-map'"
+    :opacity="getOpacity"
+    :visible="showFeaturesLandUse"
+    :options="{ Legend: false, name: $t('legend-name') }"
+  />
 </template>
 
+<i18n>
+{
+  "en": {
+    "legend-name": "Urgent Alert"
+  },
+  "pt-br": {
+    "legend-name": "Alerta Urgente"
+  }
+}
+</i18n>
+
 <script>
-import { mapState } from 'vuex';
-import BaseAlert from '../base/BaseAlert.vue';
+import { mapState, mapGetters } from 'vuex';
 
 export default {
   name: 'LandUseLayers',
-  components: { BaseAlert },
-  props: {
-    map: {
-      type: Object,
-      default: null,
+
+  data: () => ({
+    resultsHeatmapOptions: {
+      minOpacity: 0.5,
+      maxZoom: 18,
+      radius: 20,
+      blur: 15,
+      zIndex: 4,
     },
-  },
+    heatmapLayer: null,
+  }),
+
   computed: {
+    ...mapGetters('land-use', [
+      'getLayerLandUse',
+      'getOpacity',
+      'getUrlWmsLandUse',
+    ]),
     ...mapState('land-use', [
-      'LandUseWmsOptions',
-      'currentUrlWmsLandUse',
       'showFeaturesLandUse',
-      'geoserverLayerLandUse',
-      'features',
-      'opacity',
-      'loadingLandUse',
-      'isLoadingFeatures',
+      'heatMapLandUse',
+      'stats',
     ]),
   },
+
   watch: {
-    features: {
-      handler(newFeatures) {
-        if (this.loadingLandUse || this.isLoadingFeatures) {
-          return;
-        }
-        if (newFeatures && newFeatures.features && newFeatures.features.length > 0) {
-          this.addFeatures();
-        } else if (this.showFeaturesLandUse) {
-          this.$store.commit('alert/addAlert', {
-            message: this.$t('no-data-message'),
-            type: 'info',
-            timeout: 5000,
-          });
-        }
-      },
-      deep: true,
-      immediate: false,
+    getUrlWmsLandUse(newVal) {
+      this.$refs.wmsLayer.mapObject.setUrl(newVal);
     },
 
-    map(newMap) {
-      if (newMap) {
-        window.mapMain = newMap;
-        this.addFeatures();
-      }
-    },
-
-    currentUrlWmsLandUse(newUrl) {
-      if (this.$refs.wmsLayer && newUrl) {
-        this.$refs.wmsLayer.mapObject.setUrl(newUrl);
-      }
-    },
-
-    showFeaturesLandUse(newValue) {
-      if (!this.$refs.wmsLayer || !this.$refs.wmsLayer.mapObject || !this.map) {
-        return;
-      }
-      const layer = this.$refs.wmsLayer.mapObject;
-      if (typeof layer.setVisible === 'function') {
-        layer.setVisible(newValue);
-      } else {
-        if (newValue) {
-          layer.addTo(this.map);
-        }
-        if (!newValue) {
-          layer.remove();
-        }
-      }
-    },
-
-    opacity(newOpacity) {
-      if (this.$refs.wmsLayer && this.$refs.wmsLayer.mapObject) {
-        this.$refs.wmsLayer.mapObject.setOpacity(newOpacity / 100);
-      } else {
-        console.warn('Camada WMS não inicializada ou mapObject não disponível');
-      }
+    heatMapLandUse(newVal) {
+      if (newVal) this.createMonitoramentoHeatLayer();
+      else this.removeMonitoramentoHeatLayer();
     },
   },
 
   methods: {
-    addFeatures() {
-      if (
-        !this.map
-        || !this.features
-        || !this.features.features
-        || !this.features.features.length
-      ) {
-        return;
-      }
+    createMonitoramentoHeatLayer() {
+      this.removeMonitoramentoHeatLayer();
+      this.heatmapLayer = this.$L.heatLayer(
+        this.stats.heatmapLandUse,
+        this.resultsHeatmapOptions,
+      );
+      window.mapMain.addLayer(this.heatmapLayer);
+    },
 
-      try {
-        const bounds = this.$L.geoJSON(this.features).getBounds();
-        if (bounds.isValid()) {
-          this.map.flyToBounds(bounds, { duration: 1 });
-        }
-      } catch (error) {
-        console.error('Erro ao ajustar bounds do mapa:', error);
-        this.$store.commit('alert/add', {
-          message: this.$t('detail-api-error'),
-          type: 'error',
-          timeout: 5000,
-        });
+    removeMonitoramentoHeatLayer() {
+      if (this.heatmapLayer) {
+        window.mapMain.removeLayer(this.heatmapLayer);
+        this.heatmapLayer = null;
       }
     },
   },
 };
 </script>
-
-<style scoped>
-.map-container {
-  position: relative;
-  height: 100%;
-}
-</style>
-
-<i18n>
-{
-  "en": {
-    "detail-api-error": "Error while retrieving polygon data, contact a system administrator if it persists.",
-    "legend-name": "LandUse",
-    "no-data-message": "No data available for the selected filters."
-  },
-  "pt-br": {
-    "detail-api-error": "Não foi possível obter os dados do polígono, entre em contato com um administrador se persistir.",
-    "legend-name": "Uso e Ocupação do Solo",
-    "no-data-message": "Nenhum dado disponível para a(s) selecionada(s)."
-  }
-}
-</i18n>

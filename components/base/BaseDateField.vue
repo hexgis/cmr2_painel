@@ -3,6 +3,7 @@
     v-model="menu"
     :close-on-content-click="false"
     transition="slide-y-transition"
+    :disabled="disabled"
     offset-y
     max-width="290px"
   >
@@ -15,6 +16,7 @@
         :rounded="rounded"
         :solo="solo"
         :filled="filled"
+        :disabled="disabled"
         :outlined="outlined"
         prepend-inner-icon="mdi-calendar"
         :required="required"
@@ -103,6 +105,10 @@ export default {
       default: false,
     },
     month: {
+      type: Boolean,
+      default: false,
+    },
+    disabled: {
       type: Boolean,
       default: false,
     },
