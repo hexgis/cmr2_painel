@@ -36,6 +36,7 @@
         </v-tooltip>
       </v-row>
     </div>
+
     <div
       v-else-if="tab === 'tab-2'"
       class="tab-header justify-space-between"
@@ -80,8 +81,7 @@
         href="#tab-1"
         class="tab-item"
       >
-        Monitoramento<br>
-        Diário
+        Monitoramento Diário
         <v-icon>mdi-map-search</v-icon>
       </v-tab>
 
@@ -89,8 +89,7 @@
         href="#tab-2"
         class="tab-item"
       >
-        Alerta <br>
-        Urgente
+        Alerta Urgente
         <v-icon>mdi-alarm-light</v-icon>
       </v-tab>
     </v-tabs>
@@ -148,7 +147,6 @@
 </i18n>
 
 <script>
-
 import AlertsFilters from '~/components/monitoring-alerts/urgent-alerts/AlertsFilters.vue';
 import MonitoringFilters from '@/components/monitoring-alerts/monitoring/MonitoringFilters.vue';
 
@@ -164,18 +162,22 @@ export default {
   data() {
     return {
       tab: 'tab-1',
-      dialog: false,
     };
+  },
+
+  mounted() {
+    this.$store.dispatch('monitoring/getFilterOptions');
+    this.$store.dispatch('monitoring/getCyclesOptions');
   },
 };
 </script>
 
 <style scoped>
 .tab-item {
-  flex: 1; /* Distribui o espaço igualmente */
-  text-align: center;
-  white-space: nowrap; /* Evita que o texto quebre */
-  min-width: 100px; /* Define um tamanho mínimo */
-  max-width: 150px; /* Limita o tamanho */
+    flex: 1; /* Distribui o espaço igualmente */
+    text-align: center;
+    white-space: nowrap; /* Evita que o texto quebre */
+    min-width: 100px; /* Define um tamanho mínimo */
+    max-width: 150px; /* Limita o tamanho */
 }
 </style>

@@ -214,14 +214,14 @@ export default {
       });
       const heatmaps = [
         {
-          active: this.monitoringHeatMap,
-          data: this.monitoringResultsHeatmap,
-          options: this.monitoringResultsHeatmapOptions,
+          active: this.$store.state['urgent-alerts'].heatMapUrgentAlert,
+          data: this.$store.state['urgent-alerts'].stats.heatmapUrgentAlert,
+          options: this.$store.state['urgent-alerts'].heatMapUrgentAlertOptions,
         },
         {
-          active: this.alertsHeatMap,
-          data: this.alertsResultsHeatmap,
-          options: this.alertsResultsHeatmapOptions,
+          active: this.$store.state.monitoring.showFeaturesMonitoring,
+          data: this.$store.state.monitoring.stats.heatmapMonitoring,
+          options: this.$store.state.monitoring.heatMapMonitoringOptions,
         },
       ];
       heatmaps.forEach(({ active, data, options }) => {
