@@ -606,7 +606,10 @@
           "fileMaxLimitError": "O limite máximo é de 10 arquivos.",
           "fileSizeError": "Um ou mais arquivos ultrapassam o limite de {size}MB.",
           "fileTooBigError": "Arquivo muito grande: {fileName} (máximo 10MB)",
-          "fileInvalidExtensionError": "Extensão inválida: {fileName}"
+          "fileInvalidExtensionError": "Extensão inválida: {fileName}",
+          "fileMimeTypeMismatchError": "Tipo de arquivo inválido: {fileName}",
+          "fileDuplicateError": "Arquivo duplicado: {fileName}",
+          "fileInvalidNameError": "Nome de arquivo inválido: {fileName}"
       }
   }
 </i18n>
@@ -618,6 +621,22 @@ import PriorityBadge from './PriorityBadge.vue';
 import StatusBadge from './StatusBadge.vue';
 import Timeline from './Timeline.vue';
 import CustomDialog from './CustomDialog.vue';
+
+const MAX_SIZE_MB = 10;
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+const MAX_FILES = 10;
+const ALLOWED_TYPES = {
+  '.pdf': 'application/pdf',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.doc': 'application/msword',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.txt': 'text/plain',
+  '.xls': 'application/vnd.ms-excel',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.csv': 'text/csv',
+};
 
 export default {
   components: {
@@ -647,6 +666,7 @@ export default {
       errorModal: false,
       showAllFiles: false,
       fileErrorMessages: [],
+      isProcessingFiles: false,
     };
   },
   watch: {
@@ -934,39 +954,56 @@ export default {
     },
 
     addFiles(files) {
-      if (!files) return;
+      if (!files || this.isProcessingFiles) return;
 
-      const MAX_SIZE_MB = 10;
-      const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+      this.isProcessingFiles = true;
 
       const fileArray = Array.isArray(files) ? files : [files];
 
       const totalFilesAfterAdd = this.file.length + fileArray.length;
-      if (totalFilesAfterAdd > 10) {
+      if (totalFilesAfterAdd > MAX_FILES) {
         this.fileErrorMessages = [this.$t('fileMaxLimitError')];
         this.tempFile = null;
-        this.$refs.fileInput.reset();
+        if (this.$refs.fileInput) {
+          this.$refs.fileInput.reset();
+        }
+        this.isProcessingFiles = false;
         return;
       }
 
-      const hasLargeFile = fileArray.some((f) => f.size > MAX_SIZE_BYTES);
-
-      if (hasLargeFile) {
-        this.fileErrorMessages = [this.$t('fileSizeError', { size: MAX_SIZE_MB })];
-
-        this.tempFile = null;
-        this.$refs.fileInput.reset();
-        return;
-      }
+      const errorMessages = [];
+      const validFiles = [];
 
       fileArray.forEach((file) => {
-        if (this.validateSingleFile(file)) {
-          this.file.push(file);
+        const validationResult = this.validateFile(file);
+        if (validationResult.isValid) {
+          validFiles.push(file);
+        } else {
+          console.log('Arquivo inválido:', file.name, 'Erros:', validationResult.errors);
+          errorMessages.push(...validationResult.errors);
         }
       });
 
+      console.log('Arquivos válidos:', validFiles.length);
+      console.log('Mensagens de erro:', errorMessages);
+
+      if (validFiles.length > 0) {
+        this.file.push(...validFiles);
+      }
+
+      if (errorMessages.length > 0) {
+        this.fileErrorMessages = [...new Set(errorMessages)];
+        console.log('fileErrorMessages definido:', this.fileErrorMessages);
+      } else {
+        this.fileErrorMessages = [];
+      }
+
       this.tempFile = null;
-      this.$refs.fileInput.reset();
+      if (this.$refs.fileInput) {
+        this.$refs.fileInput.reset();
+      }
+
+      this.isProcessingFiles = false;
     },
 
     removeFile(index) {
@@ -978,23 +1015,40 @@ export default {
       this.$refs.fileInput.$refs.input.click();
     },
 
-    validateSingleFile(file) {
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.csv'];
+    validateFile(file) {
+      const errors = [];
+
+      if (file.size > MAX_SIZE_BYTES) {
+        errors.push(this.$t('fileTooBigError', { fileName: file.name }));
+      }
+
       const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-
-      if (file.size > maxSize) {
-        this.fileErrorMessages = [this.$t('fileTooBigError', { fileName: file.name })];
-        return false;
+      if (!Object.keys(ALLOWED_TYPES).includes(ext)) {
+        errors.push(this.$t('fileInvalidExtensionError', { fileName: file.name }));
       }
 
-      if (!validExtensions.includes(ext)) {
-        this.fileErrorMessages = [this.$t('fileInvalidExtensionError', { fileName: file.name })];
-        return false;
+      const expectedMime = ALLOWED_TYPES[ext];
+      if (expectedMime && file.type && file.type !== expectedMime) {
+        errors.push(this.$t('fileMimeTypeMismatchError', { fileName: file.name }));
       }
 
-      this.fileErrorMessages = [];
-      return true;
+      const isDuplicate = this.file.some(
+        (existingFile) => existingFile.name === file.name && existingFile.size === file.size,
+      );
+      if (isDuplicate) {
+        errors.push(this.$t('fileDuplicateError', { fileName: file.name }));
+      }
+
+      // eslint-disable-next-line no-control-regex
+      const hasInvalidChars = /[<>:"|?*\x00-\x1f]/.test(file.name);
+      if (hasInvalidChars) {
+        errors.push(this.$t('fileInvalidNameError', { fileName: file.name }));
+      }
+
+      return {
+        isValid: errors.length === 0,
+        errors,
+      };
     },
 
     formatFileSize(bytes) {
