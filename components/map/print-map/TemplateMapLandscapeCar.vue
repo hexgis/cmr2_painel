@@ -1049,8 +1049,48 @@ export default {
     },
 
     print() {
+      // Salvar o estado atual
+      const originalBodyStyle = document.body.style.cssText;
+      const originalContainerStyle = document.getElementById('map-for-print-container').style.cssText;
+      
+      // Aplicar ajustes para impressão
       this.adjustMapSizeForPrint(this.leafSize.type);
-      window.print();
+      
+      // Adicionar evento para restaurar estado após impressão
+      const afterPrint = () => {
+        this.restoreStyles(originalBodyStyle, originalContainerStyle);
+        window.removeEventListener('afterprint', afterPrint);
+      };
+      
+      window.addEventListener('afterprint', afterPrint);
+      
+      // Forçar reflow e impressão
+      this.$nextTick(() => {
+        setTimeout(() => {
+          window.print();
+        }, 1000); // Aumentei o tempo para garantir que tudo esteja renderizado
+      });
+    },
+
+    restoreStyles(bodyStyle, containerStyle) {
+      document.body.style.cssText = bodyStyle;
+      const mapContainer = document.getElementById('map-for-print-container');
+      if (mapContainer) {
+        mapContainer.style.cssText = containerStyle;
+      }
+      this.$forceUpdate();
+    },
+
+    restoreStyles(bodyStyle, containerStyle) {
+      // Restaurar estilos originais
+      document.body.style.cssText = bodyStyle;
+      const mapContainer = document.getElementById('map-for-print-container');
+      if (mapContainer) {
+        mapContainer.style.cssText = containerStyle;
+      }
+      
+      // Forçar redraw dos componentes Vue
+      this.$forceUpdate();
     },
 
     ...mapActions('monitoring', ['getDataTableMonitoring']),
@@ -1158,168 +1198,25 @@ p {
 
 /* ===== IMPRESSÃO - MANTÉM LAYOUT EXATO DA TELA ===== */
 @media print {
-  /* Reset de diálogos e overlays */
-  :deep(.v-dialog) {
-    position: fixed !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
 
-  :deep(.v-overlay) {
-    position: relative !important;
-    background: white !important;
+  @page {
+    margin: 10px; /* top, right, bottom, left */
+    size: landscape;
   }
-
-  :deep(.v-overlay__scrim) {
-    background: white !important;
-    opacity: 1 !important;
-  }
-
+ 
   /* Remove elementos não essenciais */
   .no-print {
     display: none !important;
   }
 
-  /* Header do diálogo - mantém estilo visual */
-  .print-dialog-header {
-    background-color: var(--v-primary-base) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    color: white !important;
-    padding: 8px 16px !important;
-    margin-bottom: 10px !important;
-  }
+
 
   /* Container principal - ajustes de layout */
   .content-scroll-container {
-    max-height: none !important;
-    height: auto !important;
-    overflow: visible !important;
-    page-break-inside: avoid !important;
-  }
-
-  /* Mapa - mantém dimensões exatas */
-  #map-for-print-container {
-    width: 100% !important;
-    height: 500px !important; /* Ajuste conforme necessário */
-    page-break-inside: avoid !important;
-  }
-
-  .map-wrapper {
-    width: 100% !important;
+    max-height: 100%!important;
     height: 100% !important;
-  }
-
-  /* MiniMap - mantém posicionamento */
-  .mini-map-overlay {
-    position: absolute !important;
-    top: 10px !important;
-    right: 10px !important;
-    width: 200px !important;
-    height: 150px !important;
-    z-index: 1000 !important;
-    background: white !important;
-    border: 2px solid #ccc !important;
-    border-radius: 4px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
-  }
-
-  /* Tabelas - evita quebras */
-  :deep(.v-data-table) {
-    page-break-inside: avoid !important;
-  }
-
-  :deep(table) {
-    page-break-inside: avoid !important;
-  }
-
-  /* Legendas e listas */
-  .car-list-item {
-    page-break-inside: avoid !important;
-  }
-
-  /* Textos e cores */
-  p, span, div, td, th {
-    color: black !important;
-    font-size: 10pt !important;
-  }
-
-  /* Mantém cores de fundo importantes */
-  :deep(.v-avatar) {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Remove sombras e efeitos visuais desnecessários */
-  :deep(.elevation-*) {
-    box-shadow: none !important;
-  }
-
-  /* Ajusta margens e padding para impressão */
-  .v-container {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .v-row {
-    margin: 0 !important;
-  }
-
-  .v-col {
-    padding: 4px !important;
-  }
-
-  /* Garante que imagens sejam impressas */
-  .v-img {
-    max-width: 100% !important;
-    height: auto !important;
-  }
-
-  /* Logos - mantém tamanho */
-  .v-col .v-img {
-    max-width: 120px !important;
-    max-height: 60px !important;
-  }
-
-  /* Títulos */
-  .font-title {
-    color: black !important;
-    font-size: 14pt !important;
-    font-weight: bold !important;
-  }
-
-  /* Divisores */
-  .styled-divider,
-  .styled-divider-red {
-    border-width: 1px !important;
-    margin: 2px 0 !important;
-  }
-
-  /* Remove scrollbars */
-  ::-webkit-scrollbar {
-    display: none !important;
-  }
-
-  /* Configuração de página */
-  @page {
-    margin: 0.5cm;
-    size: landscape; /* Ou portrait dependendo da sua necessidade */
-  }
-
-  /* Garante que não haja quebras de página indesejadas */
-  .dont-break {
-    page-break-inside: avoid !important;
-  }
-
-  /* Footer do diálogo - remove na impressão */
-  .print-dialog-footer {
-    display: none !important;
-  }
+    }
+  
 }
 
 /* ===== MELHORIAS ADICIONAIS PARA IMPRESSÃO ===== */
@@ -1329,40 +1226,6 @@ p {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-
-  /* Melhora legibilidade do texto */
-  body {
-    font-family: "Arial", "Helvetica", sans-serif !important;
-    line-height: 1.2 !important;
-  }
-
-  /* Ajusta tamanhos de fonte para impressão */
-  .text-h6 {
-    font-size: 14pt !important;
-  }
-
-  .text-caption {
-    font-size: 9pt !important;
-  }
-
-  /* Remove espaçamentos excessivos */
-  .pa-1 { padding: 4px !important; }
-  .pa-2 { padding: 8px !important; }
-  .pa-3 { padding: 12px !important; }
-  .pa-4 { padding: 16px !important; }
-
-  .ma-1 { margin: 4px !important; }
-  .ma-2 { margin: 8px !important; }
-  .ma-3 { margin: 12px !important; }
-  .ma-4 { margin: 16px !important; }
-
-  /* Garante que o mapa seja renderizado corretamente */
-  :deep(.leaflet-container) {
-    background: white !important;
-  }
-
-  :deep(.leaflet-control-container) {
-    display: none !important; /* Remove controles do mapa na impressão */
-  }
+ 
 }
 </style>
