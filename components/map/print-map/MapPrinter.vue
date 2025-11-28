@@ -11,14 +11,16 @@
           height="36"
           width="36"
           v-on="on"
+          @click="openPrintDialog"
         >
-          <v-icon @click="dialogPrint = true">
+          <v-icon>
             mdi-printer
           </v-icon>
         </v-btn>
       </template>
       <span> {{ $t('print-icon-label') }} </span>
     </v-tooltip>
+
     <v-dialog
       v-model="dialogPrint"
       persistent
@@ -69,9 +71,7 @@
                   return-object
                   single-line
                   required
-                  :hint="`${$t('input-size-hint')}: ${
-                    select.type
-                  }`"
+                  :hint="`${$t('input-size-hint')}: ${select.type}`"
                   :items="items"
                 />
                 <v-col class="mt-4 mb-2 text-right">
@@ -118,9 +118,7 @@
                   return-object
                   single-line
                   required
-                  :hint="`${$t('input-size-hint')}: ${
-                    select.type
-                  }`"
+                  :hint="`${$t('input-size-hint')}: ${select.type}`"
                   :items="items"
                 />
                 <v-col class="mt-4 mb-2 text-right">
@@ -128,21 +126,10 @@
                     dark
                     color="primary"
                     @click="handleContinueButton"
+                    :loading="loadingCAR"
                   >
-                    {{ $t('input-button-second-step') }} Buscar o bbox
+                    {{ $t('input-button-second-step') }}
                   </v-btn>
-                  <!-- <MapLandscapeCar
-                    v-if="showDialogLandscapeCar"
-                    id="printableMapCar"
-                    :show-dialog-landscape="showDialogLandscapeCar"
-                    :map-title="mapTitle"
-                    :leaf-size="select"
-                    :main-map="map"
-                    :selected-base-map="selectedBaseMap"
-                    :car-data="carData"
-                    @back="showDialogLandscapeCar = false"
-                    @close="closeDialogPrinter()"
-                  /> -->
                   <v-spacer />
                 </v-col>
               </v-card-text>
@@ -151,6 +138,13 @@
         </v-tabs>
       </v-card>
     </v-dialog>
+
+    <!-- Componente MapLandscapeCar controlado pela store -->
+    <MapLandscapeCar
+      v-if="$store.state.map.showTemplateMapLandscapeCar"
+      @back="handleBackFromCar"
+      @close="handleCloseFromCar"
+    />
   </div>
 </template>
 
@@ -199,17 +193,16 @@ export default {
     MapLandscape,
     MapLandscapeCar,
   },
+
   props: {
     map: {
       type: Object,
       default: null,
     },
-
     selectedBaseMap: {
       type: Object,
       default: null,
     },
-
     showTms: {
       type: Boolean,
       default: false,
@@ -218,8 +211,6 @@ export default {
 
   data: () => ({
     showDialogLandscape: false,
-    showDialogLandscapeCar: false,
-    showDialogPortrait: false,
     dialogPrint: false,
     mapTitle: '',
     textMap: '',
@@ -228,17 +219,80 @@ export default {
       { type: 'A4' },
       { type: 'A3' },
     ],
-    carData: [],
+    loadingCAR: false,
   }),
 
   computed: {
     isScreenSmall() {
       return window.innerWidth < 768;
     },
-    ...mapState('map', ['tmsToPrint']),
+    ...mapState('map', ['tmsToPrint', 'showTemplateMapLandscapeCar']),
+  },
+
+  watch: {
+    // Fechar dialog principal quando o modal CAR abrir
+    showTemplateMapLandscapeCar(newVal) {
+      if (newVal) {
+        this.dialogPrint = false;
+      }
+    },
   },
 
   methods: {
+    openPrintDialog() {
+      this.dialogPrint = true;
+    },
+
+    async handleContinueButton() {
+      this.loadingCAR = true;
+
+      try {
+        if (this.map && typeof this.map.getBounds === 'function') {
+          const bounds = this.map.getBounds();
+          const bboxArray = [
+            bounds.getWest(),
+            bounds.getSouth(),
+            bounds.getEast(),
+            bounds.getNorth(),
+          ];
+
+          console.log('BBOX do mapa:', bboxArray);
+
+          // Salvar dados básicos primeiro
+          this.$store.commit('map/setCarPrintData', {
+            mapTitle: this.mapTitle || 'Relatório CAR',
+            leafSize: this.select,
+            mapBounds: {
+              north: bounds.getNorth(),
+              south: bounds.getSouth(),
+              east: bounds.getEast(),
+              west: bounds.getWest(),
+            },
+            selectedBaseMapUrl: this.selectedBaseMap?.url,
+            visible: true,
+            carData: [], // Inicializar vazio
+          });
+
+          // Fazer consulta WFS
+          await this.queryWFSWithBbox(bboxArray);
+        } else {
+          console.log('Mapa não disponível');
+          this.$store.commit('map/setCarPrintData', {
+            mapTitle: this.mapTitle || 'Relatório CAR',
+            leafSize: this.select,
+            visible: true,
+            carData: [],
+          });
+          this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
+        }
+      } catch (error) {
+        console.error('Erro no processo CAR:', error);
+        this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
+      } finally {
+        this.loadingCAR = false;
+      }
+    },
+
     async queryWFSWithBbox(bboxArray) {
       try {
         console.log('🎯 Buscando CAR para mapa de impressão...');
@@ -262,69 +316,78 @@ export default {
         console.log('🔗 URL final:', url);
 
         const response = await this.$api.$get(url);
-        console.log('✅✅✅ DADOS CAR ENCONTRADOS!', response);
 
-        if (response.features && response.features.length > 0) {
-          console.log(`🎯 Total de imóveis CAR: ${response.features.length}`);
+        // Processar dados CAR
+        const processedCarData = this.processCarData(response.features || []);
 
-          // SALVAR OS DADOS CAR PARA PASSAR PARA O MAPA DE IMPRESSÃO
-          this.carData = response.features;
+        console.log('✅ DADOS CAR ENCONTRADOS!', processedCarData.length);
 
-          // Log das propriedades
-          response.features.forEach((feature, index) => {
-            console.log(`\n--- CAR ${index + 1} ---`);
-            console.log('Número:', index + 1);
-            console.log('Propriedades:', feature.properties);
-          });
+        // ATUALIZAR os dados CAR na store
+        this.$store.commit('map/setCarPrintData', {
+          carData: processedCarData,
+        });
 
-          // Abrir o MapLandscapeCar APÓS buscar os dados
-          // this.showDialogLandscapeCar = true;
-          this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
+        // Abrir o MapLandscapeCar
+        this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
 
-          return response;
-        }
-        console.log('ℹ️ Nenhum imóvel CAR encontrado neste bbox');
-        this.carData = [];
-        this.showDialogLandscapeCar = true;
       } catch (error) {
         console.error('❌ Erro na consulta CAR:', error);
-        this.carData = [];
-        this.showDialogLandscapeCar = true;
+        // Mesmo com erro, abrir o modal com dados vazios
+        this.$store.commit('map/setCarPrintData', {
+          carData: [],
+        });
+        this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
       }
     },
 
-    handleContinueButton() {
-      if (this.map && typeof this.map.getBounds === 'function') {
-        const bounds = this.map.getBounds();
-        const bboxArray = [
-          bounds.getWest(),
-          bounds.getSouth(),
-          bounds.getEast(),
-          bounds.getNorth(),
-        ];
+    processCarData(features) {
+      return features.map((feature) => {
+        const cleanFeature = {
+          type: feature.type,
+          geometry: feature.geometry,
+          properties: { ...feature.properties },
+          id: feature.id,
+        };
 
-        console.log('BBOX do mapa:', bboxArray);
+        // Limpar propriedades complexas
+        if (cleanFeature.properties) {
+          Object.keys(cleanFeature.properties).forEach((key) => {
+            if (typeof cleanFeature.properties[key] === 'object' && cleanFeature.properties[key] !== null) {
+              delete cleanFeature.properties[key];
+            }
+          });
+        }
 
-        // Fazer consulta WFS com CQL_FILTER
-        this.queryWFSWithBbox(bboxArray);
-      } else {
-        console.log('Mapa não disponível ou método getBounds não encontrado');
-        this.carData = [];
-        this.showDialogLandscapeCar = true;
-      }
+        return cleanFeature;
+      });
+    },
+
+    handleBackFromCar() {
+      this.$store.commit('map/setShowTemplateMapLandscapeCar', false);
+      // Reabrir o dialog principal quando voltar do CAR
+      this.dialogPrint = true;
+    },
+
+    handleCloseFromCar() {
+      this.$store.commit('map/setShowTemplateMapLandscapeCar', false);
+      this.closeDialogPrinter();
     },
 
     closeDialogPrinter() {
       this.dialogPrint = false;
       this.showDialogLandscape = false;
-      this.showDialogLandscapeCar = false;
-      this.carData = [];
+
+      // Limpar dados da store
+      this.$store.commit('map/clearCarPrintData');
+      this.$store.commit('map/setShowTemplateMapLandscapeCar', false);
+
       this.setTmsToPrint({
         visible: false,
         url: '',
         bounds: null,
       });
     },
+
     ...mapMutations('map', ['setTmsToPrint']),
   },
 };

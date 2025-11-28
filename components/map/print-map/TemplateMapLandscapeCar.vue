@@ -1,29 +1,84 @@
 <template>
   <BaseModal
-    :value="value"
-    @close="$emit('close')"
+    :value="showDialog"
+    @close="handleClose"
+    width="90%"
+    max-width="1200px"
   >
-     <!-- <v-toolbar dense class="print-dialog-header no-print" color="primary">
-            <v-btn icon x-small color="white" class="close-btn mb-4" @click="$emit('close')">
-                <v-icon>mdi-close</v-icon>
-            </v-btn>
-        </v-toolbar> -->
+    <!-- Logos e Título centralizados -->
+    <v-row class="justify-center text-center ma-2">
+      <v-col cols="6" class="d-flex justify-end align-end">
+        <v-img
+          contain
+          :src="logo_funai"
+          max-width="120px"
+          max-height="60px"
+        />
+      </v-col>
+      <v-col cols="6" class="mt-2">
+        <v-img
+          contain
+          :src="logo_cmr"
+          max-width="180px"
+          max-height="60px"
+        />
+      </v-col>
+      <v-col cols="12">
+        <p class="font-title text-h6">{{ mapTitle }}</p>
+      </v-col>
+    </v-row>
 
-        <div style="background-color: #fff; height: 50vh;" class="teste-print">
-          <!-- break pages in window.print -->
-          <div v-for="n in 30" :key="n" class="page-break">
-            <h2>Página {{ n }}</h2>
-            <p>{{ n }} - Este é um exemplo de texto para demonstrar a impressão com quebra de página.</p>
-            <p>Conteúdo adicional da página {{ n }}...</p>
-          </div>
-        </div>
+    <div style="background-color: #fff;" class="teste-print">
+      <!-- Conteúdo do mapa CAR -->
+      <div
+        id="map-for-print-container-car"
+        style="width: 100%; height: 400px; border: 1px solid #ccc;"
+        key="car-map-container"
+      ></div>
+
+      <!-- Lista de CARs encontrados -->
+      <div v-if="carData.length > 0" class="car-list pa-4">
+        <h3>Imóveis CAR Encontrados ({{ carData.length }})</h3>
+        <v-simple-table>
+          <template v-slot:default>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Município</th>
+                <th>Terra Indígena</th>
+                <th>Área (ha)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(car, index) in carData" :key="index">
+                <td>{{ index + 1 }}</td>
+                <td>{{ getMunicipioName(car) }}</td>
+                <td>{{ getTerraIndigenaName(car) }}</td>
+                <td>{{ formatNumber(car.properties?.area_ha) }}</td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+      </div>
+
+      <div v-else class="car-list pa-4">
+        <v-alert type="info">
+          Nenhum imóvel CAR encontrado na área selecionada.
+        </v-alert>
+      </div>
+    </div>
+
+    <!-- Botões de ação -->
+    <v-card-actions>
+      <v-spacer></v-spacer>
+      <v-btn @click="handleBack">
+        {{ $t('input-button-back-second-step') }}
+      </v-btn>
+      <v-btn color="primary" @click="print">
+        {{ $t('input-button-pdf-image') }}
+      </v-btn>
+    </v-card-actions>
   </BaseModal>
-
-  <!-- <v-dialog v-model="showDialog" width="1230px" @click:outside="$emit('close')">
-
-
-
-    </v-dialog> -->
 </template>
 
 <i18n>
@@ -98,660 +153,396 @@
 </i18n>
 
 <script>
-import { mapState, mapActions } from 'vuex'
-import MapForPrint from './MapForPrint.vue'
-import MiniMap from './MiniMap.vue'
-import LayerList from './LayerListActive.vue'
-import CustomizedLegend from './CustomizedLegendActive.vue'
-import BaseModal from '../../base/BaseModal.vue';
+import { mapState, mapMutations } from 'vuex'
+import BaseModal from '../../base/BaseModal.vue'
 
 export default {
-    name: 'PrintTemplateMapLandscape',
-    components: {
-        MapForPrint,
-        MiniMap,
-        LayerList,
-        CustomizedLegend,
-        BaseModal,
+  name: 'MapLandscapeCar',
+  components: {
+    BaseModal,
+  },
+
+  data: () => ({
+    logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
+    logo_cmr: process.env.DEFAULT_LOGO_IMAGE_CMR,
+    printMap: null,
+    carLayer: null,
+    mapInitialized: false,
+    CAR_COLORS: [
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+      '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+      '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2',
+      '#F9E79F', '#A9DFBF', '#F5B7B1', '#AED6F1', '#E8DAEF',
+      '#A3E4D7', '#FAD7A0', '#D2B4DE', '#A9CCE3', '#F9E79F',
+      '#ABEBC6'
+    ],
+  }),
+
+  computed: {
+    ...mapState('map', ['carPrintData', 'showTemplateMapLandscapeCar']),
+
+    showDialog() {
+      return this.showTemplateMapLandscapeCar && this.carPrintData.visible;
     },
 
-    props: {
-        value: {
-          type: Boolean,
-          default: false,
-        },
-        mapTitle: {
-            type: String,
-            default: '',
-        },
-        leafSize: {
-            type: Object,
-            default: null,
-        },
-        mainMap: {
-            type: Object,
-            default: null,
-        },
-        selectedBaseMap: {
-            type: Object,
-            default: null,
-        },
-        model: {
-            type: Object,
-            default: null,
-        },
-        carData: {
-            type: Array,
-            default: () => [],
-        },
+    mapTitle() {
+      return this.carPrintData.mapTitle || '';
     },
 
-    data: () => ({
-        selectedItemsCount: 0,
-        currentBouldMap: null,
-        mapCenter: null,
-        mainZoom: null,
-        logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
-        logo_cmr: process.env.DEFAULT_LOGO_IMAGE_CMR,
-        carLayer: null,
-        printMap: null,
-        deterItems: [{ label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' }],
-        heatFocusItems: [
-            {
-                label: 'Aqua Modis Manhã',
-                color: '#FFA500',
-                icon: 'mdi-fire',
-            },
-            {
-                label: 'Aqua Modis Tarde',
-                color: '#FF0000',
-                icon: 'mdi-fire',
-            },
-        ],
-        CAR_COLORS: [
-            '#FF6B6B',
-            '#4ECDC4',
-            '#45B7D1',
-            '#96CEB4',
-            '#FFEAA7',
-            '#DDA0DD',
-            '#98D8C8',
-            '#F7DC6F',
-            '#BB8FCE',
-            '#85C1E9',
-            '#F8C471',
-            '#82E0AA',
-            '#F1948A',
-            '#85C1E9',
-            '#D7BDE2',
-            '#F9E79F',
-            '#A9DFBF',
-            '#F5B7B1',
-            '#AED6F1',
-            '#E8DAEF',
-            '#A3E4D7',
-            '#FAD7A0',
-            '#D2B4DE',
-            '#A9CCE3',
-            '#F9E79F',
-            '#ABEBC6',
-        ],
-    }),
-
-    computed: {
-        filteredHeatFocusItems() {
-            const { showFeaturesAquaMM, showFeaturesAquaMT } = this
-            return this.heatFocusItems.filter(
-                (item) =>
-                    (item.label === 'Aqua Modis Manhã' && showFeaturesAquaMM) ||
-                    (item.label === 'Aqua Modis Tarde' && showFeaturesAquaMT)
-            )
-        },
-
-        activePrintFeatures() {
-            const features = []
-            const conditions = [
-                {
-                    condition: this.showFeaturesMonitoring,
-                    type: 'date-range',
-                    label: 'monitoring-print-label',
-                    startDate: this.monitoringFilters?.startDate,
-                    endDate: this.monitoringFilters?.endDate,
-                },
-                {
-                    condition: this.showFeaturesAlerts,
-                    type: 'date-range',
-                    label: 'alerts-print-label',
-                    startDate: this.alertsFilters?.startDate,
-                    endDate: this.alertsFilters?.endDate,
-                },
-                {
-                    condition: this.showFeaturesLandUse && this.uniqueYears.length > 0,
-                    type: 'years-list',
-                    label: 'land-use-print-label',
-                    years: this.uniqueYears,
-                },
-                {
-                    condition: this.showFeaturesProdes,
-                    type: 'single-year',
-                    label: 'prodes-print-label',
-                    yearHandler: this.handleProdesYear,
-                },
-                {
-                    condition: this.showFeaturesDeter,
-                    type: 'date-range',
-                    label: 'deter-print-label',
-                    startDate: this.deterFilters?.startDate,
-                    endDate: this.deterFilters?.endDate,
-                },
-                {
-                    condition: this.showFeaturesAquaMM || this.showFeaturesAquaMT,
-                    type: 'date-range',
-                    label: 'heat-focus-print-label',
-                    startDate: this.focoFilters?.startDate,
-                    endDate: this.focoFilters?.endDate,
-                },
-            ]
-
-            return conditions.filter((item) => item.condition).map(({ condition, ...rest }) => rest)
-        },
-
-        hasActiveMonitoringStages() {
-            return Object.values(this.legendVisibility).some((visible) => visible)
-        },
-
-        hasActiveAlertsStages() {
-            return Object.values(this.legendVisibilityalerts).some((visible) => visible)
-        },
-
-        monitoringCount() {
-            return this.tableMonitoring?.length || 0
-        },
-
-        alertsCount() {
-            return this.tableAlerts?.length || 0
-        },
-
-        uniqueYears() {
-            if (!Array.isArray(this.tableLandUse)) return []
-            const years = this.tableLandUse.map((item) => item.nu_ano)
-            return [...new Set(years)]
-        },
-
-        showDialog() {
-            return this.showDialogLandscape
-        },
-
-        hasVisibleSupportLayers() {
-            if (!this.showFeaturesSupportLayers) return false
-
-            const systemLayersVisible =
-                this.supportLayers &&
-                Object.values(this.supportLayers).some((layer) => layer && layer.visible)
-
-            const userLayersVisible =
-                this.supportLayerUser &&
-                Object.values(this.supportLayerUser).some((layer) => layer && layer.visible)
-
-            return systemLayersVisible || userLayersVisible
-        },
-
-        layerCategories() {
-            const categories = []
-
-            if (this.showFeaturesSupportLayers && this.supportLayers) {
-                const visibleSystemLayers = Object.entries(this.supportLayers)
-                    .filter(([_, layer]) => layer && layer.visible)
-                    .reduce((acc, [key, layer]) => {
-                        acc[key] = layer
-                        return acc
-                    }, {})
-
-                if (Object.keys(visibleSystemLayers).length > 0) {
-                    categories.push({
-                        name: 'Support Layers',
-                        layers: visibleSystemLayers,
-                        type: 'system',
-                    })
-                }
-            }
-
-            if (this.showFeaturesSupportLayers && this.supportLayerUser) {
-                const visibleUserLayers = Object.entries(this.supportLayerUser)
-                    .filter(([_, layer]) => layer && layer.visible)
-                    .reduce((acc, [key, layer]) => {
-                        acc[key] = layer
-                        return acc
-                    }, {})
-
-                if (Object.keys(visibleUserLayers).length > 0) {
-                    categories.push({
-                        name: 'User Layers',
-                        layers: visibleUserLayers,
-                        type: 'user',
-                    })
-                }
-            }
-
-            return categories
-        },
-
-        // Computed properties simplificadas usando métodos
-        showFeaturesAquaMM() {
-            return this.isLayerActive('aquaMM')
-        },
-
-        showFeaturesAquaMT() {
-            return this.isLayerActive('aquaMT')
-        },
-
-        featuresAquaMM() {
-            return this.getLayerFeatures('aquaMM')
-        },
-
-        featuresAquaMT() {
-            return this.getLayerFeatures('aquaMT')
-        },
-
-        focoFilters() {
-            return this.layers?.aquaMM?.filters || {}
-        },
-
-        prodesItems() {
-            return this.$store.getters['prodes/getLegendItems']
-        },
-
-        monitoringItems() {
-            return this.$store.getters['monitoring/getActiveLegendItems']
-        },
-
-        alertsItems() {
-            return this.$store.getters['urgent-alerts/getLegendItems']
-        },
-
-        landUseItems() {
-            return this.$store.getters['land-use/getActiveLegendItems']
-        },
-
-        ...mapState({
-            monitoringFilters: (state) => state.monitoring.filters,
-            alertsFilters: (state) => state['urgent-alerts'].filters,
-            prodesFilters: (state) => state.prodes.filters,
-            deterFilters: (state) => state.deter.filters,
-            showFeaturesMonitoring: (state) => state.monitoring.showFeaturesMonitoring,
-            showFeaturesAlerts: (state) => state['urgent-alerts'].showFeaturesAlerts,
-            tableMonitoring: (state) => state.monitoring.tableMonitoring,
-            tableAlerts: (state) => state['urgent-alerts'].tableAlerts,
-            legendVisibility: (state) => state.monitoring.legendVisibility,
-            legendVisibilityalerts: (state) => state['urgent-alerts'].legendVisibility,
-            showFeaturesProdes: (state) => state.prodes.showFeaturesProdes,
-            showFeaturesDeter: (state) => state.deter.showFeaturesDeter,
-            showFeaturesLandUse: (state) => state['land-use'].showFeaturesLandUse,
-            tableLandUse: (state) => state['land-use'].tableLandUse,
-            supportLayerUser: (state) => state.supportLayersUser.supportLayerUser,
-            showFeaturesSupportLayers: (state) => state.supportLayers.showFeaturesSupportLayers,
-            supportLayers: (state) => state.supportLayers.supportLayers,
-            layers: (state) => state.foco.layers,
-        }),
+    leafSize() {
+      return this.carPrintData.leafSize || { type: 'A4' };
     },
 
-    watch: {
-        carData: {
-            handler(newData, oldData) {
-                // Evitar processamento desnecessário se dados não mudaram
-                if (JSON.stringify(newData) === JSON.stringify(oldData)) return
-
-                if (newData?.length > 0) {
-                    if (this.printMap) {
-                        console.log('🗺️ Recebidos dados CAR para exibir:', newData.length)
-                        this.$nextTick(() => {
-                            this.displayCAROnMap(newData)
-                        })
-                    } else {
-                        console.log('⏳ Dados CAR recebidos, aguardando mapa...')
-                    }
-                } else {
-                    this.removeCARFromMap()
-                }
-            },
-            immediate: true,
-            deep: true,
-        },
+    mapBounds() {
+      return this.carPrintData.mapBounds;
     },
 
-    async mounted() {
-        const promises = []
+    selectedBaseMapUrl() {
+      return this.carPrintData.selectedBaseMapUrl;
+    },
 
-        if (this.showFeaturesMonitoring && this.getDataTableMonitoring) {
-            promises.push(this.getDataTableMonitoring())
+    carData() {
+      return this.carPrintData.carData || [];
+    }
+  },
+
+  watch: {
+    showDialog: {
+      handler(newVal) {
+        if (newVal) {
+          this.$nextTick(() => {
+            setTimeout(() => {
+              this.initializeMap();
+              if (this.carData.length > 0) {
+                this.displayCAROnMap(this.carData);
+              }
+            }, 300); // Aumentei o delay para garantir que o DOM esteja pronto
+          });
+        } else {
+          this.cleanupMap();
         }
-        if (this.showFeaturesLandUse && this.getDataTableLandUse) {
-            promises.push(this.getDataTableLandUse())
-        }
-        if (this.showFeaturesAlerts && this.getDataTableAlerts) {
-            promises.push(this.getDataTableAlerts())
+      },
+      immediate: true
+    }
+  },
+
+  methods: {
+    ...mapMutations('map', ['setShowTemplateMapLandscapeCar', 'clearCarPrintData']),
+
+    handleClose() {
+      this.setShowTemplateMapLandscapeCar(false);
+      this.clearCarPrintData();
+      this.$emit('close');
+    },
+
+    handleBack() {
+      this.setShowTemplateMapLandscapeCar(false);
+      this.$emit('back');
+    },
+
+    initializeMap() {
+      if (this.mapInitialized && this.printMap) {
+        console.log('🗺️ Mapa já inicializado, recriando...');
+        this.cleanupMap();
+      }
+
+      if (!this.printMap && this.mapBounds) {
+        this.createPrintMap();
+      }
+    },
+
+    createPrintMap() {
+      const mapContainer = document.getElementById('map-for-print-container-car');
+      if (!mapContainer) {
+        console.error('Container do mapa CAR não encontrado');
+        return;
+      }
+
+      try {
+        // Verificar se já existe um mapa no container
+        if (mapContainer._leaflet_map) {
+          console.log('🗑️ Removendo mapa existente do container...');
+          mapContainer._leaflet_map.remove();
         }
 
-        await Promise.all(promises)
-        this.updateSelectedItemsCount()
+        // Criar novo mapa Leaflet
+        this.printMap = L.map('map-for-print-container-car', {
+          attributionControl: false,
+          zoomControl: true
+        });
+
+        // Adicionar base map se disponível
+        if (this.selectedBaseMapUrl) {
+          L.tileLayer(this.selectedBaseMapUrl, {
+            maxZoom: 19,
+          }).addTo(this.printMap);
+        } else {
+          // Fallback para um base map padrão
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+          }).addTo(this.printMap);
+        }
+
+        // Configurar a view baseada nos bounds salvos
+        if (this.mapBounds) {
+          const bounds = L.latLngBounds(
+            [this.mapBounds.south, this.mapBounds.west],
+            [this.mapBounds.north, this.mapBounds.east]
+          );
+          this.printMap.fitBounds(bounds);
+          console.log('🗺️ Mapa configurado com bounds:', bounds);
+        }
+
+        this.mapInitialized = true;
+        console.log('🗺️ Mapa de impressão CAR criado com sucesso!');
+      } catch (error) {
+        console.error('Erro ao criar mapa CAR:', error);
+      }
     },
 
-    beforeDestroy() {
-        this.removeCARFromMap()
-        this.printMap = null
-        this.carLayer = null
+    displayCAROnMap(features) {
+      if (!this.printMap || !features.length) {
+        console.log('Mapa não disponível ou sem features para exibir');
+        return;
+      }
+
+      console.log('🗺️ Adicionando CAR ao mapa de impressão...');
+
+      // Remover layers anteriores
+      this.removeCARFromMap();
+
+      const validLayers = [];
+
+      features.forEach((feature, index) => {
+        try {
+          const color = this.getCarColor(index);
+          const numero = index + 1;
+
+          const carStyle = {
+            color,
+            weight: 3,
+            opacity: 0.9,
+            fillColor: color,
+            fillOpacity: 0.3,
+          };
+
+          const layer = L.geoJSON(feature, {
+            style: carStyle,
+          });
+
+          // Verificar se a layer tem geometria válida
+          let layerBounds;
+          try {
+            layerBounds = layer.getBounds();
+            if (!layerBounds.isValid()) {
+              console.warn(`Geometria inválida para CAR ${index + 1}`);
+              return;
+            }
+          } catch (boundsError) {
+            console.warn(`Erro ao obter bounds para CAR ${index + 1}:`, boundsError);
+            return;
+          }
+
+          // Adicionar marcador numérico
+          let numberMarker = null;
+          try {
+            const center = layerBounds.getCenter();
+            numberMarker = L.marker(center, {
+              icon: L.divIcon({
+                className: 'car-number-marker',
+                html: `<div style="
+                  background-color: ${color};
+                  color: white;
+                  border: 2px solid white;
+                  border-radius: 50%;
+                  width: 30px;
+                  height: 30px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-weight: bold;
+                  font-size: 14px;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                ">${numero}</div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15],
+              }),
+            });
+          } catch (markerError) {
+            console.warn(`Não foi possível criar marcador para CAR ${index + 1}:`, markerError);
+          }
+
+          const finalLayer = numberMarker ? L.layerGroup([layer, numberMarker]) : layer;
+          validLayers.push(finalLayer);
+
+        } catch (error) {
+          console.warn(`Erro ao processar CAR ${index + 1}:`, error);
+        }
+      });
+
+      if (validLayers.length > 0) {
+        this.carLayer = L.layerGroup(validLayers);
+        this.carLayer.addTo(this.printMap);
+
+        console.log(`✅ ${validLayers.length} CARs adicionados ao mapa de impressão!`);
+
+        // Ajustar view para mostrar todos os CARs
+        this.adjustMapToCARs(validLayers);
+      } else {
+        console.log('⚠️ Nenhuma layer válida para exibir');
+      }
     },
 
-    methods: {
-        // Métodos auxiliares para layers
-        isLayerActive(layerName) {
-            return this.layers?.[layerName]?.showFeatures || false
-        },
+    adjustMapToCARs(layers) {
+      if (!layers.length || !this.printMap) return;
 
-        getLayerFeatures(layerName) {
-            return this.layers?.[layerName]?.features || null
-        },
+      try {
+        // Coletar todos os bounds válidos
+        const allBounds = layers.map(layer => {
+          try {
+            return layer.getBounds ? layer.getBounds() : null;
+          } catch (error) {
+            console.warn('Erro ao obter bounds da layer:', error);
+            return null;
+          }
+        }).filter(bounds => bounds && bounds.isValid());
 
-        getMunicipioName(carItem) {
-            if (carItem.properties?.no_municipio_car) {
-                return carItem.properties.no_municipio_car
-            }
-            if (carItem.properties?.no_municipio) {
-                return carItem.properties.no_municipio
-            }
-            return '-'
-        },
+        if (allBounds.length === 0) {
+          console.log('⚠️ Nenhum bounds válido encontrado para ajustar o mapa');
+          return;
+        }
 
-        getCarColor(index) {
-            return this.CAR_COLORS[index % this.CAR_COLORS.length]
-        },
+        // Criar um bounds que engloba todos os bounds individuais
+        const groupBounds = allBounds.reduce((acc, bounds) => {
+          return acc.extend(bounds);
+        }, allBounds[0].clone());
 
-        getTerraIndigenaName(carItem) {
-            if (carItem.properties && carItem.properties.no_terra_indigena) {
-                return carItem.properties.no_terra_indigena
-            }
-            if (carItem.no_terra_indigena) {
-                return carItem.no_terra_indigena
-            }
-            if (carItem.properties && carItem.properties.nome) {
-                return carItem.properties.nome
-            }
-            return 'Nome não disponível'
-        },
-
-        formatNumber(value) {
-            if (value == null || value === '') return '-'
-
-            try {
-                const num =
-                    typeof value === 'string'
-                        ? parseFloat(value.replace(/\./g, '').replace(',', '.'))
-                        : Number(value)
-
-                if (isNaN(num)) return '-'
-
-                // Verificar se é inteiro
-                if (Number.isInteger(num)) {
-                    return num.toLocaleString('pt-BR')
-                }
-
-                // Para decimais
-                const formatted = num.toLocaleString('pt-BR', {
-                    minimumFractionDigits: 3,
-                    maximumFractionDigits: 3,
-                })
-
-                return formatted
-            } catch {
-                return '-'
-            }
-        },
-
-        onMapReady(map) {
-            console.log('🗺️ Mapa de impressão pronto!')
-            this.printMap = map
-
-            if (this.carData && this.carData.length > 0) {
-                this.$nextTick(() => {
-                    this.displayCAROnMap(this.carData)
-                })
-            }
-        },
-
-        displayCAROnMap(features) {
-            try {
-                // Validar features
-                if (!Array.isArray(features) || features.length === 0) {
-                    console.warn('⚠️ Nenhum dado CAR válido para exibir')
-                    return
-                }
-
-                console.log('🗺️ Adicionando CAR ao mapa de impressão...')
-                console.log('📋 Dados CAR recebidos:', features)
-
-                if (!this.printMap) {
-                    console.error('❌ Mapa de impressão ainda não está pronto')
-                    return
-                }
-
-                this.removeCARFromMap()
-
-                const carLayers = features.map((feature, index) => {
-                    const color = this.getCarColor(index)
-                    const numero = index + 1
-
-                    const carStyle = {
-                        color,
-                        weight: 3,
-                        opacity: 0.9,
-                        fillColor: color,
-                        fillOpacity: 0.3,
-                    }
-
-                    const layer = L.geoJSON(feature, {
-                        style: carStyle,
-                    })
-
-                    const center = layer.getBounds().getCenter()
-
-                    const numberMarker = L.marker(center, {
-                        icon: L.divIcon({
-                            className: 'car-number-marker',
-                            html: `<div style="
-                background-color: ${color};
-                color: white;
-                border: 2px solid white;
-                border-radius: 50%;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-                font-size: 14px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-              ">${numero}</div>`,
-                            iconSize: [30, 30],
-                            iconAnchor: [15, 15],
-                        }),
-                    })
-
-                    return L.layerGroup([layer, numberMarker])
-                })
-
-                this.carLayer = L.layerGroup(carLayers)
-                this.carLayer.addTo(this.printMap)
-
-                console.log(
-                    `✅ ${features.length} CARs adicionados ao mapa de impressão com números!`
-                )
-
-                const allLayers = carLayers.flatMap((layerGroup) => layerGroup.getLayers())
-                const group = L.featureGroup(allLayers)
-                this.printMap.fitBounds(group.getBounds().pad(0.1))
-            } catch (error) {
-                console.error('❌ Erro ao exibir CAR no mapa de impressão:', error)
-            }
-        },
-
-        removeCARFromMap() {
-            if (this.carLayer && this.printMap) {
-                this.printMap.removeLayer(this.carLayer)
-                this.carLayer = null
-                console.log('🗑️ CAR removido do mapa de impressão')
-            }
-        },
-
-        updateSelectedItemsCount() {
-            this.selectedItemsCount = Math.max(
-                this.tableMonitoring?.length || 0,
-                this.tableAlerts?.length || 0,
-                this.tableLandUse?.length || 0
-            )
-        },
-
-        handleProdesYear() {
-            const { prodesFilters } = this
-            if (!prodesFilters) return '-'
-            if (prodesFilters.startYear === prodesFilters.endYear) {
-                return prodesFilters.startYear
-            }
-            return `${prodesFilters.startYear} ${this.$t('and')} ${prodesFilters.endYear}`
-        },
-
-        handleData(data) {
-            if (!data || typeof data !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
-                console.warn('Data inválida:', data)
-                return 'Data indisponível'
-            }
-            const [year, month, day] = data.split('-')
-            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
-        },
-
-        todayDate() {
-            const date = new Date()
-            const dd = date.getDate()
-            const mm = date.getMonth() + 1
-            const yyyy = date.getFullYear()
-            return `${dd < 10 ? `0${dd}` : dd}/${mm < 10 ? `0${mm}` : mm}/${yyyy}`
-        },
-
-        updateBounds(bounds) {
-            this.currentBouldMap = bounds
-        },
-
-        getCenter(center) {
-            this.mapCenter = center
-        },
-
-        getZoom(zoom) {
-            this.mainZoom = zoom
-        },
-
-        adjustMapSizeForPrint(tamanho) {
-            const mapDimensions = this.getMapDimensions(tamanho)
-            const mapContainer = document.getElementById('map-for-print-container')
-            if (mapContainer) {
-                mapContainer.style.width = `${mapDimensions.width}px`
-                mapContainer.style.height = `${mapDimensions.height}px`
-            }
-        },
-
-        getMapDimensions(tamanho) {
-            switch (tamanho) {
-                case 'A4':
-                    return { width: 1105, height: 770 }
-                case 'A3':
-                    return { width: 1450, height: 800 }
-                default:
-                    return { width: 210, height: 297 }
-            }
-        },
-
-        print() {
-            // Salvar o estado atual
-            const originalBodyStyle = document.body.style.cssText
-            const originalContainerStyle =
-                document.getElementById('map-for-print-container').style.cssText
-
-            // Aplicar ajustes para impressão
-            this.adjustMapSizeForPrint(this.leafSize.type)
-
-            // Adicionar evento para restaurar estado após impressão
-            const afterPrint = () => {
-                this.restoreStyles(originalBodyStyle, originalContainerStyle)
-                window.removeEventListener('afterprint', afterPrint)
-            }
-
-            window.addEventListener('afterprint', afterPrint)
-
-            // Forçar reflow e impressão
-            this.$nextTick(() => {
-                setTimeout(() => {
-                    window.print()
-                }, 1000) // Aumentei o tempo para garantir que tudo esteja renderizado
-            })
-        },
-
-        restoreStyles(bodyStyle, containerStyle) {
-            document.body.style.cssText = bodyStyle
-            const mapContainer = document.getElementById('map-for-print-container')
-            if (mapContainer) {
-                mapContainer.style.cssText = containerStyle
-            }
-            this.$forceUpdate()
-        },
-
-        restoreStyles(bodyStyle, containerStyle) {
-            // Restaurar estilos originais
-            document.body.style.cssText = bodyStyle
-            const mapContainer = document.getElementById('map-for-print-container')
-            if (mapContainer) {
-                mapContainer.style.cssText = containerStyle
-            }
-
-            // Forçar redraw dos componentes Vue
-            this.$forceUpdate()
-        },
-
-        ...mapActions('monitoring', ['getDataTableMonitoring']),
-        ...mapActions('land-use', ['getDataTableLandUse']),
-        ...mapActions('urgent-alerts', ['getDataTableAlerts']),
+        if (groupBounds.isValid()) {
+          this.printMap.fitBounds(groupBounds.pad(0.1));
+          console.log('🗺️ Mapa ajustado para mostrar todos os CARs');
+        }
+      } catch (error) {
+        console.warn('Erro ao ajustar bounds do mapa:', error);
+        // Fallback: usar os bounds originais do mapa
+        if (this.mapBounds) {
+          const bounds = L.latLngBounds(
+            [this.mapBounds.south, this.mapBounds.west],
+            [this.mapBounds.north, this.mapBounds.east]
+          );
+          this.printMap.fitBounds(bounds);
+        }
+      }
     },
+
+    removeCARFromMap() {
+      if (this.carLayer && this.printMap) {
+        this.printMap.removeLayer(this.carLayer);
+        this.carLayer = null;
+      }
+    },
+
+    cleanupMap() {
+      console.log('🧹 Limpando mapa CAR...');
+      this.removeCARFromMap();
+      if (this.printMap) {
+        try {
+          this.printMap.remove();
+          this.printMap = null;
+        } catch (error) {
+          console.warn('Erro ao remover mapa:', error);
+        }
+      }
+      this.mapInitialized = false;
+    },
+
+    getMunicipioName(carItem) {
+      return carItem.properties?.no_municipio_car ||
+             carItem.properties?.no_municipio || '-';
+    },
+
+    getTerraIndigenaName(carItem) {
+      return carItem.properties?.no_terra_indigena ||
+             carItem.properties?.nome ||
+             'Nome não disponível';
+    },
+
+    getCarColor(index) {
+      return this.CAR_COLORS[index % this.CAR_COLORS.length];
+    },
+
+    formatNumber(value) {
+      if (value == null || value === '') return '-';
+
+      try {
+        const num = typeof value === 'string'
+          ? parseFloat(value.replace(/\./g, '').replace(',', '.'))
+          : Number(value);
+
+        if (isNaN(num)) return '-';
+
+        if (Number.isInteger(num)) {
+          return num.toLocaleString('pt-BR');
+        }
+
+        const formatted = num.toLocaleString('pt-BR', {
+          minimumFractionDigits: 3,
+          maximumFractionDigits: 3,
+        });
+
+        return formatted;
+      } catch {
+        return '-';
+      }
+    },
+
+    print() {
+      window.print();
+    }
+  },
+
+  beforeDestroy() {
+    this.cleanupMap();
+  }
 }
 </script>
 
 <style scoped>
 @media print {
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 
-    .map-container {
-      display: none !important;
-    }
+  .page-break {
+    page-break-after: always;
+    break-after: page;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+  }
 
-    .page-break {
-        page-break-after: always;
-        break-after: page;
-        min-height: 100vh;
-        padding: 20px;
-        box-sizing: border-box;
-    }
+  .page-break:last-child {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
 
-    .page-break:last-child {
-        page-break-after: avoid;
-        break-after: avoid;
-    }
+  @page {
+    margin: 10px;
+    size: landscape;
+  }
 
-    @page {
-        margin: 10px;
-        size: landscape;
-    }
+  .no-print {
+    display: none !important;
+  }
+}
 
-    .no-print {
-        display: none !important;
-    }
+.car-number-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+#map-for-print-container-car {
+  min-height: 400px;
 }
 </style>

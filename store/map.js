@@ -32,13 +32,23 @@ export const state = () => ({
   selectedItems: [],
   // geoserver config
   geoserverUrl: '',
+  carPrintData: {
+    visible: false,
+    mapTitle: '',
+    leafSize: { type: 'A4' },
+    carData: [],
+    mapBounds: null,
+    selectedBaseMapUrl: null,
+  },
   showTemplateMapLandscapeCar: false,
 });
 
 export const getters = {
-  bbox: (state) => state.bounds.toBBoxString(),
+  bbox: (state) => (state.bounds ? state.bounds.toBBoxString() : ''),
 
   bboxWkt(state) {
+    if (!state.bounds) return '';
+
     const coords = [
       state.bounds.getSouthWest(),
       state.bounds.getNorthWest(),
@@ -52,6 +62,8 @@ export const getters = {
   },
 
   bboxEs(state) {
+    if (!state.bounds) return [[0, 0], [0, 0]];
+
     const northWest = state.bounds.getNorthWest();
     const southEast = state.bounds.getSouthEast();
 
@@ -169,14 +181,6 @@ export const mutations = {
     state.neighborhoods = payload;
   },
 
-  addFileToSpecificIndex(state, { file, fileIndex }) {
-    state.fileList.splice(fileIndex, 0, file);
-  },
-
-  addFileToMap(state, file) {
-    state.fileList.push(file);
-  },
-
   setBasemap(state, basemaps) {
     basemaps.forEach((basemap) => {
       basemap.options = {
@@ -190,10 +194,6 @@ export const mutations = {
     state.basemaps = basemaps;
   },
 
-  removeFileFromMap(state, fileIndex) {
-    state.fileList.splice(fileIndex, 1);
-  },
-
   setTmsToPrint(state, {
     visible, tmsUrl, geoserverName, wmsUrl, bounds,
   }) {
@@ -202,10 +202,6 @@ export const mutations = {
     state.tmsToPrint.geoserverName = geoserverName;
     state.tmsToPrint.wmsUrl = wmsUrl;
     state.tmsToPrint.bounds = bounds;
-  },
-
-  setHasLayer(state, hasLayer) {
-    state.hasAddLayer = hasLayer;
   },
 
   setIndigenousLand(state, indigenousLand) {
@@ -218,6 +214,61 @@ export const mutations = {
 
   setCurrentBaseMap(state, { url, options }) {
     state.currentBaseMap = { url, options };
+  },
+
+  setCarPrintData(state, carPrintData) {
+    // Filtra apenas dados serializáveis
+    const serializableData = {};
+
+    if (carPrintData.mapTitle !== undefined) {
+      serializableData.mapTitle = carPrintData.mapTitle;
+    }
+
+    if (carPrintData.leafSize !== undefined) {
+      serializableData.leafSize = carPrintData.leafSize;
+    }
+
+    if (carPrintData.carData !== undefined) {
+      serializableData.carData = carPrintData.carData;
+    }
+
+    if (carPrintData.visible !== undefined) {
+      serializableData.visible = carPrintData.visible;
+    }
+
+    // Extrair apenas dados necessários do mapa, não o objeto completo
+    if (carPrintData.map && typeof carPrintData.map.getBounds === 'function') {
+      const bounds = carPrintData.map.getBounds();
+      const center = carPrintData.map.getCenter();
+      serializableData.mapBounds = {
+        north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        west: bounds.getWest(),
+        center: {
+          lat: center.lat,
+          lng: center.lng,
+        },
+        zoom: carPrintData.map.getZoom(),
+      };
+    }
+
+    if (carPrintData.selectedBaseMap) {
+      serializableData.selectedBaseMapUrl = carPrintData.selectedBaseMap.url;
+    }
+
+    state.carPrintData = { ...state.carPrintData, ...serializableData };
+  },
+
+  clearCarPrintData(state) {
+    state.carPrintData = {
+      visible: false,
+      mapTitle: '',
+      leafSize: { type: 'A4' },
+      carData: [],
+      mapBounds: null,
+      selectedBaseMapUrl: null,
+    };
   },
 };
 
