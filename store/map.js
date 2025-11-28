@@ -32,6 +32,7 @@ export const state = () => ({
   selectedItems: [],
   // geoserver config
   geoserverUrl: '',
+  showTemplateMapLandscapeCar: false,
 });
 
 export const getters = {
@@ -64,6 +65,10 @@ export const getters = {
 export const mutations = {
   clearSavedSelectedItems(state) {
     state.savedSelectedItems = [];
+  },
+
+  setShowTemplateMapLandscapeCar(state, show) {
+    state.showTemplateMapLandscapeCar = show;
   },
 
   addItem(state, item) {

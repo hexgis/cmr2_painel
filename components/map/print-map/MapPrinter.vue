@@ -131,7 +131,7 @@
                   >
                     {{ $t('input-button-second-step') }} Buscar o bbox
                   </v-btn>
-                  <MapLandscapeCar
+                  <!-- <MapLandscapeCar
                     v-if="showDialogLandscapeCar"
                     id="printableMapCar"
                     :show-dialog-landscape="showDialogLandscapeCar"
@@ -142,7 +142,7 @@
                     :car-data="carData"
                     @back="showDialogLandscapeCar = false"
                     @close="closeDialogPrinter()"
-                  />
+                  /> -->
                   <v-spacer />
                 </v-col>
               </v-card-text>
@@ -278,7 +278,8 @@ export default {
           });
 
           // Abrir o MapLandscapeCar APÓS buscar os dados
-          this.showDialogLandscapeCar = true;
+          // this.showDialogLandscapeCar = true;
+          this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
 
           return response;
         }
