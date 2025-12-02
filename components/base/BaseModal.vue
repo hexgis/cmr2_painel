@@ -1,51 +1,146 @@
 <template>
-  <div class="_modal-wrapper" v-if="value">
-    <div class="_modal-backdrop"></div>
+  <div
+    v-if="value"
+    class="_modal-wrapper"
+  >
+    <div class="_modal-backdrop" />
     <div class="_modal-container container">
       <div class="_modal">
         <div class="_modal-header d-flex justify-space-between align-start">
-          <button @click="close()" class="close-button px-4 py-2">
-            <v-icon>mdi-window-close</v-icon>
-          </button>
-          <slot name="header-action-button">
-            <button @click="report()" class="report-button px-5 py-2">
-              <v-icon>mdi-printer</v-icon>
-            </button>
-          </slot>
+          <v-toolbar
+            dense
+            class="print-dialog-header no-print"
+            color="primary"
+          >
+            <v-btn
+              icon
+              x-small
+              color="white"
+              class="close-btn mb-4"
+              @click="close()"
+            >
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
         </div>
+
         <main class="_modal-body">
-          <slot></slot>
+          <slot />
         </main>
+
+        <!-- Footer do modal -->
+        <footer
+          v-if="showFooter"
+          class="_modal-footer no-print"
+        >
+          <slot name="footer">
+            <v-card-actions class="pa-3">
+              <v-spacer />
+              <v-btn
+                class="mr-2"
+                :disabled="backButtonDisabled"
+                @click="handleBackClick"
+              >
+                {{ backButtonText || $t('input-button-back-second-step') }}
+              </v-btn>
+              <v-btn
+                color="primary"
+                :loading="printLoading"
+                @click="report()"
+              >
+                <v-icon left>
+                  mdi-printer
+                </v-icon>
+                {{ printButtonText || $t('input-button-pdf-image') }}
+              </v-btn>
+            </v-card-actions>
+          </slot>
+        </footer>
       </div>
     </div>
   </div>
 </template>
 
+<i18n>
+{
+  "en": {
+
+    "input-button-back-second-step": "Back",
+    "input-button-pdf-image": "Generate PDF"
+
+  },
+  "pt-br": {
+    "input-button-back-second-step": "Voltar",
+    "input-button-pdf-image": "Gerar PDF"
+  }
+}
+</i18n>
+
 <script>
 export default {
   name: 'BaseModal',
   props: {
-    // Modal visibility
     value: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
+    showFooter: {
+      type: Boolean,
+      default: true,
+    },
+    backButtonText: {
+      type: String,
+      default: '',
+    },
+    printButtonText: {
+      type: String,
+      default: '',
+    },
+    backButtonDisabled: {
+      type: Boolean,
+      default: false,
+    },
+    printLoading: {
+      type: Boolean,
+      default: false,
+    },
+    emitBackAsPrinterBack: {
+      type: Boolean,
+      default: false,
+    },
   },
   methods: {
+    handleBackClick() {
+      if (this.emitBackAsPrinterBack) {
+        // Emite um evento específico para voltar ao printer
+        this.$emit('printer-back');
+      } else {
+        // Comportamento padrão
+        this.$emit('back');
+      }
+    },
     close() {
-      // Change the "value" prop here and in the parent component, via v-model
       this.$emit('input', false);
       this.$emit('close');
     },
     report() {
       window.print();
       this.$emit('report');
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
+
+.print-dialog-header {
+  background: var(--v-primary-base);
+  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+/* Estilos mantidos como antes, com adição do footer */
 ._modal-wrapper {
   position: absolute;
   z-index: 6;
@@ -76,11 +171,14 @@ export default {
   background-color: #fff;
   border-radius: 10px;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 ._modal-header {
   background-color: rgb(245, 245, 245);
   border-radius: 10px 10px 0 0;
+  flex-shrink: 0;
 }
 
 ._modal-header button {
@@ -88,8 +186,16 @@ export default {
 }
 
 ._modal-body {
-  height: calc(100% - 40px);
+  flex: 1;
   overflow-y: auto;
+  padding: 16px;
+}
+
+._modal-footer {
+  flex-shrink: 0;
+  background-color: rgb(245, 245, 245);
+  border-radius: 0 0 10px 10px;
+  border-top: 1px solid #e0e0e0;
 }
 
 .close-button {
@@ -111,6 +217,12 @@ export default {
   color: white;
 }
 
+.no-print {
+  @media print {
+    display: none !important;
+  }
+}
+
 @media print {
   ._modal-wrapper {
     position: relative;
@@ -122,6 +234,7 @@ export default {
     display: block;
     height: auto;
     overflow-y: visible;
+    padding: 0;
   }
 
   ._modal-container {
@@ -131,9 +244,11 @@ export default {
 
   ._modal {
     border-radius: 0px;
+    display: block;
   }
 
-  ._modal-header {
+  ._modal-header,
+  ._modal-footer {
     display: none !important;
   }
 }

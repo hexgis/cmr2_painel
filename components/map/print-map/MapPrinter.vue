@@ -125,8 +125,8 @@
                   <v-btn
                     dark
                     color="primary"
-                    @click="handleContinueButton"
                     :loading="loadingCAR"
+                    @click="handleContinueButton"
                   >
                     {{ $t('input-button-second-step') }}
                   </v-btn>
@@ -329,7 +329,6 @@ export default {
 
         // Abrir o MapLandscapeCar
         this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
-
       } catch (error) {
         console.error('❌ Erro na consulta CAR:', error);
         // Mesmo com erro, abrir o modal com dados vazios
