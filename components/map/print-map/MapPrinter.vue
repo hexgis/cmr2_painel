@@ -138,13 +138,6 @@
         </v-tabs>
       </v-card>
     </v-dialog>
-
-    <!-- Componente MapLandscapeCar controlado pela store -->
-    <MapLandscapeCar
-      v-if="$store.state.map.showTemplateMapLandscapeCar"
-      @back="handleBackFromCar"
-      @close="handleCloseFromCar"
-    />
   </div>
 </template>
 
