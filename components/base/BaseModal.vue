@@ -6,16 +6,17 @@
     <div class="_modal-backdrop" />
     <div class="_modal-container container">
       <div class="_modal">
-        <div class="_modal-header no-print">
+        <div class="_modal-header d-flex justify-space-between align-start">
           <v-toolbar
             dense
+            class="print-dialog-header no-print"
             color="primary"
           >
             <v-btn
               icon
               x-small
               color="white"
-              class="close-btn"
+              class="close-btn mb-4"
               @click="close()"
             >
               <v-icon>mdi-close</v-icon>
@@ -60,6 +61,21 @@
   </div>
 </template>
 
+<i18n>
+{
+  "en": {
+
+    "input-button-back-second-step": "Back",
+    "input-button-pdf-image": "Generate PDF"
+
+  },
+  "pt-br": {
+    "input-button-back-second-step": "Voltar",
+    "input-button-pdf-image": "Gerar PDF"
+  }
+}
+</i18n>
+
 <script>
 export default {
   name: 'BaseModal',
@@ -96,8 +112,10 @@ export default {
   methods: {
     handleBackClick() {
       if (this.emitBackAsPrinterBack) {
+        // Emite um evento específico para voltar ao printer
         this.$emit('printer-back');
       } else {
+        // Comportamento padrão
         this.$emit('back');
       }
     },
@@ -114,6 +132,15 @@ export default {
 </script>
 
 <style scoped>
+
+.print-dialog-header {
+  background: var(--v-primary-base);
+  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+/* Estilos mantidos como antes, com adição do footer */
 ._modal-wrapper {
   position: absolute;
   z-index: 6;
@@ -157,6 +184,10 @@ export default {
   flex-shrink: 0;
 }
 
+._modal-header button {
+  max-height: 40px;
+}
+
 ._modal-body {
   flex: 1;
   overflow-y: auto;
@@ -168,6 +199,25 @@ export default {
   background-color: rgb(245, 245, 245);
   border-radius: 0 0 10px 10px;
   border-top: 1px solid #e0e0e0;
+}
+
+.close-button {
+  font-size: 16px;
+  border-radius: 10px 0 10px 0;
+  background-color: whitesmoke;
+}
+
+.close-button i {
+  font-size: 22px;
+}
+
+.report-button {
+  border-radius: 0 8px 0 0;
+  background-color: #2c3649;
+}
+
+.report-button i {
+  color: white;
 }
 
 .no-print {

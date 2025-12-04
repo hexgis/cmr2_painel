@@ -426,5 +426,9 @@ body,
     body {
         overflow: visible !important;
     }
+
+    .leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{
+      display: none !important;
+    }
 }
 </style>

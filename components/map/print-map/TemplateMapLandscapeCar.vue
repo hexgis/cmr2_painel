@@ -12,12 +12,8 @@
   >
     <!-- Página 1: Logos, Título e Mapa -->
     <div class="page-section map-print">
-      <!-- Logos e Título centralizados -->
-      <v-row class="justify-center text-center ma-2">
-        <v-col
-          cols="6"
-          class="d-flex justify-end align-end"
-        >
+      <v-row class="justify-center text-center mt-n4">
+        <v-col cols="6" class="d-flex justify-end align-end">
           <v-img
             contain
             :src="logo_funai"
@@ -25,10 +21,7 @@
             max-height="60px"
           />
         </v-col>
-        <v-col
-          cols="6"
-          class="mt-2"
-        >
+        <v-col cols="6" class="mt-2">
           <v-img
             contain
             :src="logo_cmr"
@@ -36,19 +29,15 @@
             max-height="60px"
           />
         </v-col>
-        <v-col cols="12">
+        <v-col cols="12" class="mt-n4">
           <p class="font-title text-h6">
             {{ mapTitle }}
           </p>
         </v-col>
       </v-row>
-      <!-- Mapa usando o componente MapForPrint -->
+
       <div>
-        <v-col
-          cols="12"
-          class="pr-0 mt-2"
-          style="max-height: 500px; position: relative"
-        >
+        <v-col cols="12" class="pr-0 mt-n6" style="height: 70vh; position: relative">
           <v-sheet class="mini-map-overlay">
             <MiniMap
               v-if="currentBounds"
@@ -76,10 +65,10 @@
       </div>
     </div>
 
-    <!-- Página 2: Lista de CARs -->
+    <!-- Página 2: Lista de CARs e Legendas -->
     <div class="page-section car-list-section">
       <div class="car-list">
-        <div v-if="carData.length > 0 && carData " >
+        <div v-if="carData.length > 0">
           <p class="d-flex align-center ma-4 pb-4">
             <strong class="mr-2">Cadastro Ambiental Rural (CAR)</strong>
             <v-chip x-small>
@@ -87,26 +76,23 @@
             </v-chip>
           </p>
 
-         <v-row class="car-list-row">
-          <v-col
-            v-for="(item, index) in carData"
-            :key="'car-' + index"
-            cols="12"
-            sm="6"
-            md="4"
-            class="car-list-col"
-          >
-            <div class="car-list-item pl-4">
+          <v-row class="car-list-row">
+            <v-col
+              v-for="(item, index) in carData"
+              :key="'car-' + index"
+              cols="12"
+              sm="6"
+              md="4"
+              class="car-list-col"
+            >
+              <div class="car-list-item pl-4">
                 <div class="d-flex align-center">
                   <v-avatar
                     :color="getCarColor(index)"
                     size="20"
                     class="mr-1 car-number-avatar"
                   >
-                    <span
-                      class="white--text font-weight-bold"
-                      style="font-size: 10px;"
-                    >
+                    <span class="white--text font-weight-bold" style="font-size: 10px">
                       {{ index + 1 }}
                     </span>
                   </v-avatar>
@@ -118,176 +104,97 @@
           <v-divider class="mt-4" />
         </div>
       </div>
-       <div class="legend-header">
+
+      <div class="legend-header">
         <p class="d-flex align-center py-4">
           <strong class="mr-2">Legendas</strong>
         </p>
       </div>
 
-      <!-- Container principal de legendas -->
       <div class="legends-container">
-        <v-row
-          class="legends-row flex-nowrap justify-start align-start"
-          style="gap: 12px; overflow-x: auto; padding-bottom: 8px;"
-        >
+        <v-row class="legends-row flex-nowrap justify-start align-start" style="gap: 12px; overflow-x: auto; padding-bottom: 8px">
           <!-- Monitoramento Diário -->
-          <v-col
-            v-if="showFeaturesMonitoring && hasActiveMonitoringStages"
-            cols="auto"
-            style="min-width: 180px;"
-          >
+          <v-col v-if="showFeaturesMonitoring && hasActiveMonitoringStages" cols="auto" style="min-width: 180px">
             <div class="d-flex align-center mb-2">
-              <strong style="font-size: 12px;">Monitoramento Diário</strong>
-              <v-chip
-                x-small
-                class="ml-1"
-                color="red"
-                text-color="white"
-              >
+              <strong style="font-size: 12px">Monitoramento Diário</strong>
+              <v-chip x-small class="ml-1" color="red" text-color="white">
                 {{ monitoringTICount }}
               </v-chip>
             </div>
-            <hr class="styled-divider-red" style="margin: 4px 0 8px 0;">
-            <CustomizedLegend
-              class="pt-1"
-              :items="monitoringItems"
-            />
+            <hr class="styled-divider-red" style="margin: 4px 0 8px 0" />
+            <CustomizedLegend class="pt-1" :items="monitoringItems" />
           </v-col>
 
           <!-- Alerta Urgente -->
-          <v-col
-            v-if="showFeaturesAlerts && hasActiveAlertsStages"
-            cols="auto"
-            style="min-width: 180px;"
-          >
+          <v-col v-if="showFeaturesAlerts && hasActiveAlertsStages" cols="auto" style="min-width: 180px">
             <div class="d-flex align-center mb-2">
-              <strong style="font-size: 12px;">Alerta Urgente</strong>
-              <v-chip
-                x-small
-                class="ml-1"
-                color="orange"
-                text-color="white"
-              >
+              <strong style="font-size: 12px">Alerta Urgente</strong>
+              <v-chip x-small class="ml-1" color="orange" text-color="white">
                 {{ alertsCount }}
               </v-chip>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0;">
-            <CustomizedLegend
-              class="pt-1"
-              :items="alertsItems"
-            />
+            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
+            <CustomizedLegend class="pt-1" :items="alertsItems" />
           </v-col>
 
           <!-- Camadas de Sobreposição -->
-          <v-col
-            v-if="showFeaturesSupportLayers && hasVisibleSupportLayers"
-            cols="auto"
-            style="min-width: 200px;"
-          >
+          <v-col v-if="showFeaturesSupportLayers && hasVisibleSupportLayers" cols="auto" style="min-width: 200px">
             <div>
-              <strong style="font-size: 12px;">Sobreposição de camadas</strong>
+              <strong style="font-size: 12px">Sobreposição de camadas</strong>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0;">
-            <LayerList
-              v-if="visibleUserLayers.length > 0"
-              :layers="supportLayerUser"
-              :is-user-layer="true"
-            />
-            <LayerList
-              v-if="visibleSystemLayers.length > 0"
-              :layers="supportLayers"
-              class="mt-1"
-            />
+            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
+            <LayerList v-if="visibleUserLayers.length > 0" :layers="supportLayerUser" :is-user-layer="true" />
+            <LayerList v-if="visibleSystemLayers.length > 0" :layers="supportLayers" class="mt-1" />
           </v-col>
 
           <!-- Uso e Ocupação do Solo -->
-          <v-col
-            v-if="showFeaturesLandUse"
-            cols="auto"
-            style="min-width: 180px;"
-          >
+          <v-col v-if="showFeaturesLandUse" cols="auto" style="min-width: 180px">
             <div class="d-flex align-center mb-2">
-              <strong style="font-size: 12px;">Uso e Ocupação do Solo</strong>
-              <v-chip
-                x-small
-                class="ml-1"
-                color="green"
-                text-color="white"
-              >
+              <strong style="font-size: 12px">Uso e Ocupação do Solo</strong>
+              <v-chip x-small class="ml-1" color="green" text-color="white">
                 {{ tableLandUse.length }}
               </v-chip>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0;">
-            <CustomizedLegend
-              class="pt-1"
-              :items="landUseItems"
-            />
+            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
+            <CustomizedLegend class="pt-1" :items="landUseItems" />
           </v-col>
 
           <!-- INPE - Prodes -->
-          <v-col
-            v-if="showFeaturesProdes"
-            cols="auto"
-            style="min-width: 160px;"
-          >
+          <v-col v-if="showFeaturesProdes" cols="auto" style="min-width: 160px">
             <div class="mb-2">
-              <strong style="font-size: 12px;">INPE - Prodes</strong>
+              <strong style="font-size: 12px">INPE - Prodes</strong>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0;">
-            <CustomizedLegend
-              class="pt-1"
-              :items="prodesItems"
-            />
+            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
+            <CustomizedLegend class="pt-1" :items="prodesItems" />
           </v-col>
 
           <!-- INPE - Deter -->
-          <v-col
-            v-if="showFeaturesDeter"
-            cols="auto"
-            style="min-width: 160px;"
-          >
+          <v-col v-if="showFeaturesDeter" cols="auto" style="min-width: 160px">
             <div class="mb-2">
-              <strong style="font-size: 12px;">INPE - Deter</strong>
+              <strong style="font-size: 12px">INPE - Deter</strong>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0;">
-            <CustomizedLegend
-              class="pt-1"
-              :items="deterItems"
-            />
+            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
+            <CustomizedLegend class="pt-1" :items="deterItems" />
           </v-col>
 
           <!-- INPE - Focos de Calor -->
-          <v-col
-            v-if="showFeaturesAquaMM || showFeaturesAquaMT"
-            cols="auto"
-            style="min-width: 180px;"
-          >
+          <v-col v-if="showFeaturesAquaMM || showFeaturesAquaMT" cols="auto" style="min-width: 180px">
             <div class="mb-2">
-              <strong style="font-size: 12px;">INPE - Focos de Calor</strong>
+              <strong style="font-size: 12px">INPE - Focos de Calor</strong>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0;">
-            <CustomizedLegend
-              class="pt-1"
-              :items="filteredHeatFocusItems"
-            />
+            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
+            <CustomizedLegend class="pt-1" :items="filteredHeatFocusItems" />
           </v-col>
         </v-row>
       </div>
     </div>
 
-    <!-- Página 3: Tabela de CARs - Permite quebra -->
+    <!-- Página 3: Tabela de CARs -->
     <div class="page-section car-table-section">
-      <div
-        style="background-color: #fff;"
-        class="teste-print"
-      >
+      <div style="background-color: #fff" class="teste-print">
         <v-divider class="mt-4" />
 
-        <!-- Lista de CARs encontrados -->
-        <div
-          v-if="carData.length > 0"
-          class="car-list pa-4 table-container"
-        >
+        <div v-if="carData.length > 0" class="car-list pa-4 table-container">
           <h3>Imóveis CAR Encontrados ({{ carData.length }})</h3>
           <v-simple-table>
             <template #default>
@@ -302,15 +209,9 @@
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  v-for="(car, index) in carData"
-                  :key="index"
-                >
+                <tr v-for="(car, index) in carData" :key="index">
                   <td>
-                    <v-avatar
-                      :color="getCarColor(index)"
-                      size="24"
-                    >
+                    <v-avatar :color="getCarColor(index)" size="24">
                       <span class="white--text">{{ index + 1 }}</span>
                     </v-avatar>
                   </td>
@@ -324,108 +225,101 @@
             </template>
           </v-simple-table>
         </div>
-       <div class="additional-info">
-        <v-col class="pa-3">
-          <p>
-            {{ $t('geodetic-system-info-part1') }}
-            <strong>{{ $t('geodetic-system-info-strong') }}</strong>
-            {{ $t('geodetic-system-info-part2') }}
-          </p>
-        </v-col>
 
-        <v-divider />
-
-        <p class="d-block px-3 py-2">
-          <strong>Bases Cartográficas:</strong>
-        </p>
-
-        <v-col
-          v-for="layerCategory in layerCategories"
-          :key="`${layerCategory.name}-${layerCategory.type}`"
-        >
-          <v-col
-            v-for="(layer, layerId) in layerCategory.layers"
-            :key="layerId"
-            class="py-1"
-          >
-            <v-row
-              v-if="layer && layer.visible"
-              no-gutters
-              align="center"
-              class="image-container"
-            >
-              <v-col>
-                <p>
-                  <strong>{{ layer.name || '-' }}.</strong>
-                  Fonte:{{ layer.fonte || '-' }}, Data de
-                  atualização:
-                  {{ handleData(layer.dt_atualizacao) }}.
-                </p>
-              </v-col>
-            </v-row>
-          </v-col>
-        </v-col>
-
-        <v-divider />
-
-        <v-col>
-          <v-col
-            v-for="(feature, index) in activePrintFeatures"
-            :key="feature.key || index"
-            class="py-1"
-          >
+        <div class="additional-info">
+          <v-col class="pa-3">
             <p>
-              {{ $t(feature.label) }}
-              <span v-if="feature.type === 'date-range'">
-                {{ handleData(feature.startDate) }}
-                {{ $t('and') }}
-                {{ handleData(feature.endDate) }}
-              </span>
-              <span v-else-if="feature.type === 'years-list' && feature.years.length > 0">
-                <span
-                  v-for="(year, yearIndex) in feature.years"
-                  :key="'year-' + yearIndex"
-                >
-                  {{ year }}<span v-if="yearIndex < feature.years.length - 1">, </span>
-                </span>
-              </span>
-              <span v-else-if="feature.type === 'single-year'">
-                {{ feature.yearHandler() }}
-              </span>
+              {{ $t('geodetic-system-info-part1') }}
+              <strong>{{ $t('geodetic-system-info-strong') }}</strong>
+              {{ $t('geodetic-system-info-part2') }}
             </p>
           </v-col>
+
           <v-divider />
-        </v-col>
 
-        <v-col class="ml-2 py-1">
-          <p>
-            {{ $t('text-address0') }}
+          <p class="d-block px-3 py-2">
+            <strong>Bases Cartográficas:</strong>
           </p>
-          <p>
-            {{ $t('text-address') }}
-            {{ todayDate() }}
-          </p>
-        </v-col>
 
-        <v-divider />
+          <v-col
+            v-for="layerCategory in layerCategories"
+            :key="`${layerCategory.name}-${layerCategory.type}`"
+          >
+            <v-col
+              v-for="(layer, layerId) in layerCategory.layers"
+              :key="layerId"
+              class="py-1"
+            >
+              <v-row v-if="layer && layer.visible" no-gutters align="center" class="image-container">
+                <v-col>
+                  <p>
+                    <strong>{{ layer.name || '-' }}.</strong>
+                    Fonte:{{ layer.fonte || '-' }}, Data de atualização:
+                    {{ handleData(layer.dt_atualizacao) }}.
+                  </p>
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-col>
 
-        <v-col class="ml-3 py-1">
-          <p>
-            {{ $t('author-label') }}
-          </p>
-          <p>
-            {{ $t('text-info') }}
-          </p>
-          <p>
-            {{ $t('text-format') }}
-            {{ leafSize.type }}.
-          </p>
-        </v-col>
-      </div>
+          <v-divider />
+
+          <v-col>
+            <v-col
+              v-for="(feature, index) in activePrintFeatures"
+              :key="feature.key || index"
+              class="py-1"
+            >
+              <p>
+                {{ $t(feature.label) }}
+                <span v-if="feature.type === 'date-range'">
+                  {{ handleData(feature.startDate) }}
+                  {{ $t('and') }}
+                  {{ handleData(feature.endDate) }}
+                </span>
+                <span v-else-if="feature.type === 'years-list' && feature.years.length > 0">
+                  <span v-for="(year, yearIndex) in feature.years" :key="'year-' + yearIndex">
+                    {{ year }}<span v-if="yearIndex < feature.years.length - 1">, </span>
+                  </span>
+                </span>
+                <span v-else-if="feature.type === 'single-year'">
+                  {{ feature.yearHandler() }}
+                </span>
+              </p>
+            </v-col>
+            <v-divider />
+          </v-col>
+
+          <v-col class="ml-2 py-1">
+            <p>
+              {{ $t('text-address0') }}
+            </p>
+            <p>
+              {{ $t('text-address') }}
+              {{ todayDate() }}
+            </p>
+          </v-col>
+
+          <v-divider />
+
+          <v-col class="ml-3 py-1">
+            <p>
+              {{ $t('author-label') }}
+            </p>
+            <p>
+              {{ $t('text-info') }}
+            </p>
+            <p>
+              {{ $t('text-format') }}
+              {{ leafSize.type }}.
+            </p>
+          </v-col>
+        </div>
       </div>
     </div>
   </BaseModal>
 </template>
+
 <i18n>
 {
   "en": {
@@ -498,12 +392,12 @@
 </i18n>
 
 <script>
-import { mapState, mapMutations, mapActions } from 'vuex';
-import BaseModal from '../../base/BaseModal.vue';
-import MapForPrint from './MapForPrint.vue';
-import MiniMap from './MiniMap.vue';
-import LayerList from './LayerListActive.vue';
-import CustomizedLegend from './CustomizedLegendActive.vue';
+import { mapState, mapMutations, mapActions } from 'vuex'
+import BaseModal from '../../base/BaseModal.vue'
+import MapForPrint from './MapForPrint.vue'
+import MiniMap from './MiniMap.vue'
+import LayerList from './LayerListActive.vue'
+import CustomizedLegend from './CustomizedLegendActive.vue'
 
 export default {
   name: 'MapLandscapeCar',
@@ -517,7 +411,6 @@ export default {
   },
 
   data: () => ({
-    selectedItemsCount: 0,
     logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
     logo_cmr: process.env.DEFAULT_LOGO_IMAGE_CMR,
     currentBounds: null,
@@ -546,179 +439,146 @@ export default {
       '#A3E4D7', '#FAD7A0', '#D2B4DE', '#A9CCE3', '#F9E79F',
       '#ABEBC6',
     ],
-    isLoadingData: false,
   }),
 
   computed: {
     visibleUserLayers() {
-      return Object.values(this.supportLayerUser || {}).filter(l => l?.visible) || [];
+      return Object.values(this.supportLayerUser || {}).filter(l => l?.visible) || []
     },
 
     visibleSystemLayers() {
-      return Object.values(this.supportLayers || {}).filter(l => l?.visible) || [];
+      return Object.values(this.supportLayers || {}).filter(l => l?.visible) || []
     },
 
-    // Total de TIs ÚNICAS (com ou sem monitoramento)
     monitoringTICount() {
-      if (!this.showFeaturesMonitoring) {
-        return 0;
-      }
+      if (!this.showFeaturesMonitoring) return 0
+      if (!this.combinedTableData || !Array.isArray(this.combinedTableData)) return 0
 
-      if (!this.combinedTableData || !Array.isArray(this.combinedTableData)) {
-        return 0;
-      }
-
-      const tisComMonitoramento = new Set();
+      const tisComMonitoramento = new Set()
 
       this.combinedTableData.forEach((item) => {
         if (item?.monitoring && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0)) {
           if (item.no_ti) {
-            tisComMonitoramento.add(item.no_ti);
+            tisComMonitoramento.add(item.no_ti)
           }
         }
-      });
+      })
 
-      return tisComMonitoramento.size;
+      return tisComMonitoramento.size
     },
 
-    // Replica a lógica do PrintTemplateMapLandscape
     combinedTableData() {
       const keys = {
         monitoring: ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'],
-        landUse: [
-          'ag_ha',
-          'cr_ha',
-          'dg_ha',
-          'ma_ha',
-          'mi_ha',
-          'no_ha',
-          'rv_ha',
-          'sv_ha',
-          'vn_ha',
-          'vi_ha',
-        ],
+        landUse: ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'],
         alerts: ['cr_ha', 'dg_ha', 'dr_ha'],
-      };
+      }
 
-      const initializeObject = (keyList) => keyList.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
+      const initializeObject = (keyList) => keyList.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {})
       const initializeData = (noTi) => ({
         no_ti: noTi,
         nu_area_ha: 0,
         monitoring: initializeObject(keys.monitoring),
         landUse: initializeObject(keys.landUse),
         alerts: initializeObject(keys.alerts),
-      });
+      })
 
       const addValue = (target, key, value) => {
-        const updatedValue = (target[key] || 0) + (parseFloat(value) || 0);
-        target[key] = updatedValue;
-      };
+        const updatedValue = (target[key] || 0) + (parseFloat(value) || 0)
+        target[key] = updatedValue
+      }
 
-      const combined = {};
+      const combined = {}
 
       const processTable = (table, type) => {
-        if (!Array.isArray(table)) return;
+        if (!Array.isArray(table)) return
 
         table.forEach((item) => {
-          if (!item.no_ti) return;
-          if (!combined[item.no_ti]) combined[item.no_ti] = initializeData(item.no_ti);
-          const data = combined[item.no_ti];
-          addValue(data, 'nu_area_ha', item.nu_area_ha);
-          keys[type].forEach((key) => addValue(data[type], `nu_area_${key}`, item[`nu_area_${key}`]));
-        });
-      };
+          if (!item.no_ti) return
+          if (!combined[item.no_ti]) combined[item.no_ti] = initializeData(item.no_ti)
+          const data = combined[item.no_ti]
+          addValue(data, 'nu_area_ha', item.nu_area_ha)
+          keys[type].forEach((key) => addValue(data[type], `nu_area_${key}`, item[`nu_area_${key}`]))
+        })
+      }
 
-      processTable(this.tableMonitoring, 'monitoring');
-      processTable(this.tableLandUse, 'landUse');
-      processTable(this.tableAlerts, 'alerts');
+      processTable(this.tableMonitoring, 'monitoring')
+      processTable(this.tableLandUse, 'landUse')
+      processTable(this.tableAlerts, 'alerts')
 
-      return Object.values(combined);
+      return Object.values(combined)
     },
 
-    // Propriedades computadas para foco/calor
     showFeaturesAquaMM() {
-      return this.isLayerActive('aquaMM');
+      return this.isLayerActive('aquaMM')
     },
 
     showFeaturesAquaMT() {
-      return this.isLayerActive('aquaMT');
-    },
-
-    focoFilters() {
-      return this.layers?.aquaMM?.filters || {};
+      return this.isLayerActive('aquaMT')
     },
 
     filteredHeatFocusItems() {
-      const { showFeaturesAquaMM, showFeaturesAquaMT } = this;
-
-      if (!this.heatFocusItems || !Array.isArray(this.heatFocusItems)) {
-        return [];
-      }
+      if (!this.heatFocusItems || !Array.isArray(this.heatFocusItems)) return []
 
       return this.heatFocusItems.filter(item => {
-        if (!item || !item.label) return false;
-
+        if (!item || !item.label) return false
         return (
-          (item.label === 'Aqua Modis Manhã' && showFeaturesAquaMM) ||
-          (item.label === 'Aqua Modis Tarde' && showFeaturesAquaMT)
-        );
-      });
+          (item.label === 'Aqua Modis Manhã' && this.showFeaturesAquaMM) ||
+          (item.label === 'Aqua Modis Tarde' && this.showFeaturesAquaMT)
+        )
+      })
     },
 
-    // Propriedades computadas para legendas/getters
     prodesItems() {
-      return this.$store.getters['prodes/getLegendItems'];
+      return this.$store.getters['prodes/getLegendItems']
     },
 
     monitoringItems() {
-      return this.$store.getters['monitoring/getActiveLegendItems'];
+      return this.$store.getters['monitoring/getActiveLegendItems']
     },
 
     alertsItems() {
-      return this.$store.getters['urgent-alerts/getLegendItems'];
+      return this.$store.getters['urgent-alerts/getLegendItems']
     },
 
     landUseItems() {
-      return this.$store.getters['land-use/getActiveLegendItems'];
+      return this.$store.getters['land-use/getActiveLegendItems']
     },
 
-    // Contadores e verificações
     alertsCount() {
-      return this.tableAlerts?.length || 0;
+      return this.tableAlerts?.length || 0
     },
 
     hasActiveMonitoringStages() {
-      if (!this.legendVisibility) return false;
-      return Object.values(this.legendVisibility).some((visible) => visible);
+      if (!this.legendVisibility) return false
+      return Object.values(this.legendVisibility).some((visible) => visible)
     },
 
     hasActiveAlertsStages() {
-      if (!this.legendVisibilityalerts) return false;
-      return Object.values(this.legendVisibilityalerts).some((visible) => visible);
+      if (!this.legendVisibilityalerts) return false
+      return Object.values(this.legendVisibilityalerts).some((visible) => visible)
     },
 
     hasVisibleSupportLayers() {
-      if (!this.showFeaturesSupportLayers) return false;
+      if (!this.showFeaturesSupportLayers) return false
 
       const systemLayersVisible = this.supportLayers &&
-        Object.values(this.supportLayers).some(layer => layer && layer.visible);
+        Object.values(this.supportLayers).some(layer => layer && layer.visible)
 
       const userLayersVisible = this.supportLayerUser &&
-        Object.values(this.supportLayerUser).some(layer => layer && layer.visible);
+        Object.values(this.supportLayerUser).some(layer => layer && layer.visible)
 
-      return systemLayersVisible || userLayersVisible;
+      return systemLayersVisible || userLayersVisible
     },
 
-    // Propriedades para anos únicos (land use)
     uniqueYears() {
-      if (!Array.isArray(this.tableLandUse)) return [];
+      if (!Array.isArray(this.tableLandUse)) return []
       const years = this.tableLandUse
         .map((item) => item?.nu_ano)
-        .filter(year => year != null);
-      return [...new Set(years)];
+        .filter(year => year != null)
+      return [...new Set(years)]
     },
 
-    // Propriedades para impressão
     activePrintFeatures() {
       const conditions = [
         {
@@ -758,34 +618,33 @@ export default {
           condition: this.showFeaturesAquaMM || this.showFeaturesAquaMT,
           type: 'date-range',
           label: 'heat-focus-print-label',
-          startDate: this.focoFilters?.startDate,
-          endDate: this.focoFilters?.endDate
+          startDate: this.layers?.aquaMM?.filters?.startDate,
+          endDate: this.layers?.aquaMM?.filters?.endDate
         }
-      ];
+      ]
 
       return conditions
         .filter(item => item.condition)
-        .map(({ condition, ...rest }) => rest);
+        .map(({ condition, ...rest }) => rest)
     },
 
-    // Propriedades para camadas de suporte
     layerCategories() {
-      const categories = [];
+      const categories = []
 
       if (this.showFeaturesSupportLayers && this.supportLayers) {
         const visibleSystemLayers = Object.entries(this.supportLayers)
           .filter(([_, layer]) => layer && layer.visible)
           .reduce((acc, [key, layer]) => {
-            acc[key] = layer;
-            return acc;
-          }, {});
+            acc[key] = layer
+            return acc
+          }, {})
 
         if (Object.keys(visibleSystemLayers).length > 0) {
           categories.push({
             name: 'Support Layers',
             layers: visibleSystemLayers,
             type: 'system'
-          });
+          })
         }
       }
 
@@ -793,37 +652,36 @@ export default {
         const visibleUserLayers = Object.entries(this.supportLayerUser)
           .filter(([_, layer]) => layer && layer.visible)
           .reduce((acc, [key, layer]) => {
-            acc[key] = layer;
-            return acc;
-          }, {});
+            acc[key] = layer
+            return acc
+          }, {})
 
         if (Object.keys(visibleUserLayers).length > 0) {
           categories.push({
             name: 'User Layers',
             layers: visibleUserLayers,
             type: 'user'
-          });
+          })
         }
       }
 
-      return categories;
+      return categories
     },
 
-    // Propriedades para diálogo/impressão CAR
     showDialog() {
-      return this.showTemplateMapLandscapeCar && this.carPrintData.visible;
+      return this.showTemplateMapLandscapeCar && this.carPrintData.visible
     },
 
     mapTitle() {
-      return this.carPrintData.mapTitle || 'Mapa de Imóveis CAR';
+      return this.carPrintData.mapTitle || 'Mapa de Imóveis CAR'
     },
 
     leafSize() {
-      return this.carPrintData.leafSize || { type: 'A4' };
+      return this.carPrintData.leafSize || { type: 'A4' }
     },
 
     mapBounds() {
-      return this.carPrintData.mapBounds;
+      return this.carPrintData.mapBounds
     },
 
     selectedBaseMap() {
@@ -835,20 +693,19 @@ export default {
             label: 'Custom Base Map',
             attribution: '© CMR Funai',
           },
-        };
+        }
       }
-      return null;
+      return null
     },
 
     carData() {
-      return this.carPrintData.carData || [];
+      return this.carPrintData.carData || []
     },
 
     map() {
-      return window.mapMain || null;
+      return window.mapMain || null
     },
 
-    // Mapeamento de estados usando mapState
     ...mapState('map', ['carPrintData', 'showTemplateMapLandscapeCar']),
     ...mapState({
       monitoringFilters: (state) => state.monitoring.filters,
@@ -876,137 +733,177 @@ export default {
     showDialog: {
       async handler(newVal) {
         if (newVal) {
-          await this.$nextTick();
+          await this.$nextTick()
+
+          const promises = []
 
           if (this.showFeaturesMonitoring && (!this.tableMonitoring || this.tableMonitoring.length === 0)) {
-            await this.getDataTableMonitoring();
+            promises.push(this.getDataTableMonitoring())
           }
 
           if (this.showFeaturesLandUse && (!this.tableLandUse || this.tableLandUse.length === 0)) {
-            await this.getDataTableLandUse();
+            promises.push(this.getDataTableLandUse())
           }
 
           if (this.showFeaturesAlerts && (!this.tableAlerts || this.tableAlerts.length === 0)) {
-            await this.getDataTableAlerts();
+            promises.push(this.getDataTableAlerts())
           }
 
-          await this.$nextTick();
+          if (promises.length > 0) {
+            await Promise.all(promises)
+          }
+
+          await this.$nextTick()
         }
       },
       immediate: true
     },
   },
 
-  async mounted() {
-    try {
-      if (this.showDialog) {
-        await this.loadData();
-      }
-
-      this.updateSelectedItemsCount();
-    } catch (error) {
-      console.error('Error in mounted:', error);
+  mounted() {
+    if (this.showDialog) {
+      this.loadData()
     }
   },
 
   beforeDestroy() {
-    this.printMap = null;
+    this.printMap = null
   },
 
   methods: {
     async loadData() {
-      try {
-        this.isLoadingData = true;
+      const promises = []
 
-        const promises = [];
-
-        if (this.showFeaturesMonitoring) {
-          promises.push(this.getDataTableMonitoring());
-        }
-
-        if (this.showFeaturesLandUse) {
-          promises.push(this.getDataTableLandUse());
-        }
-
-        if (this.showFeaturesAlerts) {
-          promises.push(this.getDataTableAlerts());
-        }
-
-        if (promises.length > 0) {
-          await Promise.all(promises);
-        }
-
-        await this.$nextTick();
-
-      } catch (error) {
-        console.error('❌ Erro ao carregar dados:', error);
-      } finally {
-        this.isLoadingData = false;
+      if (this.showFeaturesMonitoring) {
+        promises.push(this.getDataTableMonitoring())
       }
+
+      if (this.showFeaturesLandUse) {
+        promises.push(this.getDataTableLandUse())
+      }
+
+      if (this.showFeaturesAlerts) {
+        promises.push(this.getDataTableAlerts())
+      }
+
+      if (promises.length > 0) {
+        await Promise.all(promises)
+      }
+
+      await this.$nextTick()
     },
 
     isLayerActive(layerName) {
-      return this.layers?.[layerName]?.showFeatures || false;
+      return this.layers?.[layerName]?.showFeatures || false
     },
 
     updateBounds(bounds) {
-      this.currentBounds = bounds;
+      this.currentBounds = bounds
     },
 
     handleBack() {
-      this.$emit('back-to-printer');
-      this.setShowTemplateMapLandscapeCar(false);
+      this.$emit('back-to-printer')
+      this.setShowTemplateMapLandscapeCar(false)
     },
 
     handleClose() {
-      this.setShowTemplateMapLandscapeCar(false);
-      this.clearCarPrintData();
-      this.$emit('close-completely');
-    },
-
-    removeCARFromMap() {
-      if (this.carLayer && this.printMap) {
-        this.printMap.removeLayer(this.carLayer);
-        this.carLayer = null;
-      }
-    },
-
-    updateSelectedItemsCount() {
-      this.selectedItemsCount = Math.max(
-        this.tableMonitoring?.length || 0,
-        this.tableAlerts?.length || 0,
-        this.tableLandUse?.length || 0
-      );
+      this.setShowTemplateMapLandscapeCar(false)
+      this.clearCarPrintData()
+      this.$emit('close-completely')
     },
 
     handleProdesYear() {
-      const { prodesFilters } = this;
-      if (!prodesFilters) return '-';
-      if (prodesFilters.startYear === prodesFilters.endYear) {
-        return prodesFilters.startYear;
+      if (!this.prodesFilters) return '-'
+      if (this.prodesFilters.startYear === this.prodesFilters.endYear) {
+        return this.prodesFilters.startYear
       }
-      return `${prodesFilters.startYear} ${this.$t('and')} ${prodesFilters.endYear}`;
+      return `${this.prodesFilters.startYear} ${this.$t('and')} ${this.prodesFilters.endYear}`
     },
 
     handleData(data) {
       if (!data || typeof data !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
-        return 'Data indisponível';
+        return 'Data indisponível'
       }
-      const [year, month, day] = data.split('-');
-      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+      const [year, month, day] = data.split('-')
+      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
+    },
+
+    onMapReady(map) {
+      this.printMap = map
+      map.invalidateSize(true)
+      this.displayCAROnMap(this.carData)
+    },
+
+    getCenter(center) {
+      this.mapCenter = center
+    },
+
+    getZoom(zoom) {
+      this.mainZoom = zoom
+    },
+
+    getMunicipioName(carItem) {
+      return carItem.properties.no_municipio_car
+        || carItem.properties.no_municipio
+        || carItem.properties.municipio || '-'
+    },
+
+    getTerraIndigenaName(carItem) {
+      return carItem.properties.no_terra_indigena
+        || carItem.properties.terra_indigena
+        || carItem.properties.nome
+        || 'Nome não disponível'
+    },
+
+    getCarColor(index) {
+      return this.CAR_COLORS[index % this.CAR_COLORS.length]
+    },
+
+    formatNumber(value) {
+      if (value == null || value === '') return '-'
+
+      try {
+        const num = typeof value === 'string'
+          ? parseFloat(value.replace(/\./g, '').replace(',', '.'))
+          : Number(value)
+
+        if (isNaN(num)) return '-'
+
+        if (Number.isInteger(num)) {
+          return num.toLocaleString('pt-BR')
+        }
+
+        return num.toLocaleString('pt-BR', {
+          minimumFractionDigits: 3,
+          maximumFractionDigits: 3,
+        })
+      } catch {
+        return '-'
+      }
+    },
+
+    todayDate() {
+      const date = new Date()
+      const dd = String(date.getDate()).padStart(2, '0')
+      const mm = String(date.getMonth() + 1).padStart(2, '0')
+      const yyyy = date.getFullYear()
+      return `${dd}/${mm}/${yyyy}`
     },
 
     displayCAROnMap(features) {
       try {
         if (!Array.isArray(features) || features.length === 0 || !this.printMap) {
-          return;
+          return
         }
 
-        this.removeCARFromMap();
+        if (this.carLayer && this.printMap) {
+          this.printMap.removeLayer(this.carLayer)
+          this.carLayer = null
+        }
 
         const carLayers = features.map((feature, index) => {
-          const color = this.getCarColor(index);
-          const numero = index + 1;
+          const color = this.getCarColor(index)
+          const numero = index + 1
 
           const carStyle = {
             color,
@@ -1014,13 +911,13 @@ export default {
             opacity: 0.9,
             fillColor: color,
             fillOpacity: 0.3,
-          };
+          }
 
           const layer = window.L.geoJSON(feature, {
             style: carStyle,
-          });
+          })
 
-          const center = layer.getBounds().getCenter();
+          const center = layer.getBounds().getCenter()
 
           const numberMarker = window.L.marker(center, {
             icon: window.L.divIcon({
@@ -1042,89 +939,20 @@ export default {
               iconSize: [30, 30],
               iconAnchor: [15, 15],
             }),
-          });
+          })
 
-          return window.L.layerGroup([layer, numberMarker]);
-        });
+          return window.L.layerGroup([layer, numberMarker])
+        })
 
-        this.carLayer = window.L.layerGroup(carLayers);
-        this.carLayer.addTo(this.printMap);
+        this.carLayer = window.L.layerGroup(carLayers)
+        this.carLayer.addTo(this.printMap)
 
-        const allLayers = carLayers.flatMap((layerGroup) => layerGroup.getLayers());
-        const group = window.L.featureGroup(allLayers);
-        this.printMap.fitBounds(group.getBounds().pad(0.1));
+        const allLayers = carLayers.flatMap((layerGroup) => layerGroup.getLayers())
+        const group = window.L.featureGroup(allLayers)
+        this.printMap.fitBounds(group.getBounds().pad(0.1))
       } catch (error) {
-        console.error('❌ Erro ao exibir CAR no mapa de impressão:', error);
+        console.error('Erro ao exibir CAR no mapa de impressão:', error)
       }
-    },
-
-    onMapReady(map) {
-      this.printMap = map;
-      map.invalidateSize(true);
-      this.displayCAROnMap(this.carData);
-    },
-
-    getCenter(center) {
-      this.mapCenter = center;
-    },
-
-    getZoom(zoom) {
-      this.mainZoom = zoom;
-    },
-
-    // Métodos auxiliares
-    getMunicipioName(carItem) {
-      return carItem.properties.no_municipio_car
-        || carItem.properties.no_municipio
-        || carItem.properties.municipio || '-';
-    },
-
-    getTerraIndigenaName(carItem) {
-      return carItem.properties.no_terra_indigena
-        || carItem.properties.terra_indigena
-        || carItem.properties.nome
-        || 'Nome não disponível';
-    },
-
-    getCarColor(index) {
-      return this.CAR_COLORS[index % this.CAR_COLORS.length];
-    },
-
-    formatNumber(value) {
-      if (value == null || value === '') return '-';
-
-      try {
-        const num = typeof value === 'string'
-          ? parseFloat(value.replace(/\./g, '').replace(',', '.'))
-          : Number(value);
-
-        if (isNaN(num)) return '-';
-
-        if (Number.isInteger(num)) {
-          return num.toLocaleString('pt-BR');
-        }
-
-        const formatted = num.toLocaleString('pt-BR', {
-          minimumFractionDigits: 3,
-          maximumFractionDigits: 3,
-        });
-
-        return formatted;
-      } catch (error) {
-        return '-';
-      }
-    },
-
-    todayDate() {
-      const date = new Date();
-      const dd = String(date.getDate()).padStart(2, '0');
-      const mm = String(date.getMonth() + 1).padStart(2, '0');
-      const yyyy = date.getFullYear();
-      return `${dd}/${mm}/${yyyy}`;
-    },
-
-    print() {
-      window.print();
     },
 
     ...mapMutations('map', ['setShowTemplateMapLandscapeCar', 'clearCarPrintData']),
@@ -1132,7 +960,7 @@ export default {
     ...mapActions('land-use', ['getDataTableLandUse']),
     ...mapActions('urgent-alerts', ['getDataTableAlerts']),
   },
-};
+}
 </script>
 
 <style scoped>
@@ -1184,17 +1012,13 @@ export default {
   flex-shrink: 0;
 }
 
-
-
 @media print {
-
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
 
-  /* Configuração da página */
   @page {
     margin: 0.3cm !important;
     background: white !important;
@@ -1208,13 +1032,10 @@ export default {
     overflow: visible !important;
   }
 
-  
-
   .no-print {
     display: none !important;
   }
 
-  /* Diálogo principal */
   .v-dialog {
     position: relative !important;
     width: 100% !important;
@@ -1226,9 +1047,8 @@ export default {
     padding: 0 !important;
   }
 
-  
   .page-section.map-print {
-    page-break-after: always !important; /* Força quebra APÓS a página 1 */
+    page-break-after: always !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     position: relative !important;
@@ -1250,8 +1070,8 @@ export default {
   }
 
   .page-section.car-list-section {
-    page-break-before: auto !important; /* NÃO forçar quebra antes */
-    page-break-inside: auto !important; /* Permitir quebra interna */
+    page-break-before: auto !important;
+    page-break-inside: auto !important;
     break-inside: auto !important;
     position: relative !important;
     background: transparent !important;
@@ -1259,11 +1079,9 @@ export default {
     min-height: 0 !important;
     padding: 0.1cm 0.3cm 0.3cm 0.3cm !important;
     margin: 0 !important;
-    /* Permitir que o conteúdo flua naturalmente */
     overflow: visible !important;
   }
 
-  /* Garantir que o título NUNCA fique sozinho no final da página */
   .car-list-section .car-list > div:first-child {
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
@@ -1273,7 +1091,6 @@ export default {
     top: 0 !important;
   }
 
-  /* Título "Cadastro Ambiental Rural (CAR)" - manter junto com a lista */
   .car-list-section .d-flex.align-center.ma-4.pb-4 {
     margin: 0 0 0.1cm 0 !important;
     padding: 0.05cm 0 0.05cm 0 !important;
@@ -1282,16 +1099,14 @@ export default {
     min-height: 0 !important;
     display: flex !important;
     align-items: center !important;
-    /* CRÍTICO: Manter junto com o que vem depois */
     page-break-after: avoid !important;
     page-break-before: avoid !important;
     orphans: 3 !important;
     widows: 3 !important;
   }
 
-  /* Container da lista CAR - permitir quebra */
   .car-list-section .car-list {
-    page-break-inside: auto !important; /* Permitir quebra */
+    page-break-inside: auto !important;
     break-inside: auto !important;
     position: relative !important;
     margin: 0 !important;
@@ -1299,13 +1114,12 @@ export default {
     border: none !important;
   }
 
-  /* Linha de CARs - permitir quebra natural */
   .car-list-row {
     display: flex !important;
     flex-wrap: wrap !important;
     width: 100% !important;
     margin: 0 -2px !important;
-    page-break-inside: auto !important; /* Permitir quebra */
+    page-break-inside: auto !important;
     break-inside: auto !important;
     margin-top: 0 !important;
     padding-top: 0 !important;
@@ -1313,20 +1127,18 @@ export default {
     top: 0 !important;
   }
 
-  /* Coluna individual CAR - permitir quebra */
   .car-list-col {
     flex: 0 0 33.333333% !important;
     max-width: 33.333333% !important;
     width: 33.333333% !important;
     padding: 0 2px 2px 2px !important;
-    page-break-inside: avoid !important; /* Não quebrar dentro da coluna */
+    page-break-inside: avoid !important;
     break-inside: avoid !important;
     margin-bottom: 2px !important;
     min-height: 20px !important;
     margin-top: 0 !important;
   }
 
-  /* Item CAR individual - não quebrar dentro do item */
   .car-list-item {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
@@ -1340,14 +1152,12 @@ export default {
     margin-top: 0 !important;
   }
 
-  /* Ajuste do padding-left */
   .car-list-item.pl-4 {
     padding-left: 8px !important;
     padding-top: 0 !important;
     margin-top: 0 !important;
   }
 
-  /* Nome do CAR */
   .car-name {
     font-size: 7px !important;
     line-height: 1 !important;
@@ -1359,7 +1169,6 @@ export default {
     padding: 0 !important;
   }
 
-  /* Avatar do número CAR */
   .car-number-avatar {
     min-width: 16px !important;
     width: 16px !important;
@@ -1372,22 +1181,14 @@ export default {
     line-height: 16px !important;
   }
 
-  /* Garantir que o título e pelo menos 2 linhas de CAR fiquem juntos */
   .car-list > div:first-child {
     page-break-after: avoid !important;
   }
 
-  /* Se houver pouco espaço após o título, quebrar antes de uma nova linha */
-  .car-list-row {
-    page-break-before: auto !important;
-  }
-
-  /* Se uma linha de CAR não couber inteira, quebrar antes dela */
   .car-list-col:nth-child(3n+1) {
     page-break-before: auto !important;
   }
 
-  /* Divisor após a lista */
   .car-list .mt-4 {
     margin-top: 0.1cm !important;
     margin-bottom: 0.1cm !important;
@@ -1397,7 +1198,6 @@ export default {
     border-right: none !important;
   }
 
-  /* Seção de legendas - manter junta */
   .legend-header {
     margin: 0.1cm 0 0.1cm 0 !important;
     padding: 0 !important;
@@ -1410,7 +1210,6 @@ export default {
     line-height: 1.2 !important;
   }
 
-  /* Container de legendas - não quebrar */
   .legends-container {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
@@ -1419,7 +1218,6 @@ export default {
     border: none !important;
   }
 
-  /* Linha de legendas */
   .legends-row {
     flex-wrap: nowrap !important;
     justify-content: flex-start !important;
@@ -1431,9 +1229,8 @@ export default {
     gap: 6px !important;
   }
 
-
   .page-section.car-table-section {
-    page-break-before: always !important; /* Nova página para a tabela */
+    page-break-before: always !important;
     page-break-inside: auto !important;
     break-inside: auto !important;
     position: relative !important;
@@ -1444,7 +1241,6 @@ export default {
     margin: 0 !important;
   }
 
-  /* Container da tabela */
   .table-container {
     page-break-inside: auto !important;
     break-inside: auto !important;
@@ -1453,14 +1249,12 @@ export default {
     padding: 0 !important;
   }
 
-  /* Título da tabela */
   .table-container h3 {
     margin: 0 0 0.1cm 0 !important;
     padding: 0 !important;
     font-size: 10pt !important;
   }
 
-  /* Tabela */
   table {
     page-break-inside: auto !important;
     break-inside: auto !important;
@@ -1468,14 +1262,12 @@ export default {
     margin: 0 !important;
   }
 
-  /* Cabeçalho da tabela */
   thead {
     display: table-header-group !important;
     background-color: #f5f5f5 !important;
     -webkit-print-color-adjust: exact !important;
   }
 
-  /* Estilos da tabela Vuetify */
   .v-data-table {
     font-size: 8pt !important;
     width: 100% !important;
@@ -1497,7 +1289,6 @@ export default {
     padding: 4px 6px !important;
   }
 
- 
   .pa-4 {
     padding: 4px !important;
   }
@@ -1506,12 +1297,10 @@ export default {
     margin: 4px !important;
   }
 
-  /* Garantir cores nos avatares */
   .v-avatar {
     -webkit-print-color-adjust: exact !important;
   }
 
-  /* Chip */
   .v-chip {
     background-color: inherit !important;
     color: inherit !important;
@@ -1520,7 +1309,6 @@ export default {
     padding: 0 4px !important;
   }
 
-  /* REMOVER TODAS AS BORDAS VERTICAIS */
   .page-section,
   .v-col,
   .v-row,
@@ -1531,13 +1319,11 @@ export default {
     border-right: none !important;
   }
 
-  /* Garantir que não haja linhas verticais */
   * {
     border-left: none !important;
     border-right: none !important;
   }
 
-  /* Informações adicionais - ajustes */
   .additional-info {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
@@ -1545,19 +1331,16 @@ export default {
     padding: 0 !important;
   }
 
-  /* Regras de controle de órfãos/viúvas para manter conteúdo junto */
   .car-list-section {
-    orphans: 4 !important; /* Mínimo de 4 linhas no final da página */
-    widows: 4 !important;  /* Mínimo de 4 linhas no início da página */
+    orphans: 4 !important;
+    widows: 4 !important;
   }
 
- 
   .car-list > div:first-child {
     orphans: 3 !important;
     widows: 3 !important;
   }
 }
-
 
 .v-data-table {
   font-size: 12px;
@@ -1570,5 +1353,28 @@ export default {
 
 .v-data-table >>> td {
   font-size: 12px;
+}
+
+body > .leaflet-container:not(.print-dialog .leaflet-container),
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom:not(.page-section.map-print .leaflet-container),
+div.leaflet-container:last-of-type:not(.page-section .leaflet-container) {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  position: fixed !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  opacity: 0 !important;
+}
+
+.page-section.map-print .leaflet-container,
+.print-dialog .leaflet-container {
+  display: block !important;
+  visibility: visible !important;
+  height: auto !important;
+  width: 100% !important;
+  position: relative !important;
+  opacity: 1 !important;
 }
 </style>
