@@ -79,7 +79,7 @@
     <!-- Página 2: Lista de CARs -->
     <div class="page-section car-list-section">
       <div class="car-list">
-        <div v-if="carData && carData.length > 0">
+        <div v-if="carData.length > 0 && carData " >
           <p class="d-flex align-center ma-4 pb-4">
             <strong class="mr-2">Cadastro Ambiental Rural (CAR)</strong>
             <v-chip x-small>
@@ -87,15 +87,16 @@
             </v-chip>
           </p>
 
-          <v-row>
-            <v-col
-              v-for="(item, index) in carData"
-              :key="'car-' + index"
-              cols="12"
-              sm="6"
-              md="4"
-            >
-              <div class="car-list-item pl-4 mt-n4">
+         <v-row class="car-list-row">
+          <v-col
+            v-for="(item, index) in carData"
+            :key="'car-' + index"
+            cols="12"
+            sm="6"
+            md="4"
+            class="car-list-col"
+          >
+            <div class="car-list-item pl-4">
                 <div class="d-flex align-center">
                   <v-avatar
                     :color="getCarColor(index)"
@@ -423,9 +424,6 @@
       </div>
       </div>
     </div>
-
-
-
   </BaseModal>
 </template>
 <i18n>
@@ -1186,45 +1184,37 @@ export default {
   flex-shrink: 0;
 }
 
-/* Estilos para impressão */
+
+
 @media print {
-  /* Reset para impressão */
+
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
 
-  /* GARANTIR QUE O PAPEL (BACKGROUND DA PÁGINA) SEJA BRANCO */
+  /* Configuração da página */
   @page {
-    margin: 0.5cm;
+    margin: 0.3cm !important;
     background: white !important;
     size: landscape;
+    marks: none !important;
   }
 
   html, body {
-    background-color: white !important;
-    margin: 0 !important;
-    padding: 0 !important;
     height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
   }
 
-  /* FUNDO BRANCO PARA TODO O DOCUMENTO */
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: white !important;
-    z-index: -9999;
-  }
+  
 
   .no-print {
     display: none !important;
   }
 
+  /* Diálogo principal */
   .v-dialog {
     position: relative !important;
     width: 100% !important;
@@ -1232,167 +1222,342 @@ export default {
     box-shadow: none !important;
     overflow: visible !important;
     background: transparent !important;
-    page-break-inside: avoid !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  /* Cada seção inicia em uma nova página - REMOVI min-height: 100vh */
-  .page-section {
-    page-break-before: always !important;
+  
+  .page-section.map-print {
+    page-break-after: always !important; /* Força quebra APÓS a página 1 */
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     position: relative !important;
     background: transparent !important;
     height: auto !important;
     min-height: 0 !important;
-    padding-bottom: 2cm !important; /* Adiciona espaço no final para garantir fundo branco */
+    padding: 0.2cm 0.3cm 0.3cm 0.3cm !important;
+    margin: 0 !important;
   }
 
-  /* FUNDO BRANCO APENAS PARA O ESPAÇO RESTANTE DA PÁGINA */
-  .page-section::after {
-    content: "";
-    position: absolute;
-    top: 100%; /* Começa depois do conteúdo */
-    left: 0;
-    right: 0;
-    bottom: -100vh; /* Estende para baixo */
+  .map-print > div > .v-col {
+    max-height: 600px !important;
+    min-height: 480px !important;
+  }
+
+  .mini-map-overlay {
     background: white !important;
-    z-index: -1;
-    pointer-events: none;
+    border: 1px solid #999 !important;
   }
 
-  /* Primeira seção não precisa de quebra antes */
-  .page-section:first-child {
+  .page-section.car-list-section {
+    page-break-before: auto !important; /* NÃO forçar quebra antes */
+    page-break-inside: auto !important; /* Permitir quebra interna */
+    break-inside: auto !important;
+    position: relative !important;
+    background: transparent !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0.1cm 0.3cm 0.3cm 0.3cm !important;
+    margin: 0 !important;
+    /* Permitir que o conteúdo flua naturalmente */
+    overflow: visible !important;
+  }
+
+  /* Garantir que o título NUNCA fique sozinho no final da página */
+  .car-list-section .car-list > div:first-child {
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative;
+    top: 0 !important;
+  }
+
+  /* Título "Cadastro Ambiental Rural (CAR)" - manter junto com a lista */
+  .car-list-section .d-flex.align-center.ma-4.pb-4 {
+    margin: 0 0 0.1cm 0 !important;
+    padding: 0.05cm 0 0.05cm 0 !important;
+    line-height: 1 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    /* CRÍTICO: Manter junto com o que vem depois */
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    orphans: 3 !important;
+    widows: 3 !important;
+  }
+
+  /* Container da lista CAR - permitir quebra */
+  .car-list-section .car-list {
+    page-break-inside: auto !important; /* Permitir quebra */
+    break-inside: auto !important;
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  /* Linha de CARs - permitir quebra natural */
+  .car-list-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    margin: 0 -2px !important;
+    page-break-inside: auto !important; /* Permitir quebra */
+    break-inside: auto !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    position: relative;
+    top: 0 !important;
+  }
+
+  /* Coluna individual CAR - permitir quebra */
+  .car-list-col {
+    flex: 0 0 33.333333% !important;
+    max-width: 33.333333% !important;
+    width: 33.333333% !important;
+    padding: 0 2px 2px 2px !important;
+    page-break-inside: avoid !important; /* Não quebrar dentro da coluna */
+    break-inside: avoid !important;
+    margin-bottom: 2px !important;
+    min-height: 20px !important;
+    margin-top: 0 !important;
+  }
+
+  /* Item CAR individual - não quebrar dentro do item */
+  .car-list-item {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    display: flex !important;
+    align-items: center !important;
+    min-height: 18px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 18px !important;
+    line-height: 18px !important;
+    margin-top: 0 !important;
+  }
+
+  /* Ajuste do padding-left */
+  .car-list-item.pl-4 {
+    padding-left: 8px !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  /* Nome do CAR */
+  .car-name {
+    font-size: 7px !important;
+    line-height: 1 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: calc(100% - 22px) !important;
+    margin-left: 2px !important;
+    padding: 0 !important;
+  }
+
+  /* Avatar do número CAR */
+  .car-number-avatar {
+    min-width: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .car-number-avatar span {
+    font-size: 6px !important;
+    line-height: 16px !important;
+  }
+
+  /* Garantir que o título e pelo menos 2 linhas de CAR fiquem juntos */
+  .car-list > div:first-child {
+    page-break-after: avoid !important;
+  }
+
+  /* Se houver pouco espaço após o título, quebrar antes de uma nova linha */
+  .car-list-row {
     page-break-before: auto !important;
   }
 
-  /* Seção da tabela - permite quebra */
-  .car-table-section {
-    page-break-inside: auto !important;
-    break-inside: auto !important;
+  /* Se uma linha de CAR não couber inteira, quebrar antes dela */
+  .car-list-col:nth-child(3n+1) {
+    page-break-before: auto !important;
   }
 
-  /* Container da tabela - permite quebra */
+  /* Divisor após a lista */
+  .car-list .mt-4 {
+    margin-top: 0.1cm !important;
+    margin-bottom: 0.1cm !important;
+    border-top: 1px solid #e0e0e0 !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  /* Seção de legendas - manter junta */
+  .legend-header {
+    margin: 0.1cm 0 0.1cm 0 !important;
+    padding: 0 !important;
+    page-break-before: avoid !important;
+  }
+
+  .legend-header .d-flex.align-center.py-4 {
+    margin: 0 !important;
+    padding: 0.05cm 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Container de legendas - não quebrar */
+  .legends-container {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  /* Linha de legendas */
+  .legends-row {
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    overflow-x: visible !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 6px !important;
+  }
+
+
+  .page-section.car-table-section {
+    page-break-before: always !important; /* Nova página para a tabela */
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    position: relative !important;
+    background: transparent !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0.1cm 0.3cm 0.3cm 0.3cm !important;
+    margin: 0 !important;
+  }
+
+  /* Container da tabela */
   .table-container {
     page-break-inside: auto !important;
     break-inside: auto !important;
     background: transparent !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  /* Tabela e linhas - permitem quebra */
+  /* Título da tabela */
+  .table-container h3 {
+    margin: 0 0 0.1cm 0 !important;
+    padding: 0 !important;
+    font-size: 10pt !important;
+  }
+
+  /* Tabela */
   table {
     page-break-inside: auto !important;
     break-inside: auto !important;
     background: transparent !important;
+    margin: 0 !important;
   }
 
-  tr {
-    page-break-inside: auto !important;
-    page-break-after: auto !important;
-    break-inside: auto !important;
-    background: transparent !important;
-  }
-
-  /* Garantir que o cabeçalho da tabela se repita em cada página */
+  /* Cabeçalho da tabela */
   thead {
     display: table-header-group !important;
     background-color: #f5f5f5 !important;
+    -webkit-print-color-adjust: exact !important;
   }
 
-  /* Ajustar tamanho da tabela para impressão */
+  /* Estilos da tabela Vuetify */
   .v-data-table {
-    font-size: 10pt !important;
+    font-size: 8pt !important;
     width: 100% !important;
     background: transparent !important;
   }
 
   .v-data-table >>> th {
-    font-size: 10pt !important;
+    font-size: 8pt !important;
     font-weight: bold !important;
     background-color: #f5f5f5 !important;
     -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    padding: 4px 6px !important;
   }
 
   .v-data-table >>> td {
-    font-size: 10pt !important;
+    font-size: 8pt !important;
     border-bottom: 1px solid #e0e0e0 !important;
     background: transparent !important;
+    padding: 4px 6px !important;
   }
 
-  /* Ajustar espaçamento para impressão */
+ 
   .pa-4 {
-    padding: 16px !important;
+    padding: 4px !important;
   }
 
-  /* Garantir que o avatar tenha cor na impressão */
+  .ma-4 {
+    margin: 4px !important;
+  }
+
+  /* Garantir cores nos avatares */
   .v-avatar {
     -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  /* Manter cores dos conteúdos */
-  .car-list-item,
-  .legend-header,
-  .legends-container,
-  .legends-row,
-  .v-col,
-  .v-row,
-  .additional-info,
-  .car-list,
-  .legend-section {
-    background: transparent !important;
-    background-color: transparent !important;
-  }
-
-  /* Ajustar cores específicas */
+  /* Chip */
   .v-chip {
     background-color: inherit !important;
     color: inherit !important;
+    font-size: 7px !important;
+    height: 16px !important;
+    padding: 0 4px !important;
   }
 
-  .styled-divider-red {
-    border-color: #f44336 !important;
-  }
-
-  /* Se houver problema com cores de texto */
-  * {
-    color: inherit !important;
-  }
-
-  /* Garantir que mini-mapa tenha fundo branco (é um caso especial) */
-  .mini-map-overlay {
-    background: white !important;
-  }
-
-  /* Remover qualquer background-image que possa interferir */
+  /* REMOVER TODAS AS BORDAS VERTICAIS */
   .page-section,
-  .v-dialog,
-  .print-dialog {
-    background-image: none !important;
+  .v-col,
+  .v-row,
+  .car-list-section,
+  .car-list,
+  .legends-container {
+    border-left: none !important;
+    border-right: none !important;
   }
 
-  /* Ajustar o mapa para landscape */
-  .map-print > div > .v-col {
-    max-height: 600px !important;
+  /* Garantir que não haja linhas verticais */
+  * {
+    border-left: none !important;
+    border-right: none !important;
   }
 
-  /* Ajustar legendas para landscape */
-  .legends-row {
-    flex-wrap: nowrap !important;
-    justify-content: flex-start !important;
-    overflow-x: visible !important;
+  /* Informações adicionais - ajustes */
+  .additional-info {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0.2cm 0 0 0 !important;
+    padding: 0 !important;
   }
 
-  /* Garantir que as páginas que terminam cedo tenham fundo branco */
-  .page-section:last-child {
-    min-height: 0 !important;
+  /* Regras de controle de órfãos/viúvas para manter conteúdo junto */
+  .car-list-section {
+    orphans: 4 !important; /* Mínimo de 4 linhas no final da página */
+    widows: 4 !important;  /* Mínimo de 4 linhas no início da página */
   }
 
-  /* Para a tabela que pode ter múltiplas páginas */
-  .car-table-section::after {
-    display: none; /* Não precisa do pseudo-elemento na seção da tabela */
+ 
+  .car-list > div:first-child {
+    orphans: 3 !important;
+    widows: 3 !important;
   }
 }
+
 
 .v-data-table {
   font-size: 12px;
