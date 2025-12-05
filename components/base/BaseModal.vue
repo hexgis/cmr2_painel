@@ -169,7 +169,7 @@ export default {
 }
 
 ._modal {
-  width: 80%;
+  width: 90%;
   max-height: 95vh;
   background-color: #fff;
   border-radius: 10px;
@@ -230,7 +230,7 @@ export default {
   ._modal-backdrop {
     display: none !important;
   }
-  
+
   ._modal-wrapper {
     position: relative;
     height: auto;

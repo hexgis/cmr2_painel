@@ -83,7 +83,7 @@
               cols="12"
               sm="6"
               md="4"
-              class="car-list-col"
+              class="car-list-col mb-n6"
             >
               <div class="car-list-item pl-4">
                 <div class="d-flex align-center">
@@ -101,20 +101,20 @@
               </div>
             </v-col>
           </v-row>
-          <v-divider class="mt-4" />
+          <v-divider class="mt-10" />
         </div>
       </div>
 
       <div class="legend-header">
         <p class="d-flex align-center py-4">
-          <strong class="mr-2">Legendas</strong>
+          <strong class="ml-4 mb-n4">Legendas</strong>
         </p>
       </div>
 
-      <div class="legends-container">
-        <v-row class="legends-row flex-nowrap justify-start align-start" style="gap: 12px; overflow-x: auto; padding-bottom: 8px">
+      <div class="legends-container ml-4">
+        <v-row class="legends-row flex-wrap justify-start align-start" style="gap: 12px; padding-bottom: 8px">
           <!-- Monitoramento Diário -->
-          <v-col v-if="showFeaturesMonitoring && hasActiveMonitoringStages" cols="auto" style="min-width: 180px">
+          <v-col v-if="showFeaturesMonitoring && hasActiveMonitoringStages" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 180px; max-width: 200px">
             <div class="d-flex align-center mb-2">
               <strong style="font-size: 12px">Monitoramento Diário</strong>
               <v-chip x-small class="ml-1" color="red" text-color="white">
@@ -126,7 +126,7 @@
           </v-col>
 
           <!-- Alerta Urgente -->
-          <v-col v-if="showFeaturesAlerts && hasActiveAlertsStages" cols="auto" style="min-width: 180px">
+          <v-col v-if="showFeaturesAlerts && hasActiveAlertsStages" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 180px; max-width: 200px">
             <div class="d-flex align-center mb-2">
               <strong style="font-size: 12px">Alerta Urgente</strong>
               <v-chip x-small class="ml-1" color="orange" text-color="white">
@@ -138,7 +138,7 @@
           </v-col>
 
           <!-- Camadas de Sobreposição -->
-          <v-col v-if="showFeaturesSupportLayers && hasVisibleSupportLayers" cols="auto" style="min-width: 200px">
+          <v-col v-if="showFeaturesSupportLayers && hasVisibleSupportLayers" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 200px; max-width: 220px">
             <div>
               <strong style="font-size: 12px">Sobreposição de camadas</strong>
             </div>
@@ -148,7 +148,7 @@
           </v-col>
 
           <!-- Uso e Ocupação do Solo -->
-          <v-col v-if="showFeaturesLandUse" cols="auto" style="min-width: 180px">
+          <v-col v-if="showFeaturesLandUse" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 180px; max-width: 200px">
             <div class="d-flex align-center mb-2">
               <strong style="font-size: 12px">Uso e Ocupação do Solo</strong>
               <v-chip x-small class="ml-1" color="green" text-color="white">
@@ -160,7 +160,7 @@
           </v-col>
 
           <!-- INPE - Prodes -->
-          <v-col v-if="showFeaturesProdes" cols="auto" style="min-width: 160px">
+          <v-col v-if="showFeaturesProdes" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 160px; max-width: 180px">
             <div class="mb-2">
               <strong style="font-size: 12px">INPE - Prodes</strong>
             </div>
@@ -169,7 +169,7 @@
           </v-col>
 
           <!-- INPE - Deter -->
-          <v-col v-if="showFeaturesDeter" cols="auto" style="min-width: 160px">
+          <v-col v-if="showFeaturesDeter" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 160px; max-width: 180px">
             <div class="mb-2">
               <strong style="font-size: 12px">INPE - Deter</strong>
             </div>
@@ -178,7 +178,7 @@
           </v-col>
 
           <!-- INPE - Focos de Calor -->
-          <v-col v-if="showFeaturesAquaMM || showFeaturesAquaMT" cols="auto" style="min-width: 180px">
+          <v-col v-if="showFeaturesAquaMM || showFeaturesAquaMT" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 180px; max-width: 200px">
             <div class="mb-2">
               <strong style="font-size: 12px">INPE - Focos de Calor</strong>
             </div>
@@ -1002,11 +1002,7 @@ export default {
   margin-bottom: 8px;
 }
 
-.car-name {
-  font-size: 12px;
-  font-weight: 500;
-  margin-left: 8px;
-}
+
 
 .car-number-avatar {
   flex-shrink: 0;
@@ -1029,7 +1025,7 @@ export default {
   html, body {
     height: auto !important;
     min-height: auto !important;
-    overflow: visible !important;
+
   }
 
   .no-print {
@@ -1060,14 +1056,16 @@ export default {
   }
 
   .map-print > div > .v-col {
-    max-height: 600px !important;
-    min-height: 480px !important;
+    width: 100% !important;
+    height: 500px !important;
+    min-height: 500px !important;
+    max-height: 500px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: relative !important;
   }
 
-  .mini-map-overlay {
-    background: white !important;
-    border: 1px solid #999 !important;
-  }
+
 
   .page-section.car-list-section {
     page-break-before: auto !important;
@@ -1091,53 +1089,19 @@ export default {
     top: 0 !important;
   }
 
-  .car-list-section .d-flex.align-center.ma-4.pb-4 {
-    margin: 0 0 0.1cm 0 !important;
-    padding: 0.05cm 0 0.05cm 0 !important;
-    line-height: 1 !important;
-    height: auto !important;
-    min-height: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    page-break-after: avoid !important;
-    page-break-before: avoid !important;
-    orphans: 3 !important;
-    widows: 3 !important;
-  }
 
-  .car-list-section .car-list {
-    page-break-inside: auto !important;
-    break-inside: auto !important;
-    position: relative !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-  }
 
-  .car-list-row {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    width: 100% !important;
-    margin: 0 -2px !important;
-    page-break-inside: auto !important;
-    break-inside: auto !important;
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-    position: relative;
-    top: 0 !important;
-  }
+
+
 
   .car-list-col {
     flex: 0 0 33.333333% !important;
     max-width: 33.333333% !important;
     width: 33.333333% !important;
-    padding: 0 2px 2px 2px !important;
+
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    margin-bottom: 2px !important;
-    min-height: 20px !important;
-    margin-top: 0 !important;
-  }
+   }
 
   .car-list-item {
     page-break-inside: avoid !important;
@@ -1158,16 +1122,7 @@ export default {
     margin-top: 0 !important;
   }
 
-  .car-name {
-    font-size: 7px !important;
-    line-height: 1 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    max-width: calc(100% - 22px) !important;
-    margin-left: 2px !important;
-    padding: 0 !important;
-  }
+
 
   .car-number-avatar {
     min-width: 16px !important;
@@ -1177,8 +1132,8 @@ export default {
   }
 
   .car-number-avatar span {
-    font-size: 6px !important;
-    line-height: 16px !important;
+    font-size: 12px !important;
+    line-height: 20px !important;
   }
 
   .car-list > div:first-child {
@@ -1189,17 +1144,10 @@ export default {
     page-break-before: auto !important;
   }
 
-  .car-list .mt-4 {
-    margin-top: 0.1cm !important;
-    margin-bottom: 0.1cm !important;
-    border-top: 1px solid #e0e0e0 !important;
-    border-bottom: none !important;
-    border-left: none !important;
-    border-right: none !important;
-  }
+
 
   .legend-header {
-    margin: 0.1cm 0 0.1cm 0 !important;
+    margin-top: 10px !important;
     padding: 0 !important;
     page-break-before: avoid !important;
   }
@@ -1213,21 +1161,30 @@ export default {
   .legends-container {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    margin: 0 !important;
+    margin-top: 12px !important;
     padding: 0 !important;
     border: none !important;
   }
 
   .legends-row {
-    flex-wrap: nowrap !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
     justify-content: flex-start !important;
-    overflow-x: visible !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    overflow: visible !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    gap: 6px !important;
   }
+
+  .legends-row .v-col {
+    flex: 0 0 calc(50% - 8px) !important;
+    max-width: calc(50% - 8px) !important;
+    min-width: 180px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
 
   .page-section.car-table-section {
     page-break-before: always !important;
