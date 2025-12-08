@@ -12,24 +12,22 @@
   >
     <!-- Página 1: Logos, Título e Mapa -->
     <div class="page-section map-print">
-      <v-row class="justify-center text-center mt-n4">
-        <v-col cols="6" class="d-flex justify-end align-end">
+      <v-row class="justify-center text-center title-row">
+        <v-col cols="6" class="logo-container logo-funai">
           <v-img
             contain
             :src="logo_funai"
-            max-width="120px"
-            max-height="60px"
+            class="logo-image"
           />
         </v-col>
-        <v-col cols="6" class="mt-2">
+        <v-col cols="6" class="logo-container logo-cmr">
           <v-img
             contain
             :src="logo_cmr"
-            max-width="180px"
-            max-height="60px"
+            class="logo-image"
           />
         </v-col>
-        <v-col cols="12" class="mt-n4">
+        <v-col cols="12" class="map-title-container">
           <p class="font-title text-h6">
             {{ mapTitle }}
           </p>
@@ -37,7 +35,7 @@
       </v-row>
 
       <div>
-        <v-col cols="12" class="pr-0 mt-n6" style="height: 70vh; position: relative">
+        <v-col cols="12" class="map-container">
           <v-sheet class="mini-map-overlay">
             <MiniMap
               v-if="currentBounds"
@@ -66,44 +64,44 @@
     </div>
 
     <!-- Página 2: Lista de CARs e Legendas -->
-    <div class="page-section car-list-section">
-      <div class="car-list">
+    <div class="page-section">
+      
         <div v-if="carData.length > 0">
-          <p class="d-flex align-center ma-4 pb-4">
-            <strong class="mr-2">Cadastro Ambiental Rural (CAR)</strong>
-            <v-chip x-small>
+          <p class="mt-6">
+            <strong>Cadastro Ambiental Rural (CAR)</strong>
+            <v-chip  x-small>
               {{ carData.length }}
             </v-chip>
           </p>
 
-          <v-row class="car-list-row">
+          <v-row>
             <v-col
               v-for="(item, index) in carData"
               :key="'car-' + index"
               cols="12"
               sm="6"
               md="4"
-              class="car-list-col mb-n6"
+              class="car-list-col"
             >
-              <div class="car-list-item pl-4">
-                <div class="d-flex align-center">
+              <div class="car-list-item">
+               
                   <v-avatar
                     :color="getCarColor(index)"
                     size="20"
-                    class="mr-1 car-number-avatar"
+                    class="car-number-avatar"
                   >
-                    <span class="white--text font-weight-bold" style="font-size: 10px">
+                    <span class="car-number-text">
                       {{ index + 1 }}
                     </span>
                   </v-avatar>
                   <span class="car-name">{{ getTerraIndigenaName(item) }}</span>
-                </div>
+               
               </div>
             </v-col>
           </v-row>
-          <v-divider class="mt-10" />
+          <v-divider class="car-list-divider" />
         </div>
-      </div>
+     
 
       <div class="legend-header">
         <p class="d-flex align-center py-4">
@@ -126,64 +124,64 @@
           </v-col>
 
           <!-- Alerta Urgente -->
-          <v-col v-if="showFeaturesAlerts && hasActiveAlertsStages" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 180px; max-width: 200px">
-            <div class="d-flex align-center mb-2">
-              <strong style="font-size: 12px">Alerta Urgente</strong>
-              <v-chip x-small class="ml-1" color="orange" text-color="white">
+          <v-col v-if="showFeaturesAlerts && hasActiveAlertsStages" class="legend-column alerts-column">
+            <div class="legend-column-header">
+              <strong class="legend-column-title">Alerta Urgente</strong>
+              <v-chip class="legend-count-chip" x-small color="orange" text-color="white">
                 {{ alertsCount }}
               </v-chip>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
-            <CustomizedLegend class="pt-1" :items="alertsItems" />
+            <hr class="styled-divider" />
+            <CustomizedLegend class="legend-content" :items="alertsItems" />
           </v-col>
 
           <!-- Camadas de Sobreposição -->
-          <v-col v-if="showFeaturesSupportLayers && hasVisibleSupportLayers" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 200px; max-width: 220px">
-            <div>
-              <strong style="font-size: 12px">Sobreposição de camadas</strong>
+          <v-col v-if="showFeaturesSupportLayers && hasVisibleSupportLayers" class="legend-column support-layers-column">
+            <div class="legend-column-header">
+              <strong class="legend-column-title">Sobreposição de camadas</strong>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
+            <hr class="styled-divider" />
             <LayerList v-if="visibleUserLayers.length > 0" :layers="supportLayerUser" :is-user-layer="true" />
-            <LayerList v-if="visibleSystemLayers.length > 0" :layers="supportLayers" class="mt-1" />
+            <LayerList v-if="visibleSystemLayers.length > 0" :layers="supportLayers" class="system-layers" />
           </v-col>
 
           <!-- Uso e Ocupação do Solo -->
-          <v-col v-if="showFeaturesLandUse" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 180px; max-width: 200px">
-            <div class="d-flex align-center mb-2">
-              <strong style="font-size: 12px">Uso e Ocupação do Solo</strong>
-              <v-chip x-small class="ml-1" color="green" text-color="white">
+          <v-col v-if="showFeaturesLandUse" class="legend-column land-use-column">
+            <div class="legend-column-header">
+              <strong class="legend-column-title">Uso e Ocupação do Solo</strong>
+              <v-chip class="legend-count-chip" x-small color="green" text-color="white">
                 {{ tableLandUse.length }}
               </v-chip>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
-            <CustomizedLegend class="pt-1" :items="landUseItems" />
+            <hr class="styled-divider" />
+            <CustomizedLegend class="legend-content" :items="landUseItems" />
           </v-col>
 
           <!-- INPE - Prodes -->
-          <v-col v-if="showFeaturesProdes" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 160px; max-width: 180px">
-            <div class="mb-2">
-              <strong style="font-size: 12px">INPE - Prodes</strong>
+          <v-col v-if="showFeaturesProdes" class="legend-column prodes-column">
+            <div class="legend-column-header">
+              <strong class="legend-column-title">INPE - Prodes</strong>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
-            <CustomizedLegend class="pt-1" :items="prodesItems" />
+            <hr class="styled-divider" />
+            <CustomizedLegend class="legend-content" :items="prodesItems" />
           </v-col>
 
           <!-- INPE - Deter -->
-          <v-col v-if="showFeaturesDeter" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 160px; max-width: 180px">
-            <div class="mb-2">
-              <strong style="font-size: 12px">INPE - Deter</strong>
+          <v-col v-if="showFeaturesDeter" class="legend-column deter-column">
+            <div class="legend-column-header">
+              <strong class="legend-column-title">INPE - Deter</strong>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
-            <CustomizedLegend class="pt-1" :items="deterItems" />
+            <hr class="styled-divider" />
+            <CustomizedLegend class="legend-content" :items="deterItems" />
           </v-col>
 
           <!-- INPE - Focos de Calor -->
-          <v-col v-if="showFeaturesAquaMM || showFeaturesAquaMT" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 180px; max-width: 200px">
-            <div class="mb-2">
-              <strong style="font-size: 12px">INPE - Focos de Calor</strong>
+          <v-col v-if="showFeaturesAquaMM || showFeaturesAquaMT" class="legend-column heat-focus-column">
+            <div class="legend-column-header">
+              <strong class="legend-column-title">INPE - Focos de Calor</strong>
             </div>
-            <hr class="styled-divider" style="margin: 4px 0 8px 0" />
-            <CustomizedLegend class="pt-1" :items="filteredHeatFocusItems" />
+            <hr class="styled-divider" />
+            <CustomizedLegend class="legend-content" :items="filteredHeatFocusItems" />
           </v-col>
         </v-row>
       </div>
@@ -191,12 +189,12 @@
 
     <!-- Página 3: Tabela de CARs -->
     <div class="page-section car-table-section">
-      <div style="background-color: #fff" class="teste-print">
-        <v-divider class="mt-4" />
+      <div class="car-table-content">
+        <v-divider class="table-divider" />
 
-        <div v-if="carData.length > 0" class="car-list pa-4 table-container">
-          <h3>Imóveis CAR Encontrados ({{ carData.length }})</h3>
-          <v-simple-table>
+        <div v-if="carData.length > 0" class="car-table-container">
+          <h3 class="table-title">Imóveis CAR Encontrados ({{ carData.length }})</h3>
+          <v-simple-table class="car-data-table">
             <template #default>
               <thead>
                 <tr>
@@ -211,15 +209,15 @@
               <tbody>
                 <tr v-for="(car, index) in carData" :key="index">
                   <td>
-                    <v-avatar :color="getCarColor(index)" size="24">
-                      <span class="white--text">{{ index + 1 }}</span>
+                    <v-avatar :color="getCarColor(index)" size="24" class="table-avatar">
+                      <span class="avatar-text">{{ index + 1 }}</span>
                     </v-avatar>
                   </td>
-                  <td>{{ getMunicipioName(car) }}</td>
-                  <td>{{ getTerraIndigenaName(car) }}</td>
-                  <td>{{ formatNumber(car.properties?.nu_area_ha || car.properties?.area_ha) }}</td>
-                  <td>{{ car.properties?.co_imovel || '-' }}</td>
-                  <td>{{ car.properties?.tp_situacao || '-' }}</td>
+                  <td class="municipio-cell">{{ getMunicipioName(car) }}</td>
+                  <td class="ti-cell">{{ getTerraIndigenaName(car) }}</td>
+                  <td class="area-cell">{{ formatNumber(car.properties?.nu_area_ha || car.properties?.area_ha) }}</td>
+                  <td class="code-cell">{{ car.properties?.co_imovel || '-' }}</td>
+                  <td class="status-cell">{{ car.properties?.tp_situacao || '-' }}</td>
                 </tr>
               </tbody>
             </template>
@@ -227,7 +225,7 @@
         </div>
 
         <div class="additional-info">
-          <v-col class="pa-3">
+          <v-col class="geodetic-info">
             <p>
               {{ $t('geodetic-system-info-part1') }}
               <strong>{{ $t('geodetic-system-info-strong') }}</strong>
@@ -237,7 +235,7 @@
 
           <v-divider />
 
-          <p class="d-block px-3 py-2">
+          <p class="cartographic-bases-title">
             <strong>Bases Cartográficas:</strong>
           </p>
 
@@ -248,12 +246,12 @@
             <v-col
               v-for="(layer, layerId) in layerCategory.layers"
               :key="layerId"
-              class="py-1"
+              class="layer-info"
             >
-              <v-row v-if="layer && layer.visible" no-gutters align="center" class="image-container">
+              <v-row v-if="layer && layer.visible" no-gutters align="center" class="layer-row">
                 <v-col>
-                  <p>
-                    <strong>{{ layer.name || '-' }}.</strong>
+                  <p class="layer-details">
+                    <strong class="layer-name">{{ layer.name || '-' }}.</strong>
                     Fonte:{{ layer.fonte || '-' }}, Data de atualização:
                     {{ handleData(layer.dt_atualizacao) }}.
                   </p>
@@ -264,25 +262,25 @@
 
           <v-divider />
 
-          <v-col>
+          <v-col class="features-info">
             <v-col
               v-for="(feature, index) in activePrintFeatures"
               :key="feature.key || index"
-              class="py-1"
+              class="feature-info"
             >
-              <p>
+              <p class="feature-description">
                 {{ $t(feature.label) }}
-                <span v-if="feature.type === 'date-range'">
+                <span v-if="feature.type === 'date-range'" class="date-range">
                   {{ handleData(feature.startDate) }}
                   {{ $t('and') }}
                   {{ handleData(feature.endDate) }}
                 </span>
-                <span v-else-if="feature.type === 'years-list' && feature.years.length > 0">
+                <span v-else-if="feature.type === 'years-list' && feature.years.length > 0" class="years-list">
                   <span v-for="(year, yearIndex) in feature.years" :key="'year-' + yearIndex">
                     {{ year }}<span v-if="yearIndex < feature.years.length - 1">, </span>
                   </span>
                 </span>
-                <span v-else-if="feature.type === 'single-year'">
+                <span v-else-if="feature.type === 'single-year'" class="single-year">
                   {{ feature.yearHandler() }}
                 </span>
               </p>
@@ -290,11 +288,11 @@
             <v-divider />
           </v-col>
 
-          <v-col class="ml-2 py-1">
-            <p>
+          <v-col class="address-info">
+            <p class="address-line-1">
               {{ $t('text-address0') }}
             </p>
-            <p>
+            <p class="address-line-2">
               {{ $t('text-address') }}
               {{ todayDate() }}
             </p>
@@ -302,14 +300,14 @@
 
           <v-divider />
 
-          <v-col class="ml-3 py-1">
-            <p>
+          <v-col class="author-info">
+            <p class="author-label">
               {{ $t('author-label') }}
             </p>
-            <p>
+            <p class="info-note">
               {{ $t('text-info') }}
             </p>
-            <p>
+            <p class="format-note">
               {{ $t('text-format') }}
               {{ leafSize.type }}.
             </p>
@@ -891,69 +889,69 @@ export default {
     },
 
     displayCAROnMap(features) {
-      try {
-        if (!Array.isArray(features) || features.length === 0 || !this.printMap) {
-          return
+    try {
+      if (!Array.isArray(features) || features.length === 0 || !this.printMap) {
+        return
+      }
+
+      if (this.carLayer && this.printMap) {
+        this.printMap.removeLayer(this.carLayer)
+        this.carLayer = null
+      }
+
+      const carLayers = features.map((feature, index) => {
+        const color = this.getCarColor(index)
+        const numero = index + 1
+
+        const carStyle = {
+          color,
+          weight: 3,
+          opacity: 0.9,
+          fillColor: color,
+          fillOpacity: 0.3,
         }
 
-        if (this.carLayer && this.printMap) {
-          this.printMap.removeLayer(this.carLayer)
-          this.carLayer = null
-        }
-
-        const carLayers = features.map((feature, index) => {
-          const color = this.getCarColor(index)
-          const numero = index + 1
-
-          const carStyle = {
-            color,
-            weight: 3,
-            opacity: 0.9,
-            fillColor: color,
-            fillOpacity: 0.3,
-          }
-
-          const layer = window.L.geoJSON(feature, {
-            style: carStyle,
-          })
-
-          const center = layer.getBounds().getCenter()
-
-          const numberMarker = window.L.marker(center, {
-            icon: window.L.divIcon({
-              className: 'car-number-marker',
-              html: `<div style="
-                background-color: ${color};
-                color: white;
-                border: 2px solid white;
-                border-radius: 50%;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-                font-size: 14px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-              ">${numero}</div>`,
-              iconSize: [30, 30],
-              iconAnchor: [15, 15],
-            }),
-          })
-
-          return window.L.layerGroup([layer, numberMarker])
+        const layer = window.L.geoJSON(feature, {
+          style: carStyle,
         })
 
-        this.carLayer = window.L.layerGroup(carLayers)
-        this.carLayer.addTo(this.printMap)
+        const center = layer.getBounds().getCenter()
 
-        const allLayers = carLayers.flatMap((layerGroup) => layerGroup.getLayers())
-        const group = window.L.featureGroup(allLayers)
-        this.printMap.fitBounds(group.getBounds().pad(0.1))
-      } catch (error) {
-        console.error('Erro ao exibir CAR no mapa de impressão:', error)
-      }
-    },
+        const numberMarker = window.L.marker(center, {
+          icon: window.L.divIcon({
+            className: 'car-number-marker',
+            html: `<div style="
+              background-color: ${color};
+              color: white;
+              border: 2px solid white;
+              border-radius: 50%;
+              width: 30px;
+              height: 30px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              font-size: 14px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            ">${numero}</div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          }),
+        })
+
+        return window.L.layerGroup([layer, numberMarker])
+      })
+
+      this.carLayer = window.L.layerGroup(carLayers)
+      this.carLayer.addTo(this.printMap)
+
+      const allLayers = carLayers.flatMap((layerGroup) => layerGroup.getLayers())
+      const group = window.L.featureGroup(allLayers)
+      this.printMap.fitBounds(group.getBounds().pad(0.1))
+    } catch (error) {
+      console.error('Erro ao exibir CAR no mapa de impressão:', error)
+    }
+  },
 
     ...mapMutations('map', ['setShowTemplateMapLandscapeCar', 'clearCarPrintData']),
     ...mapActions('monitoring', ['getDataTableMonitoring']),
@@ -963,10 +961,51 @@ export default {
 }
 </script>
 
+
 <style scoped>
+/* Estilos essenciais */
 .print-dialog {
   overflow-y: auto;
   max-height: 90vh;
+}
+
+/* Primeira página: Logos e Mapa */
+.title-row {
+  margin-top: -16px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: flex-end;
+}
+
+.logo-funai {
+  justify-content: flex-end;
+}
+
+.logo-cmr {
+  justify-content: flex-start;
+  margin-top: 8px;
+}
+
+.logo-image {
+  max-width: 120px;
+  max-height: 60px;
+}
+
+.logo-cmr .logo-image {
+  max-width: 180px;
+}
+
+.map-title-container {
+  margin-top: -16px;
+}
+
+.map-container {
+  padding-right: 0;
+  margin-top: -24px;
+  height: 70vh;
+  position: relative;
 }
 
 .mini-map-overlay {
@@ -983,31 +1022,182 @@ export default {
   margin-top: 15px;
 }
 
+/* Segunda página: Lista de CARs e Legendas */
+
+.car-number-text {
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+}
+
+.car-name {
+  font-size: 10px;
+}
+
+.car-list-divider {
+  margin-top: 10px;
+}
+
+.legend-header {
+  margin-top: 10px;
+}
+
+
+
+
+
+
+.legends-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+.legend-column {
+  min-width: 180px;
+}
+
+.legend-column-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.legend-column-title {
+  font-size: 12px;
+}
+
+.legend-count-chip {
+  margin-left: 4px;
+}
+
 .styled-divider {
   border: 1px solid #e0e0e0;
-  margin: 4px 0;
+  margin: 4px 0 8px 0;
 }
 
 .styled-divider-red {
   border: 1px solid #f44336;
-  margin: 4px 0;
+  margin: 4px 0 8px 0;
 }
 
-.car-number-marker {
-  background: transparent !important;
-  border: none !important;
+.legend-content {
+  padding-top: 4px;
 }
 
-.car-list-item {
-  margin-bottom: 8px;
+.system-layers {
+  margin-top: 4px;
 }
 
-
-
-.car-number-avatar {
-  flex-shrink: 0;
+/* Terceira página: Tabela de CARs */
+.car-table-content {
+  background-color: #fff;
 }
 
+.table-divider {
+  margin-top: 16px;
+}
+
+.car-table-container {
+  padding: 16px;
+}
+
+.table-title {
+  font-size: 18px;
+  margin: 0 0 16px 0;
+}
+
+.car-data-table {
+  font-size: 12px;
+}
+
+.car-data-table >>> th {
+  font-size: 12px;
+  font-weight: bold;
+  background-color: #f5f5f5;
+  padding: 8px 12px;
+}
+
+.car-data-table >>> td {
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
+.table-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-text {
+  color: white;
+  font-weight: bold;
+}
+
+/* Informações adicionais */
+.additional-info {
+  padding: 0 16px;
+}
+
+.geodetic-info {
+  padding: 12px;
+}
+
+.cartographic-bases-title {
+  display: block;
+  padding: 0 12px 8px 12px;
+  margin: 0;
+}
+
+.layer-info {
+  padding: 4px 0;
+}
+
+.layer-details {
+  margin: 0;
+  font-size: 14px;
+}
+
+.layer-name {
+  font-weight: bold;
+}
+
+.features-info {
+  padding: 0;
+}
+
+.feature-info {
+  padding: 4px 0;
+}
+
+.feature-description {
+  margin: 0;
+  font-size: 14px;
+}
+
+.address-info {
+  padding: 8px 0 8px 8px;
+}
+
+.address-line-1,
+.address-line-2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.author-info {
+  padding: 8px 0 8px 12px;
+}
+
+.author-label,
+.info-note,
+.format-note {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Estilos de impressão - MANTIDOS ESSENCIAIS */
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;
@@ -1017,15 +1207,12 @@ export default {
 
   @page {
     margin: 0.3cm !important;
-    background: white !important;
     size: landscape;
-    marks: none !important;
   }
 
   html, body {
     height: auto !important;
     min-height: auto !important;
-
   }
 
   .no-print {
@@ -1047,271 +1234,97 @@ export default {
     page-break-after: always !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    position: relative !important;
-    background: transparent !important;
-    height: auto !important;
-    min-height: 0 !important;
     padding: 0.2cm 0.3cm 0.3cm 0.3cm !important;
     margin: 0 !important;
   }
 
-  .map-print > div > .v-col {
+  .map-container {
     width: 100% !important;
-    height: 500px !important;
+    height: 640px !important;
     min-height: 500px !important;
-    max-height: 500px !important;
+    max-height: 650px !important;
     padding: 0 !important;
     margin: 0 !important;
     position: relative !important;
   }
 
-
-
-  .page-section.car-list-section {
-    page-break-before: auto !important;
-    page-break-inside: auto !important;
-    break-inside: auto !important;
-    position: relative !important;
-    background: transparent !important;
-    height: auto !important;
-    min-height: 0 !important;
-    padding: 0.1cm 0.3cm 0.3cm 0.3cm !important;
-    margin: 0 !important;
-    overflow: visible !important;
-  }
-
-  .car-list-section .car-list > div:first-child {
-    page-break-after: avoid !important;
-    page-break-inside: avoid !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    position: relative;
-    top: 0 !important;
-  }
-
-
-
-
-
+  
 
   .car-list-col {
     flex: 0 0 33.333333% !important;
     max-width: 33.333333% !important;
     width: 33.333333% !important;
-
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-   }
+  }
 
   .car-list-item {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-    display: flex !important;
-    align-items: center !important;
     min-height: 18px !important;
     padding: 0 !important;
     margin: 0 !important;
     height: 18px !important;
     line-height: 18px !important;
-    margin-top: 0 !important;
-  }
-
-  .car-list-item.pl-4 {
     padding-left: 8px !important;
-    padding-top: 0 !important;
-    margin-top: 0 !important;
   }
-
-
 
   .car-number-avatar {
     min-width: 16px !important;
     width: 16px !important;
     height: 16px !important;
-    flex-shrink: 0 !important;
   }
 
-  .car-number-avatar span {
+  .car-number-text {
     font-size: 12px !important;
     line-height: 20px !important;
   }
 
-  .car-list > div:first-child {
-    page-break-after: avoid !important;
-  }
-
-  .car-list-col:nth-child(3n+1) {
-    page-break-before: auto !important;
-  }
-
-
-
-  .legend-header {
-    margin-top: 10px !important;
-    padding: 0 !important;
-    page-break-before: avoid !important;
-  }
-
-  .legend-header .d-flex.align-center.py-4 {
-    margin: 0 !important;
-    padding: 0.05cm 0 !important;
-    line-height: 1.2 !important;
-  }
-
-  .legends-container {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-    margin-top: 12px !important;
-    padding: 0 !important;
-    border: none !important;
-  }
-
   .legends-row {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    justify-content: flex-start !important;
-    align-items: flex-start !important;
     gap: 8px !important;
-    overflow: visible !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
   }
 
-  .legends-row .v-col {
+  .legends-row .legend-column {
     flex: 0 0 calc(50% - 8px) !important;
     max-width: calc(50% - 8px) !important;
     min-width: 180px !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
   }
-
 
   .page-section.car-table-section {
     page-break-before: always !important;
-    page-break-inside: auto !important;
-    break-inside: auto !important;
-    position: relative !important;
-    background: transparent !important;
-    height: auto !important;
-    min-height: 0 !important;
     padding: 0.1cm 0.3cm 0.3cm 0.3cm !important;
     margin: 0 !important;
   }
 
-  .table-container {
-    page-break-inside: auto !important;
-    break-inside: auto !important;
-    background: transparent !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .table-container h3 {
+  .table-title {
     margin: 0 0 0.1cm 0 !important;
     padding: 0 !important;
     font-size: 10pt !important;
   }
 
-  table {
-    page-break-inside: auto !important;
-    break-inside: auto !important;
-    background: transparent !important;
-    margin: 0 !important;
-  }
-
-  thead {
-    display: table-header-group !important;
-    background-color: #f5f5f5 !important;
-    -webkit-print-color-adjust: exact !important;
-  }
-
-  .v-data-table {
+  .car-data-table {
     font-size: 8pt !important;
-    width: 100% !important;
-    background: transparent !important;
   }
 
-  .v-data-table >>> th {
+  .car-data-table >>> th {
     font-size: 8pt !important;
-    font-weight: bold !important;
-    background-color: #f5f5f5 !important;
-    -webkit-print-color-adjust: exact !important;
     padding: 4px 6px !important;
   }
 
-  .v-data-table >>> td {
+  .car-data-table >>> td {
     font-size: 8pt !important;
-    border-bottom: 1px solid #e0e0e0 !important;
-    background: transparent !important;
     padding: 4px 6px !important;
-  }
-
-  .pa-4 {
-    padding: 4px !important;
-  }
-
-  .ma-4 {
-    margin: 4px !important;
-  }
-
-  .v-avatar {
-    -webkit-print-color-adjust: exact !important;
   }
 
   .v-chip {
-    background-color: inherit !important;
-    color: inherit !important;
     font-size: 7px !important;
     height: 16px !important;
     padding: 0 4px !important;
   }
 
-  .page-section,
-  .v-col,
-  .v-row,
-  .car-list-section,
-  .car-list,
-  .legends-container {
-    border-left: none !important;
-    border-right: none !important;
-  }
-
-  * {
-    border-left: none !important;
-    border-right: none !important;
-  }
-
   .additional-info {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
     margin: 0.2cm 0 0 0 !important;
     padding: 0 !important;
   }
-
-  .car-list-section {
-    orphans: 4 !important;
-    widows: 4 !important;
-  }
-
-  .car-list > div:first-child {
-    orphans: 3 !important;
-    widows: 3 !important;
-  }
 }
 
-.v-data-table {
-  font-size: 12px;
-}
-
-.v-data-table >>> th {
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.v-data-table >>> td {
-  font-size: 12px;
-}
-
+/* Ocultar mapas não relacionados - ESSENCIAL */
 body > .leaflet-container:not(.print-dialog .leaflet-container),
 .leaflet-container.leaflet-touch-drag.leaflet-touch-zoom:not(.page-section.map-print .leaflet-container),
 div.leaflet-container:last-of-type:not(.page-section .leaflet-container) {
