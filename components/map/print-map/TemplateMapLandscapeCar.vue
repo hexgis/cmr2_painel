@@ -12,7 +12,7 @@
   >
     <!-- Página 1: Logos, Título e Mapa -->
     <div class="page-section map-print">
-      <v-row class="justify-center text-center title-row">
+      <v-row class="justify-center text-center">
         <v-col cols="6" class="logo-container logo-funai">
           <v-img
             contain
@@ -27,8 +27,8 @@
             class="logo-image"
           />
         </v-col>
-        <v-col cols="12" class="map-title-container">
-          <p class="font-title text-h6">
+        <v-col cols="12" class="mt-n4">
+          <p class="text-h6">
             {{ mapTitle }}
           </p>
         </v-col>
@@ -65,7 +65,6 @@
 
     <!-- Página 2: Lista de CARs e Legendas -->
     <div class="page-section">
-      
         <div v-if="carData.length > 0">
           <p class="mt-6">
             <strong>Cadastro Ambiental Rural (CAR)</strong>
@@ -84,7 +83,7 @@
               class="car-list-col"
             >
               <div class="car-list-item">
-               
+
                   <v-avatar
                     :color="getCarColor(index)"
                     size="20"
@@ -95,225 +94,195 @@
                     </span>
                   </v-avatar>
                   <span class="car-name">{{ getTerraIndigenaName(item) }}</span>
-               
+
               </div>
             </v-col>
           </v-row>
           <v-divider class="car-list-divider" />
         </div>
-     
+
 
       <div class="legend-header">
-        <p class="d-flex align-center py-4">
-          <strong class="ml-4 mb-n4">Legendas</strong>
+        <p>
+          <strong>Legendas</strong>
         </p>
       </div>
 
-      <div class="legends-container ml-4">
-        <v-row class="legends-row flex-wrap justify-start align-start" style="gap: 12px; padding-bottom: 8px">
+      <div>
+        <v-row>
           <!-- Monitoramento Diário -->
-          <v-col v-if="showFeaturesMonitoring && hasActiveMonitoringStages" cols="12" sm="6" md="4" lg="3" xl="2" style="min-width: 180px; max-width: 200px">
-            <div class="d-flex align-center mb-2">
-              <strong style="font-size: 12px">Monitoramento Diário</strong>
-              <v-chip x-small class="ml-1" color="red" text-color="white">
+          <v-col v-if="showFeaturesMonitoring && hasActiveMonitoringStages" class="legend-column">
+            <div>
+              <strong class="legend-column-title">Monitoramento Diário</strong>
+              <v-chip x-small color="red" text-color="white">
                 {{ monitoringTICount }}
               </v-chip>
             </div>
-            <hr class="styled-divider-red" style="margin: 4px 0 8px 0" />
-            <CustomizedLegend class="pt-1" :items="monitoringItems" />
+            <hr class="styled-divider-red"/>
+            <CustomizedLegend :items="monitoringItems" />
           </v-col>
 
           <!-- Alerta Urgente -->
-          <v-col v-if="showFeaturesAlerts && hasActiveAlertsStages" class="legend-column alerts-column">
-            <div class="legend-column-header">
+          <v-col v-if="showFeaturesAlerts && hasActiveAlertsStages" class="legend-column">
+            <div>
               <strong class="legend-column-title">Alerta Urgente</strong>
-              <v-chip class="legend-count-chip" x-small color="orange" text-color="white">
+              <v-chip x-small color="red" text-color="white">
                 {{ alertsCount }}
               </v-chip>
             </div>
-            <hr class="styled-divider" />
-            <CustomizedLegend class="legend-content" :items="alertsItems" />
+            <hr class="styled-divider-red"/>
+            <CustomizedLegend :items="alertsItems" />
           </v-col>
 
           <!-- Camadas de Sobreposição -->
-          <v-col v-if="showFeaturesSupportLayers && hasVisibleSupportLayers" class="legend-column support-layers-column">
-            <div class="legend-column-header">
+          <v-col v-if="showFeaturesSupportLayers && hasVisibleSupportLayers" class="legend-column">
+            <div>
               <strong class="legend-column-title">Sobreposição de camadas</strong>
             </div>
             <hr class="styled-divider" />
             <LayerList v-if="visibleUserLayers.length > 0" :layers="supportLayerUser" :is-user-layer="true" />
-            <LayerList v-if="visibleSystemLayers.length > 0" :layers="supportLayers" class="system-layers" />
+            <LayerList v-if="visibleSystemLayers.length > 0" :layers="supportLayers"/>
           </v-col>
 
           <!-- Uso e Ocupação do Solo -->
-          <v-col v-if="showFeaturesLandUse" class="legend-column land-use-column">
-            <div class="legend-column-header">
+          <v-col v-if="showFeaturesLandUse" class="legend-column">
+            <div>
               <strong class="legend-column-title">Uso e Ocupação do Solo</strong>
-              <v-chip class="legend-count-chip" x-small color="green" text-color="white">
+              <v-chip x-small color="green" text-color="white">
                 {{ tableLandUse.length }}
               </v-chip>
             </div>
             <hr class="styled-divider" />
-            <CustomizedLegend class="legend-content" :items="landUseItems" />
+            <CustomizedLegend :items="landUseItems" />
           </v-col>
 
           <!-- INPE - Prodes -->
-          <v-col v-if="showFeaturesProdes" class="legend-column prodes-column">
-            <div class="legend-column-header">
+          <v-col v-if="showFeaturesProdes" class="legend-column">
+            <div>
               <strong class="legend-column-title">INPE - Prodes</strong>
             </div>
             <hr class="styled-divider" />
-            <CustomizedLegend class="legend-content" :items="prodesItems" />
+            <CustomizedLegend :items="prodesItems" />
           </v-col>
 
           <!-- INPE - Deter -->
-          <v-col v-if="showFeaturesDeter" class="legend-column deter-column">
-            <div class="legend-column-header">
+          <v-col v-if="showFeaturesDeter" class="legend-column">
+            <div>
               <strong class="legend-column-title">INPE - Deter</strong>
             </div>
             <hr class="styled-divider" />
-            <CustomizedLegend class="legend-content" :items="deterItems" />
+            <CustomizedLegend :items="deterItems" />
           </v-col>
 
           <!-- INPE - Focos de Calor -->
-          <v-col v-if="showFeaturesAquaMM || showFeaturesAquaMT" class="legend-column heat-focus-column">
-            <div class="legend-column-header">
+          <v-col v-if="showFeaturesAquaMM || showFeaturesAquaMT" class="legend-column">
+            <div>
               <strong class="legend-column-title">INPE - Focos de Calor</strong>
             </div>
             <hr class="styled-divider" />
-            <CustomizedLegend class="legend-content" :items="filteredHeatFocusItems" />
+            <CustomizedLegend :items="filteredHeatFocusItems" />
           </v-col>
         </v-row>
       </div>
+      <v-divider class="car-list-divider" />
     </div>
 
     <!-- Página 3: Tabela de CARs -->
     <div class="page-section car-table-section">
-      <div class="car-table-content">
-        <v-divider class="table-divider" />
-
-        <div v-if="carData.length > 0" class="car-table-container">
-          <h3 class="table-title">Imóveis CAR Encontrados ({{ carData.length }})</h3>
-          <v-simple-table class="car-data-table">
-            <template #default>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Município</th>
-                  <th>Terra Indígena</th>
-                  <th>Área (ha)</th>
-                  <th>Código</th>
-                  <th>Situação</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(car, index) in carData" :key="index">
-                  <td>
-                    <v-avatar :color="getCarColor(index)" size="24" class="table-avatar">
-                      <span class="avatar-text">{{ index + 1 }}</span>
-                    </v-avatar>
-                  </td>
-                  <td class="municipio-cell">{{ getMunicipioName(car) }}</td>
-                  <td class="ti-cell">{{ getTerraIndigenaName(car) }}</td>
-                  <td class="area-cell">{{ formatNumber(car.properties?.nu_area_ha || car.properties?.area_ha) }}</td>
-                  <td class="code-cell">{{ car.properties?.co_imovel || '-' }}</td>
-                  <td class="status-cell">{{ car.properties?.tp_situacao || '-' }}</td>
-                </tr>
-              </tbody>
-            </template>
-          </v-simple-table>
+      <div v-if="carData.length > 0">
+        <div class="legend-header">
+          <p>
+            <strong>Imóveis CAR Encontrados ({{ carData.length }})</strong>
+          </p>
         </div>
 
-        <div class="additional-info">
-          <v-col class="geodetic-info">
-            <p>
-              {{ $t('geodetic-system-info-part1') }}
-              <strong>{{ $t('geodetic-system-info-strong') }}</strong>
-              {{ $t('geodetic-system-info-part2') }}
-            </p>
-          </v-col>
+        <v-simple-table class="car-data-table">
+          <template #default>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Código</th>
+                <th>Terra Indígena</th>
+                <th>Município</th>
+                <th>UF</th>
+                <th>Etnia</th>
+                <th>Área (ha)</th>
+                <th>Situação</th>
+                <th>Condição do Imóvel</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(car, index) in carData" :key="index">
+                <td>
+                  <v-avatar :color="getCarColor(index)" size="24" class="table-avatar">
+                    <span class="avatar-text">{{ index + 1 }}</span>
+                  </v-avatar>
+                </td>
+                <td class="code-cell">{{ car.properties?.co_imovel || '-' }}</td>
+                <td class="ti-cell">{{ getTerraIndigenaName(car) }}</td>
+                <td class="municipio-cell">{{ getMunicipioName(car) }}</td>
+                <td class="status-cell">{{ car.properties?.sg_uf || '-' }}</td>
+                <td class="status-cell">{{ car.properties?.no_etnia || '-' }}</td>
+                <td class="area-cell">{{ formatNumber(car.properties?.nu_area_ha || car.properties?.area_ha) }}</td>
+                <td class="status-cell">{{ car.properties?.tp_situacao || '-' }}</td>
+                <td class="status-cell">{{ car.properties?.ds_condicao_imovel || '-' }}</td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+        <v-divider class="car-list-divider" />
+      </div>
+    </div>
 
-          <v-divider />
+    <div class="compact-text">
 
-          <p class="cartographic-bases-title">
-            <strong>Bases Cartográficas:</strong>
+      <p class="my-2">
+        {{ $t('geodetic-system-info-part1') }}
+        <strong>{{ $t('geodetic-system-info-strong') }}</strong>
+        {{ $t('geodetic-system-info-part2') }}
+      </p>
+
+      <v-divider class="my-3" />
+
+      <p class="font-weight-bold mb-2">Bases Cartográficas:</p>
+
+      <div v-for="layerCategory in layerCategories" :key="`${layerCategory.name}-${layerCategory.type}`">
+        <div v-for="(layer, layerId) in layerCategory.layers" :key="layerId">
+          <p v-if="layer && layer.visible" class="mb-1">
+            <strong>{{ layer.name || '-' }}.</strong>
+            Fonte: {{ layer.fonte || '-' }}, Data de atualização:
+            {{ handleData(layer.dt_atualizacao) }}.
           </p>
-
-          <v-col
-            v-for="layerCategory in layerCategories"
-            :key="`${layerCategory.name}-${layerCategory.type}`"
-          >
-            <v-col
-              v-for="(layer, layerId) in layerCategory.layers"
-              :key="layerId"
-              class="layer-info"
-            >
-              <v-row v-if="layer && layer.visible" no-gutters align="center" class="layer-row">
-                <v-col>
-                  <p class="layer-details">
-                    <strong class="layer-name">{{ layer.name || '-' }}.</strong>
-                    Fonte:{{ layer.fonte || '-' }}, Data de atualização:
-                    {{ handleData(layer.dt_atualizacao) }}.
-                  </p>
-                </v-col>
-              </v-row>
-            </v-col>
-          </v-col>
-
-          <v-divider />
-
-          <v-col class="features-info">
-            <v-col
-              v-for="(feature, index) in activePrintFeatures"
-              :key="feature.key || index"
-              class="feature-info"
-            >
-              <p class="feature-description">
-                {{ $t(feature.label) }}
-                <span v-if="feature.type === 'date-range'" class="date-range">
-                  {{ handleData(feature.startDate) }}
-                  {{ $t('and') }}
-                  {{ handleData(feature.endDate) }}
-                </span>
-                <span v-else-if="feature.type === 'years-list' && feature.years.length > 0" class="years-list">
-                  <span v-for="(year, yearIndex) in feature.years" :key="'year-' + yearIndex">
-                    {{ year }}<span v-if="yearIndex < feature.years.length - 1">, </span>
-                  </span>
-                </span>
-                <span v-else-if="feature.type === 'single-year'" class="single-year">
-                  {{ feature.yearHandler() }}
-                </span>
-              </p>
-            </v-col>
-            <v-divider />
-          </v-col>
-
-          <v-col class="address-info">
-            <p class="address-line-1">
-              {{ $t('text-address0') }}
-            </p>
-            <p class="address-line-2">
-              {{ $t('text-address') }}
-              {{ todayDate() }}
-            </p>
-          </v-col>
-
-          <v-divider />
-
-          <v-col class="author-info">
-            <p class="author-label">
-              {{ $t('author-label') }}
-            </p>
-            <p class="info-note">
-              {{ $t('text-info') }}
-            </p>
-            <p class="format-note">
-              {{ $t('text-format') }}
-              {{ leafSize.type }}.
-            </p>
-          </v-col>
         </div>
       </div>
+
+      <v-divider class="my-3" />
+
+      <div v-for="(feature, index) in activePrintFeatures" :key="feature.key || index" class="mb-1">
+        <p>
+          {{ $t(feature.label) }}
+          <span v-if="feature.type === 'date-range'" class="ml-1">
+            {{ handleData(feature.startDate) }} {{ $t('and') }} {{ handleData(feature.endDate) }}
+          </span>
+          <span v-else-if="feature.type === 'years-list' && feature.years.length > 0" class="ml-1">
+            {{ feature.years.join(', ') }}
+          </span>
+          <span v-else-if="feature.type === 'single-year'" class="ml-1">
+            {{ feature.yearHandler() }}
+          </span>
+        </p>
+      </div>
+
+      <v-divider class="my-3" />
+
+      <p class="mb-1">{{ $t('text-address0') }}</p>
+      <p class="mb-1">{{ $t('text-address') }} {{ todayDate() }}</p>
+
+      <v-divider class="my-3" />
+
+      <p class="mb-1">{{ $t('author-label') }}</p>
+      <p class="mb-1">{{ $t('text-info') }}</p>
+      <p class="mb-1">{{ $t('text-format') }} {{ leafSize.type }}.</p>
     </div>
   </BaseModal>
 </template>
@@ -969,11 +938,6 @@ export default {
   max-height: 90vh;
 }
 
-/* Primeira página: Logos e Mapa */
-.title-row {
-  margin-top: -16px;
-}
-
 .logo-container {
   display: flex;
   align-items: flex-end;
@@ -981,11 +945,6 @@ export default {
 
 .logo-funai {
   justify-content: flex-end;
-}
-
-.logo-cmr {
-  justify-content: flex-start;
-  margin-top: 8px;
 }
 
 .logo-image {
@@ -997,14 +956,10 @@ export default {
   max-width: 180px;
 }
 
-.map-title-container {
-  margin-top: -16px;
-}
-
 .map-container {
-  padding-right: 0;
   margin-top: -24px;
   height: 70vh;
+  border-radius: 4px;
   position: relative;
 }
 
@@ -1016,13 +971,10 @@ export default {
   height: 150px;
   z-index: 1000;
   background: white;
-  border: 2px solid #ccc;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   margin-top: 15px;
 }
-
-/* Segunda página: Lista de CARs e Legendas */
 
 .car-number-text {
   color: white;
@@ -1035,41 +987,17 @@ export default {
 }
 
 .car-list-divider {
-  margin-top: 10px;
-}
-
-.legend-header {
-  margin-top: 10px;
-}
-
-
-
-
-
-
-.legends-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding-bottom: 8px;
+  margin-top: 12px;
+  margin-bottom: 12px;
 }
 
 .legend-column {
-  min-width: 180px;
-}
-
-.legend-column-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
+  min-width: 200px;
+  max-width: 200px;
 }
 
 .legend-column-title {
   font-size: 12px;
-}
-
-.legend-count-chip {
-  margin-left: 4px;
 }
 
 .styled-divider {
@@ -1082,52 +1010,15 @@ export default {
   margin: 4px 0 8px 0;
 }
 
-.legend-content {
-  padding-top: 4px;
-}
-
-.system-layers {
-  margin-top: 4px;
-}
-
-/* Terceira página: Tabela de CARs */
-.car-table-content {
-  background-color: #fff;
-}
-
-.table-divider {
-  margin-top: 16px;
-}
-
-.car-table-container {
-  padding: 16px;
-}
-
-.table-title {
-  font-size: 18px;
-  margin: 0 0 16px 0;
-}
-
-.car-data-table {
-  font-size: 12px;
-}
-
 .car-data-table >>> th {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: bold;
-  background-color: #f5f5f5;
-  padding: 8px 12px;
+  color: white !important;
+  background-color: #d92b3f;
 }
 
 .car-data-table >>> td {
-  font-size: 12px;
-  padding: 8px 12px;
-}
-
-.table-avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 10px !important;
 }
 
 .avatar-text {
@@ -1135,67 +1026,19 @@ export default {
   font-weight: bold;
 }
 
-/* Informações adicionais */
-.additional-info {
-  padding: 0 16px;
+.compact-text {
+  font-size: 10px;
+  line-height: 1.4;
 }
 
-.geodetic-info {
-  padding: 12px;
+.compact-text p {
+  margin-bottom: 4px;
 }
 
-.cartographic-bases-title {
-  display: block;
-  padding: 0 12px 8px 12px;
-  margin: 0;
-}
-
-.layer-info {
-  padding: 4px 0;
-}
-
-.layer-details {
-  margin: 0;
-  font-size: 14px;
-}
-
-.layer-name {
-  font-weight: bold;
-}
-
-.features-info {
-  padding: 0;
-}
-
-.feature-info {
-  padding: 4px 0;
-}
-
-.feature-description {
-  margin: 0;
-  font-size: 14px;
-}
-
-.address-info {
-  padding: 8px 0 8px 8px;
-}
-
-.address-line-1,
-.address-line-2 {
-  margin: 0;
-  font-size: 14px;
-}
-
-.author-info {
-  padding: 8px 0 8px 12px;
-}
-
-.author-label,
-.info-note,
-.format-note {
-  margin: 0;
-  font-size: 14px;
-}
+.mb-1 { margin-bottom: 4px !important; }
+.mb-2 { margin-bottom: 8px !important; }
+.my-3 { margin-top: 12px !important; margin-bottom: 12px !important; }
+.ml-1 { margin-left: 4px !important; }
 
 /* Estilos de impressão - MANTIDOS ESSENCIAIS */
 @media print {
@@ -1219,24 +1062,8 @@ export default {
     display: none !important;
   }
 
-  .v-dialog {
-    position: relative !important;
-    width: 100% !important;
-    height: auto !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-    background: transparent !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
 
-  .page-section.map-print {
-    page-break-after: always !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-    padding: 0.2cm 0.3cm 0.3cm 0.3cm !important;
-    margin: 0 !important;
-  }
+
 
   .map-container {
     width: 100% !important;
@@ -1248,7 +1075,7 @@ export default {
     position: relative !important;
   }
 
-  
+
 
   .car-list-col {
     flex: 0 0 33.333333% !important;
@@ -1256,29 +1083,15 @@ export default {
     width: 33.333333% !important;
   }
 
-  .car-list-item {
-    min-height: 18px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    height: 18px !important;
-    line-height: 18px !important;
-    padding-left: 8px !important;
-  }
 
-  .car-number-avatar {
-    min-width: 16px !important;
-    width: 16px !important;
-    height: 16px !important;
-  }
+
 
   .car-number-text {
     font-size: 12px !important;
     line-height: 20px !important;
   }
 
-  .legends-row {
-    gap: 8px !important;
-  }
+
 
   .legends-row .legend-column {
     flex: 0 0 calc(50% - 8px) !important;
@@ -1292,11 +1105,7 @@ export default {
     margin: 0 !important;
   }
 
-  .table-title {
-    margin: 0 0 0.1cm 0 !important;
-    padding: 0 !important;
-    font-size: 10pt !important;
-  }
+
 
   .car-data-table {
     font-size: 8pt !important;
