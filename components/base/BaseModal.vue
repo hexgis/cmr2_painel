@@ -6,17 +6,21 @@
     <div class="_modal-backdrop" />
     <div class="_modal-container container">
       <div class="_modal">
-        <div class="_modal-header d-flex justify-space-between align-start">
+        <div>
           <v-toolbar
             dense
-            class="print-dialog-header no-print"
+            class="no-print"
             color="primary"
           >
+            <h3 class="white--text font-weight-medium ml-4">
+              {{ $t('print-out') }}
+            </h3>
+            <v-spacer />
             <v-btn
               icon
               x-small
               color="white"
-              class="close-btn mb-4"
+              class="close-btn mr-2"
               @click="close()"
             >
               <v-icon>mdi-close</v-icon>
@@ -32,24 +36,26 @@
         <footer
           v-if="showFooter"
           class="_modal-footer no-print"
+          color="primary"
         >
+          <hr class="_modal-footer-divider">
           <slot name="footer">
             <v-card-actions class="pa-3">
-              <v-spacer />
               <v-btn
-                class="mr-2"
                 :disabled="backButtonDisabled"
                 @click="handleBackClick"
               >
                 {{ backButtonText || $t('input-button-back-second-step') }}
               </v-btn>
+              <v-spacer />
               <v-btn
                 color="primary"
                 :loading="printLoading"
+                class="mr-2"
                 @click="report()"
               >
                 <v-icon left>
-                  mdi-printer
+                  mdi-content-save
                 </v-icon>
                 {{ printButtonText || $t('input-button-pdf-image') }}
               </v-btn>
@@ -64,12 +70,13 @@
 <i18n>
 {
   "en": {
-
+    "print-out": "Print Out",
     "input-button-back-second-step": "Back",
     "input-button-pdf-image": "Generate PDF"
 
   },
   "pt-br": {
+    "print-out": "Impressão",
     "input-button-back-second-step": "Voltar",
     "input-button-pdf-image": "Gerar PDF"
   }
@@ -104,21 +111,13 @@ export default {
       type: Boolean,
       default: false,
     },
-    emitBackAsPrinterBack: {
-      type: Boolean,
-      default: false,
-    },
   },
+
   methods: {
     handleBackClick() {
-      if (this.emitBackAsPrinterBack) {
-        // Emite um evento específico para voltar ao printer
-        this.$emit('printer-back');
-      } else {
-        // Comportamento padrão
-        this.$emit('back');
-      }
+      this.$emit('printer-back');
     },
+
     close() {
       this.$emit('input', false);
       this.$emit('close');
@@ -178,52 +177,23 @@ export default {
   flex-direction: column;
 }
 
-._modal-header {
-  background-color: rgb(245, 245, 245);
-  border-radius: 10px 10px 0 0;
-  flex-shrink: 0;
-}
-
-._modal-header button {
-  max-height: 40px;
-}
-
 ._modal-body {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
 }
 
-._modal-footer {
-  flex-shrink: 0;
-  background-color: rgb(245, 245, 245);
-  border-radius: 0 0 10px 10px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.close-button {
-  font-size: 16px;
-  border-radius: 10px 0 10px 0;
-  background-color: whitesmoke;
-}
-
-.close-button i {
-  font-size: 22px;
-}
-
-.report-button {
-  border-radius: 0 8px 0 0;
-  background-color: #2c3649;
-}
-
-.report-button i {
-  color: white;
-}
-
 .no-print {
   @media print {
     display: none !important;
   }
+}
+
+._modal-footer-divider {
+  margin: 0;
+  border: none;
+  height: 1px;
+  background: #e0e0e0;
 }
 
 @media print {
@@ -256,9 +226,5 @@ export default {
     display: block;
   }
 
-  ._modal-header,
-  ._modal-footer {
-    display: none !important;
-  }
 }
 </style>

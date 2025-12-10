@@ -236,17 +236,15 @@
 
     <div class="compact-text">
 
-      <p class="my-2">
+      <p class="mb-2 mt-6">
         {{ $t('geodetic-system-info-part1') }}
         <strong>{{ $t('geodetic-system-info-strong') }}</strong>
         {{ $t('geodetic-system-info-part2') }}
       </p>
 
-      <v-divider class="my-3" />
-
-      <p class="font-weight-bold mb-2">Bases Cartográficas:</p>
-
       <div v-for="layerCategory in layerCategories" :key="`${layerCategory.name}-${layerCategory.type}`">
+        <v-divider class="my-3" />
+        <p class="font-weight-bold mb-2">Bases Cartográficas:</p>
         <div v-for="(layer, layerId) in layerCategory.layers" :key="layerId">
           <p v-if="layer && layer.visible" class="mb-1">
             <strong>{{ layer.name || '-' }}.</strong>
@@ -290,7 +288,6 @@
 <i18n>
 {
   "en": {
-    "print-out": "Print Out",
     "legend": "Legend:",
     "text-address0": " | Print date: ",
     "text-address": " | Print date: ",
@@ -323,7 +320,7 @@
     "geodetic-system-info-part2": ". All coordinates, measurements and cartographic representations follow this datum."
   },
   "pt-br": {
-    "print-out": "Impressão",
+
     "legend": "Legenda:",
     "text-address0": " | CENTRO DE MONITORAMENTO REMOTO - https://cmr.funai.gov.br ",
     "text-address": " | Data da impressão: ",
@@ -385,6 +382,7 @@ export default {
     mapCenter: null,
     carLayer: null,
     mainZoom: null,
+
     deterItems: [{ label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' }],
     heatFocusItems: [
       {
@@ -769,6 +767,7 @@ export default {
     },
 
     handleBack() {
+      console.log('MapLandscapeCar: Botão Voltar clicado, emitindo back-to-printer');
       this.$emit('back-to-printer')
       this.setShowTemplateMapLandscapeCar(false)
     },
@@ -1062,9 +1061,6 @@ export default {
     display: none !important;
   }
 
-
-
-
   .map-container {
     width: 100% !important;
     height: 640px !important;
@@ -1075,23 +1071,16 @@ export default {
     position: relative !important;
   }
 
-
-
   .car-list-col {
     flex: 0 0 33.333333% !important;
     max-width: 33.333333% !important;
     width: 33.333333% !important;
   }
 
-
-
-
   .car-number-text {
     font-size: 12px !important;
     line-height: 20px !important;
   }
-
-
 
   .legends-row .legend-column {
     flex: 0 0 calc(50% - 8px) !important;
@@ -1105,46 +1094,13 @@ export default {
     margin: 0 !important;
   }
 
-
-
-  .car-data-table {
-    font-size: 8pt !important;
+  .page-section.map-print + .page-section {
+    padding-inline: 15px !important;
   }
 
-  .car-data-table >>> th {
-    font-size: 8pt !important;
-    padding: 4px 6px !important;
+  .compact-text {
+    padding-inline: 15px !important;
   }
-
-  .car-data-table >>> td {
-    font-size: 8pt !important;
-    padding: 4px 6px !important;
-  }
-
-  .v-chip {
-    font-size: 7px !important;
-    height: 16px !important;
-    padding: 0 4px !important;
-  }
-
-  .additional-info {
-    margin: 0.2cm 0 0 0 !important;
-    padding: 0 !important;
-  }
-}
-
-/* Ocultar mapas não relacionados - ESSENCIAL */
-body > .leaflet-container:not(.print-dialog .leaflet-container),
-.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom:not(.page-section.map-print .leaflet-container),
-div.leaflet-container:last-of-type:not(.page-section .leaflet-container) {
-  display: none !important;
-  visibility: hidden !important;
-  height: 0 !important;
-  width: 0 !important;
-  position: fixed !important;
-  top: -9999px !important;
-  left: -9999px !important;
-  opacity: 0 !important;
 }
 
 .page-section.map-print .leaflet-container,
