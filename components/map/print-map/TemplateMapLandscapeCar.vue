@@ -234,53 +234,55 @@
       </div>
     </div>
 
-    <div class="compact-text">
+    <!-- Página 4: Texto compacto - NOVA PÁGINA SEPARADA -->
+    <div class="page-section compact-text-section">
+      <div class="compact-text">
+        <p class="mb-2 mt-6">
+          {{ $t('geodetic-system-info-part1') }}
+          <strong>{{ $t('geodetic-system-info-strong') }}</strong>
+          {{ $t('geodetic-system-info-part2') }}
+        </p>
 
-      <p class="mb-2 mt-6">
-        {{ $t('geodetic-system-info-part1') }}
-        <strong>{{ $t('geodetic-system-info-strong') }}</strong>
-        {{ $t('geodetic-system-info-part2') }}
-      </p>
+        <div v-for="layerCategory in layerCategories" :key="`${layerCategory.name}-${layerCategory.type}`">
+          <v-divider class="my-3" />
+          <p class="font-weight-bold mb-2">Bases Cartográficas:</p>
+          <div v-for="(layer, layerId) in layerCategory.layers" :key="layerId">
+            <p v-if="layer && layer.visible" class="mb-1">
+              <strong>{{ layer.name || '-' }}.</strong>
+              Fonte: {{ layer.fonte || '-' }}, Data de atualização:
+              {{ handleData(layer.dt_atualizacao) }}.
+            </p>
+          </div>
+        </div>
 
-      <div v-for="layerCategory in layerCategories" :key="`${layerCategory.name}-${layerCategory.type}`">
         <v-divider class="my-3" />
-        <p class="font-weight-bold mb-2">Bases Cartográficas:</p>
-        <div v-for="(layer, layerId) in layerCategory.layers" :key="layerId">
-          <p v-if="layer && layer.visible" class="mb-1">
-            <strong>{{ layer.name || '-' }}.</strong>
-            Fonte: {{ layer.fonte || '-' }}, Data de atualização:
-            {{ handleData(layer.dt_atualizacao) }}.
+
+        <div v-for="(feature, index) in activePrintFeatures" :key="feature.key || index" class="mb-1">
+          <p>
+            {{ $t(feature.label) }}
+            <span v-if="feature.type === 'date-range'" class="ml-1">
+              {{ handleData(feature.startDate) }} {{ $t('and') }} {{ handleData(feature.endDate) }}
+            </span>
+            <span v-else-if="feature.type === 'years-list' && feature.years.length > 0" class="ml-1">
+              {{ feature.years.join(', ') }}
+            </span>
+            <span v-else-if="feature.type === 'single-year'" class="ml-1">
+              {{ feature.yearHandler() }}
+            </span>
           </p>
         </div>
+
+        <v-divider class="my-3" />
+
+        <p class="mb-1">{{ $t('text-address0') }}</p>
+        <p class="mb-1">{{ $t('text-address') }} {{ todayDate() }}</p>
+
+        <v-divider class="my-3" />
+
+        <p class="mb-1">{{ $t('author-label') }}</p>
+        <p class="mb-1">{{ $t('text-info') }}</p>
+        <p class="mb-1">{{ $t('text-format') }} {{ leafSize.type }}.</p>
       </div>
-
-      <v-divider class="my-3" />
-
-      <div v-for="(feature, index) in activePrintFeatures" :key="feature.key || index" class="mb-1">
-        <p>
-          {{ $t(feature.label) }}
-          <span v-if="feature.type === 'date-range'" class="ml-1">
-            {{ handleData(feature.startDate) }} {{ $t('and') }} {{ handleData(feature.endDate) }}
-          </span>
-          <span v-else-if="feature.type === 'years-list' && feature.years.length > 0" class="ml-1">
-            {{ feature.years.join(', ') }}
-          </span>
-          <span v-else-if="feature.type === 'single-year'" class="ml-1">
-            {{ feature.yearHandler() }}
-          </span>
-        </p>
-      </div>
-
-      <v-divider class="my-3" />
-
-      <p class="mb-1">{{ $t('text-address0') }}</p>
-      <p class="mb-1">{{ $t('text-address') }} {{ todayDate() }}</p>
-
-      <v-divider class="my-3" />
-
-      <p class="mb-1">{{ $t('author-label') }}</p>
-      <p class="mb-1">{{ $t('text-info') }}</p>
-      <p class="mb-1">{{ $t('text-format') }} {{ leafSize.type }}.</p>
     </div>
   </BaseModal>
 </template>
@@ -314,7 +316,7 @@
     "deter-print-label": "Deter data between",
     "heat-focus-print-label": "Heat focus data between",
     "aqua-morning": "Aqua Modis Morning",
-    "aqua-afternoon": "Aqua Modis Afternoon",
+    "aqua-afternoon": "Aqua Modis Tarde",
     "geodetic-system-info-part1": "The geospatial information presented in this report is referenced to the geodetic system in geographic coordinates",
     "geodetic-system-info-strong": "SIRGAS2000 (EPSG:4674)",
     "geodetic-system-info-part2": ". All coordinates, measurements and cartographic representations follow this datum."
@@ -1025,9 +1027,18 @@ export default {
   font-weight: bold;
 }
 
+/* Estilos para a seção de texto compacto */
+.compact-text-section {
+  page-break-before: always !important;
+  page-break-inside: avoid !important;
+  break-before: page !important;
+  break-inside: avoid !important;
+}
+
 .compact-text {
   font-size: 10px;
   line-height: 1.4;
+  padding: 0.5cm 0.8cm;
 }
 
 .compact-text p {
@@ -1098,8 +1109,30 @@ export default {
     padding-inline: 15px !important;
   }
 
+  /* Estilos específicos para a seção compact-text-section na impressão */
+  .compact-text-section {
+    page-break-before: always !important;
+    page-break-inside: avoid !important;
+    break-before: page !important;
+    break-inside: avoid !important;
+    margin-top: 0.5cm;
+    min-height: 29.7cm; /* Altura A4 em landscape */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
   .compact-text {
-    padding-inline: 15px !important;
+    padding: 15px !important;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Garantir que o conteúdo caiba em uma página */
+  .compact-text-section * {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 }
 
@@ -1111,5 +1144,11 @@ export default {
   width: 100% !important;
   position: relative !important;
   opacity: 1 !important;
+}
+
+/* Para garantir que cada seção seja tratada como página */
+.page-section {
+  width: 100%;
+  box-sizing: border-box;
 }
 </style>
