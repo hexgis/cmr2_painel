@@ -3,9 +3,29 @@
     <style>
       @media print {
       @page {
-      size: landscape;
+      size: {{ leafSize.type }} landscape;
       margin: 0;
       }
+
+      {{ leafSize.type === 'A0' && (
+        '#map-for-print { font-size: 48px; }'
+      ) }}
+
+      {{ leafSize.type === 'A1' && (
+        '#map-for-print { font-size: 36px; }'
+      ) }}
+
+      {{ leafSize.type === 'A2' && (
+        '#map-for-print { font-size: 24px; }'
+      ) }}
+
+      {{ leafSize.type === 'A3' && (
+        '#map-for-print { font-size: 18px; }'
+      ) }}
+
+      {{ leafSize.type === 'A4' && (
+        '#map-for-print { font-size: 12px; }'
+      ) }}
       }
     </style>
     <v-dialog
@@ -28,13 +48,12 @@
         <v-row
           id="map-for-print"
           no-gutters
-          style="width: 1230px; height: 780px; max-height: 780px; overflow: hidden"
+          style="width: 1230px; height: 780px; overflow: hidden"
         >
           <v-col
             id="monitoring-data-details"
             cols="8"
             class="pr-0 mt-2"
-            style="max-height: 780px"
           >
             <div
               v-if="selectedItemsCount <= 7"
@@ -119,6 +138,7 @@
               @updateBounds="updateBounds"
               @getCenter="getCenter"
               @getZoom="getZoom"
+              @ready="onMapReady"
             />
           </v-col>
           <v-col
@@ -160,24 +180,30 @@
                   {{ print_title }}
                 </p>
               </div>
-              <div class="d-flex justify-center height-container-mini-map">
+              <div
+                id="container-mini-map"
+                class="d-flex justify-center height-container-mini-map"
+              >
                 <MiniMap
                   v-if="currentBouldMap"
                   :current-bould-map="currentBouldMap"
                   :map-center="mapCenter"
                   :main-zoom="mainZoom"
+                  :leaf-size="leafSize"
+                  @ready="onMiniMapReady"
                 />
               </div>
-              <div class="legend-info-map">
+              <div
+                id="details-print"
+                class="legend-info-map"
+              >
                 <div class="legend-info-map legend-info-map-details">
                   <div>
                     <p
                       v-if="hasLegend"
                       class="d-block ma-1"
                     >
-                      <strong style="font-size: small">{{
-                        $t('legend')
-                      }}</strong>
+                      <strong>{{ $t('legend') }}</strong>
                     </p>
                     <div
                       class="ma-1 flex-wrap"
@@ -490,7 +516,8 @@
           <v-btn
             color="primary"
             class="mr-4"
-            :disabled="showWarningMessage || loadingPrintImage"
+            :disabled="showWarningMessage || loadingPrintImage || loadingPrintPdf"
+            :loading="loadingPrintPdf"
             @click="print"
           >
             <v-icon dark>
@@ -642,6 +669,7 @@ export default {
     showWarningMessage: false,
     activeMonitoringLabel: [],
     loadingPrintImage: false,
+    loadingPrintPdf: false,
 
     deterItems: [{ label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' }],
     heatFocusItems: [
@@ -965,6 +993,14 @@ export default {
   },
 
   methods: {
+    onMapReady(mapInstance) {
+      this.map = mapInstance;
+    },
+
+    onMiniMapReady(miniMapInstance) {
+      this.miniMap = miniMapInstance;
+    },
+
     formatNumber(value) {
       let number;
       if (typeof value === 'string') {
@@ -1029,26 +1065,117 @@ export default {
 
     adjustMapSizeForPrint(tamanho) {
       const mapDimensions = this.getMapDimensions(tamanho);
+      const miniMapDimensions = this.getMiniMapDimensions(tamanho);
       document.getElementById('map-for-print').style.width = `${mapDimensions.width}px`;
       document.getElementById('map-for-print').style.height = `${mapDimensions.height}px`;
+      document.getElementById('container-mini-map').style.height = `${miniMapDimensions.height}px`;
+      document.getElementById('miniPrintMap').style.height = `${miniMapDimensions.height}px`;
+
+      // set Minimap Title
+      document.getElementsByClassName('print-mini-map-text')[0]
+        .style.fontSize = `${this.getFontSizeWidth(tamanho)}px`;
+
+      // get paragraphs details-print
+      const divDetails = document.getElementById('details-print');
+      const paragraphs = divDetails.querySelectorAll('p');
+      paragraphs.forEach((p) => {
+        // eslint-disable-next-line no-param-reassign
+        p.style.fontSize = `${this.getFontSizeWidth(tamanho)}px`;
+      });
+
+      // recreate map size
+      if (this.map) this.map.invalidateSize();
+      if (this.miniMap) this.miniMap.invalidateSize();
     },
 
     getMapDimensions(tamanho) {
       switch (tamanho) {
+        case 'A0':
+          return { width: 4409, height: 3140 };
+        case 'A1':
+          return { width: 3138, height: 2220 };
+        case 'A2':
+          return { width: 2214, height: 1570 };
+        case 'A3':
+          return { width: 1557, height: 1105 };
         case 'A4':
           return { width: 1105, height: 770 };
-        case 'A3':
-          return { width: 1450, height: 800 };
         default:
-          return { width: 210, height: 297 };
+          return { width: 1105, height: 770 };
       }
+    },
+
+    getMiniMapDimensions(tamanho) {
+      switch (tamanho) {
+        case 'A0':
+          return { height: 800 };
+        case 'A1':
+          return { height: 600 };
+        case 'A2':
+          return { height: 400 };
+        case 'A3':
+          return { height: 200 };
+        case 'A4':
+          return { height: 150 };
+        default:
+          return { height: 150 };
+      }
+    },
+
+    getFontSizeWidth(tamanho) {
+      switch (tamanho) {
+        case 'A0':
+          return 34;
+        case 'A1':
+          return 20;
+        case 'A2':
+          return 16;
+        case 'A3':
+          return 12;
+        case 'A4':
+          return 10;
+        default:
+          return 10;
+      }
+    },
+
+    resetConfigPrint() {
+      document.getElementById('map-for-print').style.width = '1105px';
+      document.getElementById('map-for-print').style.height = '770px';
+      document.getElementById('container-mini-map').style.height = '150px';
+      document.getElementById('miniPrintMap').style.height = '150px';
+
+      // set Minimap Title
+      document.getElementsByClassName('print-mini-map-text')[0]
+        .style.fontSize = '10px';
+
+      // get paragraphs details-print
+      const divDetails = document.getElementById('details-print');
+      const paragraphs = divDetails.querySelectorAll('p');
+      paragraphs.forEach((p) => {
+        // eslint-disable-next-line no-param-reassign
+        p.style.fontSize = '10px';
+      });
+
+      // recreate map size
+      if (this.map) this.map.invalidateSize();
+      if (this.miniMap) this.miniMap.invalidateSize();
+      this.loadingPrintPdf = false;
+      window.removeEventListener('afterprint', this.resetConfigPrint);
     },
 
     print() {
       this.adjustMapSizeForPrint(this.leafSize.type);
       const style = document.createElement('style');
       style.setAttribute('media', 'print');
-      window.print();
+      // create a promise print and return after close window print
+
+      this.loadingPrintPdf = true;
+      window.addEventListener('afterprint', this.resetConfigPrint);
+      setTimeout(() => {
+        window.print();
+      }, 2000);
+      if (this.map) this.map.invalidateSize();
     },
 
     async saveImage() {
@@ -1303,7 +1430,6 @@ p {
 
 .height-container-mini-map {
     height: 150px;
-    max-height: 150px;
     width: 100%;
 }
 
