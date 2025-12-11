@@ -10,7 +10,6 @@
     @close="handleClose"
     @printer-back="handleBack"
   >
-    <!-- Página 1: Logos, Título e Mapa -->
     <div class="page-section map-print">
       <v-row class="justify-center text-center">
         <v-col cols="6" class="logo-container logo-funai">
@@ -100,8 +99,6 @@
           </v-row>
           <v-divider class="car-list-divider" />
         </div>
-
-
       <div class="legend-header">
         <p>
           <strong>Legendas</strong>
@@ -186,8 +183,6 @@
       </div>
       <v-divider class="car-list-divider" />
     </div>
-
-    <!-- Página 3: Tabela de CARs -->
     <div class="page-section car-table-section">
       <div v-if="carData.length > 0">
         <div class="legend-header">
@@ -233,11 +228,9 @@
         <v-divider class="car-list-divider" />
       </div>
     </div>
-
-    <!-- Página 4: Texto compacto - NOVA PÁGINA SEPARADA -->
     <div class="page-section compact-text-section">
       <div class="compact-text">
-        <p class="mb-2 mt-6">
+        <p class="mb-2 mt-2">
           {{ $t('geodetic-system-info-part1') }}
           <strong>{{ $t('geodetic-system-info-strong') }}</strong>
           {{ $t('geodetic-system-info-part2') }}
@@ -933,7 +926,6 @@ export default {
 
 
 <style scoped>
-/* Estilos essenciais */
 .print-dialog {
   overflow-y: auto;
   max-height: 90vh;
@@ -1027,13 +1019,18 @@ export default {
   font-weight: bold;
 }
 
-/* Estilos para a seção de texto compacto */
 .compact-text-section {
-  page-break-before: always !important;
-  page-break-inside: avoid !important;
-  break-before: page !important;
-  break-inside: avoid !important;
-}
+    page-break-before: always !important;
+    page-break-inside: avoid !important;
+    break-before: page !important;
+    break-inside: avoid !important;
+    margin-top: 15px;
+    min-height: auto !important;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
 
 .compact-text {
   font-size: 10px;
@@ -1050,7 +1047,6 @@ export default {
 .my-3 { margin-top: 12px !important; margin-bottom: 12px !important; }
 .ml-1 { margin-left: 4px !important; }
 
-/* Estilos de impressão - MANTIDOS ESSENCIAIS */
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;
@@ -1109,14 +1105,14 @@ export default {
     padding-inline: 15px !important;
   }
 
-  /* Estilos específicos para a seção compact-text-section na impressão */
+
   .compact-text-section {
     page-break-before: always !important;
     page-break-inside: avoid !important;
     break-before: page !important;
     break-inside: avoid !important;
     margin-top: 0.5cm;
-    min-height: 29.7cm; /* Altura A4 em landscape */
+    min-height: auto !important;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -1129,7 +1125,6 @@ export default {
     height: auto;
   }
 
-  /* Garantir que o conteúdo caiba em uma página */
   .compact-text-section * {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
@@ -1146,7 +1141,6 @@ export default {
   opacity: 1 !important;
 }
 
-/* Para garantir que cada seção seja tratada como página */
 .page-section {
   width: 100%;
   box-sizing: border-box;
