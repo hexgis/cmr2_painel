@@ -20,7 +20,6 @@
       </template>
       <span> {{ $t('print-icon-label') }} </span>
     </v-tooltip>
-
     <v-dialog
       v-model="dialogPrint"
       persistent
@@ -192,10 +191,12 @@ export default {
       type: Object,
       default: null,
     },
+
     selectedBaseMap: {
       type: Object,
       default: null,
     },
+    
     showTms: {
       type: Boolean,
       default: false,
@@ -223,7 +224,6 @@ export default {
   },
 
   watch: {
-    // Fechar dialog principal quando o modal CAR abrir
     showTemplateMapLandscapeCar(newVal) {
       if (newVal) {
         this.dialogPrint = false;
@@ -249,9 +249,6 @@ export default {
             bounds.getNorth(),
           ];
 
-          console.log('BBOX do mapa:', bboxArray);
-
-          // Salvar dados básicos primeiro
           this.$store.commit('map/setCarPrintData', {
             mapTitle: this.mapTitle || 'Relatório CAR',
             leafSize: this.select,
@@ -263,10 +260,8 @@ export default {
             },
             selectedBaseMapUrl: this.selectedBaseMap?.url,
             visible: true,
-            carData: [], // Inicializar vazio
+            carData: [], 
           });
-
-          // Fazer consulta WFS
           await this.queryWFSWithBbox(bboxArray);
         } else {
           console.log('Mapa não disponível');
@@ -288,8 +283,6 @@ export default {
 
     async queryWFSWithBbox(bboxArray) {
       try {
-        console.log('🎯 Buscando CAR para mapa de impressão...');
-
         const geoserverBaseUrl = this.$store.state.map.geoserverUrl;
         const layerName = 'CMR-FUNAI:lim_imovel_car_a';
         const cqlFilter = `INTERSECTS(geom, POLYGON((${bboxArray[0]} ${bboxArray[1]}, ${bboxArray[2]} ${bboxArray[1]}, ${bboxArray[2]} ${bboxArray[3]}, ${bboxArray[0]} ${bboxArray[3]}, ${bboxArray[0]} ${bboxArray[1]})))`;
@@ -306,25 +299,18 @@ export default {
         };
 
         const url = `${geoserverBaseUrl}&${new URLSearchParams(params)}`;
-        console.log('🔗 URL final:', url);
-
         const response = await this.$api.$get(url);
-
-        // Processar dados CAR
         const processedCarData = this.processCarData(response.features || []);
 
         console.log('✅ DADOS CAR ENCONTRADOS!', processedCarData.length);
 
-        // ATUALIZAR os dados CAR na store
         this.$store.commit('map/setCarPrintData', {
           carData: processedCarData,
         });
 
-        // Abrir o MapLandscapeCar
         this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
       } catch (error) {
         console.error('❌ Erro na consulta CAR:', error);
-        // Mesmo com erro, abrir o modal com dados vazios
         this.$store.commit('map/setCarPrintData', {
           carData: [],
         });
@@ -341,7 +327,6 @@ export default {
           id: feature.id,
         };
 
-        // Limpar propriedades complexas
         if (cleanFeature.properties) {
           Object.keys(cleanFeature.properties).forEach((key) => {
             if (typeof cleanFeature.properties[key] === 'object' && cleanFeature.properties[key] !== null) {
@@ -356,7 +341,6 @@ export default {
 
     handleBackFromCar() {
       this.$store.commit('map/setShowTemplateMapLandscapeCar', false);
-      // Reabrir o dialog principal quando voltar do CAR
       this.dialogPrint = true;
     },
 
@@ -369,7 +353,6 @@ export default {
       this.dialogPrint = false;
       this.showDialogLandscape = false;
 
-      // Limpar dados da store
       this.$store.commit('map/clearCarPrintData');
       this.$store.commit('map/setShowTemplateMapLandscapeCar', false);
 
@@ -379,7 +362,6 @@ export default {
         bounds: null,
       });
     },
-
     ...mapMutations('map', ['setTmsToPrint']),
   },
 };

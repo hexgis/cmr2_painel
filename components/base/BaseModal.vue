@@ -139,7 +139,7 @@ export default {
   display: flex;
   justify-content: flex-end;
 }
-/* Estilos mantidos como antes, com adição do footer */
+
 ._modal-wrapper {
   position: absolute;
   z-index: 6;
