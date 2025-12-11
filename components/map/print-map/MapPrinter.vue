@@ -264,7 +264,6 @@ export default {
           });
           await this.queryWFSWithBbox(bboxArray);
         } else {
-          console.log('Mapa não disponível');
           this.$store.commit('map/setCarPrintData', {
             mapTitle: this.mapTitle || 'Relatório CAR',
             leafSize: this.select,
@@ -301,8 +300,6 @@ export default {
         const url = `${geoserverBaseUrl}&${new URLSearchParams(params)}`;
         const response = await this.$api.$get(url);
         const processedCarData = this.processCarData(response.features || []);
-
-        console.log('✅ DADOS CAR ENCONTRADOS!', processedCarData.length);
 
         this.$store.commit('map/setCarPrintData', {
           carData: processedCarData,

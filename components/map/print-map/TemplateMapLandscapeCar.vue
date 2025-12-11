@@ -762,7 +762,6 @@ export default {
     },
 
     handleBack() {
-      console.log('MapLandscapeCar: Botão Voltar clicado, emitindo back-to-printer');
       this.$emit('back-to-printer')
       this.setShowTemplateMapLandscapeCar(false)
     },
