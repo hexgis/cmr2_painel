@@ -195,32 +195,29 @@
           <template #default>
             <thead>
               <tr>
-                <th>#</th>
-                <th>Código</th>
-                <th>Terra Indígena</th>
-                <th>Município</th>
-                <th>UF</th>
-                <th>Etnia</th>
-                <th>Área (ha)</th>
-                <th>Situação</th>
-                <th>Condição do Imóvel</th>
+                <th v-for="header in carTableHeaders" :key="header.key">
+                  {{ header.label }}
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(car, index) in carData" :key="index">
-                <td>
-                  <v-avatar :color="getCarColor(index)" size="24" class="table-avatar">
-                    <span class="avatar-text">{{ index + 1 }}</span>
-                  </v-avatar>
+              <tr v-for="(row, index) in carTableRows" :key="row.id || index">
+                <td v-for="header in carTableHeaders" :key="header.key">
+                  <div
+                    v-if="header.key === 'index'"
+                    :style="getTableCellStyle(index, header.key)"
+                    class="table-cell-index"
+                  >
+                    {{ row[header.key] }}
+                  </div>
+                  <div
+                    v-else
+                    :style="getTableCellStyle(index, header.key)"
+                    class="table-cell-content"
+                  >
+                    {{ row[header.key] }}
+                  </div>
                 </td>
-                <td class="code-cell">{{ car.properties?.co_imovel || '-' }}</td>
-                <td class="ti-cell">{{ getTerraIndigenaName(car) }}</td>
-                <td class="municipio-cell">{{ getMunicipioName(car) }}</td>
-                <td class="status-cell">{{ car.properties?.sg_uf || '-' }}</td>
-                <td class="status-cell">{{ car.properties?.no_etnia || '-' }}</td>
-                <td class="area-cell">{{ formatNumber(car.properties?.nu_area_ha || car.properties?.area_ha) }}</td>
-                <td class="status-cell">{{ car.properties?.tp_situacao || '-' }}</td>
-                <td class="status-cell">{{ car.properties?.ds_condicao_imovel || '-' }}</td>
               </tr>
             </tbody>
           </template>
@@ -402,6 +399,40 @@ export default {
   }),
 
   computed: {
+    carTableHeaders() {
+      return [
+        { key: 'index', label: '#', align: 'center', width: '50px' },
+        { key: 'codigo', label: 'Código', align: 'left' },
+        { key: 'terra_indigena', label: 'Terra Indígena', align: 'left' },
+        { key: 'municipio', label: 'Município', align: 'left' },
+        { key: 'uf', label: 'UF', align: 'center', width: '60px' },
+        { key: 'etnia', label: 'Etnia', align: 'left' },
+        { key: 'area_ha', label: 'Área (ha)', align: 'right' },
+        { key: 'situacao', label: 'Situação', align: 'left' },
+        { key: 'condicao_imovel', label: 'Condição do Imóvel', align: 'left' },
+      ]
+    },
+
+    carTableRows() {
+      return this.carData.map((car, index) => {
+        const properties = car.properties || {}
+        
+        return {
+          id: car.id || `car-${index}`,
+          index: index + 1,
+          codigo: properties.co_imovel || '-',
+          terra_indigena: this.getTerraIndigenaName(car),
+          municipio: this.getMunicipioName(car),
+          uf: properties.sg_uf || '-',
+          etnia: properties.no_etnia || '-',
+          area_ha: this.formatNumber(properties.nu_area_ha || properties.area_ha),
+          situacao: properties.tp_situacao || '-',
+          condicao_imovel: properties.ds_condicao_imovel || '-',
+          rawData: car, // Mantém os dados originais se necessário
+        }
+      })
+    },
+
     visibleUserLayers() {
       return Object.values(this.supportLayerUser || {}).filter(l => l?.visible) || []
     },
@@ -731,6 +762,42 @@ export default {
   },
 
   methods: {
+    getTableCellStyle(index, headerKey) {
+      const baseStyle = {
+        fontSize: '10px',
+        padding: '4px 8px',
+      }
+
+      if (headerKey === 'index') {
+        const color = this.getCarColor(index)
+        return {
+          ...baseStyle,
+          backgroundColor: color,
+          color: 'white',
+          borderRadius: '50%',
+          width: '24px',
+          height: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto',
+          fontWeight: 'bold',
+          textAlign: 'center',
+        }
+      }
+
+      const header = this.carTableHeaders.find(h => h.key === headerKey)
+      if (header) {
+        return {
+          ...baseStyle,
+          textAlign: header.align || 'left',
+          width: header.width || 'auto',
+        }
+      }
+
+      return baseStyle
+    },
+
     async loadData() {
       const promises = []
 
@@ -1011,11 +1078,20 @@ export default {
 
 .car-data-table >>> td {
   font-size: 10px !important;
+  vertical-align: middle;
 }
 
-.avatar-text {
-  color: white;
-  font-weight: bold;
+.table-cell-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.table-cell-content {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .compact-text-section {

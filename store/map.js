@@ -1,5 +1,4 @@
 export const state = () => ({
-  // state map
   activeMenu: '',
   openDrawPopup: null,
   startDrawPopup: false,
@@ -44,10 +43,10 @@ export const state = () => ({
 });
 
 export const getters = {
-  bbox: (state) => (state.bounds ? state.bounds.toBBoxString() : ''),
+  bbox: (state) => (state.bounds ? state.bounds.toBBoxString() : null),
 
   bboxWkt(state) {
-    if (!state.bounds) return '';
+    if (!state.bounds) return null;
 
     const coords = [
       state.bounds.getSouthWest(),
@@ -62,7 +61,7 @@ export const getters = {
   },
 
   bboxEs(state) {
-    if (!state.bounds) return [[0, 0], [0, 0]];
+    if (!state.bounds) return null;
 
     const northWest = state.bounds.getNorthWest();
     const southEast = state.bounds.getSouthEast();
@@ -217,47 +216,14 @@ export const mutations = {
   },
 
   setCarPrintData(state, carPrintData) {
-    // Filtra apenas dados serializáveis
-    const serializableData = {};
-
-    if (carPrintData.mapTitle !== undefined) {
-      serializableData.mapTitle = carPrintData.mapTitle;
-    }
-
-    if (carPrintData.leafSize !== undefined) {
-      serializableData.leafSize = carPrintData.leafSize;
-    }
-
-    if (carPrintData.carData !== undefined) {
-      serializableData.carData = carPrintData.carData;
-    }
-
-    if (carPrintData.visible !== undefined) {
-      serializableData.visible = carPrintData.visible;
-    }
-
-    // Extrair apenas dados necessários do mapa, não o objeto completo
-    if (carPrintData.map && typeof carPrintData.map.getBounds === 'function') {
-      const bounds = carPrintData.map.getBounds();
-      const center = carPrintData.map.getCenter();
-      serializableData.mapBounds = {
-        north: bounds.getNorth(),
-        south: bounds.getSouth(),
-        east: bounds.getEast(),
-        west: bounds.getWest(),
-        center: {
-          lat: center.lat,
-          lng: center.lng,
-        },
-        zoom: carPrintData.map.getZoom(),
-      };
-    }
-
-    if (carPrintData.selectedBaseMap) {
-      serializableData.selectedBaseMapUrl = carPrintData.selectedBaseMap.url;
-    }
-
-    state.carPrintData = { ...state.carPrintData, ...serializableData };
+    state.carPrintData = {
+      visible: carPrintData.visible !== undefined ? carPrintData.visible : false,
+      mapTitle: carPrintData.mapTitle || 'Relatório CAR',
+      leafSize: carPrintData.leafSize || { type: 'A4' },
+      carData: carPrintData.carData || [],
+      mapBounds: carPrintData.mapBounds || null,
+      selectedBaseMapUrl: carPrintData.selectedBaseMapUrl || null,
+    };
   },
 
   clearCarPrintData(state) {
@@ -429,6 +395,122 @@ export const actions = {
       });
     } catch (error) {
       console.error('Error fetching Geoserver configuration:', error);
+    }
+  },
+
+  async handleCarPrint({ commit, state }, {
+    map,
+    mapTitle,
+    leafSize,
+    selectedBaseMap,
+  }) {
+    try {
+      let carData = [];
+      let hasCarData = false;
+
+      if (map?.getBounds) {
+        const bounds = map.getBounds();
+        const bboxArray = [
+          bounds.getWest(),
+          bounds.getSouth(),
+          bounds.getEast(),
+          bounds.getNorth(),
+        ];
+
+        try {
+          const geoserverBaseUrl = state.geoserverUrl;
+          const layerName = 'CMR-FUNAI:lim_imovel_car_a';
+          const cqlFilter = `INTERSECTS(geom, POLYGON((${bboxArray[0]} ${bboxArray[1]}, ${bboxArray[2]} ${bboxArray[1]}, ${bboxArray[2]} ${bboxArray[3]}, ${bboxArray[0]} ${bboxArray[3]}, ${bboxArray[0]} ${bboxArray[1]})))`;
+
+          const params = {
+            service: 'WFS',
+            version: '1.0.0',
+            request: 'GetFeature',
+            typeName: layerName,
+            outputFormat: 'application/json',
+            srsName: 'EPSG:4326',
+            maxFeatures: 1000,
+            CQL_FILTER: cqlFilter,
+          };
+
+          const url = `${geoserverBaseUrl}&${new URLSearchParams(params)}`;
+          
+          const response = await this.$api.$get(url);
+          
+          carData = (response.features || []).map((feature) => {
+            const cleanFeature = {
+              type: feature.type,
+              geometry: feature.geometry,
+              properties: { ...feature.properties },
+              id: feature.id,
+            };
+            if (cleanFeature.properties) {
+              Object.keys(cleanFeature.properties).forEach((key) => {
+                if (cleanFeature.properties[key] && typeof cleanFeature.properties[key] === 'object') {
+                  delete cleanFeature.properties[key];
+                }
+              });
+            }
+
+            return cleanFeature;
+          });
+
+          hasCarData = carData.length > 0;
+          
+          commit('setCarPrintData', {
+            mapTitle: mapTitle || 'Relatório CAR',
+            leafSize,
+            mapBounds: {
+              north: bounds.getNorth(),
+              south: bounds.getSouth(),
+              east: bounds.getEast(),
+              west: bounds.getWest(),
+            },
+            selectedBaseMapUrl: selectedBaseMap?.url,
+            visible: true,
+            carData,
+          });
+
+          if (hasCarData) {
+            commit('setShowTemplateMapLandscapeCar', true);
+          }
+          
+          return { success: true, hasCarData };
+        } catch (wfsError) {
+          console.error('❌ Erro na consulta CAR:', wfsError);
+          commit('setCarPrintData', {
+            mapTitle: mapTitle || 'Relatório CAR',
+            leafSize,
+            mapBounds: {
+              north: bounds.getNorth(),
+              south: bounds.getSouth(),
+              east: bounds.getEast(),
+              west: bounds.getWest(),
+            },
+            selectedBaseMapUrl: selectedBaseMap?.url,
+            visible: true,
+            carData: [],
+          });
+          return { success: true, hasCarData: false };
+        }
+      } else {
+        commit('setCarPrintData', {
+          mapTitle: mapTitle || 'Relatório CAR',
+          leafSize,
+          visible: true,
+          carData: [],
+        });
+        return { success: true, hasCarData: false };
+      }
+    } catch (error) {
+      console.error('❌ Erro no processo CAR:', error);
+      commit('setCarPrintData', {
+        mapTitle: mapTitle || 'Relatório CAR',
+        leafSize,
+        visible: true,
+        carData: [],
+      });
+      return { success: false, hasCarData: false, error };
     }
   },
 };

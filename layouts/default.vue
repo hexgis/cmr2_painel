@@ -127,7 +127,7 @@ import Map from '@/components/map/Map';
 import BaseAlert from '@/components/base/BaseAlert';
 import AnalyticsPCDashboard from '@/components/analytical-cmr/AnalyticsPriorConsolidDashboard';
 import PrivacyAgreementModal from '@/components/privacy-agreement/PrivacyAgreementModal';
-import MapLandscapeCar from '../components/map/print-map/TemplateMapLandscapeCar.vue';
+import MapLandscapeCar from '../components/map/print-map/TemplateCar.vue';
 
 export default {
   name: 'App',

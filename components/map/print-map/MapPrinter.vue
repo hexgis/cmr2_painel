@@ -137,6 +137,7 @@
         </v-tabs>
       </v-card>
     </v-dialog>
+    <BaseAlert />
   </div>
 </template>
 
@@ -154,7 +155,8 @@
           "input-button-first-step": "Continue",
           "input-button-second-step": "Continue",
           "input-button-back-second-step": "Back",
-          "image-error": "Error generating image."
+          "image-error": "Error generating image.",
+          "no-car-data-message": "No CAR data available for the selected area. Please select a different location."
       },
       "pt-br": {
           "print-icon-label": "Imprimir",
@@ -168,7 +170,8 @@
           "input-button-first-step": "Continuar",
           "input-button-second-step": "Continuar",
           "input-button-back-second-step": "Voltar",
-          "image-error": "Erro ao gerar imagem."
+          "image-error": "Erro ao gerar imagem.",
+          "no-car-data-message": "Não existem dados CAR disponíveis para a área selecionada. Por favor, selecione um local diferente."
       }
   }
 </i18n>
@@ -176,7 +179,8 @@
 <script>
 import { mapState, mapMutations } from 'vuex';
 import MapLandscape from './TemplateMapLandscape.vue';
-import MapLandscapeCar from './TemplateMapLandscapeCar.vue';
+import MapLandscapeCar from './TemplateCar.vue';
+import BaseAlert from '@/components/base/BaseAlert.vue';
 
 export default {
   name: 'MapPrinter',
@@ -184,6 +188,7 @@ export default {
   components: {
     MapLandscape,
     MapLandscapeCar,
+    BaseAlert,
   },
 
   props: {
@@ -196,7 +201,6 @@ export default {
       type: Object,
       default: null,
     },
-    
     showTms: {
       type: Boolean,
       default: false,
@@ -225,7 +229,8 @@ export default {
 
   watch: {
     showTemplateMapLandscapeCar(newVal) {
-      if (newVal) {
+      const carData = this.$store.state.map.carPrintData.carData;
+      if (newVal && carData && carData.length > 0) {
         this.dialogPrint = false;
       }
     },
@@ -240,100 +245,36 @@ export default {
       this.loadingCAR = true;
 
       try {
-        if (this.map && typeof this.map.getBounds === 'function') {
-          const bounds = this.map.getBounds();
-          const bboxArray = [
-            bounds.getWest(),
-            bounds.getSouth(),
-            bounds.getEast(),
-            bounds.getNorth(),
-          ];
+        const result = await this.$store.dispatch('map/handleCarPrint', {
+          map: this.map,
+          mapTitle: this.mapTitle,
+          leafSize: this.select,
+          selectedBaseMap: this.selectedBaseMap,
+        });
 
-          this.$store.commit('map/setCarPrintData', {
-            mapTitle: this.mapTitle || 'Relatório CAR',
-            leafSize: this.select,
-            mapBounds: {
-              north: bounds.getNorth(),
-              south: bounds.getSouth(),
-              east: bounds.getEast(),
-              west: bounds.getWest(),
-            },
-            selectedBaseMapUrl: this.selectedBaseMap?.url,
-            visible: true,
-            carData: [], 
-          });
-          await this.queryWFSWithBbox(bboxArray);
-        } else {
-          this.$store.commit('map/setCarPrintData', {
-            mapTitle: this.mapTitle || 'Relatório CAR',
-            leafSize: this.select,
-            visible: true,
-            carData: [],
-          });
-          this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
+        if (result.success) {
+          if (!result.hasCarData) {
+            this.$store.commit('alert/addAlert', {
+              message: this.$t('no-car-data-message'),
+              timeout: 5000,
+            }, { root: true });
+            this.closeDialogPrinter();
+            this.$store.commit('map/setShowTemplateMapLandscapeCar', false);
+            this.$store.commit('map/clearCarPrintData');
+          } else {
+            this.dialogPrint = false;
+          }
         }
       } catch (error) {
-        console.error('Erro no processo CAR:', error);
-        this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
+        console.error('Erro ao processar CAR print:', error);
+        this.$store.commit('alert/addAlert', {
+          message: this.$t('image-error'),
+          timeout: 5000,
+        }, { root: true });
+        this.closeDialogPrinter();
       } finally {
         this.loadingCAR = false;
       }
-    },
-
-    async queryWFSWithBbox(bboxArray) {
-      try {
-        const geoserverBaseUrl = this.$store.state.map.geoserverUrl;
-        const layerName = 'CMR-FUNAI:lim_imovel_car_a';
-        const cqlFilter = `INTERSECTS(geom, POLYGON((${bboxArray[0]} ${bboxArray[1]}, ${bboxArray[2]} ${bboxArray[1]}, ${bboxArray[2]} ${bboxArray[3]}, ${bboxArray[0]} ${bboxArray[3]}, ${bboxArray[0]} ${bboxArray[1]})))`;
-
-        const params = {
-          service: 'WFS',
-          version: '1.0.0',
-          request: 'GetFeature',
-          typeName: layerName,
-          outputFormat: 'application/json',
-          srsName: 'EPSG:4326',
-          maxFeatures: 1000,
-          CQL_FILTER: cqlFilter,
-        };
-
-        const url = `${geoserverBaseUrl}&${new URLSearchParams(params)}`;
-        const response = await this.$api.$get(url);
-        const processedCarData = this.processCarData(response.features || []);
-
-        this.$store.commit('map/setCarPrintData', {
-          carData: processedCarData,
-        });
-
-        this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
-      } catch (error) {
-        console.error('❌ Erro na consulta CAR:', error);
-        this.$store.commit('map/setCarPrintData', {
-          carData: [],
-        });
-        this.$store.commit('map/setShowTemplateMapLandscapeCar', true);
-      }
-    },
-
-    processCarData(features) {
-      return features.map((feature) => {
-        const cleanFeature = {
-          type: feature.type,
-          geometry: feature.geometry,
-          properties: { ...feature.properties },
-          id: feature.id,
-        };
-
-        if (cleanFeature.properties) {
-          Object.keys(cleanFeature.properties).forEach((key) => {
-            if (typeof cleanFeature.properties[key] === 'object' && cleanFeature.properties[key] !== null) {
-              delete cleanFeature.properties[key];
-            }
-          });
-        }
-
-        return cleanFeature;
-      });
     },
 
     handleBackFromCar() {
