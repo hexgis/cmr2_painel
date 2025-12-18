@@ -941,7 +941,7 @@ export default {
             co_cr: getters.getFormattedRegionalCoordinates('co_cr'),
             co_funai: getters.getFormattedIndigenousLands('co_funai'),
           };
-          const bbox = await this.$api.$post('alerts/consolidated/bbox/', body);
+          const bbox = await this.$api.$post('monitoring/consolidated/bbox/', body);
           if (bbox) {
             // eslint-disable-next-line no-undef
             const bounds = L.latLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]);

@@ -136,6 +136,35 @@
           </v-tab-item>
         </v-tabs>
       </v-card>
+
+      <v-tab-item>
+        <v-card>
+          <v-card-text>
+            <v-card-text class="mb-2 pa-0 font-weight-bold">
+              {{ $t('dialog-text-first-step') }}
+            </v-card-text>
+            <v-text-field
+              v-model="mapTitle"
+              :label="$t('input-title-label')"
+              class="mt-4 pa-0"
+              :maxlength="100"
+            />
+            <v-select
+              v-model="select"
+              item-text="type"
+              item-value="type"
+              persistent-hint
+              return-object
+              single-line
+              required
+              :hint="`${$t('input-size-hint')}: ${
+                select.type
+              }`"
+              :items="items"
+            />
+          </v-card-text>
+        </v-card>
+      </v-tab-item>
     </v-dialog>
     <BaseAlert />
   </div>
@@ -214,8 +243,11 @@ export default {
     textMap: '',
     select: { type: 'A4' },
     items: [
-      { type: 'A4' },
+      { type: 'A0' },
+      { type: 'A1' },
+      { type: 'A2' },
       { type: 'A3' },
+      { type: 'A4' },
     ],
     loadingCAR: false,
   }),
@@ -229,7 +261,7 @@ export default {
 
   watch: {
     showTemplateMapLandscapeCar(newVal) {
-      const carData = this.$store.state.map.carPrintData.carData;
+      const { carData } = this.$store.state.map.carPrintData;
       if (newVal && carData && carData.length > 0) {
         this.dialogPrint = false;
       }
@@ -300,6 +332,7 @@ export default {
         bounds: null,
       });
     },
+
     ...mapMutations('map', ['setTmsToPrint']),
   },
 };

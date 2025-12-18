@@ -248,6 +248,8 @@ export default {
 
         this.map = this.$refs.printMap.mapObject;
 
+        this.$emit('ready', this.map);
+
         window.L = this.$L; // define leaflet global
 
         if (!this.map) {
