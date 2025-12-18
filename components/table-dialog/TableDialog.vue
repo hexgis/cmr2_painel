@@ -8,7 +8,7 @@
       width="80vw"
       :fullscreen="$vuetify.breakpoint.smAndDown"
     >
-      <v-card>
+      <v-card max-height="80vh">
         <v-toolbar
           dark
           color="secondary"
@@ -22,32 +22,49 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
+
         <v-skeleton-loader
           v-if="loadingTable"
           type="table-row-divider@8"
           class="mx-6"
         />
+
         <v-card-text v-if="!loadingTable">
-          <a class="d-flex justify-end">
-            <v-btn
-              small
-              fab
-              class="mx-2 my-2"
-              color="secondary"
-              :loading="isDownloading"
-              @click="handleDownloadClick"
-            >
-              <v-icon>mdi-download</v-icon>
-            </v-btn>
-          </a>
+          <div class="d-flex justify-end ma-4">
+            <v-tooltip bottom>
+              <template #activator="{ on, attrs }">
+                <v-btn
+                  small
+                  fab
+                  color="secondary"
+                  v-bind="attrs"
+                  v-on="on"
+                  @click="handleDownloadConfirmed"
+                >
+                  <v-icon>mdi-download</v-icon>
+                </v-btn>
+              </template>
+              <span>{{ $t('download-csv') }}</span>
+            </v-tooltip>
+          </div>
+
           <v-data-table
             :headers="headers"
             :items-per-page="5"
             :items="value"
-            class="font-weight-regular"
+            class="font-weight-regular table-height"
             multi-sort
+            height="50vh"
             fixed-header
             mobile-breakpoint="0"
+            :footer-props="{
+              itemsPerPageText: $t('itemsPerPageText'),
+              itemsPerPageAllText: $t('itemsPerPageAllText'),
+              pageText: $t('pageText'),
+              showFirstLastPage: true,
+            }"
+            :no-data-text="$t('noDataText')"
+            :loading-text="$t('loadingText')"
           >
             <template
               v-if="[item.prioridade]"
@@ -92,6 +109,9 @@
         </v-card-text>
         <v-card-text>
           {{ $t('confirm-dialog-message2') }}
+          <span>
+            <a href="mailto:cmr@funai.gov.br">cmr@funai.gov.br</a>.
+          </span>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -150,6 +170,35 @@
   </v-row>
 </template>
 
+<i18n>
+{
+  "en": {
+    "confirm-dialog-title": "Attention",
+    "confirm-dialog-message1": "Due to technical limitations, the generated table has a maximum limit of 10,000 features. The query performed generated a higher number of polygons, so it is possible that not all polygons will be available in the generated file.",
+    "confirm-dialog-message2": "If you need to download the complete data, please contact the CMR team through the Contact Us on the platform or by email ",
+    "acknowledge-label": "I understand",
+    "itemsPerPageText": "Items per page:",
+    "itemsPerPageAllText": "All",
+    "pageText": "{0}-{1} of {2}",
+    "noDataText": "No data available",
+    "loadingText": "Loading items...",
+    "download-csv": "Download CSV"
+  },
+  "pt-br": {
+    "confirm-dialog-title": "Atenção",
+    "confirm-dialog-message1": "Devido a limitações técnicas, a tabela gerada possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
+    "confirm-dialog-message2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail ",
+    "acknowledge-label": "Entendi",
+    "itemsPerPageText": "Itens por página:",
+    "itemsPerPageAllText": "Todos",
+    "pageText": "{0}-{1} de {2}",
+    "noDataText": "Nenhum dado disponível",
+    "loadingText": "Carregando itens...",
+    "download-csv": "Baixar CSV"
+  }
+}
+</i18n>
+
 <script>
 import { mapMutations } from 'vuex';
 import MapPrinterPriority from '../priority/MapPrinterPriority.vue';
@@ -177,10 +226,6 @@ export default {
     loadingTable: {
       type: Boolean,
       required: true,
-    },
-    loadingCSV: {
-      type: Boolean,
-      required: false,
     },
     fCloseTable: {
       type: Function,
@@ -280,29 +325,9 @@ export default {
 };
 </script>
 
-<i18n>
-{
-  "en": {
-    "confirm-dialog-title": "Confirmation",
-    "confirm-dialog-message1": "Due to technical limitations, the generated table has a maximum limit of 10,000 features. The executed query generated a higher number of polygons, so it is possible that not all polygons will be available in the generated file.",
-    "confirm-dialog-message2": "If you need to download the complete data, please contact the CMR team via Contact Us on the platform or by email ",
-    "description-label-3": "Due to technical limitations, the generated file has a maximum limit of 10,000 features. The query made generated a number of polygons greater than that, so it is possible that not all polygons will be available in the generated file.",
-    "description-label-4": "If you need to download the complete data, please contact the CMR team via Contact Us on the platform or by email ",
-    "confirm": "Confirm",
-    "acknowledge-label": "Acknowledge",
-    "download-label": "Download",
-    "cancel": "Cancel"
-  },
-  "pt-br": {
-    "confirm-dialog-title": "Atenção",
-    "confirm-dialog-message1": "Devido a limitações técnicas, a tabela gerada possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
-    "confirm-dialog-message2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail ",
-    "description-label-3": "Devido a limitações técnicas, os arquivo gerado possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
-    "description-label-4": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail ",
-    "confirm": "Confirmar",
-    "acknowledge-label": "Ciente",
-    "download-label": "Baixar",
-    "cancel": "Cancelar"
-  }
+<style scoped>
+.table-height {
+  max-height: 100%;
+  overflow-y: auto;
 }
-</i18n>
+</style>

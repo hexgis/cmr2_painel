@@ -7,11 +7,12 @@ export const state = () => ({
     readNews: [],
     loading: false,
     carouselIndex: 0,
-    allReadChecked: false,
     showAllNews: false,
   },
   loadingUpdateTheme: false,
   newsOpened: false,
+  searchQuery: '',
+  selectedNewsIndex: 0,
 });
 
 export const mutations = {
@@ -32,7 +33,6 @@ export const mutations = {
   },
 
   setNews(state, news) {
-    // Adiciona um id fictício se não houver
     state.news.allNews = news.map((item, index) => ({
       ...item,
       id: item.id || `news-${index}`,
@@ -67,16 +67,6 @@ export const mutations = {
     state.news.carouselIndex = index;
   },
 
-  setAllReadChecked(state, checked) {
-    state.news.allReadChecked = checked;
-  },
-
-  addReadNews(state, newsId) {
-    if (!state.news.readNews.includes(newsId)) {
-      state.news.readNews = [...state.news.readNews, newsId];
-    }
-  },
-
   markAsRead(state, newsId) {
     if (!state.news.readNews.includes(newsId)) {
       state.news.readNews = [...state.news.readNews, newsId];
@@ -95,6 +85,19 @@ export const mutations = {
       state.user.settings.dark_mode_active = isDarkMode;
     }
   },
+
+  setSearchQuery(state, query) {
+    state.searchQuery = query;
+  },
+
+  setSelectedNewsIndex(state, index) {
+    state.selectedNewsIndex = index;
+  },
+
+  // Renomeado para evitar conflito com action
+  clearSearchQuery(state) {
+    state.searchQuery = '';
+  },
 };
 
 export const actions = {
@@ -105,7 +108,7 @@ export const actions = {
     } catch (error) {
       console.error('Erro ao receber dados do usuário:', error);
       dispatch('auth/logout', null, { root: true });
-      throw error; // Rejeita a promise com o erro para quem chamou
+      throw error;
     }
   },
 
@@ -197,45 +200,84 @@ export const actions = {
     if (!state.news.showAllNews) {
       commit('setNewsDialog', false);
     }
-
-    setTimeout(() => {
-      commit('setAllReadChecked', false);
-    }, 500);
   },
 
-  openNewsDialog({ commit, state }) {
+  openNewsDialog({ commit, state, getters }) {
     commit('setShowAllNews', true);
     commit('setNewsDialog', true);
 
-    const displayedNews = [...state.news.allNews]
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    const displayedNews = getters.sortedNews;
 
     if (displayedNews.length > 0) {
-      commit(
-        'setCarouselIndex',
-        state.news.allNews.findIndex(
-          (news) => news.id === (displayedNews.find(
-            (n) => !state.news.readNews.includes(n.id),
-          ) || displayedNews[0]).id,
-        ) || 0,
-      );
+      const firstUnreadNews = displayedNews.find((n) => !state.news.readNews.includes(n.id)) || displayedNews[0];
+      const index = displayedNews.findIndex((news) => news.id === firstUnreadNews.id);
+
+      commit('setSelectedNewsIndex', index);
+      commit('setCarouselIndex', index);
     }
   },
 
   closeNewsDialog({ commit }) {
     commit('setNewsDialog', false);
   },
+
+  setSearchQuery({ commit }, query) {
+    commit('setSearchQuery', query);
+  },
+
+  clearSearch({ commit }) {
+    commit('clearSearchQuery');
+  },
+
+  setSelectedNewsIndex({ commit, getters }, newsId) {
+    const index = getters.getNewsIndexById(newsId);
+    commit('setSelectedNewsIndex', index);
+  },
+
+  handleNewsSelection({ commit }, index) {
+    commit('setSelectedNewsIndex', index);
+    commit('setCarouselIndex', index);
+  },
 };
 
 export const getters = {
   userData: (state) => state.user,
   showArrows: (state, getters) => getters.displayedNews.length > 1,
-  prevDisabled: (state, getters) => state.news.carouselIndex === 0,
-  nextDisabled: (state, getters) => state.news.carouselIndex === getters.displayedNews.length - 1,
   hasUnreadNews: (state, getters) => getters.unreadNews.length > 0,
   isNewsRead: (state) => (newsId) => state.news.readNews.includes(newsId),
 
   sortedNews: (state) => [...state.news.allNews].sort((a, b) => new Date(b.date) - new Date(a.date)),
   unreadNews: (state, getters) => getters.sortedNews.filter((news) => !state.news.readNews.includes(news.id)),
   displayedNews: (state, getters) => (state.news.showAllNews ? getters.sortedNews : getters.unreadNews),
+  searchQuery: (state) => state.searchQuery,
+  selectedNewsIndex: (state) => state.selectedNewsIndex,
+
+  filteredNews: (state, getters) => {
+    if (!state.searchQuery || state.searchQuery.trim() === '') {
+      return getters.sortedNews;
+    }
+
+    const query = state.searchQuery.toLowerCase().trim();
+    return getters.sortedNews.filter((newsItem) => {
+      const titleMatch = newsItem.title.toLowerCase().includes(query);
+      const contentMatch = newsItem.content.toLowerCase().includes(query);
+      return titleMatch || contentMatch;
+    });
+  },
+
+  unreadNewsCount: (state, getters) => {
+    if (!getters.displayedNews) return 0;
+    return getters.displayedNews.filter((newsItem) => !state.news.readNews.includes(newsItem.id)).length;
+  },
+
+  getNewsIndexById: (state, getters) => (newsId) => getters.sortedNews.findIndex((item) => item.id === newsId),
+
+  selectedNews: (state, getters) => {
+    if (getters.hasNews && state.selectedNewsIndex !== null && state.selectedNewsIndex >= 0) {
+      return getters.sortedNews[state.selectedNewsIndex];
+    }
+    return null;
+  },
+
+  hasNews: (state, getters) => getters.displayedNews && getters.displayedNews.length > 0,
 };

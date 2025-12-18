@@ -613,7 +613,7 @@ export default {
           institution_type: institution.institution_type || '',
         }));
 
-        await this.$downloader.downloadPDF(
+        await this.$downloader.pdf(
           data,
           headers,
           'Lista de Instituições',

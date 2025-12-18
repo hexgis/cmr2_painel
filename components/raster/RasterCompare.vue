@@ -2,10 +2,6 @@
   <v-dialog
     v-model="dialogValue"
     fullscreen
-    transition="dialog-bottom-transition"
-    :aria-labelledby="dialogTitle"
-    role="dialog"
-    aria-modal="true"
   >
     <v-card>
       <v-toolbar color="secondary">
@@ -178,14 +174,8 @@ import tmsLegend from '../../assets/tmsLegend.png';
 import LayerCard from './LayerCard.vue';
 import LoadingState from './LoadingState.vue';
 import EmptyState from './EmptyState.vue';
-import {
-  getLayerTypeName,
-  validateWmsLayer,
-  validateTmsLayer,
-  createWmsOptions,
-  createTmsOptions,
-  createSpecializedStoreLayer,
-} from '~/utils/layer';
+
+const cloneLayer = require('leaflet-clonelayer');
 
 export default {
   name: 'RasterCompare',
@@ -198,18 +188,11 @@ export default {
 
   data: () => ({
     mapsInitialized: false,
-    syncingMaps: false,
     map: null,
     baseLayer: null,
-    leftLayer: null,
-    rightLayer: null,
-    sideBySideControl: null,
-    initializationTimeout: null,
   }),
 
   computed: {
-    ...mapState('raster', ['layersToCompare', 'openCompare', 'supportCategoryGroupsRaster']),
-
     dialogValue: {
       get() {
         return this.openCompare;
@@ -233,84 +216,29 @@ export default {
       return this.findGroupForLayer(this.layersToCompare.right.id);
     },
 
-    dialogTitle() {
-      return 'dialog-title';
-    },
+    ...mapState('raster', [
+      'layersToCompare',
+      'openCompare',
+      'supportCategoryGroupsRaster',
+    ]),
   },
 
   watch: {
     openCompare(newVal) {
-      if (newVal) {
-        // Modal opened, initialize maps with debounce
-        this.debouncedInitializeMaps();
-      } else {
-        // Modal closed, cleanup maps and clear selected layers
+      if (newVal) this.initializeMaps();
+      else {
+        // Modal closed, clean up maps
         this.cleanupMaps();
         this.$store.commit('raster/clearLayersToCompare');
       }
     },
-
-    // Watch for layer changes and reinitialize if needed
-    layersToCompare: {
-      handler() {
-        if (this.openCompare && this.mapsInitialized) {
-          this.debouncedReinitializeLayers();
-        }
-      },
-      deep: true,
-    },
   },
 
   beforeDestroy() {
-    // Clean up maps when component is destroyed
     this.cleanupMaps();
   },
 
   methods: {
-    // Debounced methods for performance optimization
-    debouncedInitializeMaps() {
-      if (this.initializationTimeout) {
-        clearTimeout(this.initializationTimeout);
-      }
-      this.initializationTimeout = setTimeout(() => {
-        this.$nextTick(() => {
-          this.initializeMaps();
-        });
-      }, 100);
-    },
-
-    debouncedReinitializeLayers() {
-      if (this.initializationTimeout) {
-        clearTimeout(this.initializationTimeout);
-      }
-      this.initializationTimeout = setTimeout(() => {
-        this.reinitializeLayers();
-      }, 200);
-    },
-
-    reinitializeLayers() {
-      try {
-        // Remove existing comparison layers
-        if (this.leftLayer && this.map) {
-          this.map.removeLayer(this.leftLayer);
-          this.leftLayer = null;
-        }
-        if (this.rightLayer && this.map) {
-          this.map.removeLayer(this.rightLayer);
-          this.rightLayer = null;
-        }
-        if (this.sideBySideControl) {
-          this.sideBySideControl.remove();
-          this.sideBySideControl = null;
-        }
-
-        // Re-add comparison layers
-        this.addComparisonLayers();
-        this.initializeSideBySideControl();
-      } catch (error) {
-        console.error(error);
-      }
-    },
     closeDialog() {
       this.cleanupMaps();
       // Clear the selected layers for comparison
@@ -320,53 +248,97 @@ export default {
     },
 
     async initializeMaps() {
-      try {
-        await this.$nextTick();
+      await this.$nextTick();
 
-        // Check if Leaflet is available
-        if (typeof this.$L === 'undefined') {
-          return;
-        }
-
-        // Check if Leaflet WMS plugin is available
-        if (typeof this.$L.tileLayer.wms === 'undefined') {
-          return;
-        }
-
-        const mapElement = document.getElementById('mapContainer');
-        if (!mapElement) {
-          return;
-        }
-
-        // Get current map center and zoom from main map if available
-        const { center, zoom } = this.getMainMapViewport();
-
-        // Create single map as component instance
-        this.map = this.$L.map('mapContainer', {
-          center,
-          zoom,
-          zoomControl: true,
-          attributionControl: false,
-        });
-
-        // Add base tile layer
-        let baseLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-        let baseLayerOptions = {};
-        if (this.$store.state.map.currentBaseMap && this.$store.state.map.currentBaseMap.url) {
-          baseLayerUrl = this.$store.state.map.currentBaseMap.url;
-          baseLayerOptions = this.$store.state.map.currentBaseMap.options || { attribution: '' };
-        }
-        this.baseLayer = this.$L.tileLayer(baseLayerUrl, baseLayerOptions);
-        this.baseLayer.addTo(this.map);
-
-        this.addVisibleLayersFromMainMap();
-        this.addComparisonLayers();
-        this.initializeSideBySideControl();
-
-        this.mapsInitialized = true;
-      } catch (error) {
-        console.error(error);
+      const mapElement = document.getElementById('mapContainer');
+      if (!mapElement) {
+        return;
       }
+
+      // Get current map center and zoom from main map if available
+      const { center, zoom } = this.getMainMapViewport();
+
+      // Create single map as component instance
+      this.map = this.$L.map('mapContainer', {
+        center,
+        zoom,
+        zoomControl: true,
+        attributionControl: false,
+      });
+
+      this.createMapPanes();
+
+      // Add base tile layer
+      let baseLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      let baseLayerOptions = {};
+      if (this.$store.state.map.currentBaseMap && this.$store.state.map.currentBaseMap.url) {
+        baseLayerUrl = this.$store.state.map.currentBaseMap.url;
+        baseLayerOptions = this.$store.state.map.currentBaseMap.options || { attribution: '' };
+      }
+      this.baseLayer = this.$L.tileLayer(baseLayerUrl, baseLayerOptions);
+      this.baseLayer.addTo(this.map);
+
+      this.map.whenReady(() => {
+        this.cloneLayersFromMainMap();
+        this.initializeSideBySideControl();
+      });
+
+      this.mapsInitialized = true;
+    },
+
+    createMapPanes() {
+      if (!this.map) return;
+
+      // TMS (base layer custom)
+      this.map.createPane('tms-support-layers-map');
+      this.map.getPane('tms-support-layers-map').style.zIndex = 401;
+
+      // Support WMS
+      this.map.createPane('support-layers-map');
+      this.map.getPane('support-layers-map').style.zIndex = 420;
+
+      // Monitoring WMS
+      this.map.createPane('monitoring-layers-map');
+      this.map.getPane('monitoring-layers-map').style.zIndex = 450;
+
+      // Comparison layers pane
+      this.map.createPane('comparison-layers');
+      this.map.getPane('comparison-layers').style.zIndex = 500;
+    },
+
+    cloneLayersFromMainMap() {
+      if (!window.mapMain) return;
+      window.mapMain.eachLayer((layer) => {
+        // eslint-disable-next-line no-underscore-dangle
+        if (!layer || !layer._events) return;
+        try {
+          const clonedLayer = cloneLayer(layer);
+          if (clonedLayer) {
+            this.map.addLayer(clonedLayer);
+          } else {
+            console.warn('Falha ao clonar camada:', layer);
+          }
+        } catch (cloneError) {
+          console.error('Erro ao clonar camada:', cloneError);
+        }
+      });
+      const heatmaps = [
+        {
+          active: this.$store.state['urgent-alerts'].heatMapUrgentAlert,
+          data: this.$store.state['urgent-alerts'].stats.heatmapUrgentAlert,
+          options: this.$store.state['urgent-alerts'].heatMapUrgentAlertOptions,
+        },
+        {
+          active: this.$store.state.monitoring.showFeaturesMonitoring,
+          data: this.$store.state.monitoring.stats.heatmapMonitoring,
+          options: this.$store.state.monitoring.heatMapMonitoringOptions,
+        },
+      ];
+      heatmaps.forEach(({ active, data, options }) => {
+        if (active && data && data.length && options) {
+          this.map.addLayer(this.$L.heatLayer(data, options));
+        }
+      });
     },
 
     getMainMapViewport() {
@@ -374,282 +346,33 @@ export default {
       let zoom = 5;
 
       if (window.mapMain && window.mapMain.getCenter) {
-        try {
-          center = [window.mapMain.getCenter().lat, window.mapMain.getCenter().lng];
-          zoom = window.mapMain.getZoom();
-        } catch (e) {
-          // Use defaults if main map is not accessible
-        }
+        center = [window.mapMain.getCenter().lat, window.mapMain.getCenter().lng];
+        zoom = window.mapMain.getZoom();
       }
 
       return { center, zoom };
     },
 
-    addComparisonLayers() {
-      this.leftLayer = null;
-      this.rightLayer = null;
-
-      // Add left layer
-      if (this.layersToCompare.left) {
-        this.ensureLayerVisibility(this.layersToCompare.left);
-        this.leftLayer = this.createLayer(this.layersToCompare.left, 4);
-        if (this.leftLayer) {
-          this.leftLayer.addTo(this.map);
-        }
-      }
-
-      // Add right layer
-      if (this.layersToCompare.right) {
-        this.ensureLayerVisibility(this.layersToCompare.right);
-        this.rightLayer = this.createLayer(this.layersToCompare.right, 4);
-        if (this.rightLayer) {
-          this.rightLayer.addTo(this.map);
-        }
-      }
-    },
-
     initializeSideBySideControl() {
       // Create side-by-side control if both layers exist
-      if (this.leftLayer && this.rightLayer && this.$L.control && this.$L.control.sideBySide) {
+      if (this.$L.control && this.$L.control.sideBySide) {
         try {
-          this.sideBySideControl = this.$L.control.sideBySide(this.leftLayer, this.rightLayer);
-          this.sideBySideControl.addTo(this.map);
+          let left;
+          let right;
+
+          this.map.eachLayer((layer) => {
+            if (layer.options.name === this.layersToCompare.left.name) {
+              left = layer;
+            }
+            if (layer.options.name === this.layersToCompare.right.name) {
+              right = layer;
+            }
+          });
+
+          this.$L.control.sideBySide(left, right).addTo(this.map);
         } catch (error) {
           console.error(error);
         }
-      }
-    },
-
-    addVisibleLayersFromMainMap() {
-      try {
-        const allVisibleLayers = [];
-
-        // Support Layers
-        const supportLayers = this.$store.state.supportLayers.supportLayers || {};
-        Object.values(supportLayers).forEach((layer) => {
-          if (layer.visible) {
-            const isHighResOrMosaic = layer.name
-              && (layer.name.toLowerCase().includes('alta resolução')
-                || layer.name.toLowerCase().includes('mosaicos')
-                || layer.name.toLowerCase().includes('alta resolu')
-                || layer.name.toLowerCase().includes('mosaic'));
-
-            allVisibleLayers.push({
-              ...layer,
-              source: 'supportLayers',
-              zIndex: isHighResOrMosaic ? 1 : 6,
-            });
-          }
-        });
-
-        // Raster Layers
-        const rasterLayers = this.$store.state.raster.supportLayersCategoryRaster || {};
-        Object.values(rasterLayers).forEach((layer) => {
-          if (layer.visible) {
-            const isHighResOrMosaic = layer.name
-              && (layer.name.toLowerCase().includes('alta resolução')
-                || layer.name.toLowerCase().includes('mosaicos')
-                || layer.name.toLowerCase().includes('alta resolu')
-                || layer.name.toLowerCase().includes('mosaic'));
-
-            allVisibleLayers.push({
-              ...layer,
-              source: 'raster',
-              zIndex: isHighResOrMosaic ? 2 : 8,
-            });
-          }
-        });
-
-        // Support Layers User Layers
-        const supportUserLayers = this.$store.state.supportLayersUser.supportLayerUser || {};
-        Object.values(supportUserLayers).forEach((layer) => {
-          if (layer.visible) {
-            const isHighResOrMosaic = layer.name
-              && (layer.name.toLowerCase().includes('alta resolução')
-                || layer.name.toLowerCase().includes('mosaicos')
-                || layer.name.toLowerCase().includes('alta resolu')
-                || layer.name.toLowerCase().includes('mosaic'));
-
-            allVisibleLayers.push({
-              ...layer,
-              source: 'supportLayersUser',
-              zIndex: isHighResOrMosaic ? 4 : 10,
-            });
-          }
-        });
-
-        this.addInpeLayers(allVisibleLayers);
-        this.addMonitoringLayers(allVisibleLayers);
-        this.addDeterProdesLayers(allVisibleLayers);
-        this.addSupportLayerUserLayers(allVisibleLayers);
-
-        allVisibleLayers.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
-
-        allVisibleLayers.forEach((layer) => {
-          const isLeftCompareLayer = this.layersToCompare.left
-            && layer.id === this.layersToCompare.left.id;
-          const isRightCompareLayer = this.layersToCompare.right
-            && layer.id === this.layersToCompare.right.id;
-
-          if (isLeftCompareLayer || isRightCompareLayer) {
-            return;
-          }
-
-          const mapLayer = this.createLayer(layer, layer.zIndex);
-          if (mapLayer) {
-            mapLayer.addTo(this.map);
-
-            if (layer.name && (layer.name.includes('DETER') || layer.name.includes('PRODES') || layer.name.includes('Focos') || layer.name.includes('Monitoramento') || layer.name.includes('Alertas'))) {
-              mapLayer.setZIndex(1000);
-            }
-          }
-        });
-      } catch (error) {
-        console.warn(error);
-      }
-    },
-
-    createLayer(layer, customZIndex = null) {
-      try {
-        if (layer.source && ['foco', 'monitoring', 'deter', 'prodes', 'urgent-alerts'].includes(layer.source)) {
-          const specializedLayer = createSpecializedStoreLayer(layer, this.$L, customZIndex);
-          if (specializedLayer) {
-            this.setupLayerEventHandlers(specializedLayer);
-          }
-          return specializedLayer;
-        }
-
-        if (layer.layer_type === 'wms' && layer.wms) {
-          return this.createWmsLayer(layer, customZIndex);
-        } if (layer.layer_type === 'tms' && layer.tms) {
-          return this.createTmsLayer(layer, customZIndex);
-        } if (layer.geometry) {
-          return this.createVectorLayer(layer, customZIndex);
-        }
-        // Unsupported layer type or missing layer data
-        return null;
-      } catch (error) {
-        // Error creating layer
-        return null;
-      }
-    },
-
-    createWmsLayer(layer, customZIndex = null) {
-      try {
-        if (!validateWmsLayer(layer)) {
-          return null;
-        }
-
-        const url = `${layer.wms.geoserver.wms_url}`;
-        const options = createWmsOptions(layer, customZIndex);
-        const wmsLayer = this.$L.tileLayer.wms(url, options);
-
-        this.setupLayerEventHandlers(wmsLayer);
-        return wmsLayer;
-      } catch (error) {
-        return null;
-      }
-    },
-
-    createTmsLayer(layer, customZIndex = null) {
-      try {
-        if (!validateTmsLayer(layer)) {
-          return null;
-        }
-
-        const options = createTmsOptions(layer, customZIndex);
-        const tmsLayer = this.$L.tileLayer(layer.tms.url, options);
-
-        this.setupLayerEventHandlers(tmsLayer);
-        return tmsLayer;
-      } catch (error) {
-        return null;
-      }
-    },
-
-    createVectorLayer(layer, customZIndex = null) {
-      try {
-        const geoJsonOptions = {
-          style: {
-            color: layer.style && layer.style.color ? layer.style.color : '#3388ff',
-            weight: layer.style && layer.style.weight ? layer.style.weight : 3,
-            opacity: layer.style && layer.style.opacity ? layer.style.opacity : 1.0,
-            fillColor: layer.style && layer.style.fillColor ? layer.style.fillColor : '#3388ff',
-            fillOpacity: layer.style && layer.style.fillOpacity ? layer.style.fillOpacity : 0.2,
-          },
-        };
-
-        const vectorLayer = this.$L.geoJSON(layer.geometry, geoJsonOptions);
-
-        if (customZIndex) vectorLayer.setZIndex(customZIndex);
-
-        this.setupLayerEventHandlers(vectorLayer);
-        return vectorLayer;
-      } catch (error) {
-        return null;
-      }
-    },
-
-    setupLayerEventHandlers(layer) {
-      layer.on('tileerror', () => {
-        if (!layer.errorLogged) {
-          layer.errorLogged = true;
-        }
-      });
-
-      layer.on('tileload', () => {
-        layer.errorLogged = false;
-      });
-    },
-    ensureLayerVisibility(layer) {
-      try {
-        // If layer is not visible, make it visible temporarily for comparison
-        if (!layer.visible) {
-          this.$store.commit('raster/toggleLayerVisibilityRaster', {
-            id: layer.id,
-            visible: true,
-          });
-        }
-
-        // If layer has blocking CQL filter, note for potential issues
-        if (layer.cql === '1=2') {
-          // Layer has blocking CQL filter, this may cause display issues
-        }
-      } catch (error) {
-        // Error ensuring layer visibility
-      }
-    },
-
-    cleanupMaps() {
-      try {
-        if (this.sideBySideControl) {
-          this.sideBySideControl.remove();
-          this.sideBySideControl = null;
-        }
-
-        if (this.leftLayer && this.map) {
-          this.map.removeLayer(this.leftLayer);
-          this.leftLayer = null;
-        }
-
-        if (this.rightLayer && this.map) {
-          this.map.removeLayer(this.rightLayer);
-          this.rightLayer = null;
-        }
-
-        if (this.baseLayer && this.map) {
-          this.map.removeLayer(this.baseLayer);
-          this.baseLayer = null;
-        }
-
-        if (this.map) {
-          this.map.remove();
-          this.map = null;
-        }
-
-        this.mapsInitialized = false;
-      } catch (error) {
-        // Error cleaning up maps
       }
     },
 
@@ -697,7 +420,18 @@ export default {
     },
 
     getLayerType(layer) {
-      return getLayerTypeName(layer);
+      if (!layer) return 'Desconhecido';
+
+      switch (layer.layer_type) {
+        case 'wms':
+          return 'WMS (Web Map Service)';
+        case 'tms':
+          return 'TMS (Tile Map Service)';
+        case 'heatmap':
+          return 'Mapa de Calor';
+        default:
+          return layer.layer_type ? layer.layer_type.toUpperCase() : 'Desconhecido';
+      }
     },
 
     findGroupForLayer(layerId) {
@@ -706,182 +440,27 @@ export default {
       return groups.find((group) => group.layers && group.layers.includes(layerId)) || null;
     },
 
-    getLayerTypeShort(layer) {
-      if (!layer) return this.$t('unknown');
-
-      switch (layer.layer_type) {
-        case 'wms':
-          return 'WMS';
-        case 'tms':
-          return 'TMS';
-        case 'heatmap':
-          return 'Heatmap';
-        default:
-          return layer.layer_type ? layer.layer_type.toUpperCase() : 'N/A';
-      }
-    },
-
-    truncateText(text, maxLength) {
-      if (!text) return '';
-      if (text.length <= maxLength) return text;
-      return `${text.substring(0, maxLength)}...`;
-    },
-
-    // INPE (DETER, PRODES)
-    addInpeLayers(layersToAdd) {
-      // DETER
-      try {
-        const deterState = this.$store.state.deter;
-
-        if (deterState.showFeaturesDeter && deterState.currentUrlWmsDeter) {
-          layersToAdd.push({
-            name: this.$t('deter-alerts'),
-            layer_type: 'wms',
-            url: deterState.currentUrlWmsDeter,
-            geoserverLayerDeter: deterState.geoserverLayerDeter,
-            opacity: deterState.opacity || 100,
-            visible: true,
-            source: 'deter',
-            zIndex: 930,
-            id: 'deter_alerts',
-          });
-        }
-      } catch (error) {
-        console.log(error.message);
-      }
-
-      // Foco de Calor
-      try {
-        const focoState = this.$store.state.foco;
-
-        if (focoState && focoState.layers) {
-          Object.keys(focoState.layers).forEach((layerKey) => {
-            const layer = focoState.layers[layerKey];
-
-            if (layer.showFeatures && layer.currentUrlWms) {
-              layersToAdd.push({
-                name: `${this.$t('hotspots')} - ${layerKey.toUpperCase()}`,
-                layer_type: 'wms',
-                url: layer.currentUrlWms,
-                geoserverLayer: layer.geoserverLayer,
-                opacity: layer.opacity || 100,
-                visible: true,
-                source: 'foco',
-                zIndex: 950,
-                id: `foco_${layerKey}`,
-              });
-            }
-          });
-        }
-      } catch (error) {
-        console.log(error.message);
-      }
-    },
-
-    // Monitoring
-    addMonitoringLayers(layersToAdd) {
-      try {
-        const monitoringState = this.$store.state.monitoring;
-
-        if (monitoringState.showFeaturesMonitoring && monitoringState.currentUrlWmsMonitoring) {
-          layersToAdd.push({
-            name: this.$t('daily-monitoring'),
-            layer_type: 'wms',
-            url: monitoringState.currentUrlWmsMonitoring,
-            geoserverLayerMonitoring: monitoringState.geoserverLayerMonitoring,
-            opacity: monitoringState.opacity || 100,
-            visible: true,
-            source: 'monitoring',
-            zIndex: 920,
-            id: 'monitoring_daily',
-          });
-        }
-      } catch (error) {
-        console.log(error.message);
-      }
-
-      // Urgent alerts
-      try {
-        const urgentAlertsState = this.$store.state['urgent-alerts'];
-
-        if (urgentAlertsState.showFeaturesAlerts && urgentAlertsState.currentUrlWmsAlerts) {
-          layersToAdd.push({
-            name: this.$t('urgent-alerts'),
-            layer_type: 'wms',
-            url: urgentAlertsState.currentUrlWmsAlerts,
-            geoserverLayerAlerts: urgentAlertsState.geoserverLayerAlerts,
-            opacity: urgentAlertsState.opacity || 100,
-            visible: true,
-            source: 'urgent-alerts',
-            zIndex: 910,
-            id: 'urgent_alerts',
-          });
-        }
-      } catch (error) {
-        console.log(error.message);
-      }
-    },
-
-    // INPE
-    addDeterProdesLayers(layersToAdd) {
-      // DETER
-      try {
-        const deterState = this.$store.state.deter;
-
-        if (deterState.showFeaturesDeter && deterState.currentUrlWmsDeter) {
-          layersToAdd.push({
-            name: this.$t('deter-alerts'),
-            layer_type: 'wms',
-            url: deterState.currentUrlWmsDeter,
-            geoserverLayerDeter: deterState.geoserverLayerDeter,
-            opacity: deterState.opacity || 100,
-            visible: true,
-            source: 'deter',
-            zIndex: 930,
-            id: 'deter_alerts',
-          });
-        }
-      } catch (error) {
-        console.log(error.message);
-      }
-
-      // PRODES
-      try {
-        const prodesState = this.$store.state.prodes;
-
-        if (prodesState.showFeaturesProdes && prodesState.currentUrlWmsProdes) {
-          layersToAdd.push({
-            name: this.$t('prodes-deforestation'),
-            layer_type: 'wms',
-            url: prodesState.currentUrlWmsProdes,
-            geoserverLayerProdes: prodesState.geoserverLayerProdes,
-            opacity: prodesState.opacity || 100,
-            visible: true,
-            source: 'prodes',
-            zIndex: 940,
-            id: 'prodes_deforestation',
-          });
-        }
-      } catch (error) {
-        console.log(error.message);
-      }
-    },
-
-    addSupportLayerUserLayers(layersToAdd) {
-      try {
-        const supportUserLayers = this.$store.state.supportLayersUser.supportLayerUser || {};
-        Object.values(supportUserLayers).forEach((layer) => {
-          if (layer.visible) {
-            layersToAdd.push({
-              ...layer,
-              source: 'supportLayersUser',
-              zIndex: 10,
-            });
-          }
+    ensureLayerVisibility(layer) {
+      if (!layer.visible) {
+        this.$store.commit('raster/toggleLayerVisibilityRaster', {
+          id: layer.id,
+          visible: true,
         });
-      } catch (error) {
-        console.log(error.message);
       }
+    },
+
+    cleanupMaps() {
+      if (this.baseLayer && this.map) {
+        this.map.removeLayer(this.baseLayer);
+        this.baseLayer = null;
+      }
+
+      if (this.map) {
+        this.map.remove();
+        this.map = null;
+      }
+
+      this.mapsInitialized = false;
     },
   },
 };

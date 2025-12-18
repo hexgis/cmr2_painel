@@ -34,6 +34,7 @@ export default {
     { src: '~/plugins/vue-chartjs.js', mode: 'client' },
     { src: '~/plugins/vue2-leaflet-markercluster.js', mode: 'client' },
     { src: '~/plugins/L.BufferControl.js', mode: 'client' },
+    { src: '~/plugins/confirm-dialog.js', mode: 'client' },
   ],
 
   buildModules: [
@@ -103,13 +104,13 @@ export default {
       if (ctx.isDev) {
         config.devtool = ctx.isClient ? 'source-map' : 'inline-source-map';
       }
-      
+
       // Configurar regras CSS para ignorar PostCSS em node_modules
       const cssRule = config.module.rules.find(rule => rule.test && rule.test.toString().includes('css'));
       if (cssRule && cssRule.oneOf) {
         cssRule.oneOf.forEach(rule => {
           if (rule.use && Array.isArray(rule.use)) {
-            const postcssIndex = rule.use.findIndex(loader => 
+            const postcssIndex = rule.use.findIndex(loader =>
               loader.loader && loader.loader.includes('postcss-loader')
             );
             if (postcssIndex !== -1) {

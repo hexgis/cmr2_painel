@@ -1,729 +1,313 @@
 <template>
-  <v-col>
-     <v-row>
-           <v-col cols="9" class="pt-0 mt-0">
+  <v-form ref="urgentAlertForm">
+    <v-card class="pa-0">
+      <v-card-title class="py-0 pt-4 d-flex justify-space-between">
         <v-checkbox
-          v-model="filters.currentView"
-          :label="$t('current-view-label')"
-          :error="error"
-          hide-details
+          v-model="currentViewArea"
+          :label="$t('current-view')"
+          :rules="currentViewRules"
+          class="ma-0 pa-0"
         />
-      </v-col>
-        <v-col cols="3" class="pt-0 mt-0" >
-        <v-tooltip bottom>
-          <template #activator="{ on }">
-            <div
-              class="d-flex justify-end align-center mt-1"
-            >
-              <v-switch
-                v-if="currentUrlWmsAlerts"
-                v-model="featuresAlerts"
-                class="mt-3"
-                hide-details
-              />
-            </div>
+        <v-tooltip
+          v-if="getUrlWmsUrgentAlert"
+          bottom
+          :text="$t('title-switch-disable-features')"
+        >
+          <template #activator="{ props }">
+            <v-switch
+              v-bind="props"
+              v-model="showFeaturesUrgentAlert"
+              class="ma-0 pa-0"
+            />
           </template>
-          <span>
-            {{
-              showFeaturesAlerts
-                ? $t('title-switch-disable-features')
-                : $t('title-switch-enable-features')
-            }}
-          </span>
         </v-tooltip>
-      </v-col>
-         <v-col cols="12">
-        <v-combobox
-          v-model="filters.cr"
-          :label="$t('regional-coordination-label')"
-          :items="flattened"
-          item-value="co_cr"
-          item-text="ds_cr"
-          hide-details
-          clearable
-          multiple
-          :error="error"
-          class="pa-0"
-          outlined
-          @change="emitFilters"
-        />
-      </v-col>
-
-      <v-col cols="12">
-        <v-slide-y-transition>
+      </v-card-title>
+      <v-card-text>
+        <v-row no-gutters>
           <v-combobox
-            v-if="filters.cr && filterOptions.tiFilters"
-            v-model="filters.ti"
-            :label="$t('indigenous-lands-label')"
-            :items="filterOptions.tiFilters"
+            v-model="currentRegionalCoordinates"
+            :label="$t('regional-coordination')"
+            :items="getRegionalCoordinators"
+            item-value="co_cr"
+            item-text="ds_cr"
+            hide-details
+            :loading="loadingRegionalCoordinators"
+            :disabled="loadingRegionalCoordinators || loadingSearchUrgentAlert"
+            :rules="regionalCoordinationRules"
+            clearable
+            multiple
+            class="pa-0"
+            outlined
+            @clear="currentRegionalCoordinates = [], currentIndigenousLand = []"
+          />
+          <v-combobox
+            v-show="currentRegionalCoordinates.length"
+            v-model="currentIndigenousLand"
+            :label="$t('indigenous-land')"
+            :items="getIndigenousLands"
             item-text="no_ti"
             item-value="co_funai"
+            :loading="loadingIndigenousLands"
+            :disabled="loadingIndigenousLands || loadingSearchUrgentAlert"
             hide-details
-            multiple
             clearable
-            class="pa-0 mt-n3"
+            multiple
+            class="mt-4"
             outlined
-            @change="emitFilters"
+            @clear="currentIndigenousLand = []"
           />
-        </v-slide-y-transition>
-      </v-col>
 
-      <v-col cols="6" class="py-0">
-        <BaseDateField
-          v-model="filters.startDate"
-          :label="$t('start-date-label')"
-          :required="true"
-          outlined
-          :min-date="'2015-01-01'"
-        />
-      </v-col>
-      <v-col cols="6" class="py-0">
-        <BaseDateField
-          v-model="filters.endDate"
-          :label="$t('end-date-label')"
-          :required="true"
-          outlined
-          :min-date="'2015-01-01'"
-        />
-      </v-col>
-
-      <v-col cols="12">
-        <v-btn
-          block
-          small
-          color="primary"
-          outlined
-          :loading="loadingAlerts"
-          class="pa-0 mt-n6"
-          @click="searchAlerts"
-        >
-          {{ $t('search-label') }}
-        </v-btn>
-      </v-col>
-    </v-row>
-    <div
-      v-if="isLoadingFeatures"
-      class="mt-1"
-    >
-      <v-row
-        no-gutters
-        justify="center"
-      >
-        <v-col cols="6">
-          <v-skeleton-loader type="table-cell@4" />
-        </v-col>
-        <v-col cols="6">
-          <div class="d-flex justify-end">
-            <v-skeleton-loader type="table-cell@4" />
-          </div>
-        </v-col>
-      </v-row>
-      <v-divider class="mt-1" />
-      <div>
-        <v-skeleton-loader type="table-cell" />
-        <v-row
-          v-for="n in 4"
-          :key="n"
-          no-gutters
-          align="center"
-          class="mb-4"
-        >
-          <v-col cols="1">
-            <v-skeleton-loader
-              width="20"
-              height="20"
-              tile
-              type="avatar"
+          <v-col
+            cols="6"
+            class="pr-1 mt-4"
+          >
+            <BaseDateField
+              v-model="currentStartDate"
+              :label="$t('start-date')"
+              :required="true"
+              outlined
+              :min-date="'2015-01-01'"
             />
           </v-col>
-          <v-col cols="10">
-            <v-skeleton-loader type="text" />
+
+          <v-col
+            cols="6"
+            class="pl-1 mt-4"
+          >
+            <BaseDateField
+              v-model="currentEndDate"
+              :label="$t('end-date')"
+              :required="true"
+              outlined
+              :min-date="'2015-01-01'"
+            />
+          </v-col>
+
+          <v-col
+            cols="12"
+            class="mt-4"
+          >
+            <v-btn
+              block
+              small
+              color="primary"
+              outlined
+              :loading="loadingSearchUrgentAlert"
+              :disabled="!currentStartDate || !currentEndDate || loadingSearchUrgentAlert"
+              class="pa-0 mt-n6"
+              @click="searchUrgentAlert"
+            >
+              {{ $t('search-label') }}
+            </v-btn>
           </v-col>
         </v-row>
-      </div>
-    </div>
-    <v-row
-      v-else-if="
-        showFeaturesAlerts
-          && features.features.length > 0"
-      no-gutters
-      align="center"
-      class="mt-3"
-    >
-      <v-col
-        cols="12"
-        class="mt-n3 mb-1"
-      >
-        <DialogConfirmDownload module="urgent-alerts" />
-        <v-btn
-          :loading="isLoadingStatistic"
-          small
-          color="accent"
-          icon
-          @click="showTableDialogAnalytics(true), (dialog = true)"
-        >
-          <v-tooltip bottom>
-            <template #activator="{ on }">
-              <v-icon v-on="on">
-                mdi-chart-box
-              </v-icon>
-            </template>
-            <span>{{ $t('statistics-label') }}</span>
-          </v-tooltip>
-        </v-btn>
-        <v-btn
-          :loading="isLoadingTable"
-          icon
-          fab
-          small
-          color="accent"
-          @click="showTableDialog(true)"
-        >
-          <v-tooltip bottom>
-            <template #activator="{ on }">
-              <v-icon v-on="on">
-                mdi-table
-              </v-icon>
-            </template>
-            <span>{{ $t('table-label') }}</span>
-          </v-tooltip>
-        </v-btn>
-      </v-col>
-      <v-col cols="12">
-        <v-divider />
-      </v-col>
-      <v-col
-        cols="12"
-        class="grey--text text--darken-2 d-flex justify-space-between mt-2 mb-4"
-      >
-        <span>{{ $t('total-poligono-label') }}:</span>
-        {{ totalVisiblePolygons }}
-      </v-col>
-      <v-col
-        cols="12"
-        class="grey--text text--darken-2 d-flex justify-space-between"
-      >
-        <span>{{ $t('total-area-label') }}:</span>
-        {{ totalVisibleArea }} ha
-      </v-col>
-      <v-col
-        cols="12"
-        class="mt-2"
-      >
-        <v-divider />
-      </v-col>
-      <v-row class="mt-0">
-        <v-col
-          cols="4"
-          class="grey--text text--darken-2"
-        >
-          {{ $t('opacity-label') }}
-        </v-col>
-        <v-col cols="8">
-          <v-slider
-            v-if="opacity !== null"
-            v-model="opacity"
-            hide-details
-            thumb-label
-            @input="updateOpacity"
-          />
-        </v-col>
-        <v-col class="mt-n6">
-          <span class="grey--text text--darken-2">{{ $t('heat-map-label') }}</span>
-        </v-col>
-        <v-col
-          cols="3"
-          class="d-flex justify-end mt-n7 pr-1"
-        >
-          <v-switch
-            v-model="heatMap" 
-            class="mt-0 pt-0"
-            :loading="loadingHeatmap"
-            :disabled="loadingHeatmap || !hasFeatures"
-            hide-details
-          />
-        </v-col>
-      </v-row>
-      <v-col cols="12">
-        <v-divider />
-      </v-col>
-      <v-col cols="12">
-        <p class="font-weight-regular pt-2 grey--text text--darken-2 mb-n6">
-          {{ $t('legend') }}
-        </p>
-      </v-col>
-      <v-row
-        v-if="legendItems.length"
-        class="mt-2"
-      >
-        <v-col>
-          <v-list
-            dense
-            flat
-          >
-            <v-list-item
-              v-for="item in legendItems"
-              :key="item.estagio"
-              class="pa-1 compact-list-item"
-              :class="{ 'active-legend-item': item.active }"
-            >
-              <v-list-item-icon class="my-0">
-                <span
-                  class="legend-color"
-                  :style="{ backgroundColor: item.color }"
-                />
-              </v-list-item-icon>
-              <v-list-item-content class="py-0">
-                <span class="grey--text text--darken-2 compact-text">{{ item.label }}</span>
-              </v-list-item-content>
-              <v-list-item-action class="my-0 compact-action">
-                <v-switch
-                  v-model="item.visible"
-                  :loading="loadingEstagios[item.estagio]"
-                  @change="toggleLegendItem(item)"
-                />
-              </v-list-item-action>
-            </v-list-item>
-          </v-list>
-        </v-col>
-      </v-row>
-    </v-row>
 
-    <!-- Diálogos -->
-    <TableDialog
-      :table="tableDialogAlerts"
-      :headers="headers"
-      :value="formattedTableAlerts"
-      :loading-table="isLoadingTable"
-      :loading-c-s-v="isLoadingCSV"
-      :table-name="$t('table-name')"
-      :f-download-c-s-v="downloadTableAlerts"
-      :f-close-table="closeTable"
-    />
-    <div
-      v-if="dialog"
-      class="d-none"
-    >
-      <AnalyticalDialog
-        :value="analyticsAlertsDialog"
-        :close-dialog="closeAnalyticalDialog"
-      />
-    </div>
-  </v-col>
+        <template v-if="getShowFeaturesUrgentAlert">
+          <v-divider class="mt-4" />
+          <UrgentAlertResults />
+        </template>
+      </v-card-text>
+    </v-card>
+  </v-form>
 </template>
-
-<script>
-import { mapMutations, mapState, mapActions } from 'vuex';
-import TableDialog from '../../table-dialog/TableDialog.vue';
-import AnalyticalDialog from '../../analytical-dialog/AnalyticalDialog.vue';
-import BaseDateField from '@/components/base/BaseDateField';
-import DialogConfirmDownload from '../DialogConfirmDownload.vue';
-
-export default {
-  name: 'UrgentAlertsFilters',
-  components: {
-    TableDialog,
-    DialogConfirmDownload,
-    AnalyticalDialog,
-    BaseDateField
-  },
-  data() {
-    return {
-      filters: {
-        startDate: this.$moment().subtract(30, 'days').format('YYYY-MM-DD'),
-        endDate: this.$moment().format('YYYY-MM-DD'),
-        currentView: false,
-        priority: null,
-        cr: [],
-        ti: null,
-      },
-      error: false,
-      headers: [
-        { text: 'ID', value: 'origin_id' },
-        { text: 'Código Funai', value: 'co_funai' },
-        { text: 'Terra Indígena', value: 'no_ti' },
-        { text: 'Coordenação Regional', value: 'ds_cr' },
-        { text: 'Classe', value: 'no_estagio' },
-        { text: 'Data da Imagem', value: 'dt_imagem' },
-        { text: 'Área do Polígono (ha)', value: 'nu_area_ha' },
-        { text: 'Latitude', value: 'nu_latitude' },
-        { text: 'Longitude', value: 'nu_longitude' },
-      ],
-      filteredYears: [],
-      checkNewFilters: false,
-      isLoadingTotal: false,
-      isLoadingFeatures: false,
-      flattened: [],
-      dialog: false,
-      tableDialogAlerts: false,
-      isLoadingTable: false,
-      isLoadingCSV: false,
-      isLoadingGeoJson: false,
-      loadingEstagios: {},
-    };
-  },
-  computed: {
-    hasFeatures() {
-      return this.features.features.length > 0;
-    },
-    totalVisiblePolygons() {
-      if (!this.features.features.length) return 0;
-      const visibleEstagios = Object.keys(this.$store.state['urgent-alerts'].legendVisibility)
-        .filter(estagio => this.$store.state['urgent-alerts'].legendVisibility[estagio]);
-      return this.features.features.filter(feature =>
-        visibleEstagios.includes(feature.properties.no_estagio)
-      ).length;
-    },
-    totalVisibleArea() {
-      if (!this.features.features.length) {
-        return this.formatFieldValue(0, 'nu_area_ha');
-      }
-      const visibleEstagios = Object.keys(this.$store.state['urgent-alerts'].legendVisibility)
-        .filter(estagio => this.$store.state['urgent-alerts'].legendVisibility[estagio]);
-      const total = this.features.features
-        .filter(feature => visibleEstagios.includes(feature.properties.no_estagio))
-        .reduce((sum, feature) =>
-          sum + ((feature.properties && feature.properties.nu_area_ha) || 0),
-          0
-        );
-      return this.formatFieldValue(total, 'nu_area_ha');
-    },
-    formattedTableAlerts() {
-      if (!this.tableAlerts || !this.tableAlerts.length) {
-        return [];
-      }
-      return this.tableAlerts.map((item) => {
-        const formattedItem = { ...item };
-        this.headers.forEach((header) => {
-          const field = header.value;
-          formattedItem[field] = this.formatFieldValue(item[field], field);
-        });
-        return formattedItem;
-      });
-    },
-    opacity: {
-      get() {
-        return this.$store.state['urgent-alerts'].opacity;
-      },
-      set(value) {
-        this.$store.commit('urgent-alerts/setOpacity', value);
-      },
-    },
-    heatMap: {
-      get() {
-        return this.$store.state['urgent-alerts'].heatMap;
-      },
-      set(value) {
-        this.$store.dispatch('urgent-alerts/generateHeatmapAlerts', value);
-      },
-    },
-    featuresAlerts: {
-      get() {
-        return this.$store.state['urgent-alerts'].showFeaturesAlerts;
-      },
-      set(value) {
-        this.$store.commit('urgent-alerts/setshowFeaturesAlerts', value);
-        if (!value) {
-          this.$store.commit('urgent-alerts/setHeatMap', false);
-        }
-      },
-    },
-    legendItems() {
-      return this.$store.getters['urgent-alerts/getLegendItems'];
-    },
-    tableAlerts() {
-      return this.$store.state['urgent-alerts'].tableAlerts;
-    },
-    ...mapState('urgent-alerts', [
-      'currentUrlWmsAlerts',
-      'loadingAlerts',
-      'filterOptions',
-      'features',
-      'analyticsAlertsDialog',
-      'isLoadingStatistic',
-      'showFeaturesAlerts',
-      'loadingHeatmap',
-    ]),
-  },
-  watch: {
-    'filters.currentView': function (value) {
-      if (value && this.filters.cr.length > 0) {
-        this.filters.cr = [];
-        this.emitFilters();
-      }
-    },
-    'filters.cr': function (value) {
-      if (value.length > 0 && this.filters.currentView) {
-        this.filters.currentView = false;
-        this.emitFilters();
-      }
-      const arrayCrPopulate = value.map((item) => item.co_cr);
-      this.populateTiOptions(arrayCrPopulate);
-    },
-    'filterOptions.regionalFilters': function () {
-      this.populateCrOptions();
-    },
-    opacity() {
-      this.$store.dispatch('urgent-alerts/generateUrlWmsAlerts');
-    },
-  },
-  mounted() {
-    this.getFilterOptions();
-    this.getAlertsStyleFromGeoserver();
-  },
-  methods: {
-    emitFilters() {
-      this.$emit('update:filters', { ...this.filters });
-    },
-    debounce(func, wait) {
-      let timeout;
-      return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func(...args), wait);
-      };
-    },
-    updateOpacity(value) {
-      this.debounce((val) => {
-        this.opacity = val;
-      }, 100)(value);
-    },
-    formatFieldValue(value, field = '') {
-      if (value === null || value === undefined) return 'N/A';
-
-      const fieldName = field.toLowerCase();
-      const isDateField = typeof value === 'string'
-        && (fieldName.startsWith('dt_') || fieldName.startsWith('data_') || fieldName.startsWith('date'))
-        && this.$moment(value).isValid();
-      const isBooleanField = typeof value === 'boolean';
-      const isNumberField = typeof value === 'number';
-      const isLatLongField = ['lat', 'lng', 'long', 'latitude', 'longitude'].some((key) => fieldName.includes(key));
-
-      if (isDateField) return this.$moment(value).format('DD/MM/YYYY');
-      if (isBooleanField) return value ? 'Sim' : 'Não';
-      if (isNumberField || fieldName.startsWith('nu_')) {
-        if (isLatLongField) return value.toFixed(5);
-        let parsedValue = value;
-        if (typeof value === 'string') parsedValue = parseFloat(value);
-        if (Number.isNaN(parsedValue)) return 'N/A';
-        const rounded = parsedValue.toFixed(2);
-        const [intPart, decimalPart] = rounded.split('.');
-        return decimalPart !== '00' || (fieldName.startsWith('nu_') && fieldName.includes('area'))
-          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
-          : parseInt(value, 10).toString();
-      }
-      return value.toString() || 'N/A';
-    },
-    populateCrOptions() {
-      this.flattened = [];
-      const groups = {};
-      this.filterOptions.regionalFilters.forEach((x) => {
-        groups[x.no_regiao] = groups[x.no_regiao] || { ds_cr: x.ds_cr, list: [] };
-        groups[x.no_regiao].list.push(x);
-      });
-      Object.keys(groups).forEach((categoryId) => {
-        const category = groups[categoryId];
-        this.flattened.push({ header: categoryId });
-        this.flattened.push(...category.list);
-      });
-    },
-    populateTiOptions(cr) {
-      if (cr && cr.length) {
-        this.$store.dispatch('urgent-alerts/getTiOptions', cr);
-      } else {
-        this.filters.ti = [];
-      }
-    },
-    showTableDialogAnalytics(value) {
-      if (this.currentUrlWmsAlerts) {
-        this.setanalyticsAlertsDialog(value);
-        this.getDataAnalyticsAlerts();
-      }
-    },
-    searchAlerts() {
-      const { filters } = this;
-      const {
-        currentView, cr, startDate, endDate,
-      } = filters;
-
-      if (
-        (currentView || cr.length)
-        && startDate
-        && endDate
-        && this.$moment(startDate).isValid()
-        && this.$moment(endDate).isValid()
-      ) {
-        this.error = false;
-        const filtersForStore = {
-          ...filters,
-          startDate: this.$moment(startDate).format('YYYY-MM-DD'),
-          endDate: this.$moment(endDate).format('YYYY-MM-DD'),
-        };
-
-        if (this.$moment(startDate).isAfter(endDate)) {
-          this.error = true;
-          this.$store.commit(
-            'alert/addAlert',
-            { message: this.$t('invalid-date-range'), type: 'error' },
-            { root: true },
-          );
-          return;
-        }
-
-        const allEstagiosDisabled = Object.values(
-          this.$store.state['urgent-alerts'].legendVisibility,
-        ).every(
-          (visible) => !visible,
-        );
-
-        if (allEstagiosDisabled) {
-        
-          this.$store.commit('urgent-alerts/clearFeatures');
-          this.$store.commit('urgent-alerts/setTableAlerts', []);
-        }
-
-        this.setFilters(filtersForStore);
-        this.isLoadingFeatures = true;
-        this.getFeatures().then(() => {
-          this.getDataTableAlerts();
-          this.isLoadingFeatures = false;
-        }).catch(() => {
-          this.isLoadingFeatures = false;
-        });
-      } else {
-        this.error = true;
-      }
-    },
-    showTableDialog(value) {
-      if (this.features) {
-        this.tableDialogAlerts = value;
-        this.getDataTableAlerts();
-      }
-    },
-    closeTable(value) {
-      this.tableDialogAlerts = value;
-      if (this.checkNewFilters) {
-        this.getFeatures();
-        this.checkNewFilters = false;
-      }
-    },
-    closeAnalyticalDialog(value) {
-      this.dialog = value;
-    },
-    async toggleLegendItem(item) {
-      try {
-        this.$set(this.loadingEstagios, item.estagio, true);
-
-        const map = window.mapMain;
-        const currentZoom = map?.getZoom();
-        const currentCenter = map?.getCenter();
-
-        await this.$store.dispatch('urgent-alerts/toggleLegendVisibility', {
-          estagio: item.estagio,
-          visible: item.visible
-        });
-
-        if (map && currentZoom && currentCenter) {
-          map.setView(currentCenter, currentZoom);
-        }
-
-      } catch (error) {
-        console.error('Erro ao alternar estágio:', error);
-        this.$store.commit('urgent-alerts/setLegendVisibility', {
-          estagio: item.estagio,
-          visible: !item.visible
-        });
-      } finally {
-        this.$set(this.loadingEstagios, item.estagio, false);
-      }
-    },
-    ...mapMutations('urgent-alerts', ['setFilters', 'setLoadingStatistic', 'setanalyticsAlertsDialog']),
-    ...mapActions('urgent-alerts', [
-      'getFilterOptions',
-      'getFeatures',
-      'getAlertsStyleFromGeoserver',
-      'downloadGeoJsonAlerts',
-      'getDataTableAlerts',
-      'downloadTableAlerts',
-      'getDataAnalyticsAlerts',
-    ]),
-  },
-};
-</script>
-
-<style scoped lang="scss">
-.legend-color {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: 2px;
-  margin-right: 8px;
-  margin-top: 12px;
-  padding: 0px;
-}
-.compact-list-item {
-  min-height: 32px !important;
-  margin: 0 !important;
-  padding: 0px 0px !important;
-}
-.compact-text {
-  font-size: 14px !important;
-  line-height: 1.4 !important;
-}
-@media (max-width: 768px) {
-  .full-width {
-    flex: 0 0 100%;
-    max-width: 100%;
-  }
-  .text-label {
-    font-size: 0.8rem;
-    padding-right: 0px;
-  }
-}
-</style>
 
 <i18n>
 {
   "en": {
-    "legend": "Legend:",
+    "invalid-date": "Invalid date",
+    "date-format": "YYYY-MM-DD",
+    "current-view": "Search in current area?",
+    "title-switch-disable-features": "Disable Daily Urgent Alert",
+    "title-switch-enable-features": "Enable Daily Urgent Alert",
+    "regional-coordination": "Regional Coordination (All)",
+    "indigenous-land": "Indigenous Land (All)",
+    "start-date": "Start Date",
+    "end-date": "End Date",
     "search-label": "Search",
-    "opacity-label": "Opacity",
-    "current-view-label": "Search in current area?",
-    "start-date-label": "Start Date",
-    "end-date-label": "End Date",
-    "total-area-label": "Total area",
-    "heat-map-label": "Heat Map",
-    "total-poligono-label": "Total polygons",
-    "regional-coordination-label": "Regional Coordination (All)",
-    "indigenous-lands-label": "Indigenous Lands",
-    "title-switch-disable-features": "Disable Alerts Layer",
-    "title-switch-enable-features": "Enable Alerts Layer",
-    "download-label": "Download",
-    "statistics-label": "Statistics",
-    "table-label": "Table",
-    "table-name": "Land Use Table",
-    "invalid-date-range": "Start date cannot be after end date",
-    "heatmap": "Heat Map"
+    "cycle-label": "Cycle",
+    "data-label": "Date",
+    "start_cycle": "Start Cycle",
+    "end_cycle": "End Cycle"
   },
   "pt-br": {
-    "legend": "Legenda:",
+    "invalid-date": "Data inválida",
+    "date-format": "DD/MM/YYYY",
+    "current-view": "Pesquisar nesta área?",
+    "title-switch-disable-features": "Desabilitar Alertas Urgentes",
+    "title-switch-enable-features": "Habilitar Alertas Urgentes",
+    "regional-coordination": "Coordenação Regional (Todas)",
+    "indigenous-land": "Terras Indígenas (Todas)",
+    "start-date": "Data Inicial",
+    "end-date": "Data Final",
     "search-label": "Buscar",
-    "opacity-label": "Opacidade",
-    "current-view-label": "Pesquisar nesta área?",
-    "start-date-label": "Data Inicial",
-    "end-date-label": "Data Final",
-    "total-area-label": "Área total",
-    "heat-map-label": "Mapa de Calor",
-    "total-poligono-label": "Total de polígonos",
-    "regional-coordination-label": "Coordenação Regional (Todas)",
-    "indigenous-lands-label": "Terras Indígenas",
-    "title-switch-disable-features": "Desabilitar Camada de Monitoramento Diário",
-    "title-switch-enable-features": "Habilitar Camada de Monitoramento Diário",
-    "download-label": "Baixar",
-    "statistics-label": "Estatísticas",
-    "table-label": "Tabela",
-    "table-name": "Tabela de Monitoramento Diário",
-    "invalid-date-range": "A data inicial não pode ser posterior à data final",
-    "heatmap": "Mapa de Calor"
+    "cycle-label": "Ciclo",
+    "data-label": "Data",
+    "start_cycle": "Ciclo Inicial",
+    "end_cycle": "Ciclo Final"
   }
 }
 </i18n>
+
+<script>
+import { mapState, mapGetters } from 'vuex';
+import BaseDateField from '@/components/base/BaseDateField';
+import UrgentAlertResults from './UrgentAlertResults.vue';
+
+export default {
+  name: 'UrgentAlertFilters',
+
+  components: {
+    BaseDateField,
+    UrgentAlertResults,
+  },
+
+  data() {
+    return {
+      currentViewRules: [
+        (v) => (!!v || !!(this.filters.cr && this.filters.cr.length)) || false,
+      ],
+      regionalCoordinationRules: [
+        (v) => ((!!v && !!v.length) || !!this.filters.currentView) || false,
+      ],
+    };
+  },
+
+  computed: {
+    showFeaturesUrgentAlert: {
+      get() {
+        return this.$store.state['urgent-alerts'].showFeaturesUrgentAlert;
+      },
+      set(value) {
+        this.$store.commit('urgent-alerts/setShowFeaturesUrgentAlert', value);
+      },
+    },
+
+    currentViewArea: {
+      get() {
+        return this.filters.currentView;
+      },
+      set(value) {
+        this.$store.commit('urgent-alerts/setFilters', { currentView: value });
+        if (value && this.currentRegionalCoordinates.length) this.currentRegionalCoordinates = [];
+      },
+    },
+
+    currentRegionalCoordinates: {
+      get() {
+        return this.filters.cr;
+      },
+      set(value) {
+        this.$store.commit('urgent-alerts/setFilters', { cr: value });
+        this.$store.dispatch('urgent-alerts/getTiOptions');
+        if (value.length && this.currentViewArea) {
+          this.$store.commit('urgent-alerts/setFilters', { currentView: false });
+        }
+      },
+    },
+
+    currentIndigenousLand: {
+      get() {
+        return this.filters.ti;
+      },
+      set(value) {
+        this.$store.commit('urgent-alerts/setFilters', { ti: value });
+      },
+    },
+
+    currentStartCycle: {
+      get() {
+        return this.filters.startCycle;
+      },
+      set(value) {
+        this.$store.commit('urgent-alerts/setFilters', { startCycle: value });
+      },
+    },
+
+    currentEndCycle: {
+      get() {
+        return this.filters.endCycle;
+      },
+      set(value) {
+        this.$store.commit('urgent-alerts/setFilters', { endCycle: value });
+      },
+    },
+
+    currentStartDate: {
+      get() {
+        return this.filters.startDate || '';
+      },
+      set(value) {
+        this.$store.commit('urgent-alerts/setFilters', { startDate: value });
+      },
+    },
+
+    currentEndDate: {
+      get() {
+        return this.filters.endDate || '';
+      },
+      set(value) {
+        this.$store.commit('urgent-alerts/setFilters', { endDate: value });
+      },
+    },
+
+    currentTab: {
+      get() {
+        return this.filters.currentTab;
+      },
+      set(value) {
+        this.$store.commit('urgent-alerts/setFilters', { currentTab: value });
+      },
+    },
+
+    ...mapGetters('urgent-alerts', [
+      'getRegionalCoordinators',
+      'getFilters',
+      'getIndigenousLands',
+      'getShowFeaturesUrgentAlert',
+      'getUrlWmsUrgentAlert',
+    ]),
+    ...mapState('urgent-alerts', [
+      'filters',
+      'loadingIndigenousLands',
+      'loadingRegionalCoordinators',
+      'loadingSearchUrgentAlert',
+    ]),
+  },
+
+  created() {
+    this.initializeDates();
+  },
+
+  methods: {
+    initializeDates() {
+      // 1 month later
+      this.currentStartDate = this.$moment().subtract(1, 'month').format('YYYY-MM-DD') || '';
+      // current date
+      this.currentEndDate = this.$moment().format('YYYY-MM-DD') || '';
+    },
+
+    validCurrentViewArea(value) {
+      if (!value || (this.filters.cr && this.filters.cr.length)) {
+        return true;
+      }
+      return false;
+    },
+
+    validRegionalCoordination(value) {
+      if (!value || (this.filters.currentView)) {
+        return true;
+      }
+      return false;
+    },
+
+    searchUrgentAlert() {
+      if (this.$refs.urgentAlertForm.validate()) {
+        this.$store.commit('urgent-alerts/setUrlWmsUrgentAlert', '');
+        this.$store.dispatch('urgent-alerts/generateUrlWmsUrgentAlert');
+      }
+    },
+  },
+};
+</script>
+
+<style scoped lang="scss"></style>

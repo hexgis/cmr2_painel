@@ -37,20 +37,14 @@
             style="max-height: 780px"
           >
             <div
+              v-if="selectedItemsCount <= 7"
               id="data-table"
               class="leaflet-bottom leaflet-right"
             >
-              <template
-                v-if="
-                  showFeaturesMonitoring &&
-                    hasActiveMonitoringStages &&
-                    selectedItemsCount >= 0 &&
-                    selectedItemsCount <= 7
-                "
-              >
+              <template v-if="getMonitoringShowFeatures && monitoringStatsByStages.length">
                 <!-- Bloco para Monitoramento -->
                 <div
-                  v-for="(item, index) in filteredMonitoringData"
+                  v-for="(item, index) in monitoringStatsTiByStages"
                   :key="'monitoring-' + index"
                   class="text-center bordered-red"
                 >
@@ -60,30 +54,21 @@
                   <p v-if="parseFloat(item.nu_area_ha) > 0">
                     Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
                   </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_cr_ha) > 0">
-                    CR: {{ formatNumber(item.monitoring.nu_area_cr_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_dg_ha) > 0">
-                    DG: {{ formatNumber(item.monitoring.nu_area_dg_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_dr_ha) > 0">
-                    DR: {{ formatNumber(item.monitoring.nu_area_dr_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.monitoring.nu_area_ff_ha) > 0">
-                    FF: {{ formatNumber(item.monitoring.nu_area_ff_ha) }} ha
-                  </p>
+
+                  <template v-for="(stage, key) in item.stages">
+                    <p
+                      v-if="parseFloat(stage.area_ha) > 0 && getMonitoringCheckStageActives(stage)"
+                      :key="key"
+                    >
+                      {{ stage.no_estagio }} {{ formatNumber(stage.area_ha) }} ha
+                    </p>
+                  </template>
                 </div>
               </template>
-              <template
-                v-if="
-                  showFeaturesLandUse &&
-                    selectedItemsCount >= 0 &&
-                    selectedItemsCount <= 7
-                "
-              >
+              <template v-if="showFeaturesLandUse && landUseStatsByStages.length">
                 <!-- Bloco para Uso e Ocupação do Solo -->
                 <div
-                  v-for="(item, index) in filteredLandUseData"
+                  v-for="(item, index) in landUseStatsTiByStages"
                   :key="'landuse-' + index"
                   class="text-center bordered-blue"
                 >
@@ -93,48 +78,21 @@
                   <p v-if="parseFloat(item.nu_area_ha) > 0">
                     Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
                   </p>
-                  <p v-if="parseFloat(item.landUse.nu_area_ag_ha) > 0">
-                    AG: {{ formatNumber(item.landUse.nu_area_ag_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.landUse.nu_area_cr_ha) > 0">
-                    CR: {{ formatNumber(item.landUse.nu_area_cr_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.landUse.nu_area_dg_ha) > 0">
-                    DG: {{ formatNumber(item.landUse.nu_area_dg_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.landUse.nu_area_ma_ha) > 0">
-                    MA: {{ formatNumber(item.landUse.nu_area_ma_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.landUse.nu_area_mi_ha) > 0">
-                    MI: {{ formatNumber(item.landUse.nu_area_mi_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.landUse.nu_area_no_ha) > 0">
-                    NO: {{ formatNumber(item.landUse.nu_area_no_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.landUse.nu_area_rv_ha) > 0">
-                    RV: {{ formatNumber(item.landUse.nu_area_rv_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.landUse.nu_area_sv_ha) > 0">
-                    SV: {{ formatNumber(item.landUse.nu_area_sv_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.landUse.nu_area_vn_ha) > 0">
-                    VN: {{ formatNumber(item.landUse.nu_area_vn_ha) }} ha
-                  </p>
-                  <p v-if="parseFloat(item.landUse.nu_area_vi_ha) > 0">
-                    VI: {{ formatNumber(item.landUse.nu_area_vi_ha) }} ha
-                  </p>
+                  <template v-for="(stage, key) in item.stages">
+                    <p
+                      v-if="parseFloat(stage.area_ha) > 0 && getLandUseCheckStageActives(stage)"
+                      :key="key"
+                    >
+                      {{ stage.no_estagio }} {{ formatNumber(stage.area_ha) }} ha
+                    </p>
+                  </template>
                 </div>
               </template>
             </div>
             <v-card
-              v-if="
-                showWarningMessage &&
-                  !(
-                    showFeaturesAlerts &&
-                    !showFeaturesMonitoring &&
-                    !showFeaturesLandUse
-                  )
-              "
+              v-if="showWarningMessage &&
+                !(getUrgentAlertsShowFeatures &&
+                  !getMonitoringShowFeatures && !showFeaturesLandUse)"
               class="warning-message"
               elevated
             >
@@ -242,13 +200,7 @@
                             gap: 5px;
                         "
                       >
-                        <div
-                          v-if="
-                            showFeaturesMonitoring &&
-                              hasActiveMonitoringStages &&
-                              selectedItemsCount > 0
-                          "
-                        >
+                        <div v-if="getMonitoringShowFeatures && monitoringStatsByStages.length">
                           <p>
                             <strong> Monitoramento Diário </strong>
                             <v-chip x-small>
@@ -264,20 +216,14 @@
                           >
                           <CustomizedLegend
                             class="pt-1"
-                            :items="monitoringItems"
+                            :items="monitoringStatsByStages"
                           />
                         </div>
-                        <div
-                          v-if="
-                            showFeaturesAlerts &&
-                              hasActiveAlertsStages &&
-                              selectedItemsCount > 0
-                          "
-                        >
+                        <div v-if="getUrgentAlertsShowFeatures && urgentAlertsStatsByStages.length">
                           <p>
                             <strong>Alerta Urgente</strong>
                             <v-chip x-small>
-                              {{ alertsCount }}
+                              {{ urgentAlertsCount }}
                             </v-chip>
                           </p>
                           <hr
@@ -289,22 +235,14 @@
                           >
                           <CustomizedLegend
                             class="pt-1"
-                            :items="alertsItems"
+                            :items="urgentAlertsStatsByStages"
                           />
                         </div>
                         <div
-                          v-if="
-                            showFeaturesSupportLayers &&
-                              Object.values(supportLayers).filter(
-                                (l) => l.visible
-                              ).length &&
-                              Object.values(supportLayers).filter(
-                                (l) => l.visible
-                              ).length <= 7 &&
-                              Object.values(supportLayerUser).filter(
-                                (l) => l.visible
-                              ).length <= 7
-                          "
+                          v-if="showFeaturesSupportLayers
+                            && (Object.values(supportLayers).filter(l => l.visible).length)
+                            && (Object.values(supportLayers).filter(l => l.visible).length <= 7)
+                            && (Object.values(supportLayerUser).filter(l => l.visible).length <= 7)"
                         >
                           <p style="width: 120px">
                             <strong>Sobreposição de camadas</strong>
@@ -327,11 +265,11 @@
                           />
                         </div>
 
-                        <div v-if="showFeaturesLandUse">
+                        <div v-if="showFeaturesLandUse && landUseStatsByStages.length">
                           <p>
                             <strong>Uso e Ocupação do Solo</strong>
                             <v-chip x-small>
-                              {{ tableLandUse.length }}
+                              {{ landUseCount }}
                             </v-chip>
                           </p>
                           <hr
@@ -343,7 +281,7 @@
                           >
                           <CustomizedLegend
                             class="pt-1"
-                            :items="landUseItems"
+                            :items="landUseStatsByStages"
                           />
                         </div>
 
@@ -445,7 +383,7 @@
                       </div>
                     </div>
                   </div>
-                  <div v-if="showFeaturesMonitoring">
+                  <div v-if="getMonitoringShowFeatures">
                     <p class="ml-1">
                       {{ $t('monitoring-print-label') }}
                       {{ handleData(monitoringFilters.startDate) }}
@@ -453,7 +391,7 @@
                       {{ handleData(monitoringFilters.endDate) }}
                     </p>
                   </div>
-                  <div v-if="showFeaturesAlerts">
+                  <div v-if="getUrgentAlertsShowFeatures">
                     <p class="ml-1">
                       {{ $t('alerts-print-label') }}
                       {{ handleData(alertsFilters.startDate) }}
@@ -468,8 +406,7 @@
                         v-for="(year, index) in uniqueYears"
                         :key="'year-' + index"
                       >
-                        {{ year
-                        }}<span v-if="index < uniqueYears.length - 1">,
+                        {{ year }}<span v-if="index < uniqueYears.length - 1">,
                         </span>
                       </span>
                     </p>
@@ -639,7 +576,7 @@
 </i18n>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { mapState, mapActions, mapGetters } from 'vuex';
 import domtoimage from 'dom-to-image';
 import MapForPrint from './MapForPrint.vue';
 import MiniMap from './MiniMap.vue';
@@ -723,36 +660,27 @@ export default {
 
   computed: {
     hasActiveMonitoringStages() {
-      return Object.values(this.legendVisibility).some((visible) => visible);
+      return Object.values(
+        this.legendVisibility.map((l) => ({ ...l, label: l.name })),
+      ).some((visible) => visible);
     },
     hasActiveAlertsStages() {
       return Object.values(this.legendVisibilityalerts).some((visible) => visible);
-    },
-    filteredMonitoringData() {
-      return this.combinedTableData.filter(
-        (item) => item.monitoring
-                    && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0),
-      );
     },
     filteredAlertsData() {
       return this.combinedTableData.filter(
         (item) => item.alerts && Object.keys(item.alerts).some((key) => item.alerts[key] > 0),
       );
     },
-    filteredLandUseData() {
-      return this.combinedTableData.filter(
-        (item) => item.landUse && Object.keys(item.landUse).some((key) => item.landUse[key] > 0),
-      );
-    },
     filteredCombinedTableData() {
       return this.combinedTableData.filter((item) => {
-        const hasMonitoring = this.showFeaturesMonitoring
+        const hasMonitoring = this.getMonitoringShowFeatures
                     && item.monitoring
                     && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0);
         const hasLandUse = this.showFeaturesLandUse
                     && item.landUse
                     && Object.keys(item.landUse).some((key) => item.landUse[key] > 0);
-        const hasAlerts = this.showFeaturesAlerts
+        const hasAlerts = this.getUrgentAlertsShowFeatures
                     && item.alerts
                     && Object.keys(item.alerts).some((key) => item.alerts[key] > 0);
         return hasMonitoring || hasLandUse || hasAlerts;
@@ -893,32 +821,61 @@ export default {
     prodesItems() {
       return this.$store.getters['prodes/getLegendItems'];
     },
-    monitoringItems() {
-      return this.$store.getters['monitoring/getActiveLegendItems'];
-    },
-    alertsItems() {
-      return this.$store.getters['urgent-alerts/getLegendItems'];
-    },
-    landUseItems() {
-      return this.$store.getters['land-use/getActiveLegendItems'];
-    },
     monitoringCount() {
-      return this.filteredMonitoringData.length;
+      if (this.getMonitoringStats.tiByStages) return this.getMonitoringStats.tiByStages.length;
+      return 0;
+    },
+    urgentAlertsCount() {
+      if (this.getUrgentAlertsStats.tiByStages) return this.getUrgentAlertsStats.tiByStages.length;
+      return 0;
+    },
+    landUseCount() {
+      if (this.getLandUseStats.tiByStages) return this.getLandUseStats.tiByStages.length;
+      return 0;
     },
     alertsCount() {
       return this.filteredAlertsData.length;
     },
+
+    monitoringStatsTiByStages() {
+      if (!this.getMonitoringStats || !this.getMonitoringStats.tiByStages) return [];
+      if (this.getMonitoringStats.tiByStages.length > 7) return [];
+      return this.getMonitoringStats.tiByStages;
+    },
+
+    monitoringStatsByStages() {
+      return this.getMonitoringStats.stages.filter((s) => s.visible);
+    },
+
+    urgentAlertsStatsTiByStages() {
+      if (!this.getUrgentAlertsStats || !this.getUrgentAlertsStats.tiByStages) return [];
+      if (this.getUrgentAlertsStats.tiByStages.length > 7) return [];
+      return this.getUrgentAlertsStats.tiByStages;
+    },
+
+    urgentAlertsStatsByStages() {
+      return this.getUrgentAlertsStats.stages.filter((s) => s.visible);
+    },
+
+    landUseStatsTiByStages() {
+      if (!this.getLandUseStats || !this.getLandUseStats.tiByStages) return [];
+      if (this.getLandUseStats.tiByStages.length > 7) return [];
+      return this.getLandUseStats.tiByStages;
+    },
+
+    landUseStatsByStages() {
+      return this.getLandUseStats.stages.filter((s) => s.visible);
+    },
+
     ...mapState({
       monitoringFilters: (state) => state.monitoring.filters,
       alertsFilters: (state) => state['urgent-alerts'].filters,
       prodesFilters: (state) => state.prodes.filters,
       deterFilters: (state) => state.deter.filters,
-      showFeaturesMonitoring: (state) => state.monitoring.showFeaturesMonitoring,
       monitoringFeatures: (state) => state.monitoring.features,
-      showFeaturesAlerts: (state) => state['urgent-alerts'].showFeaturesAlerts,
-      tableMonitoring: (state) => state.monitoring.tableMonitoring,
+      tableMonitoring: (state) => state.monitoring.stats.tableMonitoring,
       tableAlerts: (state) => state['urgent-alerts'].tableAlerts,
-      legendVisibility: (state) => state.monitoring.legendVisibility,
+      legendVisibility: (state) => state.monitoring.stats.stages,
       legendVisibilityalerts: (state) => state['urgent-alerts'].legendVisibility,
       showFeaturesProdes: (state) => state.prodes.showFeaturesProdes,
       prodesFeatures: (state) => state.prodes.features,
@@ -926,7 +883,7 @@ export default {
       deterFeatures: (state) => state.deter.features,
       showFeaturesLandUse: (state) => state['land-use'].showFeaturesLandUse,
       landUseFeatures: (state) => state['land-use'].features,
-      tableLandUse: (state) => state['land-use'].tableLandUse,
+      tableLandUse: (state) => state['land-use'].stats.tableLandUse,
       supportLayerUser: (state) => state.supportLayersUser.supportLayerUser,
       showFeaturesSupportLayers: (state) => state.supportLayers.showFeaturesSupportLayers,
       supportLayers: (state) => state.supportLayers.supportLayers,
@@ -936,7 +893,25 @@ export default {
       filterOptions: (state) => state.foco.filterOptions,
       isLoadingFeatures: (state) => state.foco.isLoadingFeatures,
       bounds: (state) => state.map.bounds,
-      totalFeatures: (state) => state.monitoring.totalFeatures,
+
+      // monitoring
+      getMonitoringStats: (state) => state.monitoring.stats,
+      getMonitoringShowFeatures: (state) => state.monitoring.showFeaturesMonitoring,
+
+      // urgent alerts
+      getUrgentAlertsStats: (state) => state['urgent-alerts'].stats,
+      getUrgentAlertsShowFeatures: (state) => state['urgent-alerts'].showFeaturesUrgentAlert,
+
+      // land use
+      getLandUseStats: (state) => state['land-use'].stats,
+      getLandUseShowFeatures: (state) => state['land-use'].showFeaturesLandUse,
+    }),
+
+    // ...mapGetters('monitoring', ['checkStageActive']),
+    ...mapGetters({
+      getMonitoringCheckStageActives: 'monitoring/checkStageActive',
+      getUrgentAlertsCheckStageActives: 'urgent-alerts/checkStageActive',
+      getLandUseCheckStageActives: 'land-use/checkStageActive',
     }),
   },
 
@@ -948,22 +923,29 @@ export default {
     },
     combinedTableData(newVal) {
       this.selectedItemsCount = newVal.length;
-      this.showWarningMessage = (this.showFeaturesMonitoring || this.showFeaturesLandUse) && newVal.length > 7;
+      this.showWarningMessage = (this.getMonitoringShowFeatures || this.showFeaturesLandUse) && newVal.length > 7;
     },
   },
 
   async mounted() {
-    if (this.showFeaturesMonitoring) {
-      await this.getDataTableMonitoring();
+    let count = 0;
+    // Check monitoring TI count
+    if (
+      this.getMonitoringShowFeatures
+      && this.getMonitoringStats.tiByStages
+      && this.monitoringStatsByStages.length) {
+      count += this.getMonitoringStats.tiByStages.length;
     }
-    if (this.showFeaturesLandUse) {
-      await this.getDataTableLandUse();
+
+    // Check land use TI count
+    if (this.showFeaturesLandUse
+    && this.getLandUseStats.tiByStages
+    && this.landUseStatsByStages.length) {
+      count += this.getLandUseStats.tiByStages.length;
     }
-    if (this.showFeaturesAlerts) {
-      await this.getDataTableAlerts();
-    }
-    this.selectedItemsCount = this.combinedTableData.length;
-    this.showWarningMessage = (this.showFeaturesMonitoring || this.showFeaturesLandUse) && this.selectedItemsCount > 7;
+    this.selectedItemsCount = count;
+
+    if (count > 7) this.showWarningMessage = true;
 
     const visibleLayersCount = Object.values(this.supportLayers).filter((l) => l.visible).length;
     if (visibleLayersCount > 0) {

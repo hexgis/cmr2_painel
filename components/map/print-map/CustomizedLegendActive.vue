@@ -28,7 +28,7 @@
           }"
         />
         <p class="text-legend-customized">
-          {{ isYear(item.label) ? item.label : $t(resolveLabel(item.label)) }}
+          {{ isYear(item.name) ? item.name : $t(resolveLabel(item.name)) }}
         </p>
       </v-row>
     </div>
@@ -49,19 +49,20 @@ export default {
     return {
       iconType: 'square',
       labelMap: {
-        'Agropecuária (AG)': 'land-use-categories.agriculture',
-        'Corte Raso (CR)': 'land-use-categories.clear-cut',
-        'Degradação (DG)': 'land-use-categories.degradation',
-        'Massa de Água (MA)': 'land-use-categories.water-body',
-        'Mineração (MI)': 'land-use-categories.mining',
-        'Não observado (NO)': 'land-use-categories.not-observed',
-        'Rodovia (RD)': 'land-use-categories.highway',
-        'Silvicultura (SI)': 'land-use-categories.forestry',
-        'Silvicultura (SV)': 'land-use-categories.forestry',
-        'Vegetação Natural (VN)': 'land-use-categories.natural-vegetation',
-        'Vilarejo (VI)': 'land-use-categories.village',
-        'Desmatamento em Regeneração (DR)': 'monitoring-categories.recovery-deforestation',
+        AG: 'land-use-categories.agriculture',
+        MA: 'land-use-categories.water-body',
+        MI: 'land-use-categories.mining',
+        NO: 'land-use-categories.not-observed',
+        RD: 'land-use-categories.highway',
+        SI: 'land-use-categories.forestry',
+        SV: 'land-use-categories.forestry',
+        VN: 'land-use-categories.natural-vegetation',
+        VI: 'land-use-categories.village',
         'Fogo em Floresta (FF)': 'monitoring-categories.forest-fire',
+        FF: 'monitoring-categories.forest-fire',
+        DR: 'monitoring-categories.recovery-deforestation',
+        DG: 'land-use-categories.degradation',
+        CR: 'land-use-categories.clear-cut',
         // Versões sem sufixo
         Agropecuária: 'land-use-categories.agriculture',
         'Corte Raso': 'land-use-categories.clear-cut',

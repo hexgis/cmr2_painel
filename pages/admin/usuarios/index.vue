@@ -123,7 +123,7 @@
 
         <CustomDialog
           v-model="showLogsModal"
-          title="Logs do Usuário"
+          :title="$t('userLogs')"
           width="1400"
           :has-cta="false"
         >
@@ -350,7 +350,7 @@
 
         <CustomDialog
           v-model="showModalEdit"
-          title="Editar Usuário"
+          :title="$t('editUser')"
           max-width="500px"
           :has-cta="true"
           :save-active="editUserFormValid"
@@ -474,7 +474,7 @@
               v-bind="attrs"
               v-on="on"
             >
-              Selecionar colunas
+              {{ $t('selectColumns') }}
               <v-icon right>
                 mdi-chevron-down
               </v-icon>
@@ -505,7 +505,7 @@
         <!-- Pesquisa geral -->
         <v-text-field
           v-model="searchAll"
-          placeholder="Pesquisar tudo"
+          :placeholder="$t('searchAll')"
           append-icon="mdi-magnify"
           clearable
           dense
@@ -572,14 +572,14 @@
         @mouseleave="collapseButtonIfNeeded"
       >
         <v-icon>mdi-plus</v-icon>
-        <slide-x-reverse-transition>
+        <v-slide-x-reverse-transition>
           <span
             v-if="!isButtonCollapsed"
             class="button-text ml-2"
           >
             {{ $t('addNewUser') }}
           </span>
-        </slide-x-reverse-transition>
+        </v-slide-x-reverse-transition>
       </v-btn>
     </div>
 
@@ -600,8 +600,16 @@
         class="elevation-1"
         dense
         :search="search"
-        :height="tableHeight"
+        :height="500"
         fixed-header
+        :items-per-page="25"
+        :footer-props="{
+          itemsPerPageOptions: [10, 25, 50, 100, -1],
+          itemsPerPageText: $t('rowsPerPage'),
+          itemsPerPageAllText: $t('all'),
+          showFirstLastPage: true,
+          showCurrentPage: true
+        }"
       >
         <!-- Seus templates de header e item permanecem os mesmos -->
         <template #header.username="{ header }">
@@ -1039,7 +1047,7 @@
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
             </template>
-            <span>Editar</span>
+            <span>{{ $t('edit') }}</span>
           </v-tooltip>
           <v-tooltip top>
             <template #activator="{ on, attrs }">
@@ -1054,7 +1062,7 @@
                 <v-icon>mdi-clock-outline</v-icon>
               </v-btn>
             </template>
-            <span>Logs</span>
+            <span>{{ $t('logs') }}</span>
           </v-tooltip>
         </template>
 
@@ -1066,7 +1074,7 @@
             >
               {{ item.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
             </v-icon>
-            <span class="ml-2">{{ item.is_active ? 'Ativo' : 'Inativo' }}</span>
+            <span class="ml-2">{{ item.is_active ? $t('active') : $t('inactive') }}</span>
           </div>
         </template>
 
@@ -1078,7 +1086,7 @@
             >
               {{ item.is_admin ? 'mdi-account-star' : 'mdi-account' }}
             </v-icon>
-            <span class="ml-2">{{ item.is_admin ? 'Sim' : 'Não' }}</span>
+            <span class="ml-2">{{ item.is_admin ? $t('yes') : $t('no') }}</span>
           </div>
         </template>
       </v-data-table>
@@ -1086,46 +1094,69 @@
   </div>
 </template>
 
-<i18n>
-    {
-        "en": {
-        "manageUsers": "Manage Users",
-        "addNewUser": "Add new user",
-        "export": "Export:",
-        "noFileSelected": "No file selected",
-        "attachFile": "Attach File",
-        "approveRequestCreation": "Approve request upon creation",
-        "description": "Description",
-        "subject": "Subject",
-        "institution": "institution",
-        "requestType": "Request Type",
-        "field-required": "Field Required",
-        "max-characters": "Maximum of {max} characters allowed.",
-        "add-user": "User added successfully!",
-        "erro-add-user": "Error adding user",
-        "changed-user": "User changed successfully!",
-        "erro-create-user": "Error creating user"
-
-        },
-        "pt-br": {
-        "manageUsers": "Gerenciar Usuários",
-        "addNewUser": "Adicionar novo usuário",
-        "export": "Exportar:",
-        "noFileSelected": "Nenhum arquivo selecionado",
-        "attachFile": "Anexar Arquivo",
-        "approveRequestCreation": "Deferir solicitação na criação",
-        "description": "Descrição",
-        "subject": "Assunto",
-        "institution": "Vínculo Institucional",
-        "requestType": "Tipo de Solicitação",
-        "field-required": "Campo obrigatório",
-        "max-characters": "Máximo de {max} caracteres permitido.",
-        "add-user": "Usuário adicionado com sucesso!",
-        "erro-add-user": "Erro ao adicionar usuário",
-        "changed-user": "Usuário alterado com sucesso!",
-        "erro-create-user": "Erro ao criar usuário"
-        }
-    }
+<i18n lang="json">
+{
+  "en": {
+    "manageUsers": "Manage Users",
+    "addNewUser": "Add new user",
+    "export": "Export:",
+    "noFileSelected": "No file selected",
+    "attachFile": "Attach File",
+    "approveRequestCreation": "Approve request upon creation",
+    "description": "Description",
+    "subject": "Subject",
+    "institution": "institution",
+    "requestType": "Request Type",
+    "field-required": "Field Required",
+    "max-characters": "Maximum of {max} characters allowed.",
+    "add-user": "User added successfully!",
+    "erro-add-user": "Error adding user",
+    "changed-user": "User changed successfully!",
+    "erro-create-user": "Error creating user",
+    "rowsPerPage": "Rows per page:",
+    "all": "All",
+    "edit": "Edit",
+    "logs": "Logs",
+    "editUser": "Edit User",
+    "userLogs": "User Logs",
+    "active": "Active",
+    "inactive": "Inactive",
+    "yes": "Yes",
+    "no": "No",
+    "selectColumns": "Select columns",
+    "searchAll": "Search all"
+  },
+  "pt-br": {
+    "manageUsers": "Gerenciar Usuários",
+    "addNewUser": "Adicionar novo usuário",
+    "export": "Exportar:",
+    "noFileSelected": "Nenhum arquivo selecionado",
+    "attachFile": "Anexar Arquivo",
+    "approveRequestCreation": "Deferir solicitação na criação",
+    "description": "Descrição",
+    "subject": "Assunto",
+    "institution": "Vínculo Institucional",
+    "requestType": "Tipo de Solicitação",
+    "field-required": "Campo obrigatório",
+    "max-characters": "Máximo de {max} caracteres permitido.",
+    "add-user": "Usuário adicionado com sucesso!",
+    "erro-add-user": "Erro ao adicionar usuário",
+    "changed-user": "Usuário alterado com sucesso!",
+    "erro-create-user": "Erro ao criar usuário",
+    "rowsPerPage": "Linhas por página:",
+    "all": "Todos",
+    "edit": "Editar",
+    "logs": "Logs",
+    "editUser": "Editar Usuário",
+    "userLogs": "Logs do Usuário",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "yes": "Sim",
+    "no": "Não",
+    "selectColumns": "Selecionar colunas",
+    "searchAll": "Pesquisar tudo"
+  }
+}
 </i18n>
 
 <script>
@@ -1232,11 +1263,13 @@ export default {
       searchEmail: '',
       searchRoles: '',
       searchAll: '',
+      itemsPerPage: 25,
       isButtonCollapsed: true,
       buttonCollapseTimeout: null,
       activeTab: 0,
       searchLogs: '',
       searchAccess: '',
+      tableHeight: 'calc(100vh - 350px)',
 
       logsHeaders: [
         { text: 'Alterado por', value: 'alterado_por' },
@@ -1353,6 +1386,15 @@ export default {
 
     filteredUserRoleChanges() {
       return this.userRoleChanges || [];
+    },
+
+    // Control items per page
+    displayedUsers() {
+      const filtered = this.filteredByColumns;
+      if (this.itemsPerPage === -1) {
+        return filtered;
+      }
+      return filtered.slice(0, this.itemsPerPage);
     },
 
     ...mapState('admin', ['institutionList', 'rolesList']),
@@ -1800,7 +1842,7 @@ export default {
           dateFormat: 'iso',
         });
 
-        await this.$downloader.downloadPDF(
+        await this.$downloader.pdf(
           data,
           headers,
           `Dados Cadastrais do Usuário: ${(this.selectedUserLogs && this.selectedUserLogs.username) || 'N/A'}`,
@@ -1881,7 +1923,7 @@ export default {
           dateFormat: 'iso',
         });
 
-        await this.$downloader.downloadPDF(combinedData, allHeaders, 'Registro de Acessos do Usuário', filename);
+        await this.$downloader.pdf(combinedData, allHeaders, 'Registro de Acessos do Usuário', filename);
       } catch (error) {
         console.error('Erro ao gerar PDF:', error);
       }
@@ -1937,16 +1979,32 @@ export default {
 <style lang="sass" scoped>
 .user
   height: 100vh
-  overflow: hidden
+  overflow-y: auto
   width: 100%
   padding: 2rem
 
 .table-container
-  height: calc(100vh - 300px)
+  height: 500px
   overflow: hidden
   position: relative
 
-// Estilos mínimos necessários para o botão animado
+  // For Vuetify data table to fill the container
+  :deep(.v-data-table)
+    height: 100% !important
+    display: flex !important
+    flex-direction: column !important
+
+    .v-data-table__wrapper
+      flex: 1 !important
+      overflow-y: auto !important
+      overflow-x: auto !important
+      min-height: 0 !important
+
+    .v-data-footer
+      flex-shrink: 0 !important
+      border-top: 1px solid #e0e0e0 !important
+
+// button adicionar usuário
 .add-user-btn
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)
   overflow: hidden
@@ -1958,7 +2016,6 @@ export default {
 .button-text
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)
 
-// Estilo para a área de exportação
 .export-label
   letter-spacing: 0.5px
 </style>

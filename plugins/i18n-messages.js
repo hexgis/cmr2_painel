@@ -31,7 +31,17 @@ export default {
         upload: 'uploading',
         file: 'file',
         drawing: 'drawing',
-        theme: 'theme'
+        download: 'download',
+        cycle: 'Cycle',
+        year: 'Year',
+        ciente: 'I understand',
+        close: 'Close',
+        theme: 'theme',
+        "monitoring-description-label-1": "Due to technical limitations, the generated file has a maximum limit of 10,000 features. The query made generated a number of polygons greater than that, so it is possible that not all polygons will be available in the generated file.",
+        "monitoring-description-label-2": "If you need to download the complete data, please contact the CMR team via Contact Us on the platform or by email ",
+        "monitoring-description-label-3": "Due to technical limitations, the generated table has a maximum limit of 10,000 features. The executed query generated a higher number of polygons, so it is possible that not all polygons will be available in the generated file.",
+        "monitoring-description-label-4": "If you need to download the complete data, please contact the CMR team via Contact Us on the platform or by email ",
+        "monitoring-no-stages-visible": "Currently, there are no visible stages for download. Please activate at least one stage in the legend section before attempting to download the data."
     },
     'pt-br': {
         'default-error':
@@ -65,6 +75,16 @@ export default {
         upload: 'fazer upload',
         file: 'arquivo',
         drawing: 'desenho',
-        theme: 'tema'
+        download: 'baixar',
+        cycle: 'Ciclo',
+        year: 'Ano',
+        ciente: 'Estou ciente',
+        close: 'Fechar',
+        theme: 'tema',
+        "monitoring-description-label-1": "Devido a limitações técnicas, os arquivo gerado possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
+        "monitoring-description-label-2": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail ",
+        "monitoring-description-label-3": "Devido a limitações técnicas, a tabela gerada possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
+        "monitoring-description-label-4": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail ",
+        "monitoring-no-stages-visible": "No momento, não há estágios visíveis para download. Por favor, ative pelo menos um estágio na seção de legendas antes de tentar baixar os dados."
     },
 }

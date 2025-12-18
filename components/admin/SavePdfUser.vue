@@ -43,20 +43,28 @@ export default {
       const imgHeight = 15;
       doc.addImage(logoBase64(), 'PNG', 15, 10, imgWidth, imgHeight);
       doc.setFontSize(12);
-      doc.text('Lista de Usuários', 90, 20);
+      doc.text(this.$t('userList'), 90, 20);
 
       // Cria a tabela com os dados dos usuários
       autoTable(doc, {
         startY: 30,
-        head: [['Usuário', 'Primeiro Nome', 'Último Nome', 'Email', 'Administrador', 'Acesso Permitido', 'Instituição']],
+        head: [[
+          this.$t('headerUser'),
+          this.$t('headerFirstName'),
+          this.$t('headerLastName'),
+          this.$t('headerEmail'),
+          this.$t('headerAdmin'),
+          this.$t('headerAccess'),
+          this.$t('headerInstitution'),
+        ]],
         body: this.users.map((user) => [
           user.username,
           user.first_name || '',
           user.last_name || '',
           user.email,
-          user.is_admin ? 'Sim' : 'Não',
-          user.is_active ? 'Ativo' : 'Inativo',
-          user.institution || '',
+          user.is_admin ? this.$t('yes') : this.$t('no'),
+          user.is_active ? this.$t('active') : this.$t('inactive'),
+          (user.institution && user.institution.acronym) || (user.institution && user.institution.name) || '',
         ]),
         headStyles: {
           fillColor: '#D92B3F',
@@ -65,11 +73,46 @@ export default {
       });
 
       // Salva o PDF
-      doc.save('lista_de_usuarios.pdf');
+      doc.save(this.$t('fileName'));
     },
   },
 };
 </script>
+
+<i18n lang="json">
+{
+  "en": {
+    "userList": "User List",
+    "headerUser": "User",
+    "headerFirstName": "First Name",
+    "headerLastName": "Last Name",
+    "headerEmail": "Email",
+    "headerAdmin": "Administrator",
+    "headerAccess": "Access Allowed",
+    "headerInstitution": "Institution",
+    "yes": "Yes",
+    "no": "No",
+    "active": "Active",
+    "inactive": "Inactive",
+    "fileName": "user_list.pdf"
+  },
+  "pt-br": {
+    "userList": "Lista de Usuários",
+    "headerUser": "Usuário",
+    "headerFirstName": "Primeiro Nome",
+    "headerLastName": "Último Nome",
+    "headerEmail": "Email",
+    "headerAdmin": "Administrador",
+    "headerAccess": "Acesso Permitido",
+    "headerInstitution": "Instituição",
+    "yes": "Sim",
+    "no": "Não",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "fileName": "lista_de_usuarios.pdf"
+  }
+}
+</i18n>
 
 <style scoped>
 span {

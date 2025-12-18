@@ -1,7 +1,6 @@
 export const state = () => ({
   activeMenu: '',
   openDrawPopup: null,
-  startDrawPopup: false,
   bounds: null,
   boundsZoomed: false,
   fileList: [],
@@ -29,8 +28,10 @@ export const state = () => ({
   indigenousLand: [],
   savedSelectedItems: [],
   selectedItems: [],
+  currentTiData: null,
   // geoserver config
   geoserverUrl: '',
+  geoserverSearchTI: process.env.GEOSERVER_SEARCH_TI,
   carPrintData: {
     visible: false,
     mapTitle: '',
@@ -95,6 +96,10 @@ export const mutations = {
     state.selectedItems = items;
   },
 
+  setCurrentTiData(state, tiData) {
+    state.currentTiData = tiData;
+  },
+
   setActiveMenu(state, payload) {
     state.activeMenu = payload !== state.activeMenu ? payload : '';
   },
@@ -111,6 +116,10 @@ export const mutations = {
 
   setMapLoading(state, loading) {
     state.loading = loading;
+  },
+
+  setLoadingFeatures(state, payload) {
+    state.isLoadingFeatures = payload;
   },
 
   addFileToSpecificIndex(state, { file, fileIndex }) {
@@ -243,13 +252,82 @@ export const actions = {
     context.commit('addItem', item);
   },
 
-  async fetchSearchResults({ commit }, searchQuery) {
+  async fetchSearchResults({ commit, state, rootState }, searchQuery) {
+    commit('setLoadingFeatures', true);
     try {
-      const response = await this.$api.$get(`/funai/all-data-ti-by-name/?param=${searchQuery}`);
-      commit('setIndigenousLand', response);
-      return response;
+      const { geoserverUrl } = state;
+
+      if (!geoserverUrl) {
+        throw new Error('URL do GeoServer não configurada');
+      }
+
+      const params = {
+        service: 'WFS',
+        version: '1.1.0',
+        request: 'GetFeature',
+        typeName: state.geoserverSearchTI,
+        outputFormat: 'application/json',
+        CQL_FILTER: '',
+      };
+
+      if (searchQuery && searchQuery.trim()) {
+        const searchTerm = searchQuery.trim();
+
+        let isEstudoFilter = '';
+        if (searchTerm.toLowerCase() === 'sim') {
+          isEstudoFilter = 'is_estudo = true';
+        } else if (searchTerm.toLowerCase() === 'não' || searchTerm.toLowerCase() === 'nao') {
+          isEstudoFilter = 'is_estudo = false';
+        }
+
+        const filters = [
+          `no_ti ILIKE '%${searchTerm}%'`,
+          `ds_cr ILIKE '%${searchTerm}%'`,
+          `no_municipio ILIKE '%${searchTerm}%'`,
+        ];
+
+        if (isEstudoFilter) {
+          filters.push(isEstudoFilter);
+        }
+
+        params.CQL_FILTER = `(${filters.join(' OR ')})`;
+      }
+
+      const url = `${rootState.map.geoserverUrl}&${new URLSearchParams(params)}`;
+      const response = await this.$api.$get(url);
+
+      if (response && response.features) {
+        const transformedData = response.features.map((feature, index) => ({
+          id: feature.id || `feature-${index}`,
+          layername: feature.properties.layername,
+          namespace: feature.properties.namespace,
+          ...feature.properties,
+          geometry: feature.geometry,
+        }));
+
+        const sortedData = transformedData.sort((a, b) => a.no_ti.localeCompare(b.no_ti));
+
+        commit('setSelectedItems', sortedData);
+        return sortedData;
+      }
+
+      commit('setSelectedItems', []);
+      return [];
     } catch (error) {
+      console.error('Erro ao buscar terras indígenas:', error);
+
+      commit('alert/addAlert', {
+        message: this.$i18n.t('default-error', {
+          action: this.$i18n.t('search'),
+          resource: this.$i18n.t('indigenous-lands'),
+        }),
+        type: 'error',
+      }, { root: true });
+
+      commit('setSelectedItems', []);
       throw error;
+    } finally {
+      commit('setLoadingFeatures', false);
     }
   },
 
@@ -434,9 +512,9 @@ export const actions = {
           };
 
           const url = `${geoserverBaseUrl}&${new URLSearchParams(params)}`;
-          
+
           const response = await this.$api.$get(url);
-          
+
           carData = (response.features || []).map((feature) => {
             const cleanFeature = {
               type: feature.type,
@@ -456,7 +534,7 @@ export const actions = {
           });
 
           hasCarData = carData.length > 0;
-          
+
           commit('setCarPrintData', {
             mapTitle: mapTitle || 'Relatório CAR',
             leafSize,
@@ -474,7 +552,7 @@ export const actions = {
           if (hasCarData) {
             commit('setShowTemplateMapLandscapeCar', true);
           }
-          
+
           return { success: true, hasCarData };
         } catch (wfsError) {
           console.error('❌ Erro na consulta CAR:', wfsError);
