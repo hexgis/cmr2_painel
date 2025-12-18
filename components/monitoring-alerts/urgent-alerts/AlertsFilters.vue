@@ -34,11 +34,12 @@
             :loading="loadingRegionalCoordinators"
             :disabled="loadingRegionalCoordinators || loadingSearchUrgentAlert"
             :rules="regionalCoordinationRules"
+            :menu-props="comboboxMenuProps"
             clearable
             multiple
             class="pa-0"
             outlined
-            @clear="currentRegionalCoordinates = [], currentIndigenousLand = []"
+            @clear="clearRegionalandIndigenous"
           />
           <v-combobox
             v-show="currentRegionalCoordinates.length"
@@ -46,6 +47,7 @@
             :label="$t('indigenous-land')"
             :items="getIndigenousLands"
             item-text="no_ti"
+            :menu-props="comboboxMenuProps"
             item-value="co_funai"
             :loading="loadingIndigenousLands"
             :disabled="loadingIndigenousLands || loadingSearchUrgentAlert"
@@ -163,6 +165,10 @@ export default {
 
   data() {
     return {
+      comboboxMenuProps: {
+        maxHeight: 300,
+        maxWidth: 330,
+      },
       currentViewRules: [
         (v) => (!!v || !!(this.filters.cr && this.filters.cr.length)) || false,
       ],
@@ -188,7 +194,7 @@ export default {
       },
       set(value) {
         this.$store.commit('urgent-alerts/setFilters', { currentView: value });
-        if (value && this.currentRegionalCoordinates.length) this.currentRegionalCoordinates = [];
+        if (value && this.currentRegionalCoordinates.length) this.clearRegionalandIndigenous();
       },
     },
 
@@ -197,6 +203,7 @@ export default {
         return this.filters.cr;
       },
       set(value) {
+        if (!value.length) this.currentIndigenousLand = [];
         this.$store.commit('urgent-alerts/setFilters', { cr: value });
         this.$store.dispatch('urgent-alerts/getTiOptions');
         if (value.length && this.currentViewArea) {
@@ -305,6 +312,11 @@ export default {
         this.$store.commit('urgent-alerts/setUrlWmsUrgentAlert', '');
         this.$store.dispatch('urgent-alerts/generateUrlWmsUrgentAlert');
       }
+    },
+
+    clearRegionalandIndigenous() {
+      this.currentIndigenousLand = [];
+      this.currentRegionalCoordinates = [];
     },
   },
 };

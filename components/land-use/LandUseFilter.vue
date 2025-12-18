@@ -35,10 +35,11 @@
             :disabled="loadingRegionalCoordinators || loadingSearchLandUse"
             :rules="regionalCoordinationRules"
             clearable
+            :menu-props="comboboxMenuProps"
             multiple
             class="pa-0"
             outlined
-            @clear="currentRegionalCoordinates = [], currentIndigenousLand = []"
+            @clear="clearRegionalandIndigenous"
           />
           <v-combobox
             v-show="currentRegionalCoordinates.length"
@@ -46,6 +47,7 @@
             :label="$t('indigenous-land')"
             :items="getIndigenousLands"
             item-text="no_ti"
+            :menu-props="comboboxMenuProps"
             item-value="co_funai"
             :loading="loadingIndigenousLands"
             :disabled="loadingIndigenousLands || loadingSearchLandUse"
@@ -63,6 +65,7 @@
             :items="getYearItems"
             item-text="text"
             item-value="value"
+            :menu-props="comboboxMenuProps"
             :loading="loadingYearsItems"
             hide-details
             clearable
@@ -146,6 +149,10 @@ export default {
 
   data() {
     return {
+      comboboxMenuProps: {
+        maxHeight: 300,
+        maxWidth: 330,
+      },
       currentViewRules: [
         (v) => (!!v || !!(this.filters.cr && this.filters.cr.length)) || false,
       ],
@@ -174,7 +181,7 @@ export default {
       },
       set(value) {
         this.$store.commit('land-use/setFilters', { currentView: value });
-        if (value && this.currentRegionalCoordinates.length) this.currentRegionalCoordinates = [];
+        if (value && this.currentRegionalCoordinates.length) this.clearRegionalandIndigenous();
       },
     },
 
@@ -183,6 +190,7 @@ export default {
         return this.filters.cr;
       },
       set(value) {
+        if (!value.length) this.currentIndigenousLand = [];
         this.$store.commit('land-use/setFilters', { cr: value });
         this.$store.dispatch('land-use/getTiOptions');
         if (value.length && this.currentViewArea) {
@@ -266,6 +274,11 @@ export default {
         this.$store.commit('land-use/setUrlWmsLandUse', '');
         this.$store.dispatch('land-use/generateUrlWmsLandUse');
       }
+    },
+
+    clearRegionalandIndigenous() {
+      this.currentIndigenousLand = [];
+      this.currentRegionalCoordinates = [];
     },
   },
 };

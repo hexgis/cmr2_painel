@@ -167,6 +167,7 @@ export default {
 
   mounted() {
     this.$store.dispatch('monitoring/getFilterOptions');
+    this.$store.dispatch('urgent-alerts/getFilterOptions');
     this.$store.dispatch('monitoring/getCyclesOptions');
   },
 };

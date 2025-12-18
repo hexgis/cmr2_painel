@@ -34,11 +34,12 @@
             :loading="loadingRegionalCoordinators"
             :disabled="loadingRegionalCoordinators || loadingSearchMonitoring"
             :rules="regionalCoordinationRules"
+            :menu-props="comboboxMenuProps"
             clearable
             multiple
             class="pa-0"
             outlined
-            @clear="currentRegionalCoordinates = [], currentIndigenousLand = []"
+            @clear="clearRegionalandIndigenous"
           />
           <v-combobox
             v-show="currentRegionalCoordinates.length"
@@ -49,6 +50,7 @@
             item-value="co_funai"
             :loading="loadingIndigenousLands"
             :disabled="loadingIndigenousLands || loadingSearchMonitoring"
+            :menu-props="comboboxMenuProps"
             hide-details
             clearable
             multiple
@@ -112,11 +114,12 @@
                     item-value="no_ciclo"
                     :loading="loadingCycles"
                     :disabled="loadingCycles || !getCycles.length"
+                    :menu-props="comboboxMenuProps"
                     hide-details
                     clearable
                     class="mb-7"
                     outlined
-                    @clear="currentStartCycle = null"
+                    @clear="currentEndCycle = null"
                   />
                 </v-col>
 
@@ -129,6 +132,7 @@
                     item-value="no_ciclo"
                     :loading="loadingCycles"
                     :disabled="loadingCycles || !getCycles.length"
+                    :menu-props="comboboxMenuProps"
                     hide-details
                     clearable
                     class="mb-7"
@@ -220,6 +224,10 @@ export default {
 
   data() {
     return {
+      comboboxMenuProps: {
+        maxHeight: 300,
+        maxWidth: 330,
+      },
       currentViewRules: [
         (v) => (!!v || !!(this.filters.cr && this.filters.cr.length)) || false,
       ],
@@ -245,7 +253,7 @@ export default {
       },
       set(value) {
         this.$store.commit('monitoring/setFilters', { currentView: value });
-        if (value && this.currentRegionalCoordinates.length) this.currentRegionalCoordinates = [];
+        if (value && this.currentRegionalCoordinates.length) this.clearRegionalandIndigenous();
       },
     },
 
@@ -254,6 +262,7 @@ export default {
         return this.filters.cr;
       },
       set(value) {
+        if (!value.length) this.currentIndigenousLand = [];
         this.$store.commit('monitoring/setFilters', { cr: value });
         this.$store.dispatch('monitoring/getTiOptions');
         if (value.length && this.currentViewArea) {
@@ -364,6 +373,11 @@ export default {
         this.$store.commit('monitoring/setUrlWmsMonitoring', '');
         this.$store.dispatch('monitoring/generateUrlWmsMonitoring');
       }
+    },
+
+    clearRegionalandIndigenous() {
+      this.currentIndigenousLand = [];
+      this.currentRegionalCoordinates = [];
     },
   },
 };
