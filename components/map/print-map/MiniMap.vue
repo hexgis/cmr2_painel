@@ -99,6 +99,7 @@ export default {
   methods: {
     createMap() {
       this.miniMap = this.$refs.miniPrintMap.mapObject;
+      this.$emit('ready', this.miniMap);
       this.aimingRect = this.$L.rectangle(this.currentBouldMap, {
         color: '#e31a1c',
         weight: 3,
@@ -169,7 +170,6 @@ export default {
 }
 
 .print-mini-map-text {
-    font-size: 10px !important;
     font-weight: bold !important;
     line-height: 1.2 !important;
     padding: 2px 4px !important;
@@ -180,7 +180,7 @@ export default {
         max-width: none !important;
         max-height: none !important;
         width: 100% !important;
-        height: 150px !important;
+        height: auto;
     }
 }
 </style>

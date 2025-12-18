@@ -102,7 +102,6 @@
         </v-tabs>
       </v-card>
 
-
       <v-tab-item>
         <v-card>
           <v-card-text>
@@ -200,8 +199,11 @@ export default {
     textMap: '',
     select: { type: 'A4' },
     items: [
-      { type: 'A4' },
+      { type: 'A0' },
+      { type: 'A1' },
+      { type: 'A2' },
       { type: 'A3' },
+      { type: 'A4' },
     ],
   }),
 
@@ -222,7 +224,7 @@ export default {
         bounds: null,
       });
     },
-    
+
     ...mapMutations('map', ['setTmsToPrint']),
   },
 };
