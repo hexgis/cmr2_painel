@@ -868,7 +868,21 @@ export default {
     },
 
     ...mapState({
-      monitoringFilters: (state) => state.monitoring.filters,
+      monitoringFilters: (state) => {
+        if (!state.monitoring.stats.currentTab) return null;
+
+        if (state.monitoring.stats.currentTab === 'data') {
+          return {
+            startDate: state.monitoring.filters.startDate,
+            endDate: state.monitoring.filters.endDate,
+          };
+        }
+
+        return {
+          startDate: state.monitoring.stats.rangeCycles.start_date || null,
+          endDate: state.monitoring.stats.rangeCycles.end_date || null,
+        };
+      },
       alertsFilters: (state) => state['urgent-alerts'].filters,
       prodesFilters: (state) => state.prodes.filters,
       deterFilters: (state) => state.deter.filters,

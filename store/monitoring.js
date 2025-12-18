@@ -37,6 +37,7 @@ export default {
       heatmapMonitoring: [],
       tiByStages: [],
       rangeCycles: null,
+      currentTab: '',
     },
     opacity: 100,
     cycles: [],
@@ -192,6 +193,7 @@ export default {
         totalArea: stats.total_area,
         stages,
         tiByStages: stats.tiByStages,
+        currentTab: state.filters.currentTab,
       };
     },
 
