@@ -1,36 +1,10 @@
 <template>
   <div>
-    <style>
-      @media print {
-      @page {
-      size: {{ leafSize.type }} landscape;
-      margin: 0;
-      }
-
-      {{ leafSize.type === 'A0' && (
-        '#map-for-print { font-size: 48px; }'
-      ) }}
-
-      {{ leafSize.type === 'A1' && (
-        '#map-for-print { font-size: 36px; }'
-      ) }}
-
-      {{ leafSize.type === 'A2' && (
-        '#map-for-print { font-size: 24px; }'
-      ) }}
-
-      {{ leafSize.type === 'A3' && (
-        '#map-for-print { font-size: 18px; }'
-      ) }}
-
-      {{ leafSize.type === 'A4' && (
-        '#map-for-print { font-size: 12px; }'
-      ) }}
-      }
-    </style>
     <v-dialog
       v-model="showDialog"
-      width="auto"
+      :max-width="dialogWidth"
+      :max-height="dialogHeight"
+      content-class="dialog-no-scroll"
       @click:outside="$emit('close')"
     >
       <div class="print-dialog-header no-print">
@@ -44,455 +18,462 @@
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </div>
-      <v-container style="background-color: white; max-width: 100%">
-        <v-row
-          id="map-for-print"
-          no-gutters
-          style="width: 1230px; height: 780px; overflow: hidden"
-        >
-          <v-col
-            id="monitoring-data-details"
-            cols="8"
-            class="pr-0 mt-2"
+      <div class="content-scroll-container">
+        <v-container style="background-color: white; max-width: 100%">
+          <v-row
+            id="map-for-print"
+            no-gutters
+            style="width: 1230px; height: 780px; overflow: hidden"
           >
-            <div
-              v-if="selectedItemsCount <= 7"
-              id="data-table"
-              class="leaflet-bottom leaflet-right"
+            <v-col
+              id="monitoring-data-details"
+              cols="8"
+              class="pr-0 mt-2"
             >
-              <template v-if="getMonitoringShowFeatures && monitoringStatsByStages.length">
-                <!-- Bloco para Monitoramento -->
-                <div
-                  v-for="(item, index) in monitoringStatsTiByStages"
-                  :key="'monitoring-' + index"
-                  class="text-center bordered-red"
-                >
-                  <p>
-                    <strong>TI {{ item.no_ti }}</strong>
-                  </p>
-                  <p v-if="parseFloat(item.nu_area_ha) > 0">
-                    Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
-                  </p>
+              <div
+                v-if="selectedItemsCount <= 7"
+                id="data-table"
+                class="leaflet-bottom leaflet-right"
+              >
+                <template v-if="getMonitoringShowFeatures && monitoringStatsByStages.length">
+                  <!-- Bloco para Monitoramento -->
+                  <div
+                    v-for="(item, index) in monitoringStatsTiByStages"
+                    :key="'monitoring-' + index"
+                    class="text-center bordered-red"
+                  >
+                    <p>
+                      <strong>TI {{ item.no_ti }}</strong>
+                    </p>
+                    <p v-if="parseFloat(item.nu_area_ha) > 0">
+                      Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                    </p>
 
-                  <template v-for="(stage, key) in item.stages">
-                    <p
-                      v-if="parseFloat(stage.area_ha) > 0 && getMonitoringCheckStageActives(stage)"
-                      :key="key"
-                    >
-                      {{ stage.no_estagio }} {{ formatNumber(stage.area_ha) }} ha
-                    </p>
-                  </template>
-                </div>
-              </template>
-              <template v-if="showFeaturesLandUse && landUseStatsByStages.length">
-                <!-- Bloco para Uso e Ocupação do Solo -->
-                <div
-                  v-for="(item, index) in landUseStatsTiByStages"
-                  :key="'landuse-' + index"
-                  class="text-center bordered-blue"
-                >
-                  <p>
-                    <strong>TI {{ item.no_ti }}</strong>
-                  </p>
-                  <p v-if="parseFloat(item.nu_area_ha) > 0">
-                    Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
-                  </p>
-                  <template v-for="(stage, key) in item.stages">
-                    <p
-                      v-if="parseFloat(stage.area_ha) > 0 && getLandUseCheckStageActives(stage)"
-                      :key="key"
-                    >
-                      {{ stage.no_estagio }} {{ formatNumber(stage.area_ha) }} ha
-                    </p>
-                  </template>
-                </div>
-              </template>
-            </div>
-            <v-card
-              v-if="showWarningMessage &&
-                !(getUrgentAlertsShowFeatures &&
-                  !getMonitoringShowFeatures && !showFeaturesLandUse)"
-              class="warning-message"
-              elevated
-            >
-              <v-card-text>
-                <p class="text-subtitle-1">
-                  {{ $t('warning-message') }}
-                </p>
-              </v-card-text>
-              <v-card-actions>
-                <v-btn
-                  color="primary"
-                  text
-                  @click="showWarningMessage = false"
-                >
-                  {{ $t('agree') }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-            <MapForPrint
-              :leaf-size="leafSize"
-              :main-map="mainMap"
-              :selected-base-map="selectedBaseMap"
-              class="map-wrapper"
-              @updateBounds="updateBounds"
-              @getCenter="getCenter"
-              @getZoom="getZoom"
-              @ready="onMapReady"
-            />
-          </v-col>
-          <v-col
-            cols="4"
-            class="pl-1 mt-2"
-          >
-            <div class="border-container">
-              <div
-                class="
-                    d-flex
-                    justify-space-between
-                    pl-8
-                    pr-8
-                    ga-1
-                    align-center
-                    ma-4
-                "
-              >
-                <div style="width: 20%">
-                  <v-img
-                    contain
-                    :src="logo_funai"
-                    class="logo"
-                  />
-                </div>
-                <div style="width: 60%">
-                  <v-img
-                    contain
-                    :src="logo_cmr"
-                    class="logo"
-                  />
-                </div>
-              </div>
-              <div class="font-title pb-2">
-                <p>
-                  {{ mapTitle }}
-                </p>
-                <p>
-                  {{ print_title }}
-                </p>
-              </div>
-              <div
-                id="container-mini-map"
-                class="d-flex justify-center height-container-mini-map"
-              >
-                <MiniMap
-                  v-if="currentBouldMap"
-                  :current-bould-map="currentBouldMap"
-                  :map-center="mapCenter"
-                  :main-zoom="mainZoom"
-                  :leaf-size="leafSize"
-                  @ready="onMiniMapReady"
-                />
-              </div>
-              <div
-                id="details-print"
-                class="legend-info-map"
-              >
-                <div class="legend-info-map legend-info-map-details">
-                  <div>
-                    <p
-                      v-if="hasLegend"
-                      class="d-block ma-1"
-                    >
-                      <strong>{{ $t('legend') }}</strong>
-                    </p>
-                    <div
-                      class="ma-1 flex-wrap"
-                      style="width: 100%; max-height: 100%; overflow: hidden"
-                    >
-                      <div
-                        style="
-                            display: flex;
-                            justify-content: flex-start;
-                            align-items: flex-start;
-                            gap: 5px;
-                        "
-                      />
-
-                      <div
-                        style="
-                            display: flex;
-                            justify-content: flex-start;
-                            align-items: flex-start;
-                            gap: 5px;
-                        "
+                    <template v-for="(stage, key) in item.stages">
+                      <p
+                        v-if="parseFloat(stage.area_ha) > 0
+                          && getMonitoringCheckStageActives(stage)"
+                        :key="key"
                       >
-                        <div v-if="getMonitoringShowFeatures && monitoringStatsByStages.length">
-                          <p>
-                            <strong> Monitoramento Diário </strong>
-                            <v-chip x-small>
-                              {{ monitoringCount }}
-                            </v-chip>
-                          </p>
-                          <hr
-                            style="
-                                border: 1px solid red;
-                                margin: 0;
-                                margin-top: 0px;
-                            "
-                          >
-                          <CustomizedLegend
-                            class="pt-1"
-                            :items="monitoringStatsByStages"
-                          />
-                        </div>
-                        <div v-if="getUrgentAlertsShowFeatures && urgentAlertsStatsByStages.length">
-                          <p>
-                            <strong>Alerta Urgente</strong>
-                            <v-chip x-small>
-                              {{ urgentAlertsCount }}
-                            </v-chip>
-                          </p>
-                          <hr
-                            style="
-                                border: 1px solid blue;
-                                margin: 0;
-                                margin-top: 3px;
-                            "
-                          >
-                          <CustomizedLegend
-                            class="pt-1"
-                            :items="urgentAlertsStatsByStages"
-                          />
-                        </div>
+                        {{ stage.no_estagio }} {{ formatNumber(stage.area_ha) }} ha
+                      </p>
+                    </template>
+                  </div>
+                </template>
+                <template v-if="showFeaturesLandUse && landUseStatsByStages.length">
+                  <!-- Bloco para Uso e Ocupação do Solo -->
+                  <div
+                    v-for="(item, index) in landUseStatsTiByStages"
+                    :key="'landuse-' + index"
+                    class="text-center bordered-blue"
+                  >
+                    <p>
+                      <strong>TI {{ item.no_ti }}</strong>
+                    </p>
+                    <p v-if="parseFloat(item.nu_area_ha) > 0">
+                      Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                    </p>
+                    <template v-for="(stage, key) in item.stages">
+                      <p
+                        v-if="parseFloat(stage.area_ha) > 0 && getLandUseCheckStageActives(stage)"
+                        :key="key"
+                      >
+                        {{ stage.no_estagio }} {{ formatNumber(stage.area_ha) }} ha
+                      </p>
+                    </template>
+                  </div>
+                </template>
+              </div>
+              <v-card
+                v-if="showWarningMessage &&
+                  !(getUrgentAlertsShowFeatures &&
+                    !getMonitoringShowFeatures && !showFeaturesLandUse)"
+                class="warning-message"
+                elevated
+              >
+                <v-card-text>
+                  <p class="text-subtitle-1">
+                    {{ $t('warning-message') }}
+                  </p>
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                    color="primary"
+                    text
+                    @click="showWarningMessage = false"
+                  >
+                    {{ $t('agree') }}
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+              <MapForPrint
+                :leaf-size="leafSize"
+                :main-map="mainMap"
+                :selected-base-map="selectedBaseMap"
+                class="map-wrapper"
+                @updateBounds="updateBounds"
+                @getCenter="getCenter"
+                @getZoom="getZoom"
+                @ready="onMapReady"
+              />
+            </v-col>
+            <v-col
+              cols="4"
+              class="pl-1 mt-2"
+            >
+              <div class="border-container">
+                <div
+                  class="
+                      d-flex
+                      justify-space-between
+                      pl-8
+                      pr-8
+                      ga-1
+                      align-center
+                      ma-4
+                  "
+                >
+                  <div style="width: 20%">
+                    <v-img
+                      contain
+                      :src="logo_funai"
+                      class="logo"
+                    />
+                  </div>
+                  <div style="width: 60%">
+                    <v-img
+                      contain
+                      :src="logo_cmr"
+                      class="logo"
+                    />
+                  </div>
+                </div>
+                <div class="font-title pb-2">
+                  <p>
+                    {{ mapTitle }}
+                  </p>
+                  <p>
+                    {{ print_title }}
+                  </p>
+                </div>
+                <div
+                  id="container-mini-map"
+                  class="d-flex justify-center height-container-mini-map"
+                >
+                  <MiniMap
+                    v-if="currentBouldMap"
+                    :current-bould-map="currentBouldMap"
+                    :map-center="mapCenter"
+                    :main-zoom="mainZoom"
+                    :leaf-size="leafSize"
+                    @ready="onMiniMapReady"
+                  />
+                </div>
+                <div
+                  id="details-print"
+                  class="legend-info-map"
+                >
+                  <div class="legend-info-map legend-info-map-details">
+                    <div>
+                      <p
+                        v-if="hasLegend"
+                        class="d-block ma-1"
+                      >
+                        <strong>{{ $t('legend') }}</strong>
+                      </p>
+                      <div
+                        class="ma-1 flex-wrap"
+                        style="width: 100%; max-height: 100%; overflow: hidden"
+                      >
                         <div
-                          v-if="showFeaturesSupportLayers
-                            && (Object.values(supportLayers).filter(l => l.visible).length)
-                            && (Object.values(supportLayers).filter(l => l.visible).length <= 7)
-                            && (Object.values(supportLayerUser).filter(l => l.visible).length <= 7)"
-                        >
-                          <p style="width: 120px">
-                            <strong>Sobreposição de camadas</strong>
-                          </p>
-                          <hr
-                            style="
-                                border: 1px solid blue;
-                                margin: 0;
-                                margin-top: 3px;
-                            "
-                          >
-                          <LayerList
-                            :layers="supportLayerUser"
-                            :is-user-layer="true"
-                          />
-                          <LayerList
-                            v-if="showFeaturesSupportLayers"
-                            :layers="supportLayers"
-                            class="mt-1"
-                          />
-                        </div>
+                          style="
+                              display: flex;
+                              justify-content: flex-start;
+                              align-items: flex-start;
+                              gap: 5px;
+                          "
+                        />
 
-                        <div v-if="showFeaturesLandUse && landUseStatsByStages.length">
-                          <p>
-                            <strong>Uso e Ocupação do Solo</strong>
-                            <v-chip x-small>
-                              {{ landUseCount }}
-                            </v-chip>
-                          </p>
-                          <hr
-                            style="
-                                border: 1px solid blue;
-                                margin: 0;
-                                margin-top: 0px;
-                            "
-                          >
-                          <CustomizedLegend
-                            class="pt-1"
-                            :items="landUseStatsByStages"
-                          />
-                        </div>
-
-                        <div v-if="showFeaturesProdes">
-                          <p>
-                            <strong>INPE - Prodes</strong>
-                          </p>
-                          <hr
-                            style="
-                                border: 1px solid blue;
-                                margin: 0;
-                                margin-top: 3px;
-                            "
-                          >
-                          <CustomizedLegend
-                            class="pt-1"
-                            :items="prodesItems"
-                          />
-                        </div>
-                        <div v-if="showFeaturesDeter">
-                          <p>
-                            <strong>INPE - Deter</strong>
-                          </p>
-                          <hr
-                            style="
-                                border: 1px solid blue;
-                                margin: 0;
-                                margin-top: 3px;
-                            "
-                          >
-                          <CustomizedLegend
-                            class="pt-1"
-                            :items="deterItems"
-                          />
-                        </div>
                         <div
-                          v-if="showFeaturesAquaMM || showFeaturesAquaMT"
+                          style="
+                              display: flex;
+                              justify-content: flex-start;
+                              align-items: flex-start;
+                              gap: 5px;
+                          "
                         >
-                          <p>
-                            <strong>INPE - Focos de Calor</strong>
-                          </p>
-                          <hr
-                            style="
-                                border: 1px solid blue;
-                                margin: 0;
-                                margin-top: 3px;
-                            "
+                          <div v-if="getMonitoringShowFeatures && monitoringStatsByStages.length">
+                            <p>
+                              <strong> Monitoramento Diário </strong>
+                              <v-chip x-small>
+                                {{ monitoringCount }}
+                              </v-chip>
+                            </p>
+                            <hr
+                              style="
+                                  border: 1px solid red;
+                                  margin: 0;
+                                  margin-top: 0px;
+                              "
+                            >
+                            <CustomizedLegend
+                              class="pt-1"
+                              :items="monitoringStatsByStages"
+                            />
+                          </div>
+                          <div
+                            v-if="getUrgentAlertsShowFeatures
+                              && urgentAlertsStatsByStages.length"
                           >
-                          <CustomizedLegend
-                            class="pt-1"
-                            :items="
-                              heatFocusItems.filter(
-                                (item) =>
-                                  (item.label ===
-                                    'Aqua Modis Manhã' &&
-                                    showFeaturesAquaMM) ||
-                                  (item.label ===
-                                    'Aqua Modis Tarde' &&
-                                    showFeaturesAquaMT)
-                              )
-                            "
-                          />
+                            <p>
+                              <strong>Alerta Urgente</strong>
+                              <v-chip x-small>
+                                {{ urgentAlertsCount }}
+                              </v-chip>
+                            </p>
+                            <hr
+                              style="
+                                  border: 1px solid blue;
+                                  margin: 0;
+                                  margin-top: 3px;
+                              "
+                            >
+                            <CustomizedLegend
+                              class="pt-1"
+                              :items="urgentAlertsStatsByStages"
+                            />
+                          </div>
+                          <div
+                            v-if="showFeaturesSupportLayers
+                              && (Object.values(supportLayers).filter(l => l.visible).length)
+                              && (Object.values(supportLayers).filter(l => l.visible).length <= 7)
+                              && (Object.values(supportLayerUser).filter(
+                                l => l.visible).length <= 7)"
+                          >
+                            <p style="min-width: 120px; max-width: 500px;">
+                              <strong>Sobreposição de camadas</strong>
+                            </p>
+                            <hr
+                              style="
+                                  border: 1px solid blue;
+                                  margin: 0;
+                                  margin-top: 3px;
+                              "
+                            >
+                            <LayerList
+                              :layers="supportLayerUser"
+                              :is-user-layer="true"
+                            />
+                            <LayerList
+                              v-if="showFeaturesSupportLayers"
+                              :layers="supportLayers"
+                              class="mt-1"
+                            />
+                          </div>
+
+                          <div v-if="showFeaturesLandUse && landUseStatsByStages.length">
+                            <p>
+                              <strong>Uso e Ocupação do Solo</strong>
+                              <v-chip x-small>
+                                {{ landUseCount }}
+                              </v-chip>
+                            </p>
+                            <hr
+                              style="
+                                  border: 1px solid blue;
+                                  margin: 0;
+                                  margin-top: 0px;
+                              "
+                            >
+                            <CustomizedLegend
+                              class="pt-1"
+                              :items="landUseStatsByStages"
+                            />
+                          </div>
+
+                          <div v-if="showFeaturesProdes">
+                            <p>
+                              <strong>INPE - Prodes</strong>
+                            </p>
+                            <hr
+                              style="
+                                  border: 1px solid blue;
+                                  margin: 0;
+                                  margin-top: 3px;
+                              "
+                            >
+                            <CustomizedLegend
+                              class="pt-1"
+                              :items="prodesItems"
+                            />
+                          </div>
+                          <div v-if="showFeaturesDeter">
+                            <p>
+                              <strong>INPE - Deter</strong>
+                            </p>
+                            <hr
+                              style="
+                                  border: 1px solid blue;
+                                  margin: 0;
+                                  margin-top: 3px;
+                              "
+                            >
+                            <CustomizedLegend
+                              class="pt-1"
+                              :items="deterItems"
+                            />
+                          </div>
+                          <div
+                            v-if="showFeaturesAquaMM || showFeaturesAquaMT"
+                          >
+                            <p>
+                              <strong>INPE - Focos de Calor</strong>
+                            </p>
+                            <hr
+                              style="
+                                  border: 1px solid blue;
+                                  margin: 0;
+                                  margin-top: 3px;
+                              "
+                            >
+                            <CustomizedLegend
+                              class="pt-1"
+                              :items="
+                                heatFocusItems.filter(
+                                  (item) =>
+                                    (item.label ===
+                                      'Aqua Modis Manhã' &&
+                                      showFeaturesAquaMM) ||
+                                    (item.label ===
+                                      'Aqua Modis Tarde' &&
+                                      showFeaturesAquaMT)
+                                )
+                              "
+                            />
+                          </div>
                         </div>
                       </div>
+                    </div>
+                    <div>
+                      <v-divider />
+                      <p
+                        v-if="hasCartographicDatasets"
+                        class="d-block ma-1"
+                      >
+                        Bases Cartográficas:
+                      </p>
+
+                      <div
+                        v-for="layerCategory in layerCategories"
+                        :key="layerCategory.name"
+                      >
+                        <div
+                          v-for="layer in layerCategory.layers"
+                          :key="layer.id"
+                        >
+                          <v-row
+                            v-if="layer.visible"
+                            no-gutters
+                            align="center"
+                            class="image-container"
+                          >
+                            <v-col>
+                              <p class="ml-1">
+                                <strong>{{ layer.name || '-' }}.</strong>
+                                Fonte:{{ layer.fonte || '-' }}, Data de
+                                atualização:
+                                {{ handleData(layer.dt_atualizacao) }}.
+                              </p>
+                            </v-col>
+                          </v-row>
+                        </div>
+                      </div>
+                    </div>
+                    <div v-if="getMonitoringShowFeatures">
+                      <p class="ml-1">
+                        {{ $t('monitoring-print-label') }}
+                        {{ handleData(monitoringFilters.startDate) }}
+                        {{ $t('and') }}
+                        {{ handleData(monitoringFilters.endDate) }}
+                      </p>
+                    </div>
+                    <div v-if="getUrgentAlertsShowFeatures">
+                      <p class="ml-1">
+                        {{ $t('alerts-print-label') }}
+                        {{ handleData(alertsFilters.startDate) }}
+                        {{ $t('and') }}
+                        {{ handleData(alertsFilters.endDate) }}
+                      </p>
+                    </div>
+                    <div v-if="showFeaturesLandUse && uniqueYears.length > 0">
+                      <p class="ml-1">
+                        {{ $t('land-use-print-label') }}
+                        <span
+                          v-for="(year, index) in uniqueYears"
+                          :key="'year-' + index"
+                        >
+                          {{ year }}<span v-if="index < uniqueYears.length - 1">,
+                          </span>
+                        </span>
+                      </p>
+                    </div>
+                    <div v-if="showFeaturesProdes">
+                      <p class="ml-1">
+                        {{ $t('prodes-print-label') }}
+                        {{ handleProdesYear() }}
+                      </p>
+                    </div>
+                    <div v-if="showFeaturesDeter">
+                      <p class="ml-1">
+                        {{ $t('deter-print-label') }}
+                        {{ handleData(deterFilters.startDate) }}
+                        {{ $t('and') }}
+                        {{ handleData(deterFilters.endDate) }}
+                      </p>
+                    </div>
+                    <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
+                      <p class="ml-1">
+                        {{ $t('heat-focus-print-label') }}
+                        {{ handleData(focoFilters.startDate) }}
+                        {{ $t('and') }}
+                        {{ handleData(focoFilters.endDate) }}
+                      </p>
                     </div>
                   </div>
                   <div>
                     <v-divider />
-                    <p
-                      v-if="hasCartographicDatasets"
-                      class="d-block ma-1"
-                    >
-                      Bases Cartográficas:
-                    </p>
-
-                    <div
-                      v-for="layerCategory in layerCategories"
-                      :key="layerCategory.name"
-                    >
-                      <div
-                        v-for="layer in layerCategory.layers"
-                        :key="layer.id"
-                      >
-                        <v-row
-                          v-if="layer.visible"
-                          no-gutters
-                          align="center"
-                          class="image-container"
-                        >
-                          <v-col>
-                            <p class="ml-1">
-                              <strong>{{ layer.name || '-' }}.</strong>
-                              Fonte:{{ layer.fonte || '-' }}, Data de
-                              atualização:
-                              {{ handleData(layer.dt_atualizacao) }}.
-                            </p>
-                          </v-col>
-                        </v-row>
-                      </div>
+                    <div class="ma-1">
+                      <p>
+                        {{ print_info }}
+                        {{ $t('text-address0') }}
+                      </p>
+                      <p>
+                        {{ print_info }}
+                        {{ $t('text-address') }}
+                        {{ todayDate() }}
+                      </p>
                     </div>
-                  </div>
-                  <div v-if="getMonitoringShowFeatures">
-                    <p class="ml-1">
-                      {{ $t('monitoring-print-label') }}
-                      {{ handleData(monitoringFilters.startDate) }}
-                      {{ $t('and') }}
-                      {{ handleData(monitoringFilters.endDate) }}
-                    </p>
-                  </div>
-                  <div v-if="getUrgentAlertsShowFeatures">
-                    <p class="ml-1">
-                      {{ $t('alerts-print-label') }}
-                      {{ handleData(alertsFilters.startDate) }}
-                      {{ $t('and') }}
-                      {{ handleData(alertsFilters.endDate) }}
-                    </p>
-                  </div>
-                  <div v-if="showFeaturesLandUse && uniqueYears.length > 0">
-                    <p class="ml-1">
-                      {{ $t('land-use-print-label') }}
-                      <span
-                        v-for="(year, index) in uniqueYears"
-                        :key="'year-' + index"
-                      >
-                        {{ year }}<span v-if="index < uniqueYears.length - 1">,
-                        </span>
-                      </span>
-                    </p>
-                  </div>
-                  <div v-if="showFeaturesProdes">
-                    <p class="ml-1">
-                      {{ $t('prodes-print-label') }}
-                      {{ handleProdesYear() }}
-                    </p>
-                  </div>
-                  <div v-if="showFeaturesDeter">
-                    <p class="ml-1">
-                      {{ $t('deter-print-label') }}
-                      {{ handleData(deterFilters.startDate) }}
-                      {{ $t('and') }}
-                      {{ handleData(deterFilters.endDate) }}
-                    </p>
-                  </div>
-                  <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
-                    <p class="ml-1">
-                      {{ $t('heat-focus-print-label') }}
-                      {{ handleData(focoFilters.startDate) }}
-                      {{ $t('and') }}
-                      {{ handleData(focoFilters.endDate) }}
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  <v-divider />
-                  <div class="ma-1">
-                    <p>
-                      {{ print_info }}
-                      {{ $t('text-address0') }}
-                    </p>
-                    <p>
-                      {{ print_info }}
-                      {{ $t('text-address') }}
-                      {{ todayDate() }}
-                    </p>
-                  </div>
-                  <v-divider />
-                  <div class="ma-1">
-                    <p>
-                      {{ $t('author-label') }}
-                    </p>
-                    <p>
-                      {{ $t('text-info') }}
-                    </p>
-                    <p>
-                      {{ $t('text-format') }}
-                      {{ leafSize.type }}.
-                    </p>
+                    <v-divider />
+                    <div class="ma-1">
+                      <p>
+                        {{ $t('author-label') }}
+                      </p>
+                      <p>
+                        {{ $t('text-info') }}
+                      </p>
+                      <p>
+                        {{ $t('text-format') }}
+                        {{ leafSize.type }}.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </v-col>
-        </v-row>
-      </v-container>
-      <div class="print-dialog-footer no-print">
+            </v-col>
+          </v-row>
+        </v-container>
+      </div>
+      <div class="print-dialog-footer no-print fixed-footer">
         <div class="d-flex align-center pa-4">
           <v-btn
             class="ml-2"
@@ -958,6 +939,29 @@ export default {
   },
 
   watch: {
+    leafSize: {
+      handler(newSize) {
+        if (newSize && newSize.type && this.map) {
+          this.adjustMapSizeForPrint(newSize.type);
+        }
+      },
+      immediate: true,
+      deep: true,
+    },
+
+    showDialog: {
+      handler(newVal) {
+        if (newVal && this.leafSize && this.leafSize.type) {
+          this.$nextTick(() => {
+            setTimeout(() => {
+              this.adjustMapSizeForPrint(this.leafSize.type);
+            }, 100);
+          });
+        }
+      },
+      immediate: true,
+    },
+
     monitoringFeatures(newVal) {
       if (newVal && newVal.features && newVal.features.length > 100) {
         this.showWarningMessage = true;
@@ -965,11 +969,19 @@ export default {
     },
     combinedTableData(newVal) {
       this.selectedItemsCount = newVal.length;
-      this.showWarningMessage = (this.getMonitoringShowFeatures || this.showFeaturesLandUse) && newVal.length > 7;
+      this.showWarningMessage = (this.getMonitoringShowFeatures
+      || this.showFeaturesLandUse) && newVal.length > 7;
     },
   },
 
   async mounted() {
+    if (this.leafSize && this.leafSize.type && this.showDialog) {
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.adjustMapSizeForPrint(this.leafSize.type);
+        }, 300);
+      });
+    }
     let count = 0;
     // Check monitoring TI count
     if (
@@ -1154,8 +1166,12 @@ export default {
     },
 
     resetConfigPrint() {
-      document.getElementById('map-for-print').style.width = '1105px';
-      document.getElementById('map-for-print').style.height = '770px';
+      if (this.leafSize && this.leafSize.type) {
+        this.adjustMapSizeForPrint(this.leafSize.type);
+      } else {
+        document.getElementById('map-for-print').style.width = '1105px';
+        document.getElementById('map-for-print').style.height = '770px';
+      }
       document.getElementById('container-mini-map').style.height = '150px';
       document.getElementById('miniPrintMap').style.height = '150px';
 
@@ -1216,29 +1232,45 @@ export default {
         const originalWidth = node.style.width;
         const originalHeight = node.style.height;
 
-        node.style.width = '1230px';
-        node.style.height = '780px';
+        const mapDimensions = this.getMapDimensions(this.leafSize.type);
+        node.style.width = `${mapDimensions.width}px`;
+        node.style.height = `${mapDimensions.height}px`;
 
         if (legends && legends.length > 0) {
           Array.from(legends).forEach((legend) => {
             originalLegends.push(legend.style.width);
+            const legendWidth = Math.min(150, mapDimensions.width * 0.12);
             // eslint-disable-next-line no-param-reassign
-            legend.style.width = '110px';
+            legend.style.width = `${legendWidth}px`;
           });
         }
 
         const options = {
           quality: 1,
           bgcolor: 'white',
-          width: 1230,
-          height: 780,
+          width: mapDimensions.width,
+          height: mapDimensions.height,
           style: {
             transform: 'scale(1)',
             transformOrigin: 'top left',
           },
+          filter: (node) => {
+            const excludeClasses = ['no-print', 'print-dialog-header', 'print-dialog-footer'];
+            const hasExcludeClass = excludeClasses.some(className =>
+              node.classList && node.classList.contains(className));
+            return !hasExcludeClass;
+          },
+          scrollX: 0,
+          scrollY: 0,
+          imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
         };
 
         infoControlRight.setAttribute('style', 'width: 304px');
+
+        if (this.leafSize.type === 'A0' || this.leafSize.type === 'A1') {
+          options.cacheBust = true;
+          options.imageTimeout = 30000;
+        }
 
         const image = await domtoimage.toJpeg(node, options);
 
@@ -1253,8 +1285,13 @@ export default {
         this.loadingPrintImage = false;
       } catch (error) {
         console.error('Erro ao gerar imagem:', error);
-        this.$emit('show-error', 'Ocorreu um erro ao gerar a imagem.');
-        this.loadingPrintImage = false;
+
+        if (this.leafSize.type === 'A0' || this.leafSize.type === 'A1') {
+          await this.tryAlternativeImageSave();
+        } else {
+          this.$emit('show-error', 'Ocorreu um erro ao gerar a imagem.');
+          this.loadingPrintImage = false;
+        }
       } finally {
         infoControlRight.setAttribute('style', 'width: auto');
         mapBounds.style.width = 'auto';
@@ -1277,6 +1314,44 @@ export default {
 </script>
 
 <style scoped>
+.content-scroll-container {
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: white;
+}
+
+.print-dialog-header {
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+  background: var(--v-primary-base);
+  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 10;
+}
+
+.print-dialog-footer {
+  position: sticky;
+  bottom: 0;
+  flex-shrink: 0;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  z-index: 10;
+}
+
+:deep(.dialog-no-scroll) {
+  overflow: hidden !important;
+  max-height: 95vh !important;
+}
+
+:deep(.dialog-no-scroll .v-card) {
+  overflow: hidden !important;
+  max-height: 95vh !important;
+}
+
 #monitoring-data-details {
     position: relative;
 }
@@ -1337,25 +1412,6 @@ export default {
     height: 100%;
 }
 
-.print-dialog-header {
-    flex-shrink: 0;
-    background: var(--v-primary-base);
-    border-bottom: 1px solid #e0e0e0;
-    padding: 8px 16px;
-    display: flex;
-    justify-content: flex-end;
-    position: relative;
-    z-index: 10;
-}
-
-.print-dialog-footer {
-    flex-shrink: 0;
-    background: white;
-    border-top: 1px solid #e0e0e0;
-    position: relative;
-    z-index: 10;
-}
-
 @page {
     size: landscape;
     margin: 0;
@@ -1375,6 +1431,11 @@ export default {
     .print-dialog-header,
     .print-dialog-footer {
         display: none !important;
+    }
+
+    .content-scroll-container {
+        max-height: none !important;
+        overflow: visible !important;
     }
 
     .logo,

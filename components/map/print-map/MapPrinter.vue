@@ -84,9 +84,7 @@
                   <MapLandscape
                     v-if="showDialogLandscape"
                     id="printableMap"
-                    :show-dialog-landscape="
-                      showDialogLandscape
-                    "
+                    :show-dialog-landscape="showDialogLandscape"
                     :map-title="mapTitle"
                     :leaf-size="select"
                     :main-map="map"

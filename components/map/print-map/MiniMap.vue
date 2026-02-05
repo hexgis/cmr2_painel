@@ -17,7 +17,7 @@
       >
         <p
           class="ma-1 px-1 print-mini-map-text text-center"
-          style="background-color: white; opacity: 0.7; width: 150px;"
+          style="background-color: white; opacity: 0.7; min-width: 150px; max-width: 500px;"
         >
           LOCALIZAÇÃO DA ÁREA
         </p>
