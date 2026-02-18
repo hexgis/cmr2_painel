@@ -1,5 +1,4 @@
 export const state = () => ({
-  // state map
   activeMenu: '',
   openDrawPopup: null,
   bounds: null,
@@ -33,13 +32,22 @@ export const state = () => ({
   // geoserver config
   geoserverUrl: '',
   geoserverSearchTI: process.env.GEOSERVER_SEARCH_TI,
+  carPrintData: {
+    visible: false,
+    mapTitle: '',
+    leafSize: { type: 'A4' },
+    carData: [],
+    mapBounds: null,
+    selectedBaseMapUrl: null,
+  },
+  showTemplateMapLandscapeCar: false,
 });
 
 export const getters = {
-  bbox: (state) => (state.bounds ? state.bounds.toBBoxString() : '') || '',
+  bbox: (state) => (state.bounds ? state.bounds.toBBoxString() : null),
 
   bboxWkt(state) {
-    if (!state.bounds) return '';
+    if (!state.bounds) return null;
 
     const coords = [
       state.bounds.getSouthWest(),
@@ -54,7 +62,7 @@ export const getters = {
   },
 
   bboxEs(state) {
-    if (!state.bounds) return [];
+    if (!state.bounds) return null;
 
     const northWest = state.bounds.getNorthWest();
     const southEast = state.bounds.getSouthEast();
@@ -69,6 +77,10 @@ export const getters = {
 export const mutations = {
   clearSavedSelectedItems(state) {
     state.savedSelectedItems = [];
+  },
+
+  setShowTemplateMapLandscapeCar(state, show) {
+    state.showTemplateMapLandscapeCar = show;
   },
 
   addItem(state, item) {
@@ -190,10 +202,6 @@ export const mutations = {
     state.basemaps = basemaps;
   },
 
-  removeFileFromMap(state, fileIndex) {
-    state.fileList.splice(fileIndex, 1);
-  },
-
   setTmsToPrint(state, {
     visible, tmsUrl, geoserverName, wmsUrl, bounds,
   }) {
@@ -214,6 +222,28 @@ export const mutations = {
 
   setCurrentBaseMap(state, { url, options }) {
     state.currentBaseMap = { url, options };
+  },
+
+  setCarPrintData(state, carPrintData) {
+    state.carPrintData = {
+      visible: carPrintData.visible !== undefined ? carPrintData.visible : false,
+      mapTitle: carPrintData.mapTitle || 'Relatório CAR',
+      leafSize: carPrintData.leafSize || { type: 'A4' },
+      carData: carPrintData.carData || [],
+      mapBounds: carPrintData.mapBounds || null,
+      selectedBaseMapUrl: carPrintData.selectedBaseMapUrl || null,
+    };
+  },
+
+  clearCarPrintData(state) {
+    state.carPrintData = {
+      visible: false,
+      mapTitle: '',
+      leafSize: { type: 'A4' },
+      carData: [],
+      mapBounds: null,
+      selectedBaseMapUrl: null,
+    };
   },
 };
 
@@ -443,6 +473,122 @@ export const actions = {
       });
     } catch (error) {
       console.error('Error fetching Geoserver configuration:', error);
+    }
+  },
+
+  async handleCarPrint({ commit, state }, {
+    map,
+    mapTitle,
+    leafSize,
+    selectedBaseMap,
+  }) {
+    try {
+      let carData = [];
+      let hasCarData = false;
+
+      if (map?.getBounds) {
+        const bounds = map.getBounds();
+        const bboxArray = [
+          bounds.getWest(),
+          bounds.getSouth(),
+          bounds.getEast(),
+          bounds.getNorth(),
+        ];
+
+        try {
+          const geoserverBaseUrl = state.geoserverUrl;
+          const layerName = 'CMR-FUNAI:lim_imovel_car_a';
+          const cqlFilter = `INTERSECTS(geom, POLYGON((${bboxArray[0]} ${bboxArray[1]}, ${bboxArray[2]} ${bboxArray[1]}, ${bboxArray[2]} ${bboxArray[3]}, ${bboxArray[0]} ${bboxArray[3]}, ${bboxArray[0]} ${bboxArray[1]})))`;
+
+          const params = {
+            service: 'WFS',
+            version: '1.0.0',
+            request: 'GetFeature',
+            typeName: layerName,
+            outputFormat: 'application/json',
+            srsName: 'EPSG:4326',
+            maxFeatures: 1000,
+            CQL_FILTER: cqlFilter,
+          };
+
+          const url = `${geoserverBaseUrl}&${new URLSearchParams(params)}`;
+
+          const response = await this.$api.$get(url);
+
+          carData = (response.features || []).map((feature) => {
+            const cleanFeature = {
+              type: feature.type,
+              geometry: feature.geometry,
+              properties: { ...feature.properties },
+              id: feature.id,
+            };
+            if (cleanFeature.properties) {
+              Object.keys(cleanFeature.properties).forEach((key) => {
+                if (cleanFeature.properties[key] && typeof cleanFeature.properties[key] === 'object') {
+                  delete cleanFeature.properties[key];
+                }
+              });
+            }
+
+            return cleanFeature;
+          });
+
+          hasCarData = carData.length > 0;
+
+          commit('setCarPrintData', {
+            mapTitle: mapTitle || 'Relatório CAR',
+            leafSize,
+            mapBounds: {
+              north: bounds.getNorth(),
+              south: bounds.getSouth(),
+              east: bounds.getEast(),
+              west: bounds.getWest(),
+            },
+            selectedBaseMapUrl: selectedBaseMap?.url,
+            visible: true,
+            carData,
+          });
+
+          if (hasCarData) {
+            commit('setShowTemplateMapLandscapeCar', true);
+          }
+
+          return { success: true, hasCarData };
+        } catch (wfsError) {
+          console.error('❌ Erro na consulta CAR:', wfsError);
+          commit('setCarPrintData', {
+            mapTitle: mapTitle || 'Relatório CAR',
+            leafSize,
+            mapBounds: {
+              north: bounds.getNorth(),
+              south: bounds.getSouth(),
+              east: bounds.getEast(),
+              west: bounds.getWest(),
+            },
+            selectedBaseMapUrl: selectedBaseMap?.url,
+            visible: true,
+            carData: [],
+          });
+          return { success: true, hasCarData: false };
+        }
+      } else {
+        commit('setCarPrintData', {
+          mapTitle: mapTitle || 'Relatório CAR',
+          leafSize,
+          visible: true,
+          carData: [],
+        });
+        return { success: true, hasCarData: false };
+      }
+    } catch (error) {
+      console.error('❌ Erro no processo CAR:', error);
+      commit('setCarPrintData', {
+        mapTitle: mapTitle || 'Relatório CAR',
+        leafSize,
+        visible: true,
+        carData: [],
+      });
+      return { success: false, hasCarData: false, error };
     }
   },
 };

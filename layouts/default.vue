@@ -39,6 +39,11 @@
       </template>
     </v-snackbar>
 
+    <MapLandscapeCar
+      v-if="showTemplateMapLandscapeCar"
+      v-model="showTemplateMapLandscapeCar"
+    />
+
     <!-- Privacy Agreement Modal -->
     <PrivacyAgreementModal
       v-model="showPrivacyAgreementModal"
@@ -122,6 +127,7 @@ import Map from '@/components/map/Map';
 import BaseAlert from '@/components/base/BaseAlert';
 import AnalyticsPCDashboard from '@/components/analytical-cmr/AnalyticsPriorConsolidDashboard';
 import PrivacyAgreementModal from '@/components/privacy-agreement/PrivacyAgreementModal';
+import MapLandscapeCar from '../components/map/print-map/TemplateCar.vue';
 
 export default {
   name: 'App',
@@ -131,6 +137,7 @@ export default {
     BaseAlert,
     AnalyticsPCDashboard,
     PrivacyAgreementModal,
+    MapLandscapeCar,
   },
 
   data: () => ({
@@ -175,6 +182,7 @@ export default {
     ...mapState('priority', ['visualizationStage']),
     ...mapState('monitoring', ['visualizationStageMonitoring']),
     ...mapState('tableDialog', ['showTableDialog']),
+    ...mapState('map', ['showTemplateMapLandscapeCar']),
     ...mapGetters('auth', ['isLoggedIn']),
   },
 
@@ -402,4 +410,25 @@ body,
 
   .drawer-btn-opened
     right: 300px
+</style>
+
+<style>
+.page-break {
+  break-before: always !important;
+  page-break-before: always !important;
+}
+
+@media print {
+    @page {
+        margin: 0;
+    }
+
+    body {
+        overflow: visible !important;
+    }
+
+    .leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{
+      display: none !important;
+    }
+}
 </style>
