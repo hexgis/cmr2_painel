@@ -2,9 +2,8 @@
   <div>
     <v-dialog
       v-model="showDialog"
-      :max-width="dialogWidth"
-      :max-height="dialogHeight"
       content-class="dialog-no-scroll"
+      :fullscreen="isSmallScreen"
       @click:outside="$emit('close')"
     >
       <div class="print-dialog-header no-print">
@@ -23,7 +22,7 @@
           <v-row
             id="map-for-print"
             no-gutters
-            style="width: 1230px; height: 780px; overflow: hidden"
+            style="width: 1105px; height: 770px; overflow: hidden; margin: 0 auto;"
           >
             <v-col
               id="monitoring-data-details"
@@ -45,14 +44,15 @@
                     <p>
                       <strong>TI {{ item.no_ti }}</strong>
                     </p>
-                    <p v-if="parseFloat(item.nu_area_ha) > 0">
-                      Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
+                    <!-- Área total da TI vinda do analytics -->
+                    <p v-if="item.ti_nu_area_ha">
+                      Área da TI: {{ formatNumber(item.ti_nu_area_ha) }} ha
                     </p>
 
+                    <!-- Stages vindo do monitoring -->
                     <template v-for="(stage, key) in item.stages">
                       <p
-                        v-if="parseFloat(stage.area_ha) > 0
-                          && getMonitoringCheckStageActives(stage)"
+                        v-if="stage.area_ha > 0 && getMonitoringCheckStageActives(stage)"
                         :key="key"
                       >
                         {{ stage.no_estagio }} {{ formatNumber(stage.area_ha) }} ha
@@ -601,6 +601,10 @@ export default {
   },
 
   props: {
+    analyticsData: {
+      type: Array,
+      default: () => []
+    },
     showDialogLandscape: {
       type: Boolean,
       default: false,
@@ -643,6 +647,8 @@ export default {
     currentBouldMap: null,
     mapCenter: null,
     mainZoom: null,
+    miniMapCenter: null,
+    miniMapZoom: null,
     logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
     logo_cmr: process.env.DEFAULT_LOGO_IMAGE_CMR,
     print_title: process.env.PRINT_TITLE,
@@ -651,6 +657,7 @@ export default {
     activeMonitoringLabel: [],
     loadingPrintImage: false,
     loadingPrintPdf: false,
+    isSmallScreen: window.innerWidth < 768,
 
     deterItems: [{ label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' }],
     heatFocusItems: [
@@ -847,9 +854,43 @@ export default {
     },
 
     monitoringStatsTiByStages() {
-      if (!this.getMonitoringStats || !this.getMonitoringStats.tiByStages) return [];
-      if (this.getMonitoringStats.tiByStages.length > 7) return [];
-      return this.getMonitoringStats.tiByStages;
+      const tiByStages = this.getMonitoringStats?.tiByStages;
+      if (!tiByStages?.length || tiByStages.length > 7) return [];
+
+      const parseArea = (value) => {
+        if (!value) return 0;
+        if (typeof value === 'number') return value;
+        return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0;
+      };
+
+      const analyticsMap = (this.analyticsData || [])
+        .filter(item => item.no_ti)
+        .reduce((map, item) => {
+          map[item.no_ti] = parseArea(item.ti_nu_area_ha);
+          return map;
+        }, {});
+
+      return tiByStages
+        .map(ti => {
+          const areaTotalTI = analyticsMap[ti.no_ti] ?? 
+                            parseArea(ti.total_area) ?? 
+                            parseArea(ti.nu_area_ha);
+          
+          const stages = (ti.stages || [])
+            .map(stage => ({
+              ...stage,
+              area_ha: parseArea(stage.area_ha)
+            }))
+            .filter(stage => stage.area_ha > 0);
+
+          return {
+            no_ti: ti.no_ti,
+            ti_nu_area_ha: areaTotalTI,
+            nu_area_ha: areaTotalTI,
+            stages
+          };
+        })
+        .filter(ti => ti.stages.length > 0);
     },
 
     monitoringStatsByStages() {
@@ -942,7 +983,10 @@ export default {
     leafSize: {
       handler(newSize) {
         if (newSize && newSize.type && this.map) {
-          this.adjustMapSizeForPrint(newSize.type);
+          this.$nextTick(() => {
+            if (this.map) this.map.invalidateSize();
+            if (this.miniMap) this.miniMap.invalidateSize();
+          });
         }
       },
       immediate: true,
@@ -951,10 +995,11 @@ export default {
 
     showDialog: {
       handler(newVal) {
-        if (newVal && this.leafSize && this.leafSize.type) {
+        if (newVal) {
           this.$nextTick(() => {
             setTimeout(() => {
-              this.adjustMapSizeForPrint(this.leafSize.type);
+              if (this.map) this.map.invalidateSize();
+              if (this.miniMap) this.miniMap.invalidateSize();
             }, 100);
           });
         }
@@ -975,10 +1020,11 @@ export default {
   },
 
   async mounted() {
-    if (this.leafSize && this.leafSize.type && this.showDialog) {
+    if (this.showDialog) {
       this.$nextTick(() => {
         setTimeout(() => {
-          this.adjustMapSizeForPrint(this.leafSize.type);
+          if (this.map) this.map.invalidateSize();
+          if (this.miniMap) this.miniMap.invalidateSize();
         }, 300);
       });
     }
@@ -1021,10 +1067,22 @@ export default {
   methods: {
     onMapReady(mapInstance) {
       this.map = mapInstance;
+      this.$nextTick(() => {
+        this.map.invalidateSize();
+      });
     },
 
     onMiniMapReady(miniMapInstance) {
       this.miniMap = miniMapInstance;
+      
+      if (miniMapInstance) {
+        this.miniMapCenter = miniMapInstance.getCenter();
+        this.miniMapZoom = miniMapInstance.getZoom();
+      }
+      
+      this.$nextTick(() => {
+        this.miniMap.invalidateSize();
+      });
     },
 
     formatNumber(value) {
@@ -1089,46 +1147,15 @@ export default {
       this.mainZoom = zoom;
     },
 
-    adjustMapSizeForPrint(tamanho) {
-      const mapDimensions = this.getMapDimensions(tamanho);
-      const miniMapDimensions = this.getMiniMapDimensions(tamanho);
-      document.getElementById('map-for-print').style.width = `${mapDimensions.width}px`;
-      document.getElementById('map-for-print').style.height = `${mapDimensions.height}px`;
-      document.getElementById('container-mini-map').style.height = `${miniMapDimensions.height}px`;
-      document.getElementById('miniPrintMap').style.height = `${miniMapDimensions.height}px`;
-
-      // set Minimap Title
-      document.getElementsByClassName('print-mini-map-text')[0]
-        .style.fontSize = `${this.getFontSizeWidth(tamanho)}px`;
-
-      // get paragraphs details-print
-      const divDetails = document.getElementById('details-print');
-      const paragraphs = divDetails.querySelectorAll('p');
-      paragraphs.forEach((p) => {
-        // eslint-disable-next-line no-param-reassign
-        p.style.fontSize = `${this.getFontSizeWidth(tamanho)}px`;
-      });
-
-      // recreate map size
-      if (this.map) this.map.invalidateSize();
-      if (this.miniMap) this.miniMap.invalidateSize();
-    },
-
     getMapDimensions(tamanho) {
-      switch (tamanho) {
-        case 'A0':
-          return { width: 4409, height: 3140 };
-        case 'A1':
-          return { width: 3138, height: 2220 };
-        case 'A2':
-          return { width: 2214, height: 1570 };
-        case 'A3':
-          return { width: 1557, height: 1105 };
-        case 'A4':
-          return { width: 1105, height: 770 };
-        default:
-          return { width: 1105, height: 770 };
-      }
+      const dimensions = {
+        'A0': { width: 4409, height: 3140, columnHeight: 2800 },
+        'A1': { width: 3138, height: 2220, columnHeight: 1900 },
+        'A2': { width: 2214, height: 1570, columnHeight: 1300 },
+        'A3': { width: 1557, height: 1105, columnHeight: 900 },
+        'A4': { width: 1105, height: 770, columnHeight: 600 },
+      };
+      return dimensions[tamanho] || dimensions['A4'];
     },
 
     getMiniMapDimensions(tamanho) {
@@ -1166,83 +1193,152 @@ export default {
     },
 
     resetConfigPrint() {
-      if (this.leafSize && this.leafSize.type) {
-        this.adjustMapSizeForPrint(this.leafSize.type);
-      } else {
-        document.getElementById('map-for-print').style.width = '1105px';
-        document.getElementById('map-for-print').style.height = '770px';
-      }
+      document.getElementById('map-for-print').style.width = '1105px';
+      document.getElementById('map-for-print').style.height = '770px';
       document.getElementById('container-mini-map').style.height = '150px';
-      document.getElementById('miniPrintMap').style.height = '150px';
+      
+      const miniMapElement = document.getElementById('miniPrintMap');
+      if (miniMapElement) {
+        miniMapElement.style.height = '150px';
+      }
 
-      // set Minimap Title
-      document.getElementsByClassName('print-mini-map-text')[0]
-        .style.fontSize = '10px';
+      const printMiniMapText = document.getElementsByClassName('print-mini-map-text')[0];
+      if (printMiniMapText) {
+        printMiniMapText.style.fontSize = '10px';
+      }
 
-      // get paragraphs details-print
       const divDetails = document.getElementById('details-print');
       const paragraphs = divDetails.querySelectorAll('p');
       paragraphs.forEach((p) => {
-        // eslint-disable-next-line no-param-reassign
         p.style.fontSize = '10px';
       });
 
-      // recreate map size
-      if (this.map) this.map.invalidateSize();
-      if (this.miniMap) this.miniMap.invalidateSize();
+      this.$nextTick(() => {
+        if (this.map) this.map.invalidateSize();
+        if (this.miniMap && this.miniMapCenter && this.miniMapZoom) {
+          this.miniMap.setView(this.miniMapCenter, this.miniMapZoom, { animate: false });
+          this.miniMap.invalidateSize();
+        }
+      });
+      
       this.loadingPrintPdf = false;
       window.removeEventListener('afterprint', this.resetConfigPrint);
     },
 
     print() {
-      this.adjustMapSizeForPrint(this.leafSize.type);
-      const style = document.createElement('style');
-      style.setAttribute('media', 'print');
-      // create a promise print and return after close window print
+      if (this.miniMap) {
+        this.miniMapCenter = this.miniMap.getCenter();
+        this.miniMapZoom = this.miniMap.getZoom();
+      }
+
+      const mapDimensions = this.getMapDimensions(this.leafSize.type);
+      document.getElementById('map-for-print').style.width = `${mapDimensions.width}px`;
+      document.getElementById('map-for-print').style.height = `${mapDimensions.height}px`;
+      
+      const miniMapDimensions = this.getMiniMapDimensions(this.leafSize.type);
+      document.getElementById('container-mini-map').style.height = `${miniMapDimensions.height}px`;
+      
+      const miniMapElement = document.getElementById('miniPrintMap');
+      if (miniMapElement) {
+        miniMapElement.style.height = `${miniMapDimensions.height}px`;
+      }
+
+      const fontSize = this.getFontSizeWidth(this.leafSize.type);
+      const printMiniMapText = document.getElementsByClassName('print-mini-map-text')[0];
+      if (printMiniMapText) {
+        printMiniMapText.style.fontSize = `${fontSize}px`;
+      }
+
+      const divDetails = document.getElementById('details-print');
+      const paragraphs = divDetails.querySelectorAll('p');
+      paragraphs.forEach((p) => {
+        p.style.fontSize = `${fontSize}px`;
+      });
+
+      // AJUSTE ESPECÍFICO PARA A1
+      if (this.leafSize.type === 'A1') {
+        // Aplicar ajuste de posição para o conteúdo da coluna direita
+        const rightColumn = document.querySelector('.col-4 .border-container');
+        if (rightColumn) {
+          rightColumn.style.marginTop = '-15px'; // Sobe o conteúdo em 20px
+        }
+        
+               
+        // Ajustar a altura do container de detalhes para compensar
+        const detailsPrint = document.getElementById('details-print');
+        if (detailsPrint) {
+          detailsPrint.style.maxHeight = '1850px'; // Um pouco menos que o padrão 1900
+          detailsPrint.style.overflow = 'hidden'; // Esconde o excesso
+        }
+      }
+
+      if (this.map) this.map.invalidateSize();
+      
+      this.$nextTick(() => {
+        if (this.miniMap && this.miniMapCenter && this.miniMapZoom) {
+          this.miniMap.setView(this.miniMapCenter, this.miniMapZoom, { animate: false });
+          this.miniMap.invalidateSize();
+        }
+      });
 
       this.loadingPrintPdf = true;
       window.addEventListener('afterprint', this.resetConfigPrint);
       setTimeout(() => {
         window.print();
       }, 2000);
-      if (this.map) this.map.invalidateSize();
     },
 
     async saveImage() {
       this.loadingPrintImage = true;
       const node = document.getElementById('map-for-print');
+      
+      if (this.miniMap) {
+        this.miniMapCenter = this.miniMap.getCenter();
+        this.miniMapZoom = this.miniMap.getZoom();
+      }
+      
+      const originalWidth = node.style.width;
+      const originalHeight = node.style.height;
+      
+      const mapDimensions = this.getMapDimensions(this.leafSize.type);
+      node.style.width = `${mapDimensions.width}px`;
+      node.style.height = `${mapDimensions.height}px`;
+
       const mapBounds = document.getElementsByClassName('leaflet-control-mapbounds')[0];
       const mapControlZoom = document.getElementsByClassName('leaflet-control-zoom')[0];
-      const infoControlRight = document.getElementsByClassName(
-        'leaflet-control-attribution',
-      )[1];
+      const infoControlRight = document.getElementsByClassName('leaflet-control-attribution')[1];
       const legends = document.getElementsByClassName('text-legend-customized');
       const originalLegends = [];
 
-      const originalStyle = infoControlRight.getAttribute('style');
-      const currentWidth = parseFloat(window.getComputedStyle(infoControlRight).width);
-      infoControlRight.style.width = `${currentWidth + 30}px`;
+      const originalStyle = infoControlRight?.getAttribute('style');
+      if (infoControlRight) {
+        const currentWidth = parseFloat(window.getComputedStyle(infoControlRight).width);
+        infoControlRight.style.width = `${currentWidth + 30}px`;
+      }
 
       try {
         const nameImageDownload = this.mapTitle;
 
-        mapControlZoom.style.display = 'none';
-        mapBounds.style.width = '250px';
-
-        const originalWidth = node.style.width;
-        const originalHeight = node.style.height;
-
-        const mapDimensions = this.getMapDimensions(this.leafSize.type);
-        node.style.width = `${mapDimensions.width}px`;
-        node.style.height = `${mapDimensions.height}px`;
+        if (mapControlZoom) mapControlZoom.style.display = 'none';
+        if (mapBounds) mapBounds.style.width = '250px';
 
         if (legends && legends.length > 0) {
           Array.from(legends).forEach((legend) => {
             originalLegends.push(legend.style.width);
             const legendWidth = Math.min(150, mapDimensions.width * 0.12);
-            // eslint-disable-next-line no-param-reassign
             legend.style.width = `${legendWidth}px`;
           });
+        }
+
+        if (this.map) this.map.invalidateSize();
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        if (this.miniMap && this.miniMapCenter && this.miniMapZoom) {
+          this.miniMap.setView(this.miniMapCenter, this.miniMapZoom, { animate: false });
+          this.miniMap.invalidateSize();
+          
+          await new Promise(resolve => setTimeout(resolve, 200));
         }
 
         const options = {
@@ -1265,7 +1361,9 @@ export default {
           imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
         };
 
-        infoControlRight.setAttribute('style', 'width: 304px');
+        if (infoControlRight) {
+          infoControlRight.setAttribute('style', 'width: 304px');
+        }
 
         if (this.leafSize.type === 'A0' || this.leafSize.type === 'A1') {
           options.cacheBust = true;
@@ -1279,9 +1377,6 @@ export default {
         link.download = nameImageDownload ? `${nameImageDownload}.jpeg` : 'Mapa.jpeg';
         link.click();
 
-        node.style.width = originalWidth;
-        node.style.height = originalHeight;
-
         this.loadingPrintImage = false;
       } catch (error) {
         console.error('Erro ao gerar imagem:', error);
@@ -1293,17 +1388,35 @@ export default {
           this.loadingPrintImage = false;
         }
       } finally {
-        infoControlRight.setAttribute('style', 'width: auto');
-        mapBounds.style.width = 'auto';
-        mapControlZoom.style.display = 'block';
+        node.style.width = originalWidth;
+        node.style.height = originalHeight;
+        
+        if (infoControlRight) {
+          infoControlRight.setAttribute('style', originalStyle || 'width: auto');
+        }
+        if (mapBounds) mapBounds.style.width = 'auto';
+        if (mapControlZoom) mapControlZoom.style.display = 'block';
+        
         if (originalLegends && originalLegends.length > 0) {
           Array.from(legends).forEach((legend, index) => {
-            // eslint-disable-next-line no-param-reassign
             legend.style.width = originalLegends[index];
           });
         }
-        infoControlRight.setAttribute('style', originalStyle);
+
+        if (this.map) this.map.invalidateSize();
+        
+        this.$nextTick(() => {
+          if (this.miniMap && this.miniMapCenter && this.miniMapZoom) {
+            this.miniMap.setView(this.miniMapCenter, this.miniMapZoom, { animate: false });
+            this.miniMap.invalidateSize();
+          }
+        });
       }
+    },
+
+    async tryAlternativeImageSave() {
+      this.loadingPrintImage = false;
+      this.$emit('show-error', 'O tamanho selecionado é muito grande. Tente um tamanho menor.');
     },
 
     ...mapActions('monitoring', ['getDataTableMonitoring']),
@@ -1345,6 +1458,7 @@ export default {
 :deep(.dialog-no-scroll) {
   overflow: hidden !important;
   max-height: 95vh !important;
+  max-width: 1200px !important;
 }
 
 :deep(.dialog-no-scroll .v-card) {
@@ -1394,10 +1508,12 @@ export default {
 
 .map-wrapper {
     width: 100%;
+    height: 100%;
 }
 
 .vue-leaflet-map {
     height: 100% !important;
+    width: 100% !important;
 }
 
 .legend-info-map {
@@ -1464,7 +1580,7 @@ export default {
 }
 
 p {
-    font-size: xx-small;
+    font-size: 10px;
     margin: 0;
 }
 
@@ -1487,7 +1603,7 @@ p {
 
 .print-mini-map-text {
     color: dimgray !important;
-    font-size: xx-small;
+    font-size: 10px;
     white-space: nowrap;
 }
 
@@ -1535,6 +1651,8 @@ img.layer-thumbnail {
 
 :deep(.v-chip) {
   padding: 0 5px !important;
+  font-size: 8px !important;
+  height: 16px !important;
 }
 
 @media (max-width: 600px) {
