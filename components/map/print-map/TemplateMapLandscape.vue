@@ -17,6 +17,7 @@
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </div>
+      
       <div class="content-scroll-container">
         <v-container style="background-color: white; max-width: 100%">
           <v-row
@@ -29,54 +30,27 @@
               cols="8"
               class="pr-0 mt-2"
             >
+              <!-- Tabelas de Estatísticas -->
               <div
                 v-if="selectedItemsCount <= 7"
                 id="data-table"
                 class="leaflet-bottom leaflet-right"
               >
-                <template v-if="getMonitoringShowFeatures && monitoringStatsByStages.length">
-                  <!-- Bloco para Monitoramento -->
+                <template v-for="type in statsTypes">
                   <div
-                    v-for="(item, index) in monitoringStatsTiByStages"
-                    :key="'monitoring-' + index"
-                    class="text-center bordered-red"
+                    v-for="item in getStatsByType(type)"
+                    :key="`${type}-${item.no_ti}`"
+                    v-if="hasVisibleFeatures(type) && getStatsByType(type).length"
+                    :class="`bordered-${getBorderColor(type)}`"
                   >
-                    <p>
-                      <strong>TI {{ item.no_ti }}</strong>
-                    </p>
-                    <!-- Área total da TI vinda do analytics -->
+                    <p><strong>TI {{ item.no_ti }}</strong></p>
                     <p v-if="item.ti_nu_area_ha">
                       Área da TI: {{ formatNumber(item.ti_nu_area_ha) }} ha
                     </p>
-
-                    <!-- Stages vindo do monitoring -->
-                    <template v-for="(stage, key) in item.stages">
+                    <template v-for="stage in item.stages">
                       <p
-                        v-if="stage.area_ha > 0 && getMonitoringCheckStageActives(stage)"
-                        :key="key"
-                      >
-                        {{ stage.no_estagio }} {{ formatNumber(stage.area_ha) }} ha
-                      </p>
-                    </template>
-                  </div>
-                </template>
-                <template v-if="showFeaturesLandUse && landUseStatsByStages.length">
-                  <!-- Bloco para Uso e Ocupação do Solo -->
-                  <div
-                    v-for="(item, index) in landUseStatsTiByStages"
-                    :key="'landuse-' + index"
-                    class="text-center bordered-blue"
-                  >
-                    <p>
-                      <strong>TI {{ item.no_ti }}</strong>
-                    </p>
-                    <p v-if="parseFloat(item.nu_area_ha) > 0">
-                      Área da TI: {{ formatNumber(item.nu_area_ha) }} ha
-                    </p>
-                    <template v-for="(stage, key) in item.stages">
-                      <p
-                        v-if="parseFloat(stage.area_ha) > 0 && getLandUseCheckStageActives(stage)"
-                        :key="key"
+                        v-if="stage.area_ha > 0 && isStageActive(type, stage)"
+                        :key="stage.no_estagio"
                       >
                         {{ stage.no_estagio }} {{ formatNumber(stage.area_ha) }} ha
                       </p>
@@ -84,78 +58,55 @@
                   </div>
                 </template>
               </div>
+
+              <!-- Warning Message -->
               <v-card
-                v-if="showWarningMessage &&
-                  !(getUrgentAlertsShowFeatures &&
-                    !getMonitoringShowFeatures && !showFeaturesLandUse)"
+                v-if="showWarningMessage && !showOnlyAlerts"
                 class="warning-message"
                 elevated
               >
                 <v-card-text>
-                  <p class="text-subtitle-1">
-                    {{ $t('warning-message') }}
-                  </p>
+                  <p class="text-subtitle-1">{{ $t('warning-message') }}</p>
                 </v-card-text>
                 <v-card-actions>
-                  <v-btn
-                    color="primary"
-                    text
-                    @click="showWarningMessage = false"
-                  >
+                  <v-btn color="primary" text @click="showWarningMessage = false">
                     {{ $t('agree') }}
                   </v-btn>
                 </v-card-actions>
               </v-card>
+
+              <!-- Mapa Principal -->
               <MapForPrint
                 :leaf-size="leafSize"
                 :main-map="mainMap"
                 :selected-base-map="selectedBaseMap"
                 class="map-wrapper"
                 @updateBounds="updateBounds"
-                @getCenter="getCenter"
-                @getZoom="getZoom"
+                @getCenter="center => mapCenter = center"
+                @getZoom="zoom => mainZoom = zoom"
                 @ready="onMapReady"
               />
             </v-col>
-            <v-col
-              cols="4"
-              class="pl-1 mt-2"
-            >
+
+            <v-col cols="4" class="pl-1 mt-2">
               <div class="border-container">
-                <div
-                  class="
-                      d-flex
-                      justify-space-between
-                      pl-8
-                      pr-8
-                      ga-1
-                      align-center
-                      ma-4
-                  "
-                >
+                <!-- Logos -->
+                <div class="d-flex justify-space-between pl-8 pr-8 ga-1 align-center ma-4">
                   <div style="width: 20%">
-                    <v-img
-                      contain
-                      :src="logo_funai"
-                      class="logo"
-                    />
+                    <v-img contain :src="logo_funai" class="logo" />
                   </div>
                   <div style="width: 60%">
-                    <v-img
-                      contain
-                      :src="logo_cmr"
-                      class="logo"
-                    />
+                    <v-img contain :src="logo_cmr" class="logo" />
                   </div>
                 </div>
+
+                <!-- Título -->
                 <div class="font-title pb-2">
-                  <p>
-                    {{ mapTitle }}
-                  </p>
-                  <p>
-                    {{ print_title }}
-                  </p>
+                  <p>{{ mapTitle }}</p>
+                  <p>{{ print_title }}</p>
                 </div>
+
+                <!-- Mini Mapa -->
                 <div
                   id="container-mini-map"
                   class="d-flex justify-center height-container-mini-map"
@@ -169,97 +120,39 @@
                     @ready="onMiniMapReady"
                   />
                 </div>
-                <div
-                  id="details-print"
-                  class="legend-info-map"
-                >
+
+                <!-- Informações e Legendas -->
+                <div id="details-print" class="legend-info-map">
                   <div class="legend-info-map legend-info-map-details">
+                    <!-- Legendas Dinâmicas -->
                     <div>
-                      <p
-                        v-if="hasLegend"
-                        class="d-block ma-1"
-                      >
+                      <p v-if="hasLegend" class="d-block ma-1">
                         <strong>{{ $t('legend') }}</strong>
                       </p>
-                      <div
-                        class="ma-1 flex-wrap"
-                        style="width: 100%; max-height: 100%; overflow: hidden"
-                      >
-                        <div
-                          style="
-                              display: flex;
-                              justify-content: flex-start;
-                              align-items: flex-start;
-                              gap: 5px;
-                          "
-                        />
+                      
+                      <div class="ma-1 flex-wrap" style="width: 100%; max-height: 100%; overflow: hidden">
+                        <div style="display: flex; justify-content: flex-start; align-items: flex-start; gap: 5px">
+                          <!-- Seções de Legenda -->
+                          <div v-for="section in legendSections" :key="section.key">
+                            <p>
+                              <strong>{{ section.title }}</strong>
+                              <v-chip x-small v-if="section.count !== undefined">
+                                {{ section.count }}
+                              </v-chip>
+                            </p>
+                            <hr :style="{ border: `1px solid ${section.borderColor}`, margin: '3px 0' }">
+                            <CustomizedLegend
+                              class="pt-1"
+                              :items="section.items"
+                            />
+                          </div>
 
-                        <div
-                          style="
-                              display: flex;
-                              justify-content: flex-start;
-                              align-items: flex-start;
-                              gap: 5px;
-                          "
-                        >
-                          <div v-if="getMonitoringShowFeatures && monitoringStatsByStages.length">
-                            <p>
-                              <strong> Monitoramento Diário </strong>
-                              <v-chip x-small>
-                                {{ monitoringCount }}
-                              </v-chip>
-                            </p>
-                            <hr
-                              style="
-                                  border: 1px solid red;
-                                  margin: 0;
-                                  margin-top: 0px;
-                              "
-                            >
-                            <CustomizedLegend
-                              class="pt-1"
-                              :items="monitoringStatsByStages"
-                            />
-                          </div>
-                          <div
-                            v-if="getUrgentAlertsShowFeatures
-                              && urgentAlertsStatsByStages.length"
-                          >
-                            <p>
-                              <strong>Alerta Urgente</strong>
-                              <v-chip x-small>
-                                {{ urgentAlertsCount }}
-                              </v-chip>
-                            </p>
-                            <hr
-                              style="
-                                  border: 1px solid blue;
-                                  margin: 0;
-                                  margin-top: 3px;
-                              "
-                            >
-                            <CustomizedLegend
-                              class="pt-1"
-                              :items="urgentAlertsStatsByStages"
-                            />
-                          </div>
-                          <div
-                            v-if="showFeaturesSupportLayers
-                              && (Object.values(supportLayers).filter(l => l.visible).length)
-                              && (Object.values(supportLayers).filter(l => l.visible).length <= 7)
-                              && (Object.values(supportLayerUser).filter(
-                                l => l.visible).length <= 7)"
-                          >
+                          <!-- Camadas de Suporte -->
+                          <div v-if="hasVisibleSupportLayers">
                             <p style="min-width: 120px; max-width: 500px;">
                               <strong>Sobreposição de camadas</strong>
                             </p>
-                            <hr
-                              style="
-                                  border: 1px solid blue;
-                                  margin: 0;
-                                  margin-top: 3px;
-                              "
-                            >
+                            <hr style="border: 1px solid blue; margin: 3px 0">
                             <LayerList
                               :layers="supportLayerUser"
                               :is-user-layer="true"
@@ -270,201 +163,47 @@
                               class="mt-1"
                             />
                           </div>
-
-                          <div v-if="showFeaturesLandUse && landUseStatsByStages.length">
-                            <p>
-                              <strong>Uso e Ocupação do Solo</strong>
-                              <v-chip x-small>
-                                {{ landUseCount }}
-                              </v-chip>
-                            </p>
-                            <hr
-                              style="
-                                  border: 1px solid blue;
-                                  margin: 0;
-                                  margin-top: 0px;
-                              "
-                            >
-                            <CustomizedLegend
-                              class="pt-1"
-                              :items="landUseStatsByStages"
-                            />
-                          </div>
-
-                          <div v-if="showFeaturesProdes">
-                            <p>
-                              <strong>INPE - Prodes</strong>
-                            </p>
-                            <hr
-                              style="
-                                  border: 1px solid blue;
-                                  margin: 0;
-                                  margin-top: 3px;
-                              "
-                            >
-                            <CustomizedLegend
-                              class="pt-1"
-                              :items="prodesItems"
-                            />
-                          </div>
-                          <div v-if="showFeaturesDeter">
-                            <p>
-                              <strong>INPE - Deter</strong>
-                            </p>
-                            <hr
-                              style="
-                                  border: 1px solid blue;
-                                  margin: 0;
-                                  margin-top: 3px;
-                              "
-                            >
-                            <CustomizedLegend
-                              class="pt-1"
-                              :items="deterItems"
-                            />
-                          </div>
-                          <div
-                            v-if="showFeaturesAquaMM || showFeaturesAquaMT"
-                          >
-                            <p>
-                              <strong>INPE - Focos de Calor</strong>
-                            </p>
-                            <hr
-                              style="
-                                  border: 1px solid blue;
-                                  margin: 0;
-                                  margin-top: 3px;
-                              "
-                            >
-                            <CustomizedLegend
-                              class="pt-1"
-                              :items="
-                                heatFocusItems.filter(
-                                  (item) =>
-                                    (item.label ===
-                                      'Aqua Modis Manhã' &&
-                                      showFeaturesAquaMM) ||
-                                    (item.label ===
-                                      'Aqua Modis Tarde' &&
-                                      showFeaturesAquaMT)
-                                )
-                              "
-                            />
-                          </div>
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <v-divider />
-                      <p
-                        v-if="hasCartographicDatasets"
-                        class="d-block ma-1"
-                      >
-                        Bases Cartográficas:
-                      </p>
 
-                      <div
-                        v-for="layerCategory in layerCategories"
-                        :key="layerCategory.name"
-                      >
-                        <div
-                          v-for="layer in layerCategory.layers"
-                          :key="layer.id"
-                        >
-                          <v-row
-                            v-if="layer.visible"
-                            no-gutters
-                            align="center"
-                            class="image-container"
-                          >
+                    <!-- Bases Cartográficas -->
+                    <div v-if="hasCartographicDatasets">
+                      <v-divider />
+                      <p class="d-block ma-1">Bases Cartográficas:</p>
+                      <div v-for="layerCategory in layerCategories" :key="layerCategory.name">
+                        <div v-for="layer in layerCategory.layers" :key="layer.id">
+                          <v-row v-if="layer.visible" no-gutters align="center" class="image-container">
                             <v-col>
                               <p class="ml-1">
                                 <strong>{{ layer.name || '-' }}.</strong>
-                                Fonte:{{ layer.fonte || '-' }}, Data de
-                                atualização:
-                                {{ handleData(layer.dt_atualizacao) }}.
+                                Fonte:{{ layer.fonte || '-' }}, 
+                                Data de atualização: {{ handleData(layer.dt_atualizacao) }}.
                               </p>
                             </v-col>
                           </v-row>
                         </div>
                       </div>
                     </div>
-                    <div v-if="getMonitoringShowFeatures">
-                      <p class="ml-1">
-                        {{ $t('monitoring-print-label') }}
-                        {{ handleData(monitoringFilters.startDate) }}
-                        {{ $t('and') }}
-                        {{ handleData(monitoringFilters.endDate) }}
-                      </p>
+
+                    <!-- Períodos dos Dados -->
+                    <div v-for="period in dataPeriods" :key="period.key" v-if="period.visible">
+                      <p class="ml-1">{{ period.text }}</p>
                     </div>
-                    <div v-if="getUrgentAlertsShowFeatures">
-                      <p class="ml-1">
-                        {{ $t('alerts-print-label') }}
-                        {{ handleData(alertsFilters.startDate) }}
-                        {{ $t('and') }}
-                        {{ handleData(alertsFilters.endDate) }}
-                      </p>
-                    </div>
-                    <div v-if="showFeaturesLandUse && uniqueYears.length > 0">
-                      <p class="ml-1">
-                        {{ $t('land-use-print-label') }}
-                        <span
-                          v-for="(year, index) in uniqueYears"
-                          :key="'year-' + index"
-                        >
-                          {{ year }}<span v-if="index < uniqueYears.length - 1">,
-                          </span>
-                        </span>
-                      </p>
-                    </div>
-                    <div v-if="showFeaturesProdes">
-                      <p class="ml-1">
-                        {{ $t('prodes-print-label') }}
-                        {{ handleProdesYear() }}
-                      </p>
-                    </div>
-                    <div v-if="showFeaturesDeter">
-                      <p class="ml-1">
-                        {{ $t('deter-print-label') }}
-                        {{ handleData(deterFilters.startDate) }}
-                        {{ $t('and') }}
-                        {{ handleData(deterFilters.endDate) }}
-                      </p>
-                    </div>
-                    <div v-if="showFeaturesAquaMM || showFeaturesAquaMT">
-                      <p class="ml-1">
-                        {{ $t('heat-focus-print-label') }}
-                        {{ handleData(focoFilters.startDate) }}
-                        {{ $t('and') }}
-                        {{ handleData(focoFilters.endDate) }}
-                      </p>
-                    </div>
-                  </div>
-                  <div>
-                    <v-divider />
-                    <div class="ma-1">
-                      <p>
-                        {{ print_info }}
-                        {{ $t('text-address0') }}
-                      </p>
-                      <p>
-                        {{ print_info }}
-                        {{ $t('text-address') }}
-                        {{ todayDate() }}
-                      </p>
-                    </div>
-                    <v-divider />
-                    <div class="ma-1">
-                      <p>
-                        {{ $t('author-label') }}
-                      </p>
-                      <p>
-                        {{ $t('text-info') }}
-                      </p>
-                      <p>
-                        {{ $t('text-format') }}
-                        {{ leafSize.type }}.
-                      </p>
+
+                    <!-- Informações de Rodapé -->
+                    <div>
+                      <v-divider />
+                      <div class="ma-1">
+                        <p>{{ print_info }} {{ $t('text-address0') }}</p>
+                        <p>{{ print_info }} {{ $t('text-address') }} {{ todayDate() }}</p>
+                      </div>
+                      <v-divider />
+                      <div class="ma-1">
+                        <p>{{ $t('author-label') }}</p>
+                        <p>{{ $t('text-info') }}</p>
+                        <p>{{ $t('text-format') }} {{ leafSize.type }}.</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -473,12 +212,11 @@
           </v-row>
         </v-container>
       </div>
+
+      <!-- Footer com Botões -->
       <div class="print-dialog-footer no-print fixed-footer">
         <div class="d-flex align-center pa-4">
-          <v-btn
-            class="ml-2"
-            @click="$emit('back')"
-          >
+          <v-btn class="ml-2" @click="$emit('back')">
             {{ $t('input-button-back-second-step') }}
           </v-btn>
           <v-spacer />
@@ -489,9 +227,7 @@
             :disabled="showWarningMessage || loadingPrintImage"
             @click="saveImage"
           >
-            <v-icon dark>
-              mdi-image-outline
-            </v-icon>
+            <v-icon dark>mdi-image-outline</v-icon>
             {{ $t('download-image') }}
           </v-btn>
           <v-btn
@@ -501,9 +237,7 @@
             :loading="loadingPrintPdf"
             @click="print"
           >
-            <v-icon dark>
-              mdi-file-export-outline
-            </v-icon>
+            <v-icon dark>mdi-file-export-outline</v-icon>
             {{ $t('input-button-pdf-image') }}
           </v-btn>
         </div>
@@ -601,125 +335,485 @@ export default {
   },
 
   props: {
-    analyticsData: {
-      type: Array,
-      default: () => []
-    },
-    showDialogLandscape: {
-      type: Boolean,
-      default: false,
-    },
-    mapTitle: {
-      type: String,
-      default: '',
-    },
-    leafSize: {
-      type: Object,
-      default: null,
-    },
-    mainMap: {
-      type: Object,
-      default: null,
-    },
-    selectedBaseMap: {
-      type: Object,
-      default: null,
-    },
-    model: {
-      type: Object,
-      default: null,
-    },
+    analyticsData: { type: Array, default: () => [] },
+    showDialogLandscape: { type: Boolean, default: false },
+    mapTitle: { type: String, default: '' },
+    leafSize: { type: Object, default: null },
+    mainMap: { type: Object, default: null },
+    selectedBaseMap: { type: Object, default: null },
+    model: { type: Object, default: null },
   },
 
   data: () => ({
     selectedItemsCount: 0,
-    totalMonitoring: 0,
-    totalLandUse: 0,
-    headers: [
-      { text: 'TI', value: 'no_ti' },
-      { text: 'Área CR (ha)', value: 'nu_area_cr_ha' },
-      { text: 'Área DG (ha)', value: 'nu_area_dg_ha' },
-      { text: 'Área DR (ha)', value: 'nu_area_dr_ha' },
-      { text: 'Área FF (ha)', value: 'nu_area_ff_ha' },
-    ],
     map: null,
     miniMap: null,
     currentBouldMap: null,
     mapCenter: null,
     mainZoom: null,
-    miniMapCenter: null,
-    miniMapZoom: null,
     logo_funai: process.env.DEFAULT_LOGO_IMAGE_FUNAI,
     logo_cmr: process.env.DEFAULT_LOGO_IMAGE_CMR,
     print_title: process.env.PRINT_TITLE,
     print_info: process.env.PRINT_INFO,
     showWarningMessage: false,
-    activeMonitoringLabel: [],
     loadingPrintImage: false,
     loadingPrintPdf: false,
     isSmallScreen: window.innerWidth < 768,
-
+    
+    // Itens de legenda fixos
     deterItems: [{ label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' }],
     heatFocusItems: [
-      {
-        label: 'Aqua Modis Manhã',
-        color: '#FFA500',
-        icon: 'mdi-fire',
-      },
-      {
-        label: 'Aqua Modis Tarde',
-        color: '#FF0000',
-        icon: 'mdi-fire',
-      },
+      { label: 'Aqua Modis Manhã', color: '#FFA500', icon: 'mdi-fire' },
+      { label: 'Aqua Modis Tarde', color: '#FF0000', icon: 'mdi-fire' },
     ],
+    
+    // Helpers
+    formatters: {
+      area: (value) => {
+        if (!value) return '-';
+        const num = typeof value === 'string' 
+          ? parseFloat(value.replace(/\./g, '').replace(',', '.'))
+          : parseFloat(value);
+        if (isNaN(num)) return '-';
+        const rounded = num.toFixed(3);
+        const [int, dec] = rounded.split('.');
+        return dec !== '000' 
+          ? `${int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${dec}`
+          : String(parseInt(num, 10));
+      },
+      date: (data) => {
+        if (!data || typeof data !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+          return 'Data indisponível';
+        }
+        const [year, month, day] = data.split('-');
+        return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+      },
+      today: () => {
+        const date = new Date();
+        const dd = String(date.getDate()).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yyyy = date.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      }
+    }
   }),
 
   computed: {
-    hasActiveMonitoringStages() {
-      return Object.values(
-        this.legendVisibility.map((l) => ({ ...l, label: l.name })),
-      ).some((visible) => visible);
+    // Estados Vuex agrupados
+    ...mapState({
+      monitoringState: state => state.monitoring,
+      alertsState: state => state['urgent-alerts'],
+      landUseState: state => state['land-use'],
+      prodesState: state => state.prodes,
+      deterState: state => state.deter,
+      focoState: state => state.foco,
+      supportState: state => state.supportLayers,
+      supportUserState: state => state.supportLayersUser,
+    }),
+
+    // Getters específicos
+    ...mapGetters({
+      checkMonitoringStage: 'monitoring/checkStageActive',
+      checkAlertsStage: 'urgent-alerts/checkStageActive',
+      checkLandUseStage: 'land-use/checkStageActive',
+    }),
+
+    // Computed derivadas dos estados
+    monitoringFilters() {
+      const { stats, filters } = this.monitoringState;
+      if (!stats?.currentTab) return null;
+      
+      const dates = stats.currentTab === 'data' ? filters : stats.rangeCycles;
+      return {
+        startDate: dates.start_date || dates.startDate,
+        endDate: dates.end_date || dates.endDate
+      };
     },
-    hasActiveAlertsStages() {
-      return Object.values(this.legendVisibilityalerts).some((visible) => visible);
+
+    alertsFilters() {
+      return this.alertsState?.filters || {};
     },
-    filteredAlertsData() {
-      return this.combinedTableData.filter(
-        (item) => item.alerts && Object.keys(item.alerts).some((key) => item.alerts[key] > 0),
-      );
+
+    deterFilters() {
+      return this.deterState?.filters || {};
     },
-    filteredCombinedTableData() {
-      return this.combinedTableData.filter((item) => {
-        const hasMonitoring = this.getMonitoringShowFeatures
-                    && item.monitoring
-                    && Object.keys(item.monitoring).some((key) => item.monitoring[key] > 0);
-        const hasLandUse = this.showFeaturesLandUse
-                    && item.landUse
-                    && Object.keys(item.landUse).some((key) => item.landUse[key] > 0);
-        const hasAlerts = this.getUrgentAlertsShowFeatures
-                    && item.alerts
-                    && Object.keys(item.alerts).some((key) => item.alerts[key] > 0);
-        return hasMonitoring || hasLandUse || hasAlerts;
+
+    focoFilters() {
+      return this.focoState?.layers?.aquaMM?.filters || {};
+    },
+
+    getMonitoringStats() {
+      return this.monitoringState?.stats || { stages: [], tiByStages: [] };
+    },
+
+    getMonitoringShowFeatures() {
+      return this.monitoringState?.showFeaturesMonitoring || false;
+    },
+
+    getUrgentAlertsStats() {
+      return this.alertsState?.stats || { stages: [], tiByStages: [] };
+    },
+
+    getUrgentAlertsShowFeatures() {
+      return this.alertsState?.showFeaturesUrgentAlert || false;
+    },
+
+    getLandUseStats() {
+      return this.landUseState?.stats || { stages: [], tiByStages: [] };
+    },
+
+    showFeaturesLandUse() {
+      return this.landUseState?.showFeaturesLandUse || false;
+    },
+
+    showFeaturesProdes() {
+      return this.prodesState?.showFeaturesProdes || false;
+    },
+
+    showFeaturesDeter() {
+      return this.deterState?.showFeaturesDeter || false;
+    },
+
+    showFeaturesSupportLayers() {
+      return this.supportState?.showFeaturesSupportLayers || false;
+    },
+
+    showFeaturesAquaMM() {
+      return this.focoState?.layers?.aquaMM?.showFeatures || false;
+    },
+
+    showFeaturesAquaMT() {
+      return this.focoState?.layers?.aquaMT?.showFeatures || false;
+    },
+
+    supportLayers() {
+      return this.supportState?.supportLayers || {};
+    },
+
+    supportLayerUser() {
+      return this.supportUserState?.supportLayerUser || {};
+    },
+
+    tableMonitoring() {
+      return this.monitoringState?.stats?.tableMonitoring || [];
+    },
+
+    tableLandUse() {
+      return this.landUseState?.stats?.tableLandUse || [];
+    },
+
+    tableAlerts() {
+      return this.alertsState?.tableAlerts || [];
+    },
+
+    prodesItems() {
+      return this.$store.getters['prodes/getLegendItems'] || [];
+    },
+
+    // Tipos de estatísticas disponíveis
+    statsTypes() {
+      return ['monitoring', 'alerts', 'landUse'];
+    },
+
+    // Verifica se só alertas estão ativos
+    showOnlyAlerts() {
+      return this.getUrgentAlertsShowFeatures && 
+             !this.getMonitoringShowFeatures && 
+             !this.showFeaturesLandUse;
+    },
+
+    // Verifica se há camadas de suporte visíveis
+    hasVisibleSupportLayers() {
+      const supportCount = Object.values(this.supportLayers).filter(l => l.visible).length;
+      const userCount = Object.values(this.supportLayerUser).filter(l => l.visible).length;
+      return this.showFeaturesSupportLayers && 
+             (supportCount + userCount) > 0 &&
+             supportCount <= 7 && 
+             userCount <= 7;
+    },
+
+    // Seções de legenda dinâmicas
+    legendSections() {
+      const sections = [];
+      
+      if (this.hasVisibleFeatures('monitoring')) {
+        sections.push({
+          key: 'monitoring',
+          title: 'Monitoramento Diário',
+          items: this.getMonitoringStats.stages.filter(s => s.visible),
+          count: this.getMonitoringStats.tiByStages?.length || 0,
+          borderColor: 'red'
+        });
+      }
+
+      if (this.hasVisibleFeatures('alerts')) {
+        sections.push({
+          key: 'alerts',
+          title: 'Alerta Urgente',
+          items: this.getUrgentAlertsStats.stages.filter(s => s.visible),
+          count: this.getUrgentAlertsStats.tiByStages?.length || 0,
+          borderColor: 'blue'
+        });
+      }
+
+      if (this.hasVisibleFeatures('landUse')) {
+        sections.push({
+          key: 'landUse',
+          title: 'Uso e Ocupação do Solo',
+          items: this.getLandUseStats.stages.filter(s => s.visible),
+          count: this.getLandUseStats.tiByStages?.length || 0,
+          borderColor: 'blue'
+        });
+      }
+
+      if (this.showFeaturesProdes) {
+        sections.push({
+          key: 'prodes',
+          title: 'INPE - Prodes',
+          items: this.prodesItems,
+          borderColor: 'blue'
+        });
+      }
+
+      if (this.showFeaturesDeter) {
+        sections.push({
+          key: 'deter',
+          title: 'INPE - Deter',
+          items: this.deterItems,
+          borderColor: 'blue'
+        });
+      }
+
+      if (this.showFeaturesAquaMM || this.showFeaturesAquaMT) {
+        sections.push({
+          key: 'aqua',
+          title: 'INPE - Focos de Calor',
+          items: this.heatFocusItems.filter(item => 
+            (item.label === 'Aqua Modis Manhã' && this.showFeaturesAquaMM) ||
+            (item.label === 'Aqua Modis Tarde' && this.showFeaturesAquaMT)
+          ),
+          borderColor: 'blue'
+        });
+      }
+
+      return sections;
+    },
+
+    // Períodos dos dados para exibição
+    dataPeriods() {
+      const periods = [];
+      
+      if (this.getMonitoringShowFeatures && this.monitoringFilters) {
+        periods.push({
+          key: 'monitoring',
+          visible: true,
+          text: `${this.$t('monitoring-print-label')} ${this.handleData(this.monitoringFilters.startDate)} ${this.$t('and')} ${this.handleData(this.monitoringFilters.endDate)}`
+        });
+      }
+
+      if (this.getUrgentAlertsShowFeatures && this.alertsFilters) {
+        periods.push({
+          key: 'alerts',
+          visible: true,
+          text: `${this.$t('alerts-print-label')} ${this.handleData(this.alertsFilters.startDate)} ${this.$t('and')} ${this.handleData(this.alertsFilters.endDate)}`
+        });
+      }
+
+      if (this.showFeaturesLandUse && this.uniqueYears.length) {
+        periods.push({
+          key: 'landUse',
+          visible: true,
+          text: `${this.$t('land-use-print-label')} ${this.uniqueYears.join(', ')}`
+        });
+      }
+
+      if (this.showFeaturesProdes) {
+        periods.push({
+          key: 'prodes',
+          visible: true,
+          text: `${this.$t('prodes-print-label')} ${this.handleProdesYear()}`
+        });
+      }
+
+      if (this.showFeaturesDeter && this.deterFilters) {
+        periods.push({
+          key: 'deter',
+          visible: true,
+          text: `${this.$t('deter-print-label')} ${this.handleData(this.deterFilters.startDate)} ${this.$t('and')} ${this.handleData(this.deterFilters.endDate)}`
+        });
+      }
+
+      if ((this.showFeaturesAquaMM || this.showFeaturesAquaMT) && this.focoFilters) {
+        periods.push({
+          key: 'aqua',
+          visible: true,
+          text: `${this.$t('heat-focus-print-label')} ${this.handleData(this.focoFilters.startDate)} ${this.$t('and')} ${this.handleData(this.focoFilters.endDate)}`
+        });
+      }
+
+      return periods;
+    },
+
+    showDialog() {
+      return this.showDialogLandscape;
+    },
+
+    hasLegend() {
+      return this.legendSections.length > 0;
+    },
+
+    hasCartographicDatasets() {
+      return this.layerCategories.some(cat => cat.show);
+    },
+
+    layerCategories() {
+      return [{
+        name: 'Support Layers',
+        layers: Object.values(this.supportLayers),
+        show: this.showFeaturesSupportLayers
+      }].filter(({ show }) => show);
+    },
+
+    uniqueYears() {
+      return [...new Set(this.tableLandUse.map(item => item.nu_ano))];
+    },
+
+    // Parse de área
+    parseArea() {
+      return (value) => {
+        if (!value) return 0;
+        if (typeof value === 'number') return value;
+        return parseFloat(String(value).replace(/\./g, '').replace(',', '.')) || 0;
+      };
+    },
+
+    // Mapa de áreas do analytics
+    analyticsAreaMap() {
+      return (this.analyticsData || [])
+        .filter(item => item.no_ti)
+        .reduce((map, item) => {
+          map[item.no_ti] = this.parseArea(item.ti_nu_area_ha);
+          return map;
+        }, {});
+    }
+  },
+
+  watch: {
+    leafSize: {
+      handler() {
+        this.invalidateMaps();
+      },
+      immediate: true
+    },
+
+    showDialog: {
+      handler(newVal) {
+        if (newVal) {
+          setTimeout(() => this.invalidateMaps(), 100);
+        }
+      },
+      immediate: true
+    },
+
+    combinedTableData: {
+      handler(newVal) {
+        this.selectedItemsCount = newVal.length;
+        this.showWarningMessage = (this.getMonitoringShowFeatures || this.showFeaturesLandUse) 
+          && newVal.length > 7;
+      },
+      immediate: true
+    }
+  },
+
+  async mounted() {
+    this.updateSelectedCount();
+    window.addEventListener('resize', this.handleResize);
+  },
+
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize);
+  },
+
+  methods: {
+    // ...mapActions
+    ...mapActions('monitoring', ['getDataTableMonitoring']),
+    ...mapActions('land-use', ['getDataTableLandUse']),
+    ...mapActions('urgent-alerts', ['getDataTableAlerts']),
+
+    // Handlers de resize
+    handleResize() {
+      this.isSmallScreen = window.innerWidth < 768;
+    },
+
+    invalidateMaps() {
+      this.$nextTick(() => {
+        [this.map, this.miniMap].forEach(m => m?.invalidateSize());
       });
     },
+
+    // Verificações de visibilidade
+    hasVisibleFeatures(type) {
+      const checks = {
+        monitoring: this.getMonitoringShowFeatures && this.getMonitoringStats.stages?.some(s => s.visible),
+        alerts: this.getUrgentAlertsShowFeatures && this.getUrgentAlertsStats.stages?.some(s => s.visible),
+        landUse: this.showFeaturesLandUse && this.getLandUseStats.stages?.some(s => s.visible),
+        prodes: this.showFeaturesProdes,
+        deter: this.showFeaturesDeter,
+        aqua: this.showFeaturesAquaMM || this.showFeaturesAquaMT
+      };
+      return checks[type] || false;
+    },
+
+    isStageActive(type, stage) {
+      const checkers = {
+        monitoring: this.checkMonitoringStage,
+        alerts: this.checkAlertsStage,
+        landUse: this.checkLandUseStage
+      };
+      return checkers[type]?.(stage) ?? true;
+    },
+
+    getBorderColor(type) {
+      return {
+        monitoring: 'red',
+        alerts: 'blue',
+        landUse: 'blue'
+      }[type] || 'black';
+    },
+
+    // Estatísticas por tipo
+    getStatsByType(type) {
+      const statsMap = {
+        monitoring: this.getMonitoringStats,
+        alerts: this.getUrgentAlertsStats,
+        landUse: this.getLandUseStats
+      };
+      
+      const stats = statsMap[type];
+      if (!stats?.tiByStages?.length || stats.tiByStages.length > 7) return [];
+
+      return stats.tiByStages.map(ti => ({
+        no_ti: ti.no_ti,
+        ti_nu_area_ha: this.analyticsAreaMap[ti.no_ti] || 
+                       this.parseArea(ti.total_area) || 
+                       this.parseArea(ti.nu_area_ha),
+        stages: (ti.stages || [])
+          .map(s => ({ ...s, area_ha: this.parseArea(s.area_ha) }))
+          .filter(s => s.area_ha > 0)
+      })).filter(ti => ti.stages.length > 0);
+    },
+
+    // Dados combinados para tabela
     combinedTableData() {
       const keys = {
         monitoring: ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'],
-        landUse: [
-          'ag_ha',
-          'cr_ha',
-          'dg_ha',
-          'ma_ha',
-          'mi_ha',
-          'no_ha',
-          'rv_ha',
-          'sv_ha',
-          'vn_ha',
-          'vi_ha',
-        ],
-        alerts: ['cr_ha', 'dg_ha', 'dr_ha'],
+        landUse: ['ag_ha', 'cr_ha', 'dg_ha', 'ma_ha', 'mi_ha', 'no_ha', 'rv_ha', 'sv_ha', 'vn_ha', 'vi_ha'],
+        alerts: ['cr_ha', 'dg_ha', 'dr_ha']
       };
-      const initializeObject = (keyList) => keyList.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
+
+      const initializeObject = (keyList) => 
+        keyList.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
+
       const initializeData = (noTi) => ({
         no_ti: noTi,
         nu_area_ha: 0,
@@ -727,386 +821,64 @@ export default {
         landUse: initializeObject(keys.landUse),
         alerts: initializeObject(keys.alerts),
       });
+
       const addValue = (target, key, value) => {
-        const updatedValue = (target[key] || 0) + (parseFloat(value) || 0);
-        target[key] = updatedValue;
+        target[key] = (target[key] || 0) + (parseFloat(value) || 0);
       };
+
       const combined = {};
+
       const processTable = (table, type) => {
-        table.forEach((item) => {
+        (table || []).forEach(item => {
           if (!item.no_ti) return;
           if (!combined[item.no_ti]) combined[item.no_ti] = initializeData(item.no_ti);
+          
           const data = combined[item.no_ti];
           addValue(data, 'nu_area_ha', item.nu_area_ha);
-          keys[type].forEach((key) => addValue(data[type], `nu_area_${key}`, item[`nu_area_${key}`]));
+          
+          keys[type].forEach(key => 
+            addValue(data[type], `nu_area_${key}`, item[`nu_area_${key}`])
+          );
         });
       };
-      if (
-        !Array.isArray(this.tableMonitoring)
-                || !Array.isArray(this.tableLandUse)
-                || !Array.isArray(this.tableAlerts)
-      ) {
-        console.warn('tableMonitoring, tableLandUse ou tableAlerts não são arrays válidos.');
-        return [];
-      }
+
       processTable(this.tableMonitoring, 'monitoring');
       processTable(this.tableLandUse, 'landUse');
       processTable(this.tableAlerts, 'alerts');
+
       return Object.values(combined);
     },
-    totalAreas() {
-      const monitoringKeys = ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'];
-      const landUseKeys = [
-        'ag_ha',
-        'cr_ha',
-        'dg_ha',
-        'ma_ha',
-        'mi_ha',
-        'no_ha',
-        'rv_ha',
-        'sv_ha',
-        'vn_ha',
-        'vi_ha',
-      ];
-      const alertsKeys = ['cr_ha', 'dg_ha', 'dr_ha'];
-      const initializeObject = (keys) => keys.reduce((obj, key) => ({ ...obj, [`nu_area_${key}`]: 0 }), {});
-      const addValue = (target, key, value) => {
-        target[key] += parseFloat(value) || 0;
-      };
-      if (!Array.isArray(this.combinedTableData)) {
-        console.warn('combinedTableData não é um array válido.');
-        return initializeObject(['ha', ...monitoringKeys, ...landUseKeys, ...alertsKeys]);
-      }
-      return this.combinedTableData.reduce(
-        (acc, item) => {
-          addValue(acc, 'nu_area_ha', item.nu_area_ha);
-          monitoringKeys.forEach((key) => addValue(
-            acc.monitoring,
-            `nu_area_${key}`,
-            item.monitoring[`nu_area_${key}`],
-          ));
-          landUseKeys.forEach((key) => addValue(acc.landUse, `nu_area_${key}`, item.landUse[`nu_area_${key}`]));
-          alertsKeys.forEach((key) => addValue(acc.alerts, `nu_area_${key}`, item.alerts[`nu_area_${key}`]));
-          return acc;
-        },
-        {
-          nu_area_ha: 0,
-          monitoring: initializeObject(monitoringKeys),
-          landUse: initializeObject(landUseKeys),
-          alerts: initializeObject(alertsKeys),
-        },
-      );
-    },
-    uniqueYears() {
-      const years = this.tableLandUse.map((item) => item.nu_ano);
-      return [...new Set(years)];
-    },
-    showDialog() {
-      return this.showDialogLandscape;
-    },
-    hasCartographicDatasets() {
-      return Object.keys(this)
-        .filter((key) => key.startsWith('showFeatures'))
-        .some((key) => this[key]);
-    },
-    hasLegend() {
-      return Object.keys(this)
-        .filter((key) => key.startsWith('showFeatures'))
-        .some((key) => this[key]);
-    },
-    layerCategories() {
-      return [['Support Layers', this.supportLayers, this.showFeaturesSupportLayers]]
-        .map(([name, layers, show]) => ({ name, layers, show }))
-        .filter(({ show }) => show);
-    },
-    showFeaturesAquaMM() {
-      return (this.layers && this.layers.aquaMM && this.layers.aquaMM.showFeatures) || false;
-    },
-    showFeaturesAquaMT() {
-      return (this.layers && this.layers.aquaMT && this.layers.aquaMT.showFeatures) || false;
-    },
-    featuresAquaMM() {
-      return (this.layers && this.layers.aquaMM && this.layers.aquaMM.features) || null;
-    },
-    featuresAquaMT() {
-      return (this.layers && this.layers.aquaMT && this.layers.aquaMT.features) || null;
-    },
-    focoFilters() {
-      return (this.layers && this.layers.aquaMM && this.layers.aquaMM.filters) || {};
-    },
-    prodesItems() {
-      return this.$store.getters['prodes/getLegendItems'];
-    },
-    monitoringCount() {
-      if (this.getMonitoringStats.tiByStages) return this.getMonitoringStats.tiByStages.length;
-      return 0;
-    },
-    urgentAlertsCount() {
-      if (this.getUrgentAlertsStats.tiByStages) return this.getUrgentAlertsStats.tiByStages.length;
-      return 0;
-    },
-    landUseCount() {
-      if (this.getLandUseStats.tiByStages) return this.getLandUseStats.tiByStages.length;
-      return 0;
-    },
-    alertsCount() {
-      return this.filteredAlertsData.length;
-    },
 
-    monitoringStatsTiByStages() {
-      const tiByStages = this.getMonitoringStats?.tiByStages;
-      if (!tiByStages?.length || tiByStages.length > 7) return [];
-
-      const parseArea = (value) => {
-        if (!value) return 0;
-        if (typeof value === 'number') return value;
-        return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0;
-      };
-
-      const analyticsMap = (this.analyticsData || [])
-        .filter(item => item.no_ti)
-        .reduce((map, item) => {
-          map[item.no_ti] = parseArea(item.ti_nu_area_ha);
-          return map;
-        }, {});
-
-      return tiByStages
-        .map(ti => {
-          const areaTotalTI = analyticsMap[ti.no_ti] ?? 
-                            parseArea(ti.total_area) ?? 
-                            parseArea(ti.nu_area_ha);
-          
-          const stages = (ti.stages || [])
-            .map(stage => ({
-              ...stage,
-              area_ha: parseArea(stage.area_ha)
-            }))
-            .filter(stage => stage.area_ha > 0);
-
-          return {
-            no_ti: ti.no_ti,
-            ti_nu_area_ha: areaTotalTI,
-            nu_area_ha: areaTotalTI,
-            stages
-          };
-        })
-        .filter(ti => ti.stages.length > 0);
-    },
-
-    monitoringStatsByStages() {
-      return this.getMonitoringStats.stages.filter((s) => s.visible);
-    },
-
-    urgentAlertsStatsTiByStages() {
-      if (!this.getUrgentAlertsStats || !this.getUrgentAlertsStats.tiByStages) return [];
-      if (this.getUrgentAlertsStats.tiByStages.length > 7) return [];
-      return this.getUrgentAlertsStats.tiByStages;
-    },
-
-    urgentAlertsStatsByStages() {
-      return this.getUrgentAlertsStats.stages.filter((s) => s.visible);
-    },
-
-    landUseStatsTiByStages() {
-      if (!this.getLandUseStats || !this.getLandUseStats.tiByStages) return [];
-      if (this.getLandUseStats.tiByStages.length > 7) return [];
-      return this.getLandUseStats.tiByStages;
-    },
-
-    landUseStatsByStages() {
-      return this.getLandUseStats.stages.filter((s) => s.visible);
-    },
-
-    ...mapState({
-      monitoringFilters: (state) => {
-        if (!state.monitoring.stats.currentTab) return null;
-
-        if (state.monitoring.stats.currentTab === 'data') {
-          return {
-            startDate: state.monitoring.filters.startDate,
-            endDate: state.monitoring.filters.endDate,
-          };
-        }
-
-        return {
-          startDate: state.monitoring.stats.rangeCycles.start_date || null,
-          endDate: state.monitoring.stats.rangeCycles.end_date || null,
-        };
-      },
-      alertsFilters: (state) => state['urgent-alerts'].filters,
-      prodesFilters: (state) => state.prodes.filters,
-      deterFilters: (state) => state.deter.filters,
-      monitoringFeatures: (state) => state.monitoring.features,
-      tableMonitoring: (state) => state.monitoring.stats.tableMonitoring,
-      tableAlerts: (state) => state['urgent-alerts'].tableAlerts,
-      legendVisibility: (state) => state.monitoring.stats.stages,
-      legendVisibilityalerts: (state) => state['urgent-alerts'].legendVisibility,
-      showFeaturesProdes: (state) => state.prodes.showFeaturesProdes,
-      prodesFeatures: (state) => state.prodes.features,
-      showFeaturesDeter: (state) => state.deter.showFeaturesDeter,
-      deterFeatures: (state) => state.deter.features,
-      showFeaturesLandUse: (state) => state['land-use'].showFeaturesLandUse,
-      landUseFeatures: (state) => state['land-use'].features,
-      tableLandUse: (state) => state['land-use'].stats.tableLandUse,
-      supportLayerUser: (state) => state.supportLayersUser.supportLayerUser,
-      showFeaturesSupportLayers: (state) => state.supportLayers.showFeaturesSupportLayers,
-      supportLayers: (state) => state.supportLayers.supportLayers,
-      supportLayersCategoryBase: (state) => state.supportLayers.supportLayersCategoryBase,
-      showFeaturesUrgentAlerts: (state) => state['urgent-alerts'].showFeaturesUrgentAlerts,
-      layers: (state) => state.foco.layers,
-      filterOptions: (state) => state.foco.filterOptions,
-      isLoadingFeatures: (state) => state.foco.isLoadingFeatures,
-      bounds: (state) => state.map.bounds,
-
-      // monitoring
-      getMonitoringStats: (state) => state.monitoring.stats,
-      getMonitoringShowFeatures: (state) => state.monitoring.showFeaturesMonitoring,
-
-      // urgent alerts
-      getUrgentAlertsStats: (state) => state['urgent-alerts'].stats,
-      getUrgentAlertsShowFeatures: (state) => state['urgent-alerts'].showFeaturesUrgentAlert,
-
-      // land use
-      getLandUseStats: (state) => state['land-use'].stats,
-      getLandUseShowFeatures: (state) => state['land-use'].showFeaturesLandUse,
-    }),
-
-    // ...mapGetters('monitoring', ['checkStageActive']),
-    ...mapGetters({
-      getMonitoringCheckStageActives: 'monitoring/checkStageActive',
-      getUrgentAlertsCheckStageActives: 'urgent-alerts/checkStageActive',
-      getLandUseCheckStageActives: 'land-use/checkStageActive',
-    }),
-  },
-
-  watch: {
-    leafSize: {
-      handler(newSize) {
-        if (newSize && newSize.type && this.map) {
-          this.$nextTick(() => {
-            if (this.map) this.map.invalidateSize();
-            if (this.miniMap) this.miniMap.invalidateSize();
-          });
-        }
-      },
-      immediate: true,
-      deep: true,
-    },
-
-    showDialog: {
-      handler(newVal) {
-        if (newVal) {
-          this.$nextTick(() => {
-            setTimeout(() => {
-              if (this.map) this.map.invalidateSize();
-              if (this.miniMap) this.miniMap.invalidateSize();
-            }, 100);
-          });
-        }
-      },
-      immediate: true,
-    },
-
-    monitoringFeatures(newVal) {
-      if (newVal && newVal.features && newVal.features.length > 100) {
-        this.showWarningMessage = true;
-      }
-    },
-    combinedTableData(newVal) {
-      this.selectedItemsCount = newVal.length;
-      this.showWarningMessage = (this.getMonitoringShowFeatures
-      || this.showFeaturesLandUse) && newVal.length > 7;
-    },
-  },
-
-  async mounted() {
-    if (this.showDialog) {
-      this.$nextTick(() => {
-        setTimeout(() => {
-          if (this.map) this.map.invalidateSize();
-          if (this.miniMap) this.miniMap.invalidateSize();
-        }, 300);
-      });
-    }
-    let count = 0;
-    // Check monitoring TI count
-    if (
-      this.getMonitoringShowFeatures
-      && this.getMonitoringStats.tiByStages
-      && this.monitoringStatsByStages.length) {
-      count += this.getMonitoringStats.tiByStages.length;
-    }
-
-    // Check land use TI count
-    if (this.showFeaturesLandUse
-    && this.getLandUseStats.tiByStages
-    && this.landUseStatsByStages.length) {
-      count += this.getLandUseStats.tiByStages.length;
-    }
-    this.selectedItemsCount = count;
-
-    if (count > 7) this.showWarningMessage = true;
-
-    const visibleLayersCount = Object.values(this.supportLayers).filter((l) => l.visible).length;
-    if (visibleLayersCount > 0) {
-      if (visibleLayersCount > 7) {
-        this.showWarningMessage = true;
-      }
-    }
-
-    const visibleUserLayers = Object.values(this.supportLayerUser).filter(
-      (l) => l.visible,
-    ).length;
-    if (visibleUserLayers > 0) {
-      if (visibleUserLayers > 7) {
-        this.showWarningMessage = true;
-      }
-    }
-  },
-
-  methods: {
-    onMapReady(mapInstance) {
-      this.map = mapInstance;
-      this.$nextTick(() => {
-        this.map.invalidateSize();
-      });
-    },
-
-    onMiniMapReady(miniMapInstance) {
-      this.miniMap = miniMapInstance;
+    // Atualizar contagem de itens selecionados
+    updateSelectedCount() {
+      let count = 0;
       
-      if (miniMapInstance) {
-        this.miniMapCenter = miniMapInstance.getCenter();
-        this.miniMapZoom = miniMapInstance.getZoom();
+      if (this.getMonitoringShowFeatures && this.getMonitoringStats.tiByStages) {
+        count += this.getMonitoringStats.tiByStages.length;
       }
       
-      this.$nextTick(() => {
-        this.miniMap.invalidateSize();
-      });
+      if (this.showFeaturesLandUse && this.getLandUseStats.tiByStages) {
+        count += this.getLandUseStats.tiByStages.length;
+      }
+      
+      count += Object.values(this.supportLayers).filter(l => l.visible).length;
+      count += Object.values(this.supportLayerUser).filter(l => l.visible).length;
+      
+      this.selectedItemsCount = count;
+      this.showWarningMessage = count > 7;
     },
 
+    // Formatação
     formatNumber(value) {
-      let number;
-      if (typeof value === 'string') {
-        const cleanedValue = value.replace(/\./g, '').replace(',', '.');
-        number = parseFloat(cleanedValue);
-      } else {
-        number = parseFloat(value);
-      }
-
-      if (!Number.isNaN(number)) {
-        const rounded = number.toFixed(3);
-        const [intPart, decimalPart] = rounded.split('.');
-
-        return decimalPart !== '00'
-          ? `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimalPart}`
-          : String(parseInt(number, 10));
-      }
-      return '-';
+      return this.formatters.area(value);
     },
 
-    vectorImage(layer) {
-      return layer.vector.thumbnail_blob || layer.vector.image;
+    handleData(data) {
+      return this.formatters.date(data);
+    },
+
+    todayDate() {
+      return this.formatters.today();
     },
 
     handleProdesYear() {
@@ -1118,311 +890,221 @@ export default {
       return `${prodesFilters.startYear} ${this.$t('and')} ${prodesFilters.endYear}`;
     },
 
-    handleData(data) {
-      if (!data || typeof data !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
-        console.warn('Data inválida:', data);
-        return 'Data indisponível';
-      }
-      const [year, month, day] = data.split('-');
-      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+    // Mapas
+    onMapReady(mapInstance) {
+      this.map = mapInstance;
+      this.invalidateMaps();
     },
 
-    todayDate() {
-      const date = new Date();
-      const dd = date.getDate();
-      const mm = date.getMonth() + 1;
-      const yyyy = date.getFullYear();
-      return `${dd < 10 ? `0${dd}` : dd}/${mm < 10 ? `0${mm}` : mm}/${yyyy}`;
+    onMiniMapReady(miniMapInstance) {
+      this.miniMap = miniMapInstance;
+      this.invalidateMaps();
     },
 
     updateBounds(bounds) {
       this.currentBouldMap = bounds;
     },
 
-    getCenter(center) {
-      this.mapCenter = center;
-    },
-
-    getZoom(zoom) {
-      this.mainZoom = zoom;
-    },
-
-    getMapDimensions(tamanho) {
+    // Dimensões para impressão
+    getMapDimensions(size) {
       const dimensions = {
-        'A0': { width: 4409, height: 3140, columnHeight: 2800 },
-        'A1': { width: 3138, height: 2220, columnHeight: 1900 },
-        'A2': { width: 2214, height: 1570, columnHeight: 1300 },
-        'A3': { width: 1557, height: 1105, columnHeight: 900 },
-        'A4': { width: 1105, height: 770, columnHeight: 600 },
+        'A0': { width: 4409, height: 3140 },
+        'A1': { width: 3138, height: 2220 },
+        'A2': { width: 2214, height: 1570 },
+        'A3': { width: 1557, height: 1105 },
+        'A4': { width: 1105, height: 770 }
       };
-      return dimensions[tamanho] || dimensions['A4'];
+      return dimensions[size] || dimensions['A4'];
     },
 
-    getMiniMapDimensions(tamanho) {
-      switch (tamanho) {
-        case 'A0':
-          return { height: 800 };
-        case 'A1':
-          return { height: 600 };
-        case 'A2':
-          return { height: 400 };
-        case 'A3':
-          return { height: 200 };
-        case 'A4':
-          return { height: 150 };
-        default:
-          return { height: 150 };
-      }
+    getMiniMapDimensions(size) {
+      const heights = { 'A0': 800, 'A1': 600, 'A2': 400, 'A3': 200, 'A4': 150 };
+      return { height: heights[size] || 150 };
     },
 
-    getFontSizeWidth(tamanho) {
-      switch (tamanho) {
-        case 'A0':
-          return 34;
-        case 'A1':
-          return 20;
-        case 'A2':
-          return 16;
-        case 'A3':
-          return 12;
-        case 'A4':
-          return 10;
-        default:
-          return 10;
-      }
+    getFontSize(size) {
+      const sizes = { 'A0': 34, 'A1': 20, 'A2': 16, 'A3': 12, 'A4': 10 };
+      return sizes[size] || 10;
     },
 
-    resetConfigPrint() {
-      document.getElementById('map-for-print').style.width = '1105px';
-      document.getElementById('map-for-print').style.height = '770px';
-      document.getElementById('container-mini-map').style.height = '150px';
-      
-      const miniMapElement = document.getElementById('miniPrintMap');
-      if (miniMapElement) {
-        miniMapElement.style.height = '150px';
-      }
-
-      const printMiniMapText = document.getElementsByClassName('print-mini-map-text')[0];
-      if (printMiniMapText) {
-        printMiniMapText.style.fontSize = '10px';
-      }
-
-      const divDetails = document.getElementById('details-print');
-      const paragraphs = divDetails.querySelectorAll('p');
-      paragraphs.forEach((p) => {
-        p.style.fontSize = '10px';
-      });
-
-      this.$nextTick(() => {
-        if (this.map) this.map.invalidateSize();
-        if (this.miniMap && this.miniMapCenter && this.miniMapZoom) {
-          this.miniMap.setView(this.miniMapCenter, this.miniMapZoom, { animate: false });
-          this.miniMap.invalidateSize();
-        }
-      });
-      
-      this.loadingPrintPdf = false;
-      window.removeEventListener('afterprint', this.resetConfigPrint);
-    },
-
-    print() {
+    // Estado do mapa para impressão
+    saveMapState() {
       if (this.miniMap) {
-        this.miniMapCenter = this.miniMap.getCenter();
-        this.miniMapZoom = this.miniMap.getZoom();
+        this.mapCenter = this.miniMap.getCenter();
+        this.mainZoom = this.miniMap.getZoom();
       }
+    },
 
-      const mapDimensions = this.getMapDimensions(this.leafSize.type);
-      document.getElementById('map-for-print').style.width = `${mapDimensions.width}px`;
-      document.getElementById('map-for-print').style.height = `${mapDimensions.height}px`;
-      
-      const miniMapDimensions = this.getMiniMapDimensions(this.leafSize.type);
-      document.getElementById('container-mini-map').style.height = `${miniMapDimensions.height}px`;
-      
-      const miniMapElement = document.getElementById('miniPrintMap');
-      if (miniMapElement) {
-        miniMapElement.style.height = `${miniMapDimensions.height}px`;
-      }
+    applyPrintStyles() {
+      const mapEl = document.getElementById('map-for-print');
+      const dims = this.getMapDimensions(this.leafSize.type);
+      mapEl.style.width = `${dims.width}px`;
+      mapEl.style.height = `${dims.height}px`;
 
-      const fontSize = this.getFontSizeWidth(this.leafSize.type);
-      const printMiniMapText = document.getElementsByClassName('print-mini-map-text')[0];
-      if (printMiniMapText) {
-        printMiniMapText.style.fontSize = `${fontSize}px`;
-      }
+      const miniMapContainer = document.getElementById('container-mini-map');
+      const miniMapDims = this.getMiniMapDimensions(this.leafSize.type);
+      miniMapContainer.style.height = `${miniMapDims.height}px`;
 
-      const divDetails = document.getElementById('details-print');
-      const paragraphs = divDetails.querySelectorAll('p');
-      paragraphs.forEach((p) => {
-        p.style.fontSize = `${fontSize}px`;
-      });
+      const miniMapEl = document.getElementById('miniPrintMap');
+      if (miniMapEl) miniMapEl.style.height = `${miniMapDims.height}px`;
 
-      // AJUSTE ESPECÍFICO PARA A1
+      const fontSize = this.getFontSize(this.leafSize.type);
+      const printText = document.getElementsByClassName('print-mini-map-text')[0];
+      if (printText) printText.style.fontSize = `${fontSize}px`;
+
+      const details = document.getElementById('details-print');
+      details.querySelectorAll('p').forEach(p => p.style.fontSize = `${fontSize}px`);
+
+      // Ajuste específico para A1
       if (this.leafSize.type === 'A1') {
-        // Aplicar ajuste de posição para o conteúdo da coluna direita
         const rightColumn = document.querySelector('.col-4 .border-container');
-        if (rightColumn) {
-          rightColumn.style.marginTop = '-15px'; // Sobe o conteúdo em 20px
-        }
+        if (rightColumn) rightColumn.style.marginTop = '-50px';
         
-               
-        // Ajustar a altura do container de detalhes para compensar
         const detailsPrint = document.getElementById('details-print');
         if (detailsPrint) {
-          detailsPrint.style.maxHeight = '1850px'; // Um pouco menos que o padrão 1900
-          detailsPrint.style.overflow = 'hidden'; // Esconde o excesso
+          detailsPrint.style.maxHeight = '1850px';
+          detailsPrint.style.overflow = 'hidden';
         }
       }
+    },
+
+    resetPrintStyles() {
+      const mapEl = document.getElementById('map-for-print');
+      mapEl.style.width = '1105px';
+      mapEl.style.height = '770px';
+
+      const miniMapContainer = document.getElementById('container-mini-map');
+      miniMapContainer.style.height = '150px';
+
+      const miniMapEl = document.getElementById('miniPrintMap');
+      if (miniMapEl) miniMapEl.style.height = '150px';
+
+      const printText = document.getElementsByClassName('print-mini-map-text')[0];
+      if (printText) printText.style.fontSize = '10px';
+
+      const details = document.getElementById('details-print');
+      details.querySelectorAll('p').forEach(p => p.style.fontSize = '10px');
 
       if (this.map) this.map.invalidateSize();
+      if (this.miniMap && this.mapCenter && this.mainZoom) {
+        this.miniMap.setView(this.mapCenter, this.mainZoom, { animate: false });
+        this.miniMap.invalidateSize();
+      }
+
+      this.loadingPrintPdf = false;
+      window.removeEventListener('afterprint', this.resetPrintStyles);
+    },
+
+    async prepareMapsForPrint() {
+      if (this.map) this.map.invalidateSize();
+      await this.$nextTick();
       
-      this.$nextTick(() => {
-        if (this.miniMap && this.miniMapCenter && this.miniMapZoom) {
-          this.miniMap.setView(this.miniMapCenter, this.miniMapZoom, { animate: false });
-          this.miniMap.invalidateSize();
-        }
-      });
+      if (this.miniMap && this.mapCenter && this.mainZoom) {
+        this.miniMap.setView(this.mapCenter, this.mainZoom, { animate: false });
+        this.miniMap.invalidateSize();
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 200));
+    },
+
+    // Ações principais
+    async print() {
+      this.saveMapState();
+      this.applyPrintStyles();
+      await this.prepareMapsForPrint();
 
       this.loadingPrintPdf = true;
-      window.addEventListener('afterprint', this.resetConfigPrint);
-      setTimeout(() => {
-        window.print();
-      }, 2000);
+      window.addEventListener('afterprint', this.resetPrintStyles);
+      
+      setTimeout(() => window.print(), 2000);
     },
 
     async saveImage() {
       this.loadingPrintImage = true;
       const node = document.getElementById('map-for-print');
       
-      if (this.miniMap) {
-        this.miniMapCenter = this.miniMap.getCenter();
-        this.miniMapZoom = this.miniMap.getZoom();
-      }
-      
+      this.saveMapState();
       const originalWidth = node.style.width;
       const originalHeight = node.style.height;
       
-      const mapDimensions = this.getMapDimensions(this.leafSize.type);
-      node.style.width = `${mapDimensions.width}px`;
-      node.style.height = `${mapDimensions.height}px`;
+      this.applyPrintStyles();
 
+      // Prepara elementos para captura
       const mapBounds = document.getElementsByClassName('leaflet-control-mapbounds')[0];
       const mapControlZoom = document.getElementsByClassName('leaflet-control-zoom')[0];
       const infoControlRight = document.getElementsByClassName('leaflet-control-attribution')[1];
       const legends = document.getElementsByClassName('text-legend-customized');
-      const originalLegends = [];
+      const originalLegendStyles = [];
 
-      const originalStyle = infoControlRight?.getAttribute('style');
       if (infoControlRight) {
         const currentWidth = parseFloat(window.getComputedStyle(infoControlRight).width);
         infoControlRight.style.width = `${currentWidth + 30}px`;
       }
 
+      if (mapControlZoom) mapControlZoom.style.display = 'none';
+      if (mapBounds) mapBounds.style.width = '250px';
+
+      Array.from(legends).forEach(legend => {
+        originalLegendStyles.push(legend.style.width);
+        legend.style.width = `${Math.min(150, this.getMapDimensions(this.leafSize.type).width * 0.12)}px`;
+      });
+
+      await this.prepareMapsForPrint();
+
       try {
-        const nameImageDownload = this.mapTitle;
-
-        if (mapControlZoom) mapControlZoom.style.display = 'none';
-        if (mapBounds) mapBounds.style.width = '250px';
-
-        if (legends && legends.length > 0) {
-          Array.from(legends).forEach((legend) => {
-            originalLegends.push(legend.style.width);
-            const legendWidth = Math.min(150, mapDimensions.width * 0.12);
-            legend.style.width = `${legendWidth}px`;
-          });
-        }
-
-        if (this.map) this.map.invalidateSize();
-
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        if (this.miniMap && this.miniMapCenter && this.miniMapZoom) {
-          this.miniMap.setView(this.miniMapCenter, this.miniMapZoom, { animate: false });
-          this.miniMap.invalidateSize();
-          
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
-
+        const dims = this.getMapDimensions(this.leafSize.type);
         const options = {
           quality: 1,
           bgcolor: 'white',
-          width: mapDimensions.width,
-          height: mapDimensions.height,
-          style: {
-            transform: 'scale(1)',
-            transformOrigin: 'top left',
-          },
+          width: dims.width,
+          height: dims.height,
+          style: { transform: 'scale(1)', transformOrigin: 'top left' },
           filter: (node) => {
             const excludeClasses = ['no-print', 'print-dialog-header', 'print-dialog-footer'];
-            const hasExcludeClass = excludeClasses.some(className =>
-              node.classList && node.classList.contains(className));
-            return !hasExcludeClass;
+            return !excludeClasses.some(cls => node.classList?.contains(cls));
           },
           scrollX: 0,
           scrollY: 0,
           imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+          ...(this.leafSize.type === 'A0' || this.leafSize.type === 'A1' ? {
+            cacheBust: true,
+            imageTimeout: 30000
+          } : {})
         };
 
-        if (infoControlRight) {
-          infoControlRight.setAttribute('style', 'width: 304px');
-        }
-
-        if (this.leafSize.type === 'A0' || this.leafSize.type === 'A1') {
-          options.cacheBust = true;
-          options.imageTimeout = 30000;
-        }
-
         const image = await domtoimage.toJpeg(node, options);
-
+        
         const link = document.createElement('a');
         link.href = image;
-        link.download = nameImageDownload ? `${nameImageDownload}.jpeg` : 'Mapa.jpeg';
+        link.download = this.mapTitle ? `${this.mapTitle}.jpeg` : 'Mapa.jpeg';
         link.click();
 
-        this.loadingPrintImage = false;
       } catch (error) {
         console.error('Erro ao gerar imagem:', error);
-
+        
         if (this.leafSize.type === 'A0' || this.leafSize.type === 'A1') {
-          await this.tryAlternativeImageSave();
+          this.$emit('show-error', 'O tamanho selecionado é muito grande. Tente um tamanho menor.');
         } else {
           this.$emit('show-error', 'Ocorreu um erro ao gerar a imagem.');
-          this.loadingPrintImage = false;
         }
       } finally {
+        // Restaura estilos originais
         node.style.width = originalWidth;
         node.style.height = originalHeight;
         
-        if (infoControlRight) {
-          infoControlRight.setAttribute('style', originalStyle || 'width: auto');
-        }
+        if (infoControlRight) infoControlRight.style.width = 'auto';
         if (mapBounds) mapBounds.style.width = 'auto';
         if (mapControlZoom) mapControlZoom.style.display = 'block';
         
-        if (originalLegends && originalLegends.length > 0) {
-          Array.from(legends).forEach((legend, index) => {
-            legend.style.width = originalLegends[index];
-          });
-        }
-
-        if (this.map) this.map.invalidateSize();
-        
-        this.$nextTick(() => {
-          if (this.miniMap && this.miniMapCenter && this.miniMapZoom) {
-            this.miniMap.setView(this.miniMapCenter, this.miniMapZoom, { animate: false });
-            this.miniMap.invalidateSize();
-          }
+        Array.from(legends).forEach((legend, i) => {
+          legend.style.width = originalLegendStyles[i];
         });
+
+        this.loadingPrintImage = false;
+        this.invalidateMaps();
       }
-    },
-
-    async tryAlternativeImageSave() {
-      this.loadingPrintImage = false;
-      this.$emit('show-error', 'O tamanho selecionado é muito grande. Tente um tamanho menor.');
-    },
-
-    ...mapActions('monitoring', ['getDataTableMonitoring']),
-    ...mapActions('land-use', ['getDataTableLandUse']),
-    ...mapActions('urgent-alerts', ['getDataTableAlerts']),
-  },
+    }
+  }
 };
 </script>
 
@@ -1467,186 +1149,178 @@ export default {
 }
 
 #monitoring-data-details {
-    position: relative;
+  position: relative;
 }
 
 #data-table {
-    position: absolute;
-    right: 0.5rem;
-    bottom: 1.5rem;
-    display: flex;
-    flex-wrap: wrap-reverse;
-    justify-content: flex-start;
-    flex-direction: column;
-    max-height: 760px;
-    gap: 0.5rem;
+  position: absolute;
+  right: 0.5rem;
+  bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-start;
+  flex-direction: column;
+  max-height: 760px;
+  gap: 0.5rem;
 }
 
 .bordered-red,
 .bordered-blue {
-    padding: 10px;
-    border-radius: 5px;
+  padding: 10px;
+  border-radius: 5px;
+  background: #fffbfb;
+  opacity: 0.9;
 }
 
 .bordered-red {
-    border: 2px solid red;
+  border: 2px solid red;
 }
 
 .bordered-blue {
-    border: 2px solid blue;
-}
-
-.bordered-black {
-    border: 2px solid black;
-}
-
-#data-table > div {
-    background: #fffbfb;
-    opacity: 0.9;
-    padding: 5px;
+  border: 2px solid blue;
 }
 
 .map-wrapper {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .vue-leaflet-map {
-    height: 100% !important;
-    width: 100% !important;
+  height: 100% !important;
+  width: 100% !important;
 }
 
 .legend-info-map {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 60%;
-    padding-bottom: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 60%;
+  padding-bottom: 5px;
 }
 
 .legend-info-map-details {
-    height: 100%;
+  height: 100%;
 }
 
 @page {
-    size: landscape;
-    margin: 0;
+  size: landscape;
+  margin: 0;
 }
 
 @media print {
-    @page {
-        size: landscape;
-        margin: 0;
-    }
+  @page {
+    size: landscape;
+    margin: 0;
+  }
 
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 
-    .print-dialog-header,
-    .print-dialog-footer {
-        display: none !important;
-    }
+  .print-dialog-header,
+  .print-dialog-footer {
+    display: none !important;
+  }
 
-    .content-scroll-container {
-        max-height: none !important;
-        overflow: visible !important;
-    }
+  .content-scroll-container {
+    max-height: none !important;
+    overflow: visible !important;
+  }
 
-    .logo,
-    .legend-item {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
+  .logo,
+  .legend-item {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 
-    .container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100% !important;
-        overflow: hidden !important;
-        box-shadow: none;
-    }
+  .container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100% !important;
+    overflow: hidden !important;
+    box-shadow: none;
+  }
 
-    .no-print {
-        display: none;
-    }
+  .no-print {
+    display: none;
+  }
 
-    .v-icon {
-        color: inherit !important;
-    }
+  .v-icon {
+    color: inherit !important;
+  }
 }
 
 p {
-    font-size: 10px;
-    margin: 0;
+  font-size: 10px;
+  margin: 0;
 }
 
 .font-title {
-    line-break: anywhere;
-    width: 100%;
+  line-break: anywhere;
+  width: 100%;
 }
 
 .font-title p {
-    font-size: 10px;
-    margin: 0px;
-    padding: 0px;
-    text-align: center;
-    max-width: 750px;
-    font-family: 'Roboto', sans-serif;
-    text-transform: uppercase;
-    font-weight: 700;
-    color: #6c757d;
+  font-size: 10px;
+  margin: 0px;
+  padding: 0px;
+  text-align: center;
+  max-width: 750px;
+  font-family: 'Roboto', sans-serif;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #6c757d;
 }
 
 .print-mini-map-text {
-    color: dimgray !important;
-    font-size: 10px;
-    white-space: nowrap;
+  color: dimgray !important;
+  font-size: 10px;
+  white-space: nowrap;
 }
 
 .border_container_legend {
-    border: 0.5px gray;
-    background: #fff;
-    border-radius: 5px;
-    box-shadow: 0 0 5px #bbb !important;
-    height: 100%;
+  border: 0.5px gray;
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 5px #bbb !important;
+  height: 100%;
 }
 
 .border-container {
-    height: 100%;
+  height: 100%;
 }
 
 .height-container-mini-map {
-    height: 150px;
-    width: 100%;
+  height: 150px;
+  width: 100%;
 }
 
 .font-page p {
-    font-size: large;
+  font-size: large;
 }
 
 .image-container {
-    width: 100%;
+  width: 100%;
 }
 
 .row {
-    margin: 0 !important;
+  margin: 0 !important;
 }
 
 img.layer-thumbnail {
-    width: 25px;
+  width: 25px;
 }
 
 .warning-message {
-    position: absolute;
-    max-width: 350px;
-    top: 35%;
-    left: 30%;
-    z-index: 20;
-    background: #ffffff;
+  position: absolute;
+  max-width: 350px;
+  top: 35%;
+  left: 30%;
+  z-index: 20;
+  background: #ffffff;
 }
 
 :deep(.v-chip) {
@@ -1656,8 +1330,8 @@ img.layer-thumbnail {
 }
 
 @media (max-width: 600px) {
-    :deep(.v-dialog) {
-        background-color: #fff !important;
-    }
+  :deep(.v-dialog) {
+    background-color: #fff !important;
+  }
 }
 </style>
