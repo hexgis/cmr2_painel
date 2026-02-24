@@ -182,7 +182,11 @@
     "pageText": "{0}-{1} of {2}",
     "noDataText": "No data available",
     "loadingText": "Loading items...",
-    "download-csv": "Download CSV"
+    "download-csv": "Download CSV",
+    "description-label-3": "Due to technical limitations, the generated table has a maximum limit of 10,000 features. The query performed generated a higher number of polygons, so it is possible that not all polygons will be available in the generated file.",
+    "description-label-4": "If you need to download the complete data, please contact the CMR team through the Contact Us on the platform or by email ",
+    "cancel": "Cancel",
+    "download-label": "Download"
   },
   "pt-br": {
     "confirm-dialog-title": "Atenção",
@@ -194,7 +198,11 @@
     "pageText": "{0}-{1} de {2}",
     "noDataText": "Nenhum dado disponível",
     "loadingText": "Carregando itens...",
-    "download-csv": "Baixar CSV"
+    "download-csv": "Baixar CSV",
+    "description-label-3": "Devido a limitações técnicas, a tabela gerada possui o limite máximo de 10.000 feições. A consulta efetuada gerou um número superior de polígonos, de forma que é possível nem todos os polígonos estarão disponíveis no arquivo gerado.",
+    "description-label-4": "Em caso de necessidade de download dos dados completos, entre em contato com a equipe da CMR por meio do Fale Conosco na plataforma ou pelo e-mail ",
+    "cancel": "Cancelar",
+    "download-label": "Baixar"
   }
 }
 </i18n>

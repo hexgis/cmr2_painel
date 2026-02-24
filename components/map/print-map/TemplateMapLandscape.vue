@@ -115,7 +115,7 @@
                     v-if="currentBouldMap"
                     :current-bould-map="currentBouldMap"
                     :map-center="mapCenter"
-                    :main-zoom="mainZoom"
+                    :main-zoom="miniMapZoom"
                     :leaf-size="leafSize"
                     @ready="onMiniMapReady"
                   />
@@ -147,10 +147,76 @@
                             />
                           </div>
 
+                          <div v-if="showFeaturesProdes">
+                          <p>
+                            <strong>INPE - Prodes</strong>
+                          </p>
+                          <hr
+                            style="
+                                border: 1px solid blue;
+                                margin: 0;
+                                margin-top: 3px;
+                            "
+                          >
+                          <CustomizedLegend
+                            class="pt-1"
+                            :items="prodesItems"
+                          />
+                          </div>
+
+                          <div v-if="showFeaturesDeter">
+                            <p>
+                              <strong>INPE - Deter</strong>
+                            </p>
+                            <hr
+                              style="
+                                  border: 1px solid blue;
+                                  margin: 0;
+                                  margin-top: 3px;
+                              "
+                            >
+                            <CustomizedLegend
+                              class="pt-1"
+                              :items="deterItems"
+                            />
+                          </div>
+
+                          <div
+                            v-if="showFeaturesAquaMM || showFeaturesAquaMT"
+                          >
+                            <p>
+                              <strong>INPE - Focos de Calor</strong>
+                            </p>
+                            <hr
+                              style="
+                                  border: 1px solid blue;
+                                  margin: 0;
+                                  margin-top: 3px;
+                              "
+                            >
+                            <CustomizedLegend
+                              class="pt-1"
+                              :items="
+                                heatFocusItems.filter(
+                                  (item) =>
+                                    (item.label ===
+                                      'Aqua Modis Manhã' &&
+                                      showFeaturesAquaMM) ||
+                                    (item.label ===
+                                      'Aqua Modis Tarde' &&
+                                      showFeaturesAquaMT)
+                                )
+                              "
+                            />
+                          </div>
+
+                          
+                      
+
                           <!-- Camadas de Suporte -->
                           <div v-if="hasVisibleSupportLayers">
                             <p style="min-width: 120px; max-width: 500px;">
-                              <strong>Sobreposição de camadas</strong>
+                              <strong>{{ $t('support-layers') }}</strong>
                             </p>
                             <hr style="border: 1px solid blue; margin: 3px 0">
                             <LayerList
@@ -170,15 +236,15 @@
                     <!-- Bases Cartográficas -->
                     <div v-if="hasCartographicDatasets">
                       <v-divider />
-                      <p class="d-block ma-1">Bases Cartográficas:</p>
+                      <p class="d-block ma-1">{{ $t('cartographic-datasets') }}</p>
                       <div v-for="layerCategory in layerCategories" :key="layerCategory.name">
                         <div v-for="layer in layerCategory.layers" :key="layer.id">
                           <v-row v-if="layer.visible" no-gutters align="center" class="image-container">
                             <v-col>
                               <p class="ml-1">
                                 <strong>{{ layer.name || '-' }}.</strong>
-                                Fonte:{{ layer.fonte || '-' }}, 
-                                Data de atualização: {{ handleData(layer.dt_atualizacao) }}.
+                                {{ $t('source') }}:{{ layer.fonte || '-' }}, 
+                                {{ $t('update-date') }}: {{ handleData(layer.dt_atualizacao) }}.
                               </p>
                             </v-col>
                           </v-row>
@@ -217,7 +283,7 @@
       <div class="print-dialog-footer no-print fixed-footer">
         <div class="d-flex align-center pa-4">
           <v-btn class="ml-2" @click="$emit('back')">
-            {{ $t('input-button-back-second-step') }}
+            {{ $t('back') }}
           </v-btn>
           <v-spacer />
           <v-btn
@@ -238,7 +304,7 @@
             @click="print"
           >
             <v-icon dark>mdi-file-export-outline</v-icon>
-            {{ $t('input-button-pdf-image') }}
+            {{ $t('generate-pdf') }}
           </v-btn>
         </div>
       </div>
@@ -251,12 +317,16 @@
   "en": {
     "print-out": "Print Out",
     "legend": "Legend:",
-    "text-address0": " | Print date: ",
+    "support-layers": "Layer Overlay",
+    "cartographic-datasets": "Cartographic Datasets:",
+    "source": "Source",
+    "update-date": "Update date",
+    "text-address0": " | REMOTE MONITORING CENTER - https://cmr.funai.gov.br ",
     "text-address": " | Print date: ",
     "text-info": "The information may be distorted depending on the cartographic bases used.",
     "text-format": "Format-adapted map template ",
-    "input-button-back-second-step": "Back",
-    "input-button-pdf-image": "Generate PDF",
+    "back": "Back",
+    "generate-pdf": "Generate PDF",
     "download-image": "Download Image",
     "author-label": "Author: ",
     "clear-cut": "Clear Cut",
@@ -269,27 +339,31 @@
     "deforestation-cr": "Deforestation Cr",
     "geometric-cs": "Geometric Cs",
     "mining": "Mining",
-    "land-use-print-label": "Year usage and occupancy data",
-    "monitoring-print-label": "Daily Monitoring Data between",
-    "alerts-print-label": "Daily Urgent Alerts Data between",
-    "and": "and",
+    "land-use-print-label": "Year usage and occupancy data: ",
+    "monitoring-print-label": "Daily Monitoring Data between ",
+    "alerts-print-label": "Daily Urgent Alerts Data between ",
+    "and": " and ",
     "warning-message": "The number of selected TIs exceeds the limit for display on the print map. Only deforestation polygons will be shown. To view the statistics, reduce the selected TIs or access the 'Statistics' menu.",
     "agree": "I agree",
-    "prodes-print-label": "Prodes data between",
-    "deter-print-label": "Deter data between",
-    "heat-focus-print-label": "Heat focus data between",
+    "prodes-print-label": "Prodes data between ",
+    "deter-print-label": "Deter data between ",
+    "heat-focus-print-label": "Heat focus data between ",
     "aqua-morning": "Aqua Modis Morning",
     "aqua-afternoon": "Aqua Modis Afternoon"
   },
   "pt-br": {
     "print-out": "Impressão",
     "legend": "Legenda:",
+    "support-layers": "Sobreposição de camadas",
+    "cartographic-datasets": "Bases Cartográficas:",
+    "source": "Fonte",
+    "update-date": "Data de atualização",
     "text-address0": " | CENTRO DE MONITORAMENTO REMOTO - https://cmr.funai.gov.br ",
     "text-address": " | Data da impressão: ",
     "text-info": "As informações podem apresentar distorções em função das bases cartográficas utilizadas.",
     "text-format": "Modelo de mapa adaptado para formato ",
-    "input-button-back-second-step": "Voltar",
-    "input-button-pdf-image": "Gerar PDF",
+    "back": "Voltar",
+    "generate-pdf": "Gerar PDF",
     "download-image": "Baixar Imagem",
     "author-label": "Autor: ",
     "clear-cut": "Corte Raso",
@@ -302,15 +376,15 @@
     "deforestation-cr": "Desmatamento Cr",
     "geometric-cs": "Cs Geométrico",
     "mining": "Mineração",
-    "land-use-print-label": "Dados de Uso e Ocupação ano",
-    "monitoring-print-label": "Dados de Monitoramento Diário entre",
-    "alerts-print-label": "Dados de Alertas Urgente entre",
-    "and": "e",
+    "land-use-print-label": "Dados de Uso e Ocupação ano: ",
+    "monitoring-print-label": "Dados de Monitoramento Diário entre ",
+    "alerts-print-label": "Dados de Alertas Urgente entre ",
+    "and": " e ",
     "warning-message": "O número de TIs selecionadas excede o limite para visualização no mapa de impressão. Apenas os polígonos de desmatamento serão exibidos. Para ver as estatísticas, reduza as TIs selecionadas ou acesse o menu 'Estatísticas'.",
     "agree": "Ciente",
-    "prodes-print-label": "Dados Prodes entre",
-    "deter-print-label": "Dados Deter entre",
-    "heat-focus-print-label": "Dados de Focos de Calor entre",
+    "prodes-print-label": "Dados Prodes entre ",
+    "deter-print-label": "Dados Deter entre ",
+    "heat-focus-print-label": "Dados de Focos de Calor entre ",
     "aqua-morning": "Aqua Modis Manhã",
     "aqua-afternoon": "Aqua Modis Tarde"
   }
@@ -399,7 +473,10 @@ export default {
   }),
 
   computed: {
-    // Estados Vuex agrupados
+    miniMapZoom() {
+      return this.mainZoom ? this.mainZoom + 2 : null;
+    },
+
     ...mapState({
       monitoringState: state => state.monitoring,
       alertsState: state => state['urgent-alerts'],
@@ -411,14 +488,16 @@ export default {
       supportUserState: state => state.supportLayersUser,
     }),
 
-    // Getters específicos
     ...mapGetters({
       checkMonitoringStage: 'monitoring/checkStageActive',
       checkAlertsStage: 'urgent-alerts/checkStageActive',
       checkLandUseStage: 'land-use/checkStageActive',
+      monitoringItems: 'monitoring/getActiveLegendItems',
+      alertsItems: 'urgent-alerts/getLegendItems',
+      landUseItems: 'land-use/getActiveLegendItems',
+      prodesItems: 'prodes/getLegendItems',
     }),
 
-    // Computed derivadas dos estados
     monitoringFilters() {
       const { stats, filters } = this.monitoringState;
       if (!stats?.currentTab) return null;
@@ -506,23 +585,16 @@ export default {
       return this.alertsState?.tableAlerts || [];
     },
 
-    prodesItems() {
-      return this.$store.getters['prodes/getLegendItems'] || [];
-    },
-
-    // Tipos de estatísticas disponíveis
     statsTypes() {
       return ['monitoring', 'alerts', 'landUse'];
     },
 
-    // Verifica se só alertas estão ativos
     showOnlyAlerts() {
       return this.getUrgentAlertsShowFeatures && 
              !this.getMonitoringShowFeatures && 
              !this.showFeaturesLandUse;
     },
 
-    // Verifica se há camadas de suporte visíveis
     hasVisibleSupportLayers() {
       const supportCount = Object.values(this.supportLayers).filter(l => l.visible).length;
       const userCount = Object.values(this.supportLayerUser).filter(l => l.visible).length;
@@ -532,7 +604,6 @@ export default {
              userCount <= 7;
     },
 
-    // Seções de legenda dinâmicas
     legendSections() {
       const sections = [];
       
@@ -566,40 +637,14 @@ export default {
         });
       }
 
-      if (this.showFeaturesProdes) {
-        sections.push({
-          key: 'prodes',
-          title: 'INPE - Prodes',
-          items: this.prodesItems,
-          borderColor: 'blue'
-        });
-      }
+     
 
-      if (this.showFeaturesDeter) {
-        sections.push({
-          key: 'deter',
-          title: 'INPE - Deter',
-          items: this.deterItems,
-          borderColor: 'blue'
-        });
-      }
-
-      if (this.showFeaturesAquaMM || this.showFeaturesAquaMT) {
-        sections.push({
-          key: 'aqua',
-          title: 'INPE - Focos de Calor',
-          items: this.heatFocusItems.filter(item => 
-            (item.label === 'Aqua Modis Manhã' && this.showFeaturesAquaMM) ||
-            (item.label === 'Aqua Modis Tarde' && this.showFeaturesAquaMT)
-          ),
-          borderColor: 'blue'
-        });
-      }
+     
+      
 
       return sections;
     },
 
-    // Períodos dos dados para exibição
     dataPeriods() {
       const periods = [];
       
@@ -678,7 +723,6 @@ export default {
       return [...new Set(this.tableLandUse.map(item => item.nu_ano))];
     },
 
-    // Parse de área
     parseArea() {
       return (value) => {
         if (!value) return 0;
@@ -687,7 +731,6 @@ export default {
       };
     },
 
-    // Mapa de áreas do analytics
     analyticsAreaMap() {
       return (this.analyticsData || [])
         .filter(item => item.no_ti)
@@ -735,12 +778,10 @@ export default {
   },
 
   methods: {
-    // ...mapActions
     ...mapActions('monitoring', ['getDataTableMonitoring']),
     ...mapActions('land-use', ['getDataTableLandUse']),
     ...mapActions('urgent-alerts', ['getDataTableAlerts']),
 
-    // Handlers de resize
     handleResize() {
       this.isSmallScreen = window.innerWidth < 768;
     },
@@ -751,7 +792,6 @@ export default {
       });
     },
 
-    // Verificações de visibilidade
     hasVisibleFeatures(type) {
       const checks = {
         monitoring: this.getMonitoringShowFeatures && this.getMonitoringStats.stages?.some(s => s.visible),
@@ -781,7 +821,6 @@ export default {
       }[type] || 'black';
     },
 
-    // Estatísticas por tipo
     getStatsByType(type) {
       const statsMap = {
         monitoring: this.getMonitoringStats,
@@ -803,7 +842,6 @@ export default {
       })).filter(ti => ti.stages.length > 0);
     },
 
-    // Dados combinados para tabela
     combinedTableData() {
       const keys = {
         monitoring: ['cr_ha', 'dg_ha', 'dr_ha', 'ff_ha'],
@@ -849,7 +887,6 @@ export default {
       return Object.values(combined);
     },
 
-    // Atualizar contagem de itens selecionados
     updateSelectedCount() {
       let count = 0;
       
@@ -868,7 +905,6 @@ export default {
       this.showWarningMessage = count > 7;
     },
 
-    // Formatação
     formatNumber(value) {
       return this.formatters.area(value);
     },
@@ -890,7 +926,6 @@ export default {
       return `${prodesFilters.startYear} ${this.$t('and')} ${prodesFilters.endYear}`;
     },
 
-    // Mapas
     onMapReady(mapInstance) {
       this.map = mapInstance;
       this.invalidateMaps();
@@ -905,7 +940,6 @@ export default {
       this.currentBouldMap = bounds;
     },
 
-    // Dimensões para impressão
     getMapDimensions(size) {
       const dimensions = {
         'A0': { width: 4409, height: 3140 },
@@ -927,7 +961,6 @@ export default {
       return sizes[size] || 10;
     },
 
-    // Estado do mapa para impressão
     saveMapState() {
       if (this.miniMap) {
         this.mapCenter = this.miniMap.getCenter();
@@ -949,13 +982,16 @@ export default {
       if (miniMapEl) miniMapEl.style.height = `${miniMapDims.height}px`;
 
       const fontSize = this.getFontSize(this.leafSize.type);
+
+      const titleElements = document.querySelectorAll('.font-title p');
+      titleElements.forEach(p => p.style.fontSize = `${fontSize}px`);
+      
       const printText = document.getElementsByClassName('print-mini-map-text')[0];
       if (printText) printText.style.fontSize = `${fontSize}px`;
 
       const details = document.getElementById('details-print');
       details.querySelectorAll('p').forEach(p => p.style.fontSize = `${fontSize}px`);
-
-      // Ajuste específico para A1
+     
       if (this.leafSize.type === 'A1') {
         const rightColumn = document.querySelector('.col-4 .border-container');
         if (rightColumn) rightColumn.style.marginTop = '-50px';
@@ -982,6 +1018,9 @@ export default {
       const printText = document.getElementsByClassName('print-mini-map-text')[0];
       if (printText) printText.style.fontSize = '10px';
 
+      const titleElements = document.querySelectorAll('.font-title p');
+      titleElements.forEach(p => p.style.fontSize = '10px');
+
       const details = document.getElementById('details-print');
       details.querySelectorAll('p').forEach(p => p.style.fontSize = '10px');
 
@@ -1007,7 +1046,6 @@ export default {
       await new Promise(resolve => setTimeout(resolve, 200));
     },
 
-    // Ações principais
     async print() {
       this.saveMapState();
       this.applyPrintStyles();
@@ -1029,7 +1067,6 @@ export default {
       
       this.applyPrintStyles();
 
-      // Prepara elementos para captura
       const mapBounds = document.getElementsByClassName('leaflet-control-mapbounds')[0];
       const mapControlZoom = document.getElementsByClassName('leaflet-control-zoom')[0];
       const infoControlRight = document.getElementsByClassName('leaflet-control-attribution')[1];
@@ -1088,7 +1125,6 @@ export default {
           this.$emit('show-error', 'Ocorreu um erro ao gerar a imagem.');
         }
       } finally {
-        // Restaura estilos originais
         node.style.width = originalWidth;
         node.style.height = originalHeight;
         
@@ -1268,7 +1304,6 @@ p {
   margin: 0px;
   padding: 0px;
   text-align: center;
-  max-width: 750px;
   font-family: 'Roboto', sans-serif;
   text-transform: uppercase;
   font-weight: 700;
