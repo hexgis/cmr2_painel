@@ -2,7 +2,7 @@
   <v-col class="grey--text text--darken-2 pa-0 pb-0">
     <div>
       <v-row
-        v-for="(item, index) in items"
+        v-for="(item, index) in normalizedItems"
         :key="index"
         class="align-center"
       >
@@ -28,7 +28,7 @@
           }"
         />
         <p class="text-legend-customized">
-          {{ isYear(item.name) ? item.name : $t(resolveLabel(item.name)) }}
+          {{ displayText(item) }}
         </p>
       </v-row>
     </div>
@@ -80,12 +80,55 @@ export default {
     };
   },
 
+  computed: {
+    normalizedItems() {
+      return (this.items || []).map(item => {
+        if (typeof item === 'string') {
+          return {
+            name: item,
+            color: '#000000',
+            border: 'none',
+          };
+        }
+
+        if (!item.name && item.label) {
+          return {
+            ...item,
+            name: item.label,
+          };
+        }
+
+        if (!item.name && !item.label) {
+          return {
+            ...item,
+            name: 'Item sem nome',
+          };
+        }
+
+        return item;
+      });
+    },
+  },
+
   methods: {
     isYear(label) {
       return /^\d{4}$/.test(label);
     },
+
+    displayText(item) {
+      const text = item.name || '';
+
+      if (this.isYear(text)) {
+        return text;
+      }
+      return this.$t(this.resolveLabel(text));
+    },
+
     resolveLabel(label) {
-      // Remove possíveis espaços extras
+      if (!label) {
+        console.warn('Label is undefined or null');
+        return '';
+      }
       const trimmedLabel = label.trim();
 
       // Verifica se a chave existe no mapeamento

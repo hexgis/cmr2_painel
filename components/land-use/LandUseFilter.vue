@@ -117,7 +117,8 @@
     "end-date": "End Date",
     "search-label": "Search",
     "cycle-label": "Cycle",
-    "data-label": "Date"
+    "data-label": "Date",
+    "year": "Year"
   },
   "pt-br": {
     "invalid-date": "Data inválida",
@@ -131,7 +132,8 @@
     "end-date": "Data Final",
     "search-label": "Buscar",
     "cycle-label": "Ciclo",
-    "data-label": "Data"
+    "data-label": "Data",
+    "year": "Ano"
   }
 }
 </i18n>

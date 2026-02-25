@@ -10,6 +10,7 @@
       <l-tile-layer
         url="//{s}.tile.osm.org/{z}/{x}/{y}.png"
         :attribution="attribution"
+        :options="{ noWrap: true }"
       />
       <l-control
         position="topleft"
@@ -17,7 +18,7 @@
       >
         <p
           class="ma-1 px-1 print-mini-map-text text-center"
-          style="background-color: white; opacity: 0.7; width: 150px;"
+          style="background-color: white; opacity: 0.7; min-width: 150px; max-width: 500px;"
         >
           LOCALIZAÇÃO DA ÁREA
         </p>
@@ -97,9 +98,41 @@ export default {
   },
 
   methods: {
+    setMinZoomToFitContainer() {
+      if (!this.miniMap) return;
+      
+      this.$nextTick(() => {
+        try {
+          const mapContainer = this.miniMap.getContainer();
+          if (!mapContainer) return;
+
+          const containerWidth = mapContainer.offsetWidth;
+          const containerHeight = mapContainer.offsetHeight;
+
+          const worldWidth = 256;
+          const zoomLevelForWidth = Math.log2(containerWidth / worldWidth);
+          const zoomLevelForHeight = Math.log2(containerHeight / worldWidth);
+          
+          const minZoom = Math.ceil(Math.max(zoomLevelForWidth, zoomLevelForHeight));
+          
+          this.miniMap.setMinZoom(Math.max(0, minZoom));
+          
+          if (this.miniMap.getZoom() < minZoom) {
+            this.miniMap.setZoom(minZoom);
+          }
+        } catch (error) {
+          console.warn('Erro ao calcular zoom mínimo do minimapa:', error);
+          this.miniMap.setMinZoom(1);
+        }
+      });
+    },
+
     createMap() {
       this.miniMap = this.$refs.miniPrintMap.mapObject;
       this.$emit('ready', this.miniMap);
+      
+      this.setMinZoomToFitContainer();
+      
       this.aimingRect = this.$L.rectangle(this.currentBouldMap, {
         color: '#e31a1c',
         weight: 3,
@@ -121,6 +154,7 @@ export default {
     updateMiniMapView() {
       if (!this.miniMap) return;
 
+      this.setMinZoomToFitContainer();
       const targetZoom = this.computeMiniZoom();
 
       if (this.currentBouldMap) {
@@ -149,24 +183,28 @@ export default {
     height: 100% !important;
     border: 1px solid #ccc;
     border-radius: 4px;
-    overflow: hidden;
+    overflow: hidden !important;
 }
 
 #printMap{
     width: 100% !important;
     height: 100% !important;
+    overflow: hidden !important;
 }
 
 .leaflet-container{
     width: 100% !important;
     height: 100% !important;
     background: white !important;
+    background-repeat: no-repeat !important;
+    overflow: hidden !important;
 }
 
 #miniPrintMap {
     width: 100% !important;
     height: 100% !important;
     min-height: 150px;
+    overflow: hidden !important;
 }
 
 .print-mini-map-text {
