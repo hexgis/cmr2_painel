@@ -346,24 +346,51 @@ export const actions = {
         throw new Error('Informações da camada inválidas.');
       }
       const layerName = layer.wms.geoserver_layer_name;
-      const baseUrl = rootState.map.geoserverUrl ? rootState.map.geoserverUrl.replace('ows', 'wfs') : '';
+      const baseUrl = rootState.map.geoserverUrl ? 
+        rootState.map.geoserverUrl.replace('ows', 'wfs') : '';
+      let cqlFilter = '1=1';
+      const conditions = [];
+      if (layer.filters && Array.isArray(layer.filters)) {
+        const filtersObj = {};
+        layer.filters.forEach(filterItem => {
+          Object.keys(filterItem).forEach(key => {
+            if (key !== 'type' && filterItem[key] !== null && filterItem[key] !== undefined) {
+              filtersObj[key] = filterItem[key];
+            }
+          });
+        });
+        if (filtersObj.co_cr && Array.isArray(filtersObj.co_cr) && filtersObj.co_cr.length > 0) {
+          const crValues = filtersObj.co_cr.map(cr => `'${cr}'`).join(',');
+          conditions.push(`co_cr IN (${crValues})`);
+        }
+        if (filtersObj.co_funai
+          && Array.isArray(filtersObj.co_funai)
+          && filtersObj.co_funai.length > 0) {
+          const tiValues = filtersObj.co_funai.map(ti => `'${ti}'`).join(',');
+          conditions.push(`co_funai IN (${tiValues})`);
+        }
+        if (filtersObj.start_date) {
+          const startDate = new Date(filtersObj.start_date).toISOString().split('T')[0];
+          conditions.push(`dt_cadastro >= '${startDate}'`);
+        }
+        if (filtersObj.end_date) {
+          const endDate = new Date(filtersObj.end_date).toISOString().split('T')[0];
+          conditions.push(`dt_cadastro <= '${endDate}'`);
+        }
+      }
+      if (conditions.length > 0) {
+        cqlFilter = conditions.join(' AND ');
+      }
       const params = new URLSearchParams({
         service: 'WFS',
         version: '1.1.0',
         request: 'GetFeature',
         typeName: layerName,
         outputFormat: 'application/json',
+        CQL_FILTER: cqlFilter,
+        maxFeatures: 10000,
       });
-      const map = window.mapMain;
-      const bounds = map.getBounds();
-      const bbox = [
-        bounds.getSouth(),
-        bounds.getWest(),
-        bounds.getNorth(),
-        bounds.getEast(),
-      ].join();
-
-      const url = `${baseUrl}?${params.toString()}&bbox=${bbox}`;
+      const url = `${baseUrl}?${params.toString()}`;
       const response = await this.$api.$get(url);
       const tableData = response;
 
