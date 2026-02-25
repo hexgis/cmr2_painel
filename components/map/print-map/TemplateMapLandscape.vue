@@ -30,7 +30,6 @@
               cols="8"
               class="pr-0 mt-2"
             >
-              <!-- Tabelas de Estatísticas -->
               <div
                 v-if="selectedItemsCount <= 7"
                 id="data-table"
@@ -58,8 +57,6 @@
                   </div>
                 </template>
               </div>
-
-              <!-- Warning Message -->
               <v-card
                 v-if="showWarningMessage && !showOnlyAlerts"
                 class="warning-message"
@@ -74,8 +71,6 @@
                   </v-btn>
                 </v-card-actions>
               </v-card>
-
-              <!-- Mapa Principal -->
               <MapForPrint
                 :leaf-size="leafSize"
                 :main-map="mainMap"
@@ -87,10 +82,8 @@
                 @ready="onMapReady"
               />
             </v-col>
-
             <v-col cols="4" class="pl-1 mt-2">
               <div class="border-container">
-                <!-- Logos -->
                 <div class="d-flex justify-space-between pl-8 pr-8 ga-1 align-center ma-4">
                   <div style="width: 20%">
                     <v-img contain :src="logo_funai" class="logo" />
@@ -99,14 +92,10 @@
                     <v-img contain :src="logo_cmr" class="logo" />
                   </div>
                 </div>
-
-                <!-- Título -->
                 <div class="font-title pb-2">
                   <p>{{ mapTitle }}</p>
                   <p>{{ print_title }}</p>
                 </div>
-
-                <!-- Mini Mapa -->
                 <div
                   id="container-mini-map"
                   class="d-flex justify-center height-container-mini-map"
@@ -120,19 +109,14 @@
                     @ready="onMiniMapReady"
                   />
                 </div>
-
-                <!-- Informações e Legendas -->
                 <div id="details-print" class="legend-info-map">
                   <div class="legend-info-map legend-info-map-details">
-                    <!-- Legendas Dinâmicas -->
                     <div>
                       <p v-if="hasLegend" class="d-block ma-1">
                         <strong>{{ $t('legend') }}</strong>
                       </p>
-                      
                       <div class="ma-1 flex-wrap" style="width: 100%; max-height: 100%; overflow: hidden">
                         <div style="display: flex; justify-content: flex-start; align-items: flex-start; gap: 5px">
-                          <!-- Seções de Legenda -->
                           <div v-for="section in legendSections" :key="section.key">
                             <p>
                               <strong>{{ section.title }}</strong>
@@ -146,7 +130,6 @@
                               :items="section.items"
                             />
                           </div>
-
                           <div v-if="showFeaturesProdes">
                           <p>
                             <strong>INPE - Prodes</strong>
@@ -163,7 +146,6 @@
                             :items="prodesItems"
                           />
                           </div>
-
                           <div v-if="showFeaturesDeter">
                             <p>
                               <strong>INPE - Deter</strong>
@@ -180,7 +162,6 @@
                               :items="deterItems"
                             />
                           </div>
-
                           <div
                             v-if="showFeaturesAquaMM || showFeaturesAquaMT"
                           >
@@ -209,11 +190,6 @@
                               "
                             />
                           </div>
-
-                          
-                      
-
-                          <!-- Camadas de Suporte -->
                           <div v-if="hasVisibleSupportLayers">
                             <p style="min-width: 120px; max-width: 500px;">
                               <strong>{{ $t('support-layers') }}</strong>
@@ -232,8 +208,6 @@
                         </div>
                       </div>
                     </div>
-
-                    <!-- Bases Cartográficas -->
                     <div v-if="hasCartographicDatasets">
                       <v-divider />
                       <p class="d-block ma-1">{{ $t('cartographic-datasets') }}</p>
@@ -251,13 +225,9 @@
                         </div>
                       </div>
                     </div>
-
-                    <!-- Períodos dos Dados -->
                     <div v-for="period in dataPeriods" :key="period.key" v-if="period.visible">
                       <p class="ml-1">{{ period.text }}</p>
                     </div>
-
-                    <!-- Informações de Rodapé -->
                     <div>
                       <v-divider />
                       <div class="ma-1">
@@ -278,8 +248,6 @@
           </v-row>
         </v-container>
       </div>
-
-      <!-- Footer com Botões -->
       <div class="print-dialog-footer no-print fixed-footer">
         <div class="d-flex align-center pa-4">
           <v-btn class="ml-2" @click="$emit('back')">
@@ -433,15 +401,11 @@ export default {
     loadingPrintImage: false,
     loadingPrintPdf: false,
     isSmallScreen: window.innerWidth < 768,
-    
-    // Itens de legenda fixos
     deterItems: [{ label: 'Alerta', color: '#AAAAAA', border: '1px solid #000000' }],
     heatFocusItems: [
       { label: 'Aqua Modis Manhã', color: '#FFA500', icon: 'mdi-fire' },
       { label: 'Aqua Modis Tarde', color: '#FF0000', icon: 'mdi-fire' },
     ],
-    
-    // Helpers
     formatters: {
       area: (value) => {
         if (!value) return '-';
@@ -635,12 +599,7 @@ export default {
           count: this.getLandUseStats.tiByStages?.length || 0,
           borderColor: 'blue'
         });
-      }
-
-     
-
-     
-      
+      }     
 
       return sections;
     },
